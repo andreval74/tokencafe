@@ -1,6 +1,6 @@
 # 📊 INVENTÁRIO COMPLETO - ASSETS ÚNICOS DOS REPOSITÓRIOS
 
-## 🎯 **XCAFE - ASSETS ÚNICOS A PRESERVAR**
+## 🎯 **TokenCafe - ASSETS ÚNICOS A PRESERVAR**
 
 ### **📁 Páginas HTML Principais**
 - ✅ `index2.html` → JÁ MIGRADO para `pages/index.html`
@@ -17,14 +17,14 @@
 
 ### **📁 CSS Únicos**
 - 🔄 `styles/globals.css` → Extrair variáveis para `shared/css/variables.css`
-- 🔄 `styles/xcafe-paginas.css` → Integrar em `tokencafe.css`
+- 🔄 `styles/TokenCafe-paginas.css` → Integrar em `tokencafe.css`
 
 ### **📁 JavaScript Únicos**
 - 🔄 `js/auth-manager.js` → Base para `shared/js/modules/auth-unified.js`
 - 🔄 `js/` (outros módulos) → Análise individual necessária
 
 ### **📁 Assets Visuais**
-- 🔄 `imgs/` → Migrar para `shared/assets/images/xcafe/`
+- 🔄 `imgs/` → Migrar para `shared/assets/images/TokenCafe/`
 - 🔄 `chains.json` → Configuração de blockchain
 
 ### **📁 Funcionalidades Especiais**
@@ -68,29 +68,29 @@
 ### **FASE 1: BACKUP COMPLETO** ✅
 ```bash
 # Criar backup dos repositórios originais
-cp -r ../cafe/xcafe ./backups/xcafe-original/
+cp -r ../cafe/TokenCafe ./backups/TokenCafe-original/
 cp -r ../cafe/widget ./backups/widget-original/
 ```
 
 ### **FASE 2: MIGRAÇÃO PROGRESSIVA POR PRIORIDADE**
 
 #### **🔥 ALTA PRIORIDADE (Funcionalidades Core)**
-1. **XCafe**: `js/auth-manager.js` → `auth-unified.js`
-2. **XCafe**: `styles/globals.css` → variáveis CSS
+1. **TokenCafe**: `js/auth-manager.js` → `auth-unified.js`
+2. **TokenCafe**: `styles/globals.css` → variáveis CSS
 3. **Widget**: `js/shared/template-loader.js` → sistema templates
 4. **Widget**: `server.py` endpoints → API Node.js
-5. **XCafe**: `chains.json` → configuração blockchain
+5. **TokenCafe**: `chains.json` → configuração blockchain
 
 #### **⚡ MÉDIA PRIORIDADE (Funcionalidades Específicas)**  
-1. **XCafe**: `index3.html` → página alternativa
-2. **XCafe**: `compra-token.html` → compra de tokens
+1. **TokenCafe**: `index3.html` → página alternativa
+2. **TokenCafe**: `compra-token.html` → compra de tokens
 3. **Widget**: `admin-panel.html` → painel admin
 4. **Widget**: `js/modules/` → módulos específicos
-5. **XCafe**: `translations/` → sistema i18n
+5. **TokenCafe**: `translations/` → sistema i18n
 
 #### **📋 BAIXA PRIORIDADE (Melhorias)**
-1. **XCafe**: `test-*.html` → suíte de testes
-2. **XCafe**: `debug-*.html` → ferramentas debug  
+1. **TokenCafe**: `test-*.html` → suíte de testes
+2. **TokenCafe**: `debug-*.html` → ferramentas debug  
 3. **Widget**: `test-*.html` → testes widget
 4. **Assets visuais** → imagens e ícones
 5. **Documentação** → MDs específicos

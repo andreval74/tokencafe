@@ -6,7 +6,7 @@ Write-Host "
 ║                    ☕ TOKENCAFE UNIFICADO ☕                 ║
 ║                                                              ║
 ║  🚀 Sistema completo de widgets blockchain                   ║
-║  🎯 Unificação XCafe + Widget sem perdas                     ║
+║  🎯 Unificação TokenCafe + Widget sem perdas                     ║
 ║  ☕ Tema inspirado na cultura cafeeira brasileira            ║
 ╚══════════════════════════════════════════════════════════════╝
 " -ForegroundColor Yellow

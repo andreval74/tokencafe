@@ -14,7 +14,7 @@ Nascido na capital mundial do café, o TokenCafe combina a tradição cafeeira c
 ## 🎯 **OBJETIVOS DO PROJETO**
 
 ### **Principais Metas:**
-- ✅ **Unificar** os sistemas XCafe e Widget em um ecossistema coeso
+- ✅ **Unificar** os sistemas TokenCafe e Widget em um ecossistema coeso
 - ✅ **Eliminar** duplicações de código e funcionalidades
 - ✅ **Padronizar** em Bootstrap 5 com identidade visual única
 - ✅ **Otimizar** performance e manutenibilidade
@@ -87,7 +87,7 @@ tokencafe/
 ## 📋 **ROTEIRO DE UNIFICAÇÃO**
 
 ### **FASE 1: PREPARAÇÃO E ANÁLISE** ✅
-- [x] Análise dos repositórios XCafe e Widget
+- [x] Análise dos repositórios TokenCafe e Widget
 - [x] Identificação de duplicatas e funcionalidades
 - [x] Definição da estrutura unificada
 - [x] Criação do repositório TokenCafe
@@ -177,7 +177,7 @@ npm run dev
 
 - **Domínio Futuro**: tokencafe.app
 - **Repositório**: https://github.com/andreval74/tokencafe
-- **Baseado em**: XCafe + Widget Systems
+- **Baseado em**: TokenCafe + Widget Systems
 - **Inspiração**: Cultura cafeeira brasileira
 
 ---

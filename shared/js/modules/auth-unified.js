@@ -3,7 +3,7 @@
 AUTH UNIFIED - SISTEMA DE AUTENTICAÇÃO UNIFICADO TOKENCAFE
 ================================================================================
 Unificação dos módulos:
-- XCafe: js/shared/wallet.js 
+- TokenCafe: js/shared/wallet.js 
 - Widget: js/modules/auth-manager.js + js/modules/auth-manager-optimized.js
 - Widget: js/shared/auth.js
 

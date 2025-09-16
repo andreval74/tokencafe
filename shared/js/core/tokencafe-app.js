@@ -3,7 +3,7 @@
 TOKENCAFE APP - COORDENADOR PRINCIPAL UNIFICADO
 ================================================================================
 Sistema de inicialização e coordenação do ecossistema TokenCafe
-Unificação dos sistemas XCafe + Widget com tema café
+Unificação dos sistemas TokenCafe + Widget com tema café
 Inspirado na cultura cafeeira brasileira
 ================================================================================
 */
@@ -160,7 +160,7 @@ class TokenCafeApp {
                 config: this.config
             });
             this.loadedModules.add('AuthUnified');
-            console.log('✅ AuthUnified inicializado (XCafe + Widget unified)');
+            console.log('✅ AuthUnified inicializado (TokenCafe + Widget unified)');
         }
 
         // 3. TemplateLoader - Sistema de templates unificado

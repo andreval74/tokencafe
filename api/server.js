@@ -2,7 +2,7 @@
  * ================================================================================
  * TOKENCAFE SERVER - UNIFIED API
  * ================================================================================
- * Servidor principal do TokenCafe unificando XCafe e Widget repositories
+ * Servidor principal do TokenCafe unificando TokenCafe e Widget repositories
  * Funcionalidades: API REST, WebSocket, Auth, Rate Limiting, Logging
  * ================================================================================
  */

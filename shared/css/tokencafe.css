@@ -1,13 +1,13 @@
 /*
 ==========================================================================
-xcafe - GLOBAL STYLES UNIFICADO
+TokenCafe - GLOBAL STYLES UNIFICADO
 Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
 ==========================================================================
 */
 
-/* Bootstrap 5 CSS Variables Override - xcafe Theme */
+/* Bootstrap 5 CSS Variables Override - TokenCafe Theme */
 :root {
-  /* xcafe Brand Colors */
+  /* TokenCafe Brand Colors */
   --bs-primary: #f85d23;
   --bs-primary-rgb: 248, 93, 35;
   --bs-secondary: #6b7280;
@@ -64,7 +64,7 @@ Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
   --bs-popover-bg: #1a1a1a;
   --bs-tooltip-bg: #1a1a1a;
   
-  /* xcafe Custom Variables (compatibilidade com cÃ³digo existente) */
+  /* TokenCafe Custom Variables (compatibilidade com cÃ³digo existente) */
   --primary: #f85d23;
   --primary-dark: #d97706;
   --primary-light: #fbbf24;
@@ -901,20 +901,20 @@ a, button, .btn {
 
 /*
 ==========================================================================
-XCAFE ADVANCED ANIMATIONS & EFFECTS
+TokenCafe ADVANCED ANIMATIONS & EFFECTS
 Sistema de animações reutilizáveis para todas as páginas
 ==========================================================================
 */
 
 /* Advanced Background Effects */
-.xcafe-gradient-bg {
+.TokenCafe-gradient-bg {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
 }
 
-.xcafe-gradient-bg::before {
+.TokenCafe-gradient-bg::before {
   content: '';
   position: absolute;
   top: 0;
@@ -927,26 +927,26 @@ Sistema de animações reutilizáveis para todas as páginas
 }
 
 /* Logo Effects */
-.xcafe-logo-wrapper {
+.TokenCafe-logo-wrapper {
   position: relative;
   display: inline-block;
   margin-bottom: 2rem;
 }
 
-.xcafe-logo {
+.TokenCafe-logo {
   width: 120px;
   height: 120px;
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(248, 93, 35, 0.3);
-  animation: xcafe-pulse 2s infinite;
+  animation: TokenCafe-pulse 2s infinite;
   transition: transform 0.3s ease;
 }
 
-.xcafe-logo:hover {
+.TokenCafe-logo:hover {
   transform: scale(1.1);
 }
 
-.xcafe-logo-glow {
+.TokenCafe-logo-glow {
   position: absolute;
   top: -20px;
   left: -20px;
@@ -957,11 +957,11 @@ Sistema de animações reutilizáveis para todas as páginas
   opacity: 0.2;
   filter: blur(20px);
   z-index: -1;
-  animation: xcafe-glow 3s ease-in-out infinite alternate;
+  animation: TokenCafe-glow 3s ease-in-out infinite alternate;
 }
 
 /* Text Effects */
-.xcafe-title {
+.TokenCafe-title {
   font-size: 3.5rem;
   font-weight: 800;
   background: linear-gradient(135deg, #f85d23 0%, #f59e0b 50%, #fbbf24 100%);
@@ -971,14 +971,14 @@ Sistema de animações reutilizáveis para todas as páginas
   margin-bottom: 1rem;
 }
 
-.xcafe-subtitle {
+.TokenCafe-subtitle {
   font-size: 1.8rem;
   font-weight: 600;
   color: #ffffff;
   margin-bottom: 1.5rem;
 }
 
-.xcafe-description {
+.TokenCafe-description {
   font-size: 1.2rem;
   color: #e5e7eb;
   font-weight: 400;
@@ -988,7 +988,7 @@ Sistema de animações reutilizáveis para todas as páginas
 }
 
 /* Badges and Buttons */
-.xcafe-badge {
+.TokenCafe-badge {
   background: linear-gradient(135deg, #f85d23 0%, #f59e0b 100%);
   color: #ffffff;
   padding: 0.8rem 2rem;
@@ -1005,13 +1005,13 @@ Sistema de animações reutilizáveis para todas as páginas
   align-items: center;
 }
 
-.xcafe-badge:hover {
+.TokenCafe-badge:hover {
   transform: translateY(-5px);
   box-shadow: 0 20px 40px rgba(248, 93, 35, 0.6);
 }
 
 /* Feature Cards */
-.xcafe-features {
+.TokenCafe-features {
   margin-top: 3rem;
   display: flex;
   justify-content: center;
@@ -1019,7 +1019,7 @@ Sistema de animações reutilizáveis para todas as páginas
   gap: 2rem;
 }
 
-.xcafe-feature-item {
+.TokenCafe-feature-item {
   background: rgba(248, 93, 35, 0.1);
   border: 1px solid rgba(248, 93, 35, 0.3);
   padding: 1.5rem;
@@ -1030,33 +1030,33 @@ Sistema de animações reutilizáveis para todas as páginas
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.xcafe-feature-item:hover {
+.TokenCafe-feature-item:hover {
   transform: translateY(-10px);
   box-shadow: 0 20px 40px rgba(248, 93, 35, 0.3);
   background: rgba(248, 93, 35, 0.15);
 }
 
-.xcafe-feature-icon {
+.TokenCafe-feature-icon {
   font-size: 2.5rem;
   color: #f85d23;
   margin-bottom: 1rem;
   display: block;
 }
 
-.xcafe-feature-title {
+.TokenCafe-feature-title {
   font-size: 1rem;
   font-weight: 600;
   color: #ffffff;
   margin-bottom: 0.5rem;
 }
 
-.xcafe-feature-desc {
+.TokenCafe-feature-desc {
   font-size: 0.9rem;
   color: #9ca3af;
 }
 
 /* Floating Particles Animation */
-.xcafe-particles {
+.TokenCafe-particles {
   position: fixed;
   top: 0;
   left: 0;
@@ -1066,15 +1066,15 @@ Sistema de animações reutilizáveis para todas as páginas
   pointer-events: none;
 }
 
-.xcafe-particle {
+.TokenCafe-particle {
   position: absolute;
   background: linear-gradient(135deg, #f85d23, #f59e0b);
   border-radius: 50%;
   opacity: 0.1;
-  animation: xcafe-float 6s ease-in-out infinite;
+  animation: TokenCafe-float 6s ease-in-out infinite;
 }
 
-.xcafe-particle:nth-child(1) {
+.TokenCafe-particle:nth-child(1) {
   width: 20px;
   height: 20px;
   top: 20%;
@@ -1082,7 +1082,7 @@ Sistema de animações reutilizáveis para todas as páginas
   animation-delay: 0s;
 }
 
-.xcafe-particle:nth-child(2) {
+.TokenCafe-particle:nth-child(2) {
   width: 30px;
   height: 30px;
   top: 50%;
@@ -1090,7 +1090,7 @@ Sistema de animações reutilizáveis para todas as páginas
   animation-delay: 2s;
 }
 
-.xcafe-particle:nth-child(3) {
+.TokenCafe-particle:nth-child(3) {
   width: 15px;
   height: 15px;
   top: 80%;
@@ -1098,7 +1098,7 @@ Sistema de animações reutilizáveis para todas as páginas
   animation-delay: 4s;
 }
 
-.xcafe-particle:nth-child(4) {
+.TokenCafe-particle:nth-child(4) {
   width: 25px;
   height: 25px;
   top: 30%;
@@ -1107,7 +1107,7 @@ Sistema de animações reutilizáveis para todas as páginas
 }
 
 /* Container and Layout Classes */
-.xcafe-container {
+.TokenCafe-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -1116,38 +1116,38 @@ Sistema de animações reutilizáveis para todas as páginas
   text-align: center;
 }
 
-.xcafe-content {
+.TokenCafe-content {
   position: relative;
   z-index: 2;
 }
 
 /* Animation Classes */
-.xcafe-fade-in-up {
-  animation: xcafe-fadeInUp 1s ease-out;
+.TokenCafe-fade-in-up {
+  animation: TokenCafe-fadeInUp 1s ease-out;
 }
 
-.xcafe-slide-in-left {
-  animation: xcafe-slideInLeft 1s ease-out 0.3s both;
+.TokenCafe-slide-in-left {
+  animation: TokenCafe-slideInLeft 1s ease-out 0.3s both;
 }
 
-.xcafe-slide-in-right {
-  animation: xcafe-slideInRight 1s ease-out 0.6s both;
+.TokenCafe-slide-in-right {
+  animation: TokenCafe-slideInRight 1s ease-out 0.6s both;
 }
 
-.xcafe-fade-in {
-  animation: xcafe-fadeIn 1s ease-out 0.9s both;
+.TokenCafe-fade-in {
+  animation: TokenCafe-fadeIn 1s ease-out 0.9s both;
 }
 
-.xcafe-bounce-in {
-  animation: xcafe-bounceIn 1s ease-out 1.2s both;
+.TokenCafe-bounce-in {
+  animation: TokenCafe-bounceIn 1s ease-out 1.2s both;
 }
 
-.xcafe-features-animate {
-  animation: xcafe-fadeInUp 1s ease-out 1.5s both;
+.TokenCafe-features-animate {
+  animation: TokenCafe-fadeInUp 1s ease-out 1.5s both;
 }
 
 /* Keyframe Animations */
-@keyframes xcafe-fadeInUp {
+@keyframes TokenCafe-fadeInUp {
   from {
     opacity: 0;
     transform: translateY(50px);
@@ -1158,7 +1158,7 @@ Sistema de animações reutilizáveis para todas as páginas
   }
 }
 
-@keyframes xcafe-slideInLeft {
+@keyframes TokenCafe-slideInLeft {
   from {
     opacity: 0;
     transform: translateX(-50px);
@@ -1169,7 +1169,7 @@ Sistema de animações reutilizáveis para todas as páginas
   }
 }
 
-@keyframes xcafe-slideInRight {
+@keyframes TokenCafe-slideInRight {
   from {
     opacity: 0;
     transform: translateX(50px);
@@ -1180,7 +1180,7 @@ Sistema de animações reutilizáveis para todas as páginas
   }
 }
 
-@keyframes xcafe-fadeIn {
+@keyframes TokenCafe-fadeIn {
   from {
     opacity: 0;
   }
@@ -1189,7 +1189,7 @@ Sistema de animações reutilizáveis para todas as páginas
   }
 }
 
-@keyframes xcafe-bounceIn {
+@keyframes TokenCafe-bounceIn {
   from {
     opacity: 0;
     transform: scale(0.3) translateY(50px);
@@ -1200,7 +1200,7 @@ Sistema de animações reutilizáveis para todas as páginas
   }
 }
 
-@keyframes xcafe-pulse {
+@keyframes TokenCafe-pulse {
   0% {
     box-shadow: 0 20px 60px rgba(248, 93, 35, 0.3);
   }
@@ -1212,7 +1212,7 @@ Sistema de animações reutilizáveis para todas as páginas
   }
 }
 
-@keyframes xcafe-glow {
+@keyframes TokenCafe-glow {
   from {
     opacity: 0.2;
   }
@@ -1221,7 +1221,7 @@ Sistema de animações reutilizáveis para todas as páginas
   }
 }
 
-@keyframes xcafe-float {
+@keyframes TokenCafe-float {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);
   }
@@ -1235,36 +1235,36 @@ Sistema de animações reutilizáveis para todas as páginas
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .xcafe-title {
+  .TokenCafe-title {
     font-size: 2.5rem;
   }
   
-  .xcafe-subtitle {
+  .TokenCafe-subtitle {
     font-size: 1.4rem;
   }
   
-  .xcafe-description {
+  .TokenCafe-description {
     font-size: 1rem;
     padding: 0 1rem;
   }
   
-  .xcafe-logo {
+  .TokenCafe-logo {
     width: 80px;
     height: 80px;
   }
   
-  .xcafe-features {
+  .TokenCafe-features {
     padding: 0 1rem;
   }
   
-  .xcafe-feature-item {
+  .TokenCafe-feature-item {
     max-width: 150px;
     padding: 1rem;
   }
 }
 
 /* Utility Classes for Easy Implementation */
-.xcafe-center {
+.TokenCafe-center {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1272,22 +1272,22 @@ Sistema de animações reutilizáveis para todas as páginas
   text-align: center;
 }
 
-.xcafe-text-gradient {
+.TokenCafe-text-gradient {
   background: linear-gradient(135deg, #f85d23, #f59e0b);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.xcafe-hover-lift {
+.TokenCafe-hover-lift {
   transition: transform 0.3s ease;
 }
 
-.xcafe-hover-lift:hover {
+.TokenCafe-hover-lift:hover {
   transform: translateY(-10px);
 }
 
-.xcafe-glass-effect {
+.TokenCafe-glass-effect {
   background: rgba(248, 93, 35, 0.1);
   border: 1px solid rgba(248, 93, 35, 0.3);
   backdrop-filter: blur(10px);
@@ -1687,7 +1687,7 @@ QR CODES MOBILE INTERFACE - Estilos Otimizados para Celular 2024
   right: 8px;
 }
 
-.xcafe-badge-mobile {
+.TokenCafe-badge-mobile {
   background: var(--bs-success);
   color: white;
   padding: 4px 8px;

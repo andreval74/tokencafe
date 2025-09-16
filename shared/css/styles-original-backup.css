@@ -1,7 +1,7 @@
 /*!
  * TokenCafe Styles - Bootstrap 5 Compatible
  * Organizado seguindo padrões do Bootstrap 5
- * Cores baseadas no XCafe: #f85d23 (primary), #1a1a1a (dark)
+ * Cores baseadas no TokenCafe: #f85d23 (primary), #1a1a1a (dark)
  */
 
 /*
@@ -12,13 +12,13 @@ Definição centralizada de variáveis seguindo padrão Bootstrap 5
 */
 
 :root {
-  /* === XCAFE BRAND COLORS === */
-  --xcafe-orange-primary: #f85d23;
-  --xcafe-orange-secondary: #f59e0b;
-  --xcafe-orange-tertiary: #fbbf24;
-  --xcafe-dark-primary: #0a0a0a;
-  --xcafe-dark-secondary: #1a1a1a;
-  --xcafe-dark-tertiary: #2d2d2d;
+  /* === TokenCafe BRAND COLORS === */
+  --TokenCafe-orange-primary: #f85d23;
+  --TokenCafe-orange-secondary: #f59e0b;
+  --TokenCafe-orange-tertiary: #fbbf24;
+  --TokenCafe-dark-primary: #0a0a0a;
+  --TokenCafe-dark-secondary: #1a1a1a;
+  --TokenCafe-dark-tertiary: #2d2d2d;
 
   /* === BOOTSTRAP 5 COLOR SYSTEM OVERRIDES === */
   --bs-primary: #f85d23;
@@ -493,7 +493,7 @@ Utilitários de border seguindo padrões Bootstrap 5
 
 /*
 ==========================================================================
-XCAFE CUSTOM COMPONENTS
+TokenCafe CUSTOM COMPONENTS
 Componentes customizados específicos do TokenCafe
 ==========================================================================
 */
@@ -520,7 +520,7 @@ Componentes customizados específicos do TokenCafe
   animation: spin 1s ease-in-out infinite;
 }
 
-/* XCafe Gradient Text */
+/* TokenCafe Gradient Text */
 .gradient-text {
   background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-warning) 50%, #fbbf24 100%);
   background-clip: text;
@@ -529,7 +529,7 @@ Componentes customizados específicos do TokenCafe
   animation: gradient-shift 3s ease-in-out infinite;
 }
 
-/* XCafe Hero Section */
+/* TokenCafe Hero Section */
 .hero-section {
   min-height: 100vh;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
@@ -549,7 +549,7 @@ Componentes customizados específicos do TokenCafe
   pointer-events: none;
 }
 
-/* XCafe Feature Cards */
+/* TokenCafe Feature Cards */
 .feature-card {
   background: rgba(26, 26, 26, 0.8);
   border: 1px solid rgba(248, 93, 35, 0.2);
@@ -868,22 +868,22 @@ Classes utilitárias customizadas complementando Bootstrap 5
 ==========================================================================
 */
 
-.xcafe-hover-lift {
+.TokenCafe-hover-lift {
   transition: transform 0.3s ease;
 }
 
-.xcafe-hover-lift:hover {
+.TokenCafe-hover-lift:hover {
   transform: translateY(-5px);
 }
 
-.xcafe-glass-effect {
+.TokenCafe-glass-effect {
   background: rgba(248, 93, 35, 0.1);
   border: 1px solid rgba(248, 93, 35, 0.3);
   backdrop-filter: blur(10px);
   border-radius: var(--bs-border-radius-lg);
 }
 
-.xcafe-text-gradient {
+.TokenCafe-text-gradient {
   background: linear-gradient(135deg, var(--bs-primary), var(--bs-warning));
   background-clip: text;
   -webkit-background-clip: text;

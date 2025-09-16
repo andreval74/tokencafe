@@ -66,7 +66,7 @@ Você é um arquiteto de software sênior. Seu papel é revisar e entregar um si
 
 ### Princípios Fundamentais
 - **Modular Unificada**: Um ecossistema com módulos independentes mas interconectados
-- **Coordenador Central**: `xcafe-app.js` gerencia inicialização e comunicação entre módulos
+- **Coordenador Central**: `TokenCafe-app.js` gerencia inicialização e comunicação entre módulos
 - **Event-Driven**: Comunicação via eventos customizados (`CustomEvent`)
 - **Dependency Injection**: Módulos recebem dependências via construtor
 - **Single Responsibility**: Cada módulo tem uma responsabilidade específica
@@ -91,13 +91,13 @@ class ModuleName {
 }
 
 // Registro no coordenador
-window.xcafeApp.registerModule('moduleName', ModuleName);
+window.TokenCafeApp.registerModule('moduleName', ModuleName);
 ```
 
 ### Comunicação Entre Módulos
 - **Eventos**: `document.dispatchEvent(new CustomEvent('eventName', {detail: data}))`
 - **Event Bus**: Sistema centralizado de eventos para módulos
-- **Shared State**: Estado compartilhado via `window.xcafeApp.state`
+- **Shared State**: Estado compartilhado via `window.TokenCafeApp.state`
 - **API Unificada**: Cliente API único para todas as requisições
 
 ### Padrões de Carregamento
@@ -121,3 +121,4 @@ window.xcafeApp.registerModule('moduleName', ModuleName);
 - Não extrapole além do pedido sem validação.  
 - Garanta linting, formatação e consistência de nomes.  
 - O resultado final deve estar pronto para manutenção futura sem riscos ocultos.  
+
