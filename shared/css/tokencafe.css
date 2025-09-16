@@ -1,0 +1,503 @@
+/*
+================================================================================
+TOKENCAFE - CSS UNIFICADO BOOTSTRAP 5
+================================================================================
+Sistema de Design baseado em Bootstrap 5 + Tema Café
+Inspirado na cultura cafeeira brasileira
+Unificação dos sistemas XCafe + Widget
+================================================================================
+*/
+
+/* ===== VARIÁVEIS CSS - TEMA TOKENCAFE ===== */
+:root {
+  /* === CORES PRINCIPAIS DO CAFÉ === */
+  --coffee-bean: #3C2415;        /* Grão de café escuro */
+  --coffee-roast: #8B4513;       /* Café torrado (marrom) */
+  --coffee-medium: #A0522D;      /* Café médio */
+  --coffee-light: #D2691E;       /* Café claro (laranja chocolate) */
+  --coffee-cream: #F5DEB3;       /* Creme */
+  --coffee-foam: #FAEBD7;        /* Espuma */
+  
+  /* === CORES COMPLEMENTARES === */
+  --gold-accent: #DAA520;         /* Dourado */
+  --warm-brown: #8B7355;          /* Marrom quente */
+  --rich-amber: #FFBF00;          /* Âmbar rico */
+  --caramel: #C87533;             /* Caramelo */
+  
+  /* === BOOTSTRAP 5 OVERRIDE - TOKENCAFE THEME === */
+  --bs-primary: #8B4513;          /* Café torrado */
+  --bs-primary-rgb: 139, 69, 19;
+  --bs-secondary: #A0522D;        /* Café médio */
+  --bs-secondary-rgb: 160, 82, 45;
+  --bs-success: #228B22;          /* Verde floresta */
+  --bs-success-rgb: 34, 139, 34;
+  --bs-danger: #B22222;           /* Vermelho tijolo */
+  --bs-danger-rgb: 178, 34, 34;
+  --bs-warning: #DAA520;          /* Dourado */
+  --bs-warning-rgb: 218, 165, 32;
+  --bs-info: #4682B4;             /* Azul aço */
+  --bs-info-rgb: 70, 130, 180;
+  --bs-light: #FAEBD7;            /* Espuma */
+  --bs-light-rgb: 250, 235, 215;
+  --bs-dark: #3C2415;             /* Grão de café */
+  --bs-dark-rgb: 60, 36, 21;
+
+  /* === CORES DE FUNDO === */
+  --bs-body-bg: #1a1a1a;          /* Fundo escuro */
+  --bs-body-color: #FAEBD7;       /* Texto claro */
+  --bs-body-color-rgb: 250, 235, 215;
+  --bs-body-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --bs-body-font-size: 1rem;
+  --bs-body-font-weight: 400;
+  --bs-body-line-height: 1.6;
+
+  /* === CORES DE TEXTO === */
+  --bs-emphasis-color: #FAEBD7;    /* Texto principal */
+  --bs-emphasis-color-rgb: 250, 235, 215;
+  --bs-secondary-color: #F5DEB3;   /* Texto secundário */
+  --bs-secondary-color-rgb: 245, 222, 179;
+  --bs-tertiary-color: #D2691E;    /* Texto terciário */
+  --bs-tertiary-color-rgb: 210, 105, 30;
+
+  /* === CORES DE LINK === */
+  --bs-link-color: #DAA520;        /* Links dourados */
+  --bs-link-color-rgb: 218, 165, 32;
+  --bs-link-hover-color: #FFBF00;  /* Hover âmbar */
+  --bs-link-hover-color-rgb: 255, 191, 0;
+
+  /* === GRADIENTES TOKENCAFE === */
+  --gradient-coffee: linear-gradient(135deg, var(--coffee-bean), var(--coffee-roast));
+  --gradient-warm: linear-gradient(135deg, var(--coffee-light), var(--gold-accent));
+  --gradient-cream: linear-gradient(135deg, var(--coffee-cream), var(--coffee-foam));
+  --gradient-hero: linear-gradient(135deg, #1a1a1a 0%, #3C2415 50%, #1a1a1a 100%);
+  
+  /* === SOMBRAS === */
+  --shadow-coffee: 0 4px 20px rgba(139, 69, 19, 0.3);
+  --shadow-warm: 0 8px 32px rgba(218, 165, 32, 0.2);
+  --shadow-dark: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== ESTILOS BASE ===== */
+body {
+  background: var(--gradient-hero);
+  min-height: 100vh;
+  font-family: var(--bs-body-font-family);
+  overflow-x: hidden;
+  color: var(--bs-body-color);
+}
+
+/* ===== ANIMAÇÃO DE FUNDO ===== */
+.background-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.floating-particle {
+  position: absolute;
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(218, 165, 32, 0.1));
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.particle-1 {
+  width: 60px;
+  height: 60px;
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.particle-2 {
+  width: 80px;
+  height: 80px;
+  top: 60%;
+  right: 15%;
+  animation-delay: 2s;
+}
+
+.particle-3 {
+  width: 40px;
+  height: 40px;
+  top: 80%;
+  left: 60%;
+  animation-delay: 4s;
+}
+
+.particle-4 {
+  width: 50px;
+  height: 50px;
+  top: 40%;
+  left: 80%;
+  animation-delay: 1s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* ===== COMPONENTES TOKENCAFE ===== */
+
+/* Cards com tema café */
+.card-coffee {
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.1), rgba(160, 82, 45, 0.1));
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-coffee);
+}
+
+.card-coffee:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-warm);
+  transition: all 0.3s ease;
+}
+
+/* Botões com tema café */
+.btn-coffee {
+  background: var(--gradient-coffee);
+  border: none;
+  color: var(--coffee-foam);
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-coffee:hover {
+  background: var(--gradient-warm);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-warm);
+  color: var(--coffee-bean);
+}
+
+.btn-coffee-outline {
+  background: transparent;
+  border: 2px solid var(--coffee-roast);
+  color: var(--coffee-light);
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-coffee-outline:hover {
+  background: var(--coffee-roast);
+  color: var(--coffee-foam);
+  transform: translateY(-2px);
+}
+
+/* Navbar com tema café */
+.navbar-coffee {
+  background: rgba(60, 36, 21, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+}
+
+.navbar-coffee .navbar-brand {
+  color: var(--gold-accent);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.navbar-coffee .nav-link {
+  color: var(--coffee-cream);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar-coffee .nav-link:hover {
+  color: var(--gold-accent);
+}
+
+/* Footer com tema café */
+.footer-coffee {
+  background: var(--gradient-coffee);
+  color: var(--coffee-foam);
+  padding: 3rem 0 1rem;
+  margin-top: 4rem;
+}
+
+.footer-coffee a {
+  color: var(--coffee-cream);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-coffee a:hover {
+  color: var(--gold-accent);
+}
+
+/* Hero Section */
+.hero-coffee {
+  background: var(--gradient-hero);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-coffee::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="coffee-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(218,165,32,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23coffee-pattern)"/></svg>');
+  opacity: 0.3;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+  background: rgba(139, 69, 19, 0.1);
+  border: 1px solid rgba(218, 165, 32, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  border-color: rgba(218, 165, 32, 0.5);
+  box-shadow: var(--shadow-warm);
+}
+
+/* Stats Cards */
+.stats-card {
+  background: var(--gradient-cream);
+  color: var(--coffee-bean);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-coffee);
+  transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+}
+
+.stats-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--coffee-roast);
+  display: block;
+}
+
+/* Modals com tema café */
+.modal-coffee .modal-content {
+  background: var(--gradient-coffee);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  border-radius: 12px;
+}
+
+.modal-coffee .modal-header {
+  border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+  background: rgba(60, 36, 21, 0.8);
+}
+
+.modal-coffee .modal-title {
+  color: var(--gold-accent);
+}
+
+/* Forms com tema café */
+.form-coffee .form-control {
+  background: rgba(139, 69, 19, 0.1);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  color: var(--coffee-cream);
+  border-radius: 8px;
+}
+
+.form-coffee .form-control:focus {
+  background: rgba(139, 69, 19, 0.2);
+  border-color: var(--gold-accent);
+  box-shadow: 0 0 0 0.2rem rgba(218, 165, 32, 0.25);
+  color: var(--coffee-foam);
+}
+
+.form-coffee .form-label {
+  color: var(--coffee-light);
+  font-weight: 600;
+}
+
+/* Alerts com tema café */
+.alert-coffee {
+  background: rgba(139, 69, 19, 0.2);
+  border: 1px solid rgba(218, 165, 32, 0.4);
+  color: var(--coffee-cream);
+  border-radius: 8px;
+}
+
+/* Badges com tema café */
+.badge-coffee {
+  background: var(--coffee-roast);
+  color: var(--coffee-foam);
+}
+
+.badge-coffee-outline {
+  background: transparent;
+  border: 1px solid var(--coffee-roast);
+  color: var(--coffee-light);
+}
+
+/* Dropdowns com tema café */
+.dropdown-menu-coffee {
+  background: rgba(60, 36, 21, 0.95);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.dropdown-menu-coffee .dropdown-item {
+  color: var(--coffee-cream);
+  transition: all 0.3s ease;
+}
+
+.dropdown-menu-coffee .dropdown-item:hover {
+  background: rgba(218, 165, 32, 0.2);
+  color: var(--gold-accent);
+}
+
+/* Tabelas com tema café */
+.table-coffee {
+  background: rgba(139, 69, 19, 0.1);
+  color: var(--coffee-cream);
+}
+
+.table-coffee th {
+  background: rgba(60, 36, 21, 0.8);
+  color: var(--gold-accent);
+  border-color: rgba(218, 165, 32, 0.3);
+}
+
+.table-coffee td {
+  border-color: rgba(218, 165, 32, 0.2);
+}
+
+/* Paginação com tema café */
+.pagination-coffee .page-link {
+  background: rgba(139, 69, 19, 0.1);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  color: var(--coffee-light);
+}
+
+.pagination-coffee .page-link:hover {
+  background: var(--coffee-roast);
+  color: var(--coffee-foam);
+}
+
+.pagination-coffee .page-item.active .page-link {
+  background: var(--gold-accent);
+  border-color: var(--gold-accent);
+  color: var(--coffee-bean);
+}
+
+/* ===== UTILITÁRIOS ===== */
+
+/* Texto com tema café */
+.text-coffee { color: var(--coffee-roast) !important; }
+.text-coffee-light { color: var(--coffee-light) !important; }
+.text-coffee-cream { color: var(--coffee-cream) !important; }
+.text-gold { color: var(--gold-accent) !important; }
+
+/* Backgrounds com tema café */
+.bg-coffee { background-color: var(--coffee-roast) !important; }
+.bg-coffee-light { background-color: var(--coffee-light) !important; }
+.bg-coffee-gradient { background: var(--gradient-coffee) !important; }
+.bg-warm-gradient { background: var(--gradient-warm) !important; }
+
+/* Bordas com tema café */
+.border-coffee { border-color: var(--coffee-roast) !important; }
+.border-gold { border-color: var(--gold-accent) !important; }
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .hero-coffee {
+    min-height: 80vh;
+    padding: 2rem 0;
+  }
+  
+  .stats-number {
+    font-size: 2rem;
+  }
+  
+  .floating-particle {
+    display: none; /* Ocultar partículas em mobile */
+  }
+}
+
+@media (max-width: 576px) {
+  .btn-coffee,
+  .btn-coffee-outline {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .dashboard-card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* ===== ANIMAÇÕES PERSONALIZADAS ===== */
+@keyframes coffeeGlow {
+  0%, 100% { box-shadow: 0 0 5px rgba(218, 165, 32, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(218, 165, 32, 0.6); }
+}
+
+.glow-coffee {
+  animation: coffeeGlow 2s ease-in-out infinite;
+}
+
+@keyframes steamRise {
+  0% { transform: translateY(0) scale(1); opacity: 0.7; }
+  100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+}
+
+.steam-effect::before {
+  content: '☕';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: steamRise 3s ease-out infinite;
+}
+
+/* ===== DARK MODE ESPECÍFICO ===== */
+[data-bs-theme="dark"] {
+  --bs-body-bg: #0a0a0a;
+  --bs-body-color: var(--coffee-cream);
+}
+
+[data-bs-theme="light"] {
+  --bs-body-bg: var(--coffee-foam);
+  --bs-body-color: var(--coffee-bean);
+}
+
+/* ===== IMPRESSÃO ===== */
+@media print {
+  .background-animation,
+  .floating-particle {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/*
+================================================================================
+FIM DO CSS UNIFICADO TOKENCAFE
+================================================================================
+Total de linhas: ~400
+Baseado em: Bootstrap 5 + Tema Café
+Inspiração: Cultura cafeeira brasileira
+Compatível com: Todos os navegadores modernos
+================================================================================
+*/
