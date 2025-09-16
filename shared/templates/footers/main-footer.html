@@ -1,0 +1,244 @@
+<!--
+================================================================================
+MAIN FOOTER - FOOTER PRINCIPAL TOKENCAFE
+================================================================================
+Footer unificado para páginas principais
+Baseado no footer.html do XCafe com tema TokenCafe
+================================================================================
+-->
+
+<footer class="footer-coffee bg-coffee text-white py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Coluna 1: Sobre TokenCafe -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="text-gold mb-3">
+                    <i class="fas fa-coffee me-2"></i>
+                    TokenCafe
+                </h5>
+                <p class="mb-3 opacity-75">
+                    Do grão à blockchain, conectando tradição e inovação. 
+                    O ecossistema mais completo para criação e gerenciamento de tokens.
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-outline-gold btn-sm">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-gold btn-sm">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-gold btn-sm">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-gold btn-sm">
+                        <i class="fab fa-github"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Coluna 2: Links Úteis -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="text-gold mb-3">Plataforma</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="index.html" class="text-white-50">Início</a></li>
+                    <li><a href="dashboard.html" class="text-white-50">Dashboard</a></li>
+                    <li><a href="dashboard.html#widgets" class="text-white-50">Meus Widgets</a></li>
+                    <li><a href="dashboard.html#new-widget" class="text-white-50">Criar Widget</a></li>
+                    <li><a href="dashboard.html#templates" class="text-white-50">Templates</a></li>
+                </ul>
+            </div>
+
+            <!-- Coluna 3: Recursos -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="text-gold mb-3">Recursos</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="docs.html" class="text-white-50">Documentação</a></li>
+                    <li><a href="api.html" class="text-white-50">API</a></li>
+                    <li><a href="tutorials.html" class="text-white-50">Tutoriais</a></li>
+                    <li><a href="examples.html" class="text-white-50">Exemplos</a></li>
+                    <li><a href="roadmap.html" class="text-white-50">Roadmap</a></li>
+                </ul>
+            </div>
+
+            <!-- Coluna 4: Suporte -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h6 class="text-gold mb-3">Suporte</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="support.html" class="text-white-50">Central de Ajuda</a></li>
+                    <li><a href="faq.html" class="text-white-50">FAQ</a></li>
+                    <li><a href="contact.html" class="text-white-50">Contato</a></li>
+                    <li><a href="community.html" class="text-white-50">Comunidade</a></li>
+                    <li><a href="status.html" class="text-white-50">Status</a></li>
+                </ul>
+            </div>
+
+            <!-- Coluna 5: Newsletter -->
+            <div class="col-lg-2 col-md-12 mb-4">
+                <h6 class="text-gold mb-3">Newsletter</h6>
+                <p class="small opacity-75 mb-3">
+                    Receba atualizações sobre novos recursos e templates
+                </p>
+                <form class="footer-newsletter">
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="email" class="form-control" placeholder="seu@email.com" required>
+                        <button class="btn btn-gold" type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <small class="text-white-50">
+                        Sem spam, apenas conteúdo relevante
+                    </small>
+                </form>
+            </div>
+        </div>
+
+        <hr class="my-4 border-coffee-light">
+
+        <!-- Rodapé inferior -->
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-2 mb-md-0">
+                <small class="text-white-50">
+                    © 2025 TokenCafe. Todos os direitos reservados. 
+                    Inspirado na cultura cafeeira brasileira ☕
+                </small>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="d-flex justify-content-md-end gap-3">
+                    <a href="privacy.html" class="text-white-50 small">Privacidade</a>
+                    <a href="terms.html" class="text-white-50 small">Termos</a>
+                    <a href="cookies.html" class="text-white-50 small">Cookies</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas da plataforma -->
+        <div class="row mt-4 pt-3 border-top border-coffee-light">
+            <div class="col-12">
+                <div class="row text-center">
+                    <div class="col-6 col-md-3 mb-2">
+                        <small class="text-white-50 d-block">Widgets Criados</small>
+                        <strong class="text-gold" id="total-widgets">0</strong>
+                    </div>
+                    <div class="col-6 col-md-3 mb-2">
+                        <small class="text-white-50 d-block">Tokens Negociados</small>
+                        <strong class="text-gold" id="total-tokens">0</strong>
+                    </div>
+                    <div class="col-6 col-md-3 mb-2">
+                        <small class="text-white-50 d-block">Volume Total</small>
+                        <strong class="text-gold" id="total-volume">0 ETH</strong>
+                    </div>
+                    <div class="col-6 col-md-3 mb-2">
+                        <small class="text-white-50 d-block">Usuários Ativos</small>
+                        <strong class="text-gold" id="active-users">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Configurar newsletter
+document.addEventListener('DOMContentLoaded', function() {
+    const newsletterForm = document.querySelector('.footer-newsletter');
+    
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = this.querySelector('input[type="email"]').value;
+            
+            // Simular inscrição na newsletter
+            if (email) {
+                // Aqui implementar integração com serviço de newsletter
+                console.log('Newsletter subscription:', email);
+                
+                // Feedback visual
+                const button = this.querySelector('button');
+                const originalContent = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.disabled = true;
+                
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                    this.reset();
+                }, 2000);
+                
+                // Mostrar mensagem de sucesso
+                if (typeof addNotification === 'function') {
+                    addNotification('Inscrito na newsletter com sucesso!', 'success');
+                }
+            }
+        });
+    }
+
+    // Carregar estatísticas da plataforma
+    loadPlatformStats();
+});
+
+// Carregar estatísticas da plataforma
+async function loadPlatformStats() {
+    try {
+        // Simular carregamento de estatísticas (implementar API real)
+        const stats = await fetchPlatformStats();
+        
+        document.getElementById('total-widgets').textContent = stats.widgets.toLocaleString();
+        document.getElementById('total-tokens').textContent = stats.tokens.toLocaleString();
+        document.getElementById('total-volume').textContent = `${stats.volume} ETH`;
+        document.getElementById('active-users').textContent = stats.users.toLocaleString();
+        
+    } catch (error) {
+        console.log('Erro ao carregar estatísticas:', error);
+    }
+}
+
+// Simular dados de estatísticas
+async function fetchPlatformStats() {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve({
+                widgets: Math.floor(Math.random() * 10000) + 1000,
+                tokens: Math.floor(Math.random() * 500) + 100,
+                volume: (Math.random() * 1000 + 100).toFixed(2),
+                users: Math.floor(Math.random() * 5000) + 500
+            });
+        }, 1000);
+    });
+}
+
+// Animação dos números
+function animateNumber(element, finalNumber, duration = 1000) {
+    const startNumber = 0;
+    const increment = finalNumber / (duration / 16);
+    let currentNumber = startNumber;
+    
+    const timer = setInterval(() => {
+        currentNumber += increment;
+        if (currentNumber >= finalNumber) {
+            currentNumber = finalNumber;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(currentNumber).toLocaleString();
+    }, 16);
+}
+
+// Aplicar animação quando o footer entrar na tela
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            loadPlatformStats();
+            observer.unobserve(entry.target);
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const footer = document.querySelector('.footer-coffee');
+    if (footer) {
+        observer.observe(footer);
+    }
+});
+</script>

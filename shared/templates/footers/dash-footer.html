@@ -1,0 +1,423 @@
+<!--
+================================================================================
+DASHBOARD FOOTER - FOOTER DO PAINEL
+================================================================================
+Footer simplificado para área do dashboard
+Baseado no Widget footer com funcionalidades essenciais
+================================================================================
+-->
+
+<footer class="dashboard-footer bg-white border-top py-3 mt-auto">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <!-- Status da conexão e rede -->
+            <div class="col-md-4 mb-2 mb-md-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-indicator" id="connection-status">
+                        <i class="fas fa-circle text-success" title="Conectado"></i>
+                        <small class="text-muted">Conectado</small>
+                    </span>
+                    
+                    <span class="network-info" id="network-info">
+                        <i class="fas fa-network-wired text-primary"></i>
+                        <small class="text-muted" id="current-network">Ethereum</small>
+                    </span>
+                    
+                    <span class="sync-status" id="sync-status">
+                        <i class="fas fa-sync-alt text-muted" title="Sincronizado"></i>
+                        <small class="text-muted">Sincronizado</small>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Links rápidos -->
+            <div class="col-md-4 text-center mb-2 mb-md-0">
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="#" class="text-muted small" data-bs-toggle="modal" data-bs-target="#helpModal">
+                        <i class="fas fa-question-circle me-1"></i>Ajuda
+                    </a>
+                    <a href="#" class="text-muted small" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                        <i class="fas fa-comment me-1"></i>Feedback
+                    </a>
+                    <a href="docs.html" target="_blank" class="text-muted small">
+                        <i class="fas fa-book me-1"></i>Docs
+                    </a>
+                    <a href="#" class="text-muted small" id="keyboard-shortcuts">
+                        <i class="fas fa-keyboard me-1"></i>Atalhos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Informações da versão e copyright -->
+            <div class="col-md-4 text-end">
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                    <small class="text-muted">
+                        TokenCafe v<span id="app-version">2.0.0</span>
+                    </small>
+                    <span class="text-muted">•</span>
+                    <small class="text-muted">
+                        © 2025 TokenCafe
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de progresso para operações em background -->
+        <div class="row mt-2" id="background-operations" style="display: none;">
+            <div class="col-12">
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted" id="operation-text">Processando...</small>
+                    <div class="progress flex-grow-1" style="height: 4px;">
+                        <div class="progress-bar bg-primary" role="progressbar" id="operation-progress" 
+                             style="width: 0%"></div>
+                    </div>
+                    <button class="btn btn-link btn-sm p-0 text-muted" id="cancel-operation">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Modal de Ajuda -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-question-circle text-primary me-2"></i>
+                    Central de Ajuda
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-coffee">Primeiros Passos</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="text-decoration-none">Como criar seu primeiro widget</a></li>
+                            <li><a href="#" class="text-decoration-none">Configurando sua carteira</a></li>
+                            <li><a href="#" class="text-decoration-none">Entendendo os templates</a></li>
+                            <li><a href="#" class="text-decoration-none">Personalizando aparência</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-coffee">Recursos Avançados</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="text-decoration-none">API e integrações</a></li>
+                            <li><a href="#" class="text-decoration-none">Analytics avançados</a></li>
+                            <li><a href="#" class="text-decoration-none">Widgets embarcados</a></li>
+                            <li><a href="#" class="text-decoration-none">Automações</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <p class="mb-2">Não encontrou o que procura?</p>
+                    <a href="support.html" class="btn btn-primary btn-sm">
+                        <i class="fas fa-headset me-1"></i>Contatar Suporte
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Feedback -->
+<div class="modal fade" id="feedbackModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-comment text-primary me-2"></i>
+                    Enviar Feedback
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="feedbackForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Feedback</label>
+                        <select class="form-select" name="type" required>
+                            <option value="">Selecione...</option>
+                            <option value="bug">Reportar Bug</option>
+                            <option value="feature">Sugerir Recurso</option>
+                            <option value="improvement">Melhoria</option>
+                            <option value="other">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" name="description" rows="4" 
+                                  placeholder="Descreva sua experiência, sugestão ou problema..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email (opcional)</label>
+                        <input type="email" class="form-control" name="email" 
+                               placeholder="Para receber atualizações sobre seu feedback">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i>Enviar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar footer do dashboard
+    initDashboardFooter();
+});
+
+function initDashboardFooter() {
+    // Monitorar status de conexão
+    monitorConnectionStatus();
+    
+    // Configurar atalhos de teclado
+    setupKeyboardShortcuts();
+    
+    // Configurar formulário de feedback
+    setupFeedbackForm();
+    
+    // Atualizar informações da versão
+    updateVersionInfo();
+}
+
+// Monitorar status de conexão
+function monitorConnectionStatus() {
+    const statusElement = document.getElementById('connection-status');
+    const networkElement = document.getElementById('current-network');
+    const syncElement = document.getElementById('sync-status');
+    
+    // Verificar status da conexão Web3
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', updateConnectionStatus);
+        window.ethereum.on('chainChanged', updateNetworkInfo);
+        window.ethereum.on('disconnect', updateConnectionStatus);
+    }
+    
+    // Verificação periódica
+    setInterval(checkConnection, 10000); // A cada 10 segundos
+}
+
+function updateConnectionStatus() {
+    const statusElement = document.getElementById('connection-status');
+    const connected = window.ethereum && window.ethereum.selectedAddress;
+    
+    if (connected) {
+        statusElement.innerHTML = `
+            <i class="fas fa-circle text-success" title="Conectado"></i>
+            <small class="text-muted">Conectado</small>
+        `;
+    } else {
+        statusElement.innerHTML = `
+            <i class="fas fa-circle text-danger" title="Desconectado"></i>
+            <small class="text-muted">Desconectado</small>
+        `;
+    }
+}
+
+function updateNetworkInfo() {
+    const networkElement = document.getElementById('current-network');
+    
+    if (window.ethereum) {
+        const chainId = window.ethereum.chainId;
+        const networkName = getNetworkName(chainId);
+        networkElement.textContent = networkName;
+    }
+}
+
+function getNetworkName(chainId) {
+    const networks = {
+        '0x1': 'Ethereum',
+        '0x38': 'BSC',
+        '0x89': 'Polygon',
+        '0xa4b1': 'Arbitrum',
+        '0xa': 'Optimism'
+    };
+    return networks[chainId] || 'Desconhecida';
+}
+
+function checkConnection() {
+    updateConnectionStatus();
+    updateNetworkInfo();
+}
+
+// Configurar atalhos de teclado
+function setupKeyboardShortcuts() {
+    const shortcutsBtn = document.getElementById('keyboard-shortcuts');
+    
+    shortcutsBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        showKeyboardShortcuts();
+    });
+    
+    // Atalhos globais
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'k':
+                    e.preventDefault();
+                    // Abrir busca global
+                    if (typeof openGlobalSearch === 'function') {
+                        openGlobalSearch();
+                    }
+                    break;
+                case 'n':
+                    e.preventDefault();
+                    // Novo widget
+                    window.location.href = '#new-widget';
+                    break;
+                case 'h':
+                    e.preventDefault();
+                    // Ajuda
+                    const helpModal = new bootstrap.Modal(document.getElementById('helpModal'));
+                    helpModal.show();
+                    break;
+            }
+        }
+    });
+}
+
+function showKeyboardShortcuts() {
+    const shortcuts = `
+        <div class="modal fade" id="shortcutsModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Atalhos do Teclado</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td><kbd>Ctrl</kbd> + <kbd>K</kbd></td>
+                                            <td>Busca global</td>
+                                        </tr>
+                                        <tr>
+                                            <td><kbd>Ctrl</kbd> + <kbd>N</kbd></td>
+                                            <td>Novo widget</td>
+                                        </tr>
+                                        <tr>
+                                            <td><kbd>Ctrl</kbd> + <kbd>H</kbd></td>
+                                            <td>Ajuda</td>
+                                        </tr>
+                                        <tr>
+                                            <td><kbd>Esc</kbd></td>
+                                            <td>Fechar modal/overlay</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal existente se houver
+    const existingModal = document.getElementById('shortcutsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Adicionar e mostrar novo modal
+    document.body.insertAdjacentHTML('beforeend', shortcuts);
+    const modal = new bootstrap.Modal(document.getElementById('shortcutsModal'));
+    modal.show();
+}
+
+// Configurar formulário de feedback
+function setupFeedbackForm() {
+    const form = document.getElementById('feedbackForm');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const feedback = Object.fromEntries(formData);
+        
+        try {
+            // Simular envio de feedback (implementar API real)
+            await submitFeedback(feedback);
+            
+            // Fechar modal e mostrar sucesso
+            const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+            modal.hide();
+            
+            if (typeof addNotification === 'function') {
+                addNotification('Feedback enviado com sucesso!', 'success');
+            }
+            
+            form.reset();
+            
+        } catch (error) {
+            console.error('Erro ao enviar feedback:', error);
+            if (typeof addNotification === 'function') {
+                addNotification('Erro ao enviar feedback. Tente novamente.', 'error');
+            }
+        }
+    });
+}
+
+async function submitFeedback(feedback) {
+    // Simular envio (implementar API real)
+    return new Promise((resolve) => {
+        setTimeout(resolve, 1000);
+    });
+}
+
+// Atualizar informações da versão
+function updateVersionInfo() {
+    const versionElement = document.getElementById('app-version');
+    // Implementar lógica para obter versão real da aplicação
+    versionElement.textContent = '2.0.0-beta';
+}
+
+// Operações em background
+function showBackgroundOperation(text, progress = 0) {
+    const container = document.getElementById('background-operations');
+    const textElement = document.getElementById('operation-text');
+    const progressElement = document.getElementById('operation-progress');
+    
+    textElement.textContent = text;
+    progressElement.style.width = `${progress}%`;
+    container.style.display = 'block';
+}
+
+function updateBackgroundOperation(progress, text = null) {
+    const textElement = document.getElementById('operation-text');
+    const progressElement = document.getElementById('operation-progress');
+    
+    if (text) textElement.textContent = text;
+    progressElement.style.width = `${progress}%`;
+    
+    if (progress >= 100) {
+        setTimeout(hideBackgroundOperation, 1000);
+    }
+}
+
+function hideBackgroundOperation() {
+    const container = document.getElementById('background-operations');
+    container.style.display = 'none';
+}
+
+// Expor funções globais para uso em outros módulos
+window.dashboardFooter = {
+    showBackgroundOperation,
+    updateBackgroundOperation,
+    hideBackgroundOperation
+};
+</script>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Instalação Node.js - TokenCafe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="shared/css/tokencafe.css" rel="stylesheet">
+</head>
+<body>
+    <div class="hero-section">
+        <div class="container">
+            <h1>🚀 <strong>Upgrade para 100% das Funcionalidades</strong></h1>
+            <p class="lead">Node.js = WebSocket + Real-time + Performance Máxima</p>
+            <div class="timer">
+                ⏰ Tempo estimado: 6 minutos
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <!-- UPGRADE BENEFITS -->
+        <div class="upgrade-box">
+            <h3>🎯 <strong>O que você vai ganhar:</strong></h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li>⚡ <strong>Preços em tempo real</strong> (se movem sozinhos)</li>
+                        <li>🔔 <strong>Notificações instantâneas</strong> (pop-ups)</li>
+                        <li>📊 <strong>Gráficos vivos</strong> (atualizados automaticamente)</li>
+                        <li>👥 <strong>Usuários online</strong> (contador em tempo real)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li>🔌 <strong>WebSocket completo</strong> (comunicação bidirecional)</li>
+                        <li>🚀 <strong>Performance superior</strong> (Node.js nativo)</li>
+                        <li>💼 <strong>Portfolio profissional</strong> (features modernas)</li>
+                        <li>🌟 <strong>Experiência premium</strong> (usuário final)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSO A PASSO -->
+        <h2 class="text-center mb-5">📋 <strong>Instalação em 4 Passos</strong></h2>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h4>📥 Baixar Node.js</h4>
+                    <p>Clique no botão verde abaixo para baixar a versão LTS (recomendada)</p>
+                    
+                    <a href="https://nodejs.org/dist/v18.17.0/node-v18.17.0-x64.msi" 
+                       class="download-btn" target="_blank" onclick="trackDownload()">
+                        📥 BAIXAR NODE.JS LTS
+                    </a>
+                    
+                    <small class="text-muted d-block">Versão 18.17.0 - Windows 64-bit - 28MB</small>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h4>🔧 Instalar</h4>
+                    <p>Execute o arquivo .msi baixado e aceite todas as configurações padrão</p>
+                    <ul class="list-unstyled mt-3">
+                        <li>✅ Aceitar licença</li>
+                        <li>✅ Manter pasta padrão</li>
+                        <li>✅ "Add to PATH" (já marcado)</li>
+                        <li>✅ Instalar dependências nativas</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h4>🔄 Reiniciar PowerShell</h4>
+                    <p>Feche e abra novamente o PowerShell para atualizar o PATH</p>
+                    <div class="code-block">
+# Fechar PowerShell atual<br>
+# Abrir novo PowerShell<br>
+# Testar instalação:
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h4>🧪 Verificar</h4>
+                    <p>Execute os comandos para confirmar que instalou corretamente:</p>
+                    <div class="code-block">
+node --version<br>
+npm --version
+                    </div>
+                    <small class="text-success">Resultado esperado: v18.17.0 e 9.6.7</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMANDOS FINAIS -->
+        <div class="feature-grid">
+            <h3>🚀 <strong>Após Instalar Node.js - Execute:</strong></h3>
+            <div class="code-block">
+cd "C:\Users\User\Desktop\cafe\tokencafe"<br>
+npm install<br>
+npm start
+            </div>
+            <p class="mt-3 text-success">
+                <strong>✅ Resultado:</strong> Servidor com WebSocket ativo em http://localhost:3001
+            </p>
+        </div>
+
+        <!-- COMPARAÇÃO BEFORE/AFTER -->
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">🐍 Situação Atual (Python Flask)</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li>✅ Páginas funcionando</li>
+                            <li>✅ APIs REST</li>
+                            <li>✅ Login/Dashboard</li>
+                            <li>❌ Sem WebSocket</li>
+                            <li>❌ Sem real-time</li>
+                            <li>❌ Preços estáticos</li>
+                            <li>❌ Sem notificações</li>
+                        </ul>
+                        <span class="badge bg-warning">70% das funcionalidades</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">🚀 Após Node.js (Versão Completa)</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li>✅ Páginas funcionando</li>
+                            <li>✅ APIs REST</li>
+                            <li>✅ Login/Dashboard</li>
+                            <li>✅ <strong>WebSocket ativo</strong></li>
+                            <li>✅ <strong>Real-time updates</strong></li>
+                            <li>✅ <strong>Preços dinâmicos</strong></li>
+                            <li>✅ <strong>Notificações live</strong></li>
+                        </ul>
+                        <span class="badge bg-success">100% das funcionalidades</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOTIVAÇÃO -->
+        <div class="text-center mt-5 p-4" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 12px;">
+            <h3>🎯 <strong>Você Está a 6 Minutos de:</strong></h3>
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <h4>⚡</h4>
+                    <p>Sistema Real-time</p>
+                </div>
+                <div class="col-md-3">
+                    <h4>💼</h4>
+                    <p>Portfolio Profissional</p>
+                </div>
+                <div class="col-md-3">
+                    <h4>🚀</h4>
+                    <p>Performance Máxima</p>
+                </div>
+                <div class="col-md-3">
+                    <h4>🌟</h4>
+                    <p>Experiência Premium</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÃO FINAL -->
+        <div class="text-center mt-5">
+            <a href="https://nodejs.org/dist/v18.17.0/node-v18.17.0-x64.msi" 
+               class="download-btn" target="_blank" onclick="trackDownload()">
+                🚀 BAIXAR AGORA E DESBLOQUEAR TUDO!
+            </a>
+            <p class="text-muted mt-3">
+                <small>Após instalar, volte aqui e me avise para configurar tudo! 👨‍💻</small>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function trackDownload() {
+            console.log("📥 Download do Node.js iniciado!");
+            
+            // Mostrar próximos passos
+            setTimeout(() => {
+                alert(`
+✅ Download iniciado!
+
+📋 PRÓXIMOS PASSOS:
+1. Aguardar download terminar
+2. Executar arquivo .msi
+3. Aceitar tudo (configuração padrão)  
+4. Fechar e abrir PowerShell
+5. Executar: node --version
+6. Me avisar do resultado!
+
+🤝 Estarei aqui para te ajudar! 👨‍💻
+                `);
+            }, 1000);
+        }
+        
+        // Contador regressivo motivacional
+        let countdown = 6;
+        setInterval(() => {
+            const timers = document.querySelectorAll('.timer');
+            timers.forEach(timer => {
+                timer.innerHTML = `⏰ Faltam ${countdown} minutos para 100% das funcionalidades!`;
+            });
+            countdown = countdown > 1 ? countdown - 1 : 6; // Reset depois de 1
+        }, 60000); // A cada minuto
+    </script>
+</body>
+</html>

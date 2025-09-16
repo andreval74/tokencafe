@@ -11,8 +11,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="imgs/xcafe-16x16.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="styles/globals.css" rel="stylesheet">
-    <link href="styles/xcafe-paginas.css" rel="stylesheet">
+    <link href="../shared/css/tokencafe.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
 
@@ -167,12 +166,12 @@
                     <!-- Xcafe Ecosystem Preview -->
                     <div class="col-lg-6">
                         <div class="hero-image text-center floating-animation">
-                            <div class="card bg-dark border-primary shadow-lg mx-auto" style="max-width: 450px;">
+                            <div class="card bg-dark border-primary shadow-lg mx-auto card-max-450">
                                 <div class="card-header bg-dark border-primary">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center">
                                             <img src="imgs/moeda-cafe-tec.png" alt="Xcafe Token"
-                                                class="rounded-circle me-3" style="width: 45px; height: 45px;">
+                                                class="avatar-circle me-3">
                                             <div>
                                                 <h5 class="mb-0 text-white">Xcafe EcoSistema</h5>
                                                 <small class="text-muted">Multi-Chain • Web3 Native</small>
@@ -206,8 +205,8 @@
                                         </div>
                                     </div>
                                     <div class="mt-3">
-                                        <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 25%"
+                                        <div class="progress progress-custom">
+                                            <div class="progress-bar bg-primary progress-25" role="progressbar"
                                                 aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                         <small class="text-muted">Fase 1: Core & Lançamento (25%)</small>
@@ -238,8 +237,7 @@
                         </p>
                     </div>
                     <div class="col-lg-8 mx-auto">
-                        <div class="card bg-gradient border-0 p-4"
-                            style="background: linear-gradient(135deg, #1a1a1a, #2d2d2d);">
+                        <div class="card bg-gradient-dark border-0 p-4">
                             <div class="text-center">
                                 <h4 class="text-primary mb-3">💡 A Oportunidade é AGORA</h4>
                                 <p class="mb-0">
@@ -270,7 +268,7 @@
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4">
                         <div class="feature-icon mb-4">
-                            <i class="bi bi-magic text-primary" style="font-size: 3.5rem;"></i>
+                            <i class="bi bi-magic text-primary icon-lg"></i>
                         </div>
                         <h4 class="card-title mb-3">Simplicidade</h4>
                         <p class="card-text text-secondary mb-4">
@@ -289,7 +287,7 @@
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4">
                         <div class="feature-icon mb-4">
-                            <i class="bi bi-robot text-primary" style="font-size: 3.5rem;"></i>
+                            <i class="bi bi-robot text-primary icon-lg"></i>
                         </div>
                         <h4 class="card-title mb-3">IA Treinada</h4>
                         <p class="card-text text-secondary mb-4">
@@ -309,7 +307,7 @@
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4">
                         <div class="feature-icon mb-4">
-                            <i class="bi bi-shield-lock text-primary" style="font-size: 3.5rem;"></i>
+                            <i class="bi bi-shield-lock text-primary icon-lg"></i>
                         </div>
                         <h4 class="card-title mb-3">100% Descentralizado</h4>
                         <p class="card-text text-secondary mb-4">
@@ -405,7 +403,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-wallet2 text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-wallet2 text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Acesso via Wallet</h5>
                         <p class="text-secondary">Descentralizado, Padrão cripto. Conecte-se com qualquer carteira
@@ -420,7 +418,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-magic text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-magic text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Contratos Personalizados</h5>
                         <p class="text-secondary">Criação automatizada de contratos inteligentes com endereços
@@ -434,7 +432,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-code-square text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-code-square text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Widget de Compra</h5>
                         <p class="text-secondary">Widget integrado para páginas externas/internas com funcionalidade
@@ -448,7 +446,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-graph-up text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-graph-up text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Landing Page Automática</h5>
                         <p class="text-secondary">GerAção automática com descrição, gráficos e Botão de compra
@@ -462,7 +460,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-share text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-share text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Compartilhamento Rápido</h5>
                         <p class="text-secondary">Compartilhe via WhatsApp, e-mail ou copie o link para divulgação
@@ -476,7 +474,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-people text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-people text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Rede Social de Tokens</h5>
                         <p class="text-secondary">Feed, comentários, curtidas e engajamento completo para a
@@ -490,7 +488,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-book text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-book text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Ferramentas Educativas</h5>
                         <p class="text-secondary">Interface simplificada para iniciantes com guias passo-a-passo.
@@ -504,7 +502,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-robot text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-robot text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Biblioteca com IA</h5>
                         <p class="text-secondary">Consultas e respostas automatizadas com IA treinada em soluções
@@ -518,7 +516,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-wallet text-primary" style="font-size: 2.5rem;"></i>
+                            <i class="bi bi-wallet text-primary icon-md"></i>
                         </div>
                         <h5 class="mb-3">Vanity Wallets</h5>
                         <p class="text-secondary">GerAção em massa de carteiras personalizadas (vanity wallets) para
@@ -599,7 +597,7 @@
                                 <div class="tool-card h-100 p-4">
                                     <div class="d-flex align-items-start mb-3">
                                         <div class="feature-icon me-3">
-                                            <i class="bi bi-coin text-primary" style="font-size: 2rem;"></i>
+                                            <i class="bi bi-coin text-primary icon-sm"></i>
                                         </div>
                                         <div class="flex-grow-1">
                                             <h5 class="card-title mb-2">Pacotes Recorrentes</h5>
@@ -614,8 +612,7 @@
                                 <div class="tool-card h-100 p-4">
                                     <div class="d-flex align-items-start mb-3">
                                         <div class="feature-icon me-3">
-                                            <i class="bi bi-currency-exchange text-primary"
-                                                style="font-size: 2rem;"></i>
+                                            <i class="bi bi-currency-exchange text-primary icon-sm"></i>
                                         </div>
                                         <div class="flex-grow-1">
                                             <h5 class="card-title mb-2">Por Demanda</h5>
@@ -630,7 +627,7 @@
                                 <div class="tool-card h-100 p-4">
                                     <div class="d-flex align-items-start mb-3">
                                         <div class="feature-icon me-3">
-                                            <i class="bi bi-currency-dollar text-primary" style="font-size: 2rem;"></i>
+                                            <i class="bi bi-currency-dollar text-primary icon-sm"></i>
                                         </div>
                                         <div class="flex-grow-1">
                                             <h5 class="card-title mb-2">ComissÃo sob TransAção</h5>
@@ -665,7 +662,7 @@
                     <div class="tool-card h-100 p-4">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="bi bi-1-circle-fill text-primary" style="font-size: 4rem;"></i>
+                                <i class="bi bi-1-circle-fill text-primary icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2">Conecte sua carteira</h5>
@@ -680,7 +677,7 @@
                     <div class="tool-card h-100 p-4">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="bi bi-2-circle-fill text-primary" style="font-size: 4rem;"></i>
+                                <i class="bi bi-2-circle-fill text-primary icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2">Preencha os dados</h5>
@@ -696,7 +693,7 @@
                     <div class="tool-card h-100 p-4">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="bi bi-3-circle-fill text-primary" style="font-size: 4rem;"></i>
+                                <i class="bi bi-3-circle-fill text-primary icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2">Teste e Validade </h5>
@@ -712,7 +709,7 @@
                     <div class="tool-card h-100 p-4">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="bi bi-4-circle-fill text-primary" style="font-size: 4rem;"></i>
+                                <i class="bi bi-4-circle-fill text-primary icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2">Gerencie</h5>
@@ -747,8 +744,7 @@
             <!-- Detailed Growth Projections -->
             <div class="row g-4 mb-5">
                 <div class="col-lg-4">
-                    <div class="card bg-gradient border-primary h-100 p-4"
-                        style="background: linear-gradient(135deg, #1a1a1a, #2d2d2d);">
+                    <div class="card bg-gradient-dark border-primary h-100 p-4">
                         <div class="text-center">
                             <h3 class="text-primary mb-2">1º Ano </h3>
                             <h4 class="display-5 fw-bold text-white mb-3">$270K</h4>
@@ -766,8 +762,7 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card bg-gradient border-warning h-100 p-4"
-                        style="background: linear-gradient(135deg, #1a1a1a, #2d2d2d);">
+                    <div class="card bg-gradient-dark border-warning h-100 p-4">
                         <div class="text-center">
                             <h3 class="text-warning mb-2">2º Ano</h3>
                             <h4 class="display-5 fw-bold text-white mb-3">$1.35M</h4>
@@ -786,8 +781,7 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card bg-gradient border-success h-100 p-4"
-                        style="background: linear-gradient(135deg, #1a1a1a, #2d2d2d);">
+                    <div class="card bg-gradient-dark border-success h-100 p-4">
                         <div class="text-center">
                             <h3 class="text-success mb-2">3º Ano</h3>
                             <h4 class="display-5 fw-bold text-white mb-3">$13.5M</h4>
@@ -809,8 +803,7 @@
 
             <div class="row mt-5">
                 <div class="col-lg-8 mx-auto text-center">
-                    <div class="card bg-gradient border-0 p-4"
-                        style="background: linear-gradient(135deg, #1a1a1a, #2d2d2d);">
+                    <div class="card bg-gradient-dark border-0 p-4">
                         <h4 class="text-primary mb-3">Meta Estratégica</h4>
                         <h2 class="display-5 fw-bold mb-3">$100M em Receita Anual</h2>
                         <p class="text-secondary mb-0">Objetivo para o 4º ano, baseado na escalabilidade do
@@ -1003,8 +996,7 @@
                     </p>
 
                     <!-- Email Signup -->
-                    <div class="card bg-gradient border-0 p-4 mb-4"
-                        style="background: linear-gradient(135deg, #1a1a1a, #2d2d2d);">
+                    <div class="card bg-gradient-dark border-0 p-4 mb-4">
                         <h4 class="mb-3">Lista VIP de Acesso Antecipado</h4>
                         <form action="contato@xcafe.app" method="post" enctype="text/plain" class="row g-3 justify-content-center" id="early-access-form">
                             <div class="col-md-6">
@@ -1026,7 +1018,7 @@
                         <div class="col-md-4">
                             <div class="d-flex align-items-center justify-content-center">
                                 <div class="me-3">
-                                    <i class="bi bi-rocket-takeoff text-primary" style="font-size: 2.5rem;"></i>
+                                    <i class="bi bi-rocket-takeoff text-primary icon-md"></i>
                                 </div>
                                 <div class="text-start">
                                     <h5 class="fw-bold mb-0">Acesso Beta</h5>
@@ -1037,7 +1029,7 @@
                         <div class="col-md-4">
                             <div class="d-flex align-items-center justify-content-center">
                                 <div class="me-3">
-                                    <i class="bi bi-gift text-primary" style="font-size: 2.5rem;"></i>
+                                    <i class="bi bi-gift text-primary icon-md"></i>
                                 </div>
                                 <div class="text-start">
                                     <h5 class="fw-bold mb-0">Benefícios VIP</h5>
@@ -1048,7 +1040,7 @@
                         <div class="col-md-4">
                             <div class="d-flex align-items-center justify-content-center">
                                 <div class="me-3">
-                                    <i class="bi bi-shield-check text-primary" style="font-size: 2.5rem;"></i>
+                                    <i class="bi bi-shield-check text-primary icon-md"></i>
                                 </div>
                                 <div class="text-start">
                                     <h5 class="fw-bold mb-0">Suporte VIP</h5>
@@ -1064,10 +1056,10 @@
     </div>
 
     <!-- Footer -->
-    <footer class="text-center py-4" style="background: transparent;">
-        <p class="mb-0" style="color: #6b7280; font-size: 0.9rem;">
+    <footer class="text-center py-4 bg-transparent-override">
+        <p class="mb-0 footer-text">
             <i class="bi bi-code-slash me-1"></i>
-            Desenvolvido pela equipe <strong style="color: #f85d23;">xcafe</strong>
+            Desenvolvido pela equipe <strong class="brand-orange">xcafe</strong>
         </p>
     </footer>
 

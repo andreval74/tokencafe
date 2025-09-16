@@ -1,0 +1,519 @@
+<!--
+================================================================================
+AUTH MODAL - MODAL DE AUTENTICAÇÃO
+================================================================================
+Modal unificado para autenticação Web3
+Combina funcionalidades do XCafe e Widget
+================================================================================
+-->
+
+<div class="modal fade" id="authModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Header do Modal -->
+            <div class="modal-header border-0 pb-0">
+                <div class="w-100 text-center">
+                    <h4 class="modal-title text-coffee">
+                        <i class="fas fa-coffee me-2"></i>
+                        Conectar Carteira
+                    </h4>
+                    <p class="text-muted small mb-0">
+                        Conecte sua carteira para acessar o TokenCafe
+                    </p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Corpo do Modal -->
+            <div class="modal-body px-4 py-3">
+                <!-- Estado: Seleção de Carteira -->
+                <div id="wallet-selection" class="auth-step">
+                    <div class="row g-2">
+                        <!-- MetaMask -->
+                        <div class="col-12">
+                            <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="metamask">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://cdn.jsdelivr.net/gh/MetaMask/brand-resources@master/SVG/metamask-fox.svg" 
+                                         alt="MetaMask" class="wallet-icon me-3" width="32" height="32">
+                                    <div class="text-start flex-grow-1">
+                                        <h6 class="mb-0">MetaMask</h6>
+                                        <small class="text-muted">Conectar usando MetaMask</small>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- WalletConnect -->
+                        <div class="col-12">
+                            <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="walletconnect">
+                                <div class="d-flex align-items-center">
+                                    <div class="wallet-icon me-3 bg-primary rounded d-flex align-items-center justify-content-center size-32">
+                                        <i class="fas fa-qrcode text-white"></i>
+                                    </div>
+                                    <div class="text-start flex-grow-1">
+                                        <h6 class="mb-0">WalletConnect</h6>
+                                        <small class="text-muted">Conectar com código QR</small>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Coinbase -->
+                        <div class="col-12">
+                            <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="coinbase">
+                                <div class="d-flex align-items-center">
+                                    <div class="wallet-icon me-3 bg-info rounded d-flex align-items-center justify-content-center size-32">
+                                        <i class="fas fa-coins text-white"></i>
+                                    </div>
+                                    <div class="text-start flex-grow-1">
+                                        <h6 class="mb-0">Coinbase Wallet</h6>
+                                        <small class="text-muted">Conectar usando Coinbase</small>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Não possui uma carteira? 
+                            <a href="https://metamask.io" target="_blank" class="text-decoration-none">
+                                Instalar MetaMask
+                            </a>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Estado: Conectando -->
+                <div id="wallet-connecting" class="auth-step d-none">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-coffee mb-3" role="status">
+                            <span class="visually-hidden">Conectando...</span>
+                        </div>
+                        <h6 class="text-coffee">Conectando...</h6>
+                        <p class="text-muted mb-0" id="connecting-message">
+                            Aguarde enquanto conectamos sua carteira
+                        </p>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="cancel-connection">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado: Seleção de Rede -->
+                <div id="network-selection" class="auth-step d-none">
+                    <div class="mb-3">
+                        <h6 class="text-coffee">
+                            <i class="fas fa-network-wired me-2"></i>
+                            Selecionar Rede
+                        </h6>
+                        <p class="text-muted small mb-0">
+                            Escolha a rede blockchain para usar
+                        </p>
+                    </div>
+
+                    <div class="row g-2">
+                        <!-- Ethereum -->
+                        <div class="col-6">
+                            <button class="btn btn-outline-primary w-100 p-3 network-option" data-chain-id="0x1">
+                                <div class="text-center">
+                                    <div class="network-icon mb-2 mx-auto bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fab fa-ethereum text-white"></i>
+                                    </div>
+                                    <h6 class="mb-0 small">Ethereum</h6>
+                                    <small class="text-muted">Mainnet</small>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- BSC -->
+                        <div class="col-6">
+                            <button class="btn btn-outline-warning w-100 p-3 network-option" data-chain-id="0x38">
+                                <div class="text-center">
+                                    <div class="network-icon mb-2 mx-auto bg-warning rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-coins text-white"></i>
+                                    </div>
+                                    <h6 class="mb-0 small">BSC</h6>
+                                    <small class="text-muted">Binance Smart Chain</small>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Polygon -->
+                        <div class="col-6">
+                            <button class="btn btn-outline-info w-100 p-3 network-option" data-chain-id="0x89">
+                                <div class="text-center">
+                                    <div class="network-icon mb-2 mx-auto bg-info rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-layer-group text-white"></i>
+                                    </div>
+                                    <h6 class="mb-0 small">Polygon</h6>
+                                    <small class="text-muted">MATIC</small>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Arbitrum -->
+                        <div class="col-6">
+                            <button class="btn btn-outline-success w-100 p-3 network-option" data-chain-id="0xa4b1">
+                                <div class="text-center">
+                                    <div class="network-icon mb-2 mx-auto bg-success rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-rocket text-white"></i>
+                                    </div>
+                                    <h6 class="mb-0 small">Arbitrum</h6>
+                                    <small class="text-muted">Layer 2</small>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="back-to-wallets">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Estado: Sucesso -->
+                <div id="connection-success" class="auth-step d-none">
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="fas fa-check text-white fa-2x"></i>
+                            </div>
+                        </div>
+                        <h6 class="text-success">Conectado com Sucesso!</h6>
+                        <p class="text-muted mb-3" id="connected-address">
+                            Endereço: <span class="font-monospace"></span>
+                        </p>
+                        <p class="text-muted mb-3" id="connected-network">
+                            Rede: <span></span>
+                        </p>
+                        <button type="button" class="btn btn-coffee" data-bs-dismiss="modal">
+                            Acessar Dashboard
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Estado: Erro -->
+                <div id="connection-error" class="auth-step d-none">
+                    <div class="text-center py-4">
+                        <div class="mb-3">
+                            <div class="bg-danger rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                 style="width: 60px; height: 60px;">
+                                <i class="fas fa-exclamation-triangle text-white fa-2x"></i>
+                            </div>
+                        </div>
+                        <h6 class="text-danger">Erro na Conexão</h6>
+                        <p class="text-muted mb-3" id="error-message">
+                            Não foi possível conectar sua carteira
+                        </p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-outline-secondary" id="back-to-selection">
+                                Tentar Novamente
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer com informações adicionais -->
+            <div class="modal-footer border-0 pt-0">
+                <div class="w-100">
+                    <div class="text-center">
+                        <small class="text-muted d-block mb-2">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Sua carteira permanece sob seu controle
+                        </small>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="privacy.html" class="text-muted small text-decoration-none">Privacidade</a>
+                            <a href="terms.html" class="text-muted small text-decoration-none">Termos</a>
+                            <a href="support.html" class="text-muted small text-decoration-none">Suporte</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initAuthModal();
+});
+
+function initAuthModal() {
+    // Elementos do modal
+    const modal = document.getElementById('authModal');
+    const walletOptions = document.querySelectorAll('.wallet-option');
+    const networkOptions = document.querySelectorAll('.network-option');
+    const cancelBtn = document.getElementById('cancel-connection');
+    const backToWalletsBtn = document.getElementById('back-to-wallets');
+    const backToSelectionBtn = document.getElementById('back-to-selection');
+
+    // Event listeners
+    walletOptions.forEach(option => {
+        option.addEventListener('click', handleWalletSelection);
+    });
+
+    networkOptions.forEach(option => {
+        option.addEventListener('click', handleNetworkSelection);
+    });
+
+    cancelBtn?.addEventListener('click', () => showStep('wallet-selection'));
+    backToWalletsBtn?.addEventListener('click', () => showStep('wallet-selection'));
+    backToSelectionBtn?.addEventListener('click', () => showStep('wallet-selection'));
+
+    // Verificar se já está conectado
+    checkExistingConnection();
+}
+
+async function handleWalletSelection(e) {
+    const walletType = e.currentTarget.dataset.wallet;
+    
+    showStep('wallet-connecting');
+    updateConnectingMessage(`Conectando com ${getWalletName(walletType)}...`);
+    
+    try {
+        const connected = await connectWallet(walletType);
+        
+        if (connected) {
+            // Se conectou com sucesso, verificar rede
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const supportedChains = ['0x1', '0x38', '0x89', '0xa4b1'];
+            
+            if (supportedChains.includes(chainId)) {
+                await handleConnectionSuccess();
+            } else {
+                showStep('network-selection');
+            }
+        }
+    } catch (error) {
+        handleConnectionError(error);
+    }
+}
+
+async function handleNetworkSelection(e) {
+    const chainId = e.currentTarget.dataset.chainId;
+    
+    showStep('wallet-connecting');
+    updateConnectingMessage('Alterando rede...');
+    
+    try {
+        await switchNetwork(chainId);
+        await handleConnectionSuccess();
+    } catch (error) {
+        handleConnectionError(error);
+    }
+}
+
+async function connectWallet(walletType) {
+    switch (walletType) {
+        case 'metamask':
+            return await connectMetaMask();
+        case 'walletconnect':
+            return await connectWalletConnect();
+        case 'coinbase':
+            return await connectCoinbase();
+        default:
+            throw new Error('Wallet não suportado');
+    }
+}
+
+async function connectMetaMask() {
+    if (!window.ethereum) {
+        throw new Error('MetaMask não encontrado. Por favor, instale a extensão.');
+    }
+    
+    const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts'
+    });
+    
+    return accounts.length > 0;
+}
+
+async function connectWalletConnect() {
+    // Implementar WalletConnect
+    throw new Error('WalletConnect em desenvolvimento');
+}
+
+async function connectCoinbase() {
+    // Implementar Coinbase Wallet
+    throw new Error('Coinbase Wallet em desenvolvimento');
+}
+
+async function switchNetwork(chainId) {
+    try {
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId }],
+        });
+    } catch (switchError) {
+        // Se a rede não estiver configurada, adicionar
+        if (switchError.code === 4902) {
+            await addNetwork(chainId);
+        } else {
+            throw switchError;
+        }
+    }
+}
+
+async function addNetwork(chainId) {
+    const networks = {
+        '0x38': {
+            chainId: '0x38',
+            chainName: 'BNB Smart Chain',
+            nativeCurrency: {
+                name: 'BNB',
+                symbol: 'BNB',
+                decimals: 18,
+            },
+            rpcUrls: ['https://bsc-dataseed.binance.org/'],
+            blockExplorerUrls: ['https://bscscan.com/'],
+        },
+        '0x89': {
+            chainId: '0x89',
+            chainName: 'Polygon',
+            nativeCurrency: {
+                name: 'MATIC',
+                symbol: 'MATIC',
+                decimals: 18,
+            },
+            rpcUrls: ['https://polygon-rpc.com/'],
+            blockExplorerUrls: ['https://polygonscan.com/'],
+        },
+        '0xa4b1': {
+            chainId: '0xa4b1',
+            chainName: 'Arbitrum One',
+            nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18,
+            },
+            rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+            blockExplorerUrls: ['https://arbiscan.io/'],
+        }
+    };
+    
+    await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [networks[chainId]],
+    });
+}
+
+async function handleConnectionSuccess() {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    
+    // Atualizar UI com informações de conexão
+    document.querySelector('#connected-address span').textContent = 
+        `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
+    document.querySelector('#connected-network span').textContent = 
+        getNetworkName(chainId);
+    
+    showStep('connection-success');
+    
+    // Notificar outros componentes sobre conexão bem-sucedida
+    if (typeof window.EventBus !== 'undefined') {
+        window.EventBus.emit('wallet:connected', {
+            address: accounts[0],
+            chainId: chainId
+        });
+    }
+    
+    // Fechar modal após 2 segundos
+    setTimeout(() => {
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+        modalInstance?.hide();
+    }, 2000);
+}
+
+function handleConnectionError(error) {
+    console.error('Erro na conexão:', error);
+    
+    let errorMessage = 'Erro desconhecido';
+    
+    if (error.code === 4001) {
+        errorMessage = 'Conexão rejeitada pelo usuário';
+    } else if (error.code === -32002) {
+        errorMessage = 'Solicitação pendente. Verifique sua carteira.';
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+    
+    document.getElementById('error-message').textContent = errorMessage;
+    showStep('connection-error');
+}
+
+function showStep(stepId) {
+    // Ocultar todos os steps
+    document.querySelectorAll('.auth-step').forEach(step => {
+        step.classList.add('d-none');
+    });
+    
+    // Mostrar step específico
+    document.getElementById(stepId)?.classList.remove('d-none');
+}
+
+function updateConnectingMessage(message) {
+    document.getElementById('connecting-message').textContent = message;
+}
+
+function getWalletName(walletType) {
+    const names = {
+        'metamask': 'MetaMask',
+        'walletconnect': 'WalletConnect',
+        'coinbase': 'Coinbase Wallet'
+    };
+    return names[walletType] || walletType;
+}
+
+function getNetworkName(chainId) {
+    const networks = {
+        '0x1': 'Ethereum',
+        '0x38': 'BSC',
+        '0x89': 'Polygon',
+        '0xa4b1': 'Arbitrum'
+    };
+    return networks[chainId] || 'Desconhecida';
+}
+
+async function checkExistingConnection() {
+    if (window.ethereum && window.ethereum.selectedAddress) {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        
+        // Se já está conectado, fechar modal ou mostrar sucesso
+        if (typeof window.EventBus !== 'undefined') {
+            window.EventBus.emit('wallet:connected', {
+                address: window.ethereum.selectedAddress,
+                chainId: chainId
+            });
+        }
+    }
+}
+
+// Expor funções globais
+window.authModal = {
+    show: () => {
+        const modal = new bootstrap.Modal(document.getElementById('authModal'));
+        modal.show();
+    },
+    hide: () => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
+        modal?.hide();
+    }
+};
+</script>

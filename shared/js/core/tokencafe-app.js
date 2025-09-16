@@ -153,54 +153,46 @@ class TokenCafeApp {
             console.log('✅ DataManager inicializado');
         }
 
-        // 2. AuthManager unificado
+        // 2. AuthUnified - Sistema de autenticação unificado
         if (window.AuthUnified) {
             this.managers.authManager = new window.AuthUnified({
                 eventBus: this.eventBus,
                 config: this.config
             });
             this.loadedModules.add('AuthUnified');
-            console.log('✅ AuthManager unificado inicializado');
+            console.log('✅ AuthUnified inicializado (XCafe + Widget unified)');
         }
 
-        // 3. WalletManager
-        if (window.WalletManager) {
-            this.managers.walletManager = new window.WalletManager({
+        // 3. TemplateLoader - Sistema de templates unificado
+        if (window.TemplateLoader) {
+            this.managers.templateLoader = new window.TemplateLoader({
                 eventBus: this.eventBus,
                 config: this.config
             });
-            this.loadedModules.add('WalletManager');
-            console.log('✅ WalletManager inicializado');
+            this.loadedModules.add('TemplateLoader');
+            console.log('✅ TemplateLoader inicializado (Widget optimized + standard unified)');
         }
 
-        // 4. DashboardCore
+        // 4. DashboardCore - Dashboard unificado
         if (window.DashboardCore) {
             this.managers.dashboardManager = new window.DashboardCore({
                 eventBus: this.eventBus,
                 authManager: this.managers.authManager,
-                walletManager: this.managers.walletManager
+                config: this.config
             });
             this.loadedModules.add('DashboardCore');
-            console.log('✅ DashboardCore inicializado');
+            console.log('✅ DashboardCore inicializado (Widget dashboard.js + menu-manager unified)');
         }
 
-        // 5. WidgetCore
+        // 5. WidgetCore - Sistema de widgets unificado
         if (window.WidgetCore) {
             this.managers.widgetManager = new window.WidgetCore({
                 eventBus: this.eventBus,
-                authManager: this.managers.authManager
+                authManager: this.managers.authManager,
+                config: this.config
             });
             this.loadedModules.add('WidgetCore');
-            console.log('✅ WidgetCore inicializado');
-        }
-
-        // 6. TemplateLoader unificado
-        if (window.TemplateLoader) {
-            this.managers.templateLoader = new window.TemplateLoader({
-                eventBus: this.eventBus
-            });
-            this.loadedModules.add('TemplateLoader');
-            console.log('✅ TemplateLoader inicializado');
+            console.log('✅ WidgetCore inicializado (Widget creation + management unified)');
         }
 
         // Disponibilizar managers globalmente

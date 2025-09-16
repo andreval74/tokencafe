@@ -1,0 +1,266 @@
+<!--
+================================================================================
+DASH HEADER - HEADER DO DASHBOARD TOKENCAFE
+================================================================================
+Header unificado para páginas do dashboard
+Baseado no dash-header.html do Widget com melhorias
+================================================================================
+-->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-coffee shadow-sm">
+    <div class="container-fluid">
+        <!-- Logo TokenCafe Dashboard -->
+        <a class="navbar-brand d-flex align-items-center" href="dashboard.html">
+            <i class="fas fa-coffee text-gold me-2" style="font-size: 1.5rem;"></i>
+            <span class="fw-bold text-white">Token<span class="text-gold">Cafe</span></span>
+            <small class="text-coffee-light ms-2">Dashboard</small>
+        </a>
+
+        <!-- Toggle para mobile -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#dashNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="dashNavbar">
+            <!-- Menu de navegação rápida -->
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="dashboard.html#overview">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Visão Geral
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="dashboard.html#new-widget">
+                        <i class="fas fa-plus me-1"></i>
+                        Novo Widget
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Informações do usuário e carteira -->
+            <div class="navbar-nav">
+                <!-- Notificações -->
+                <div class="nav-item dropdown me-3">
+                    <a class="nav-link dropdown-toggle position-relative" href="#" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notification-count" style="display: none;">
+                            0
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end bg-white shadow" style="min-width: 300px;">
+                        <li><h6 class="dropdown-header">Notificações</h6></li>
+                        <div id="notifications-list">
+                            <li><span class="dropdown-item-text text-muted">Nenhuma notificação</span></li>
+                        </div>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-center" href="dashboard.html#settings">Ver todas</a></li>
+                    </ul>
+                </div>
+
+                <!-- Status da rede -->
+                <div class="nav-item me-3">
+                    <span class="badge bg-success" id="network-indicator">
+                        <i class="fas fa-circle pulse me-1"></i>
+                        <span id="current-network">BSC</span>
+                    </span>
+                </div>
+
+                <!-- Saldo -->
+                <div class="nav-item me-3" id="balance-display">
+                    <span class="badge bg-gold text-dark">
+                        <i class="fas fa-coins me-1"></i>
+                        <span id="user-balance">0.0000 ETH</span>
+                    </span>
+                </div>
+
+                <!-- Menu do usuário -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                        <div class="rounded-circle bg-coffee-light text-coffee d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="d-none d-md-inline" id="user-account-short">0x0000...0000</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end bg-white shadow">
+                        <li><h6 class="dropdown-header">Minha Conta</h6></li>
+                        <li><span class="dropdown-item-text small text-muted" id="user-account-full">Não conectado</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="dashboard.html#settings">
+                            <i class="fas fa-cog me-2"></i> Configurações
+                        </a></li>
+                        <li><a class="dropdown-item" href="dashboard.html#earnings">
+                            <i class="fas fa-dollar-sign me-2"></i> Ganhos
+                        </a></li>
+                        <li><a class="dropdown-item" href="dashboard.html#support">
+                            <i class="fas fa-question-circle me-2"></i> Suporte
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="index.html">
+                            <i class="fas fa-home me-2"></i> Página Principal
+                        </a></li>
+                        <li><a class="dropdown-item text-danger" href="#" data-auth="disconnect">
+                            <i class="fas fa-sign-out-alt me-2"></i> Desconectar
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Menu lateral do dashboard -->
+<div class="d-flex">
+    <!-- Sidebar -->
+    <nav class="sidebar bg-light border-end" id="sidebar">
+        <div class="sidebar-header p-3 border-bottom">
+            <h6 class="text-coffee mb-0">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Menu Dashboard
+            </h6>
+            <button class="btn btn-sm btn-outline-coffee float-end" data-action="toggle-menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-content">
+            <div id="dashboard-menu">
+                <!-- Menu será carregado dinamicamente pelo DashboardCore -->
+                <div class="p-3 text-center">
+                    <i class="fas fa-spinner fa-spin text-coffee"></i>
+                    <small class="d-block text-muted">Carregando menu...</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <main class="main-content flex-grow-1">
+        <!-- Container será preenchido pelo DashboardCore -->
+        <div id="main-content" class="p-4">
+            <div class="text-center py-5">
+                <i class="fas fa-coffee fa-3x text-coffee mb-3"></i>
+                <h4>Carregando Dashboard...</h4>
+                <div class="spinner-border text-coffee" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+// Atualizar informações da carteira no header do dashboard
+document.addEventListener('auth:connected', function(event) {
+    const { account, state } = event.detail;
+    
+    // Atualizar conta
+    document.getElementById('user-account-short').textContent = 
+        `${account.slice(0, 6)}...${account.slice(-4)}`;
+    document.getElementById('user-account-full').textContent = account;
+    
+    // Atualizar rede
+    document.getElementById('current-network').textContent = state.network || 'Desconhecida';
+    
+    // Atualizar saldo
+    document.getElementById('user-balance').textContent = `${state.balance} ETH`;
+    
+    // Atualizar indicador de rede
+    const networkIndicator = document.getElementById('network-indicator');
+    networkIndicator.className = 'badge bg-success';
+});
+
+document.addEventListener('auth:disconnected', function() {
+    // Resetar informações
+    document.getElementById('user-account-short').textContent = '0x0000...0000';
+    document.getElementById('user-account-full').textContent = 'Não conectado';
+    document.getElementById('current-network').textContent = 'Desconectado';
+    document.getElementById('user-balance').textContent = '0.0000 ETH';
+    
+    // Indicador de rede desconectada
+    const networkIndicator = document.getElementById('network-indicator');
+    networkIndicator.className = 'badge bg-secondary';
+});
+
+document.addEventListener('auth:networkChanged', function(event) {
+    const { network, networkId } = event.detail;
+    document.getElementById('current-network').textContent = network;
+    
+    // Mudar cor do indicador baseado na rede
+    const networkIndicator = document.getElementById('network-indicator');
+    switch(networkId) {
+        case 1: // Ethereum
+            networkIndicator.className = 'badge bg-primary';
+            break;
+        case 56: // BSC
+            networkIndicator.className = 'badge bg-warning';
+            break;
+        case 137: // Polygon
+            networkIndicator.className = 'badge bg-info';
+            break;
+        default:
+            networkIndicator.className = 'badge bg-success';
+    }
+});
+
+// Sistema de notificações
+function addNotification(message, type = 'info') {
+    const notificationsList = document.getElementById('notifications-list');
+    const notificationCount = document.getElementById('notification-count');
+    
+    // Remover mensagem de "nenhuma notificação"
+    const emptyMessage = notificationsList.querySelector('.text-muted');
+    if (emptyMessage) {
+        emptyMessage.remove();
+    }
+    
+    // Adicionar nova notificação
+    const notificationItem = document.createElement('li');
+    notificationItem.innerHTML = `
+        <a class="dropdown-item" href="#">
+            <i class="fas fa-${type === 'error' ? 'exclamation-triangle text-danger' : 'info-circle text-info'} me-2"></i>
+            ${message}
+            <small class="d-block text-muted">${new Date().toLocaleTimeString()}</small>
+        </a>
+    `;
+    
+    notificationsList.appendChild(notificationItem);
+    
+    // Atualizar contador
+    const currentCount = parseInt(notificationCount.textContent) || 0;
+    notificationCount.textContent = currentCount + 1;
+    notificationCount.style.display = 'inline';
+}
+
+// Pulso no indicador de rede
+document.addEventListener('DOMContentLoaded', function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            min-height: calc(100vh - 56px);
+        }
+        
+        .sidebar.collapsed {
+            min-width: 80px;
+            max-width: 80px;
+        }
+        
+        .main-content {
+            min-height: calc(100vh - 56px);
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>

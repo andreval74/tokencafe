@@ -1,0 +1,159 @@
+<!--
+================================================================================
+MAIN HEADER - HEADER PRINCIPAL TOKENCAFE
+================================================================================
+Header unificado para páginas principais (index, about, contact)
+Baseado no header.html do XCafe com tema TokenCafe
+================================================================================
+-->
+
+<nav class="navbar navbar-expand-lg navbar-coffee fixed-top">
+    <div class="container">
+        <!-- Logo TokenCafe -->
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+            <i class="fas fa-coffee text-coffee me-2" style="font-size: 1.5rem;"></i>
+            <span class="fw-bold text-coffee">Token<span class="text-gold">Cafe</span></span>
+        </a>
+
+        <!-- Toggle para mobile -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu de navegação -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        <i class="fas fa-home me-1"></i> Início
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-cube me-1"></i> Widgets
+                    </a>
+                    <ul class="dropdown-menu bg-white shadow">
+                        <li><a class="dropdown-item" href="dashboard.html#widgets">
+                            <i class="fas fa-list me-2"></i> Meus Widgets
+                        </a></li>
+                        <li><a class="dropdown-item" href="dashboard.html#new-widget">
+                            <i class="fas fa-plus me-2"></i> Criar Widget
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="dashboard.html#templates">
+                            <i class="fas fa-layer-group me-2"></i> Templates
+                        </a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="about.html">
+                        <i class="fas fa-info-circle me-1"></i> Sobre
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="support.html">
+                        <i class="fas fa-question-circle me-1"></i> Suporte
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Informações da carteira -->
+            <div class="navbar-nav ms-auto">
+                <!-- Status da rede -->
+                <div class="nav-item d-none d-lg-block me-3">
+                    <span class="badge bg-coffee-light text-dark" id="network-status">
+                        <i class="fas fa-globe me-1"></i>
+                        <span id="wallet-network">Desconectado</span>
+                    </span>
+                </div>
+
+                <!-- Saldo -->
+                <div class="nav-item d-none d-lg-block me-3" id="wallet-balance-container" style="display: none !important;">
+                    <span class="badge bg-success">
+                        <i class="fas fa-coins me-1"></i>
+                        <span id="wallet-balance">0 ETH</span>
+                    </span>
+                </div>
+
+                <!-- Conta conectada -->
+                <div class="nav-item me-2" id="wallet-account-container" style="display: none !important;">
+                    <span class="badge bg-coffee text-white">
+                        <i class="fas fa-wallet me-1"></i>
+                        <span id="wallet-account">Não conectado</span>
+                    </span>
+                </div>
+
+                <!-- Botões de ação -->
+                <div class="nav-item">
+                    <button class="btn btn-coffee me-2" data-auth="connect" id="connect-wallet-btn">
+                        <i class="fab fa-ethereum me-1"></i>
+                        Conectar Carteira
+                    </button>
+                    
+                    <div class="btn-group" id="wallet-actions" style="display: none;">
+                        <button class="btn btn-outline-coffee" onclick="window.location.href='dashboard.html'">
+                            <i class="fas fa-tachometer-alt me-1"></i>
+                            Dashboard
+                        </button>
+                        <button class="btn btn-outline-danger" data-auth="disconnect" id="disconnect-wallet-btn">
+                            <i class="fas fa-sign-out-alt me-1"></i>
+                            Desconectar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Espaço para navbar fixa -->
+<div style="height: 80px;"></div>
+
+<script>
+// Atualizar UI do header baseado no estado da autenticação
+document.addEventListener('auth:connected', function(event) {
+    const { account, state } = event.detail;
+    
+    // Mostrar informações da carteira
+    document.getElementById('wallet-account-container').style.display = 'block';
+    document.getElementById('wallet-balance-container').style.display = 'block';
+    document.getElementById('wallet-actions').style.display = 'block';
+    document.getElementById('connect-wallet-btn').style.display = 'none';
+    
+    // Atualizar textos
+    document.getElementById('wallet-account').textContent = 
+        `${account.slice(0, 6)}...${account.slice(-4)}`;
+    document.getElementById('wallet-network').textContent = state.network || 'Desconhecida';
+    document.getElementById('wallet-balance').textContent = `${state.balance} ETH`;
+});
+
+document.addEventListener('auth:disconnected', function(event) {
+    // Ocultar informações da carteira
+    document.getElementById('wallet-account-container').style.display = 'none';
+    document.getElementById('wallet-balance-container').style.display = 'none';
+    document.getElementById('wallet-actions').style.display = 'none';
+    document.getElementById('connect-wallet-btn').style.display = 'block';
+    
+    // Resetar textos
+    document.getElementById('wallet-account').textContent = 'Não conectado';
+    document.getElementById('wallet-network').textContent = 'Desconectado';
+    document.getElementById('wallet-balance').textContent = '0 ETH';
+});
+
+document.addEventListener('auth:networkChanged', function(event) {
+    const { network } = event.detail;
+    document.getElementById('wallet-network').textContent = network;
+});
+
+// Animação para link ativo
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname.split('/').pop();
+    const navLinks = document.querySelectorAll('.nav-link[href]');
+    
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+            link.classList.add('active');
+        }
+    });
+});
+</script>
