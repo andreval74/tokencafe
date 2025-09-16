@@ -1,0 +1,896 @@
+/*!
+ * TokenCafe Styles - Bootstrap 5 Compatible
+ * Organizado seguindo padrões do Bootstrap 5
+ * Cores baseadas no XCafe: #f85d23 (primary), #1a1a1a (dark)
+ */
+
+/*
+==========================================================================
+BOOTSTRAP 5 CSS CUSTOM PROPERTIES (VARIABLES)
+Definição centralizada de variáveis seguindo padrão Bootstrap 5
+==========================================================================
+*/
+
+:root {
+  /* === XCAFE BRAND COLORS === */
+  --xcafe-orange-primary: #f85d23;
+  --xcafe-orange-secondary: #f59e0b;
+  --xcafe-orange-tertiary: #fbbf24;
+  --xcafe-dark-primary: #0a0a0a;
+  --xcafe-dark-secondary: #1a1a1a;
+  --xcafe-dark-tertiary: #2d2d2d;
+
+  /* === BOOTSTRAP 5 COLOR SYSTEM OVERRIDES === */
+  --bs-primary: #f85d23;
+  --bs-primary-rgb: 248, 93, 35;
+  --bs-secondary: #6c757d;
+  --bs-secondary-rgb: 108, 117, 125;
+  --bs-success: #10b981;
+  --bs-success-rgb: 16, 185, 129;
+  --bs-info: #3b82f6;
+  --bs-info-rgb: 59, 130, 246;
+  --bs-warning: #f59e0b;
+  --bs-warning-rgb: 245, 158, 11;
+  --bs-danger: #ef4444;
+  --bs-danger-rgb: 239, 68, 68;
+  --bs-light: #f8f9fa;
+  --bs-light-rgb: 248, 249, 250;
+  --bs-dark: #0a0a0a;
+  --bs-dark-rgb: 10, 10, 10;
+
+  /* === BOOTSTRAP 5 BODY STYLES === */
+  --bs-body-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bs-body-font-size: 1rem;
+  --bs-body-font-weight: 400;
+  --bs-body-line-height: 1.5;
+  --bs-body-color: #ffffff;
+  --bs-body-bg: #1a1a1a;
+
+  /* === BOOTSTRAP 5 THEME COLORS === */
+  --bs-emphasis-color: #ffffff;
+  --bs-emphasis-color-rgb: 255, 255, 255;
+  --bs-secondary-color: #e5e7eb;
+  --bs-secondary-color-rgb: 229, 231, 235;
+  --bs-tertiary-color: #9ca3af;
+  --bs-tertiary-color-rgb: 156, 163, 175;
+  
+  /* === BOOTSTRAP 5 BORDERS === */
+  --bs-border-width: 1px;
+  --bs-border-style: solid;
+  --bs-border-color: #374151;
+  --bs-border-color-translucent: rgba(55, 65, 81, 0.2);
+  --bs-border-radius: 0.375rem;
+  --bs-border-radius-sm: 0.25rem;
+  --bs-border-radius-lg: 0.5rem;
+  --bs-border-radius-xl: 1rem;
+  --bs-border-radius-2xl: 2rem;
+
+  /* === BOOTSTRAP 5 COMPONENTS === */
+  --bs-card-bg: #2d2d2d;
+  --bs-modal-bg: #2d2d2d;
+  --bs-dropdown-bg: #2d2d2d;
+  --bs-navbar-brand-color: var(--bs-primary);
+  --bs-navbar-brand-hover-color: var(--bs-warning);
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 TYPOGRAPHY
+Tipografia personalizada mantendo padrão Bootstrap 5
+==========================================================================
+*/
+
+body {
+  font-family: var(--bs-body-font-family);
+  font-size: var(--bs-body-font-size);
+  font-weight: var(--bs-body-font-weight);
+  line-height: var(--bs-body-line-height);
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-bg);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--bs-emphasis-color);
+}
+
+/* Display headings */
+.display-1 { font-size: 5rem; font-weight: 700; }
+.display-2 { font-size: 4.5rem; font-weight: 700; }
+.display-3 { font-size: 4rem; font-weight: 700; }
+.display-4 { font-size: 3.5rem; font-weight: 700; }
+.display-5 { font-size: 3rem; font-weight: 700; }
+.display-6 { font-size: 2.5rem; font-weight: 700; }
+
+/* Text utilities */
+.text-primary { color: var(--bs-primary) !important; }
+.text-secondary { color: var(--bs-secondary-color) !important; }
+.text-success { color: var(--bs-success) !important; }
+.text-info { color: var(--bs-info) !important; }
+.text-warning { color: var(--bs-warning) !important; }
+.text-danger { color: var(--bs-danger) !important; }
+.text-light { color: var(--bs-light) !important; }
+.text-dark { color: var(--bs-dark) !important; }
+.text-muted { color: var(--bs-tertiary-color) !important; }
+.text-white { color: #ffffff !important; }
+
+/*
+==========================================================================
+BOOTSTRAP 5 BUTTONS
+Sistema de botões seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.btn {
+  --bs-btn-padding-x: 0.75rem;
+  --bs-btn-padding-y: 0.375rem;
+  --bs-btn-font-family: var(--bs-body-font-family);
+  --bs-btn-font-size: var(--bs-body-font-size);
+  --bs-btn-font-weight: 500;
+  --bs-btn-line-height: 1.5;
+  --bs-btn-border-width: var(--bs-border-width);
+  --bs-btn-border-radius: var(--bs-border-radius);
+  border-radius: var(--bs-btn-border-radius);
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  --bs-btn-color: #000;
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: #d97706;
+  --bs-btn-hover-border-color: #d97706;
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+  --bs-btn-active-color: #000;
+  --bs-btn-active-bg: #d97706;
+  --bs-btn-active-border-color: #d97706;
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-warning));
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(248, 93, 35, 0.4);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+  --bs-btn-active-color: #000;
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-border-color: var(--bs-primary);
+  background: transparent;
+  border: 2px solid var(--bs-primary);
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(248, 93, 35, 0.4);
+}
+
+.btn-outline-warning {
+  --bs-btn-color: var(--bs-warning);
+  --bs-btn-border-color: var(--bs-warning);
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: var(--bs-warning);
+  --bs-btn-hover-border-color: var(--bs-warning);
+  background: transparent;
+  border: 2px solid var(--bs-warning);
+}
+
+.btn:focus,
+.btn:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.5) !important;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 FORMS
+Sistema de formulários seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.form-control {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+  border-radius: var(--bs-border-radius);
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--bs-body-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
+}
+
+.form-control::placeholder {
+  color: var(--bs-tertiary-color) !important;
+}
+
+.form-control:valid:not(:placeholder-shown) {
+  border-color: var(--bs-success) !important;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.form-control:invalid:not(:placeholder-shown) {
+  border-color: var(--bs-danger) !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.form-select {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+}
+
+.form-select:focus {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--bs-body-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
+}
+
+.form-label {
+  color: var(--bs-emphasis-color);
+  font-weight: 500;
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 CARDS
+Sistema de cards seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.card {
+  background-color: var(--bs-card-bg) !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(248, 93, 35, 0.15);
+  border-color: rgba(248, 93, 35, 0.3);
+}
+
+.card-header {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.card-body {
+  color: var(--bs-body-color) !important;
+}
+
+.card-footer {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-border-color) !important;
+  border-radius: 0 0 16px 16px !important;
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 ALERTS
+Sistema de alertas seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.alert {
+  border-radius: var(--bs-border-radius-lg);
+  border-left: 4px solid;
+}
+
+.alert-primary {
+  --bs-alert-bg: rgba(248, 93, 35, 0.1);
+  --bs-alert-color: #fbbf24;
+  --bs-alert-border-color: var(--bs-primary);
+  border-left-color: var(--bs-primary);
+}
+
+.alert-success {
+  --bs-alert-bg: rgba(16, 185, 129, 0.1);
+  --bs-alert-color: #6ee7b7;
+  --bs-alert-border-color: var(--bs-success);
+  border-left-color: var(--bs-success);
+}
+
+.alert-danger {
+  --bs-alert-bg: rgba(239, 68, 68, 0.1);
+  --bs-alert-color: #fca5a5;
+  --bs-alert-border-color: var(--bs-danger);
+  border-left-color: var(--bs-danger);
+}
+
+.alert-warning {
+  --bs-alert-bg: rgba(245, 158, 11, 0.1);
+  --bs-alert-color: #fbbf24;
+  --bs-alert-border-color: var(--bs-warning);
+  border-left-color: var(--bs-warning);
+}
+
+.alert-info {
+  --bs-alert-bg: rgba(59, 130, 246, 0.1);
+  --bs-alert-color: #93c5fd;
+  --bs-alert-border-color: var(--bs-info);
+  border-left-color: var(--bs-info);
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 MODALS
+Sistema de modais seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.modal-content {
+  background-color: var(--bs-modal-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color) !important;
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.modal-header {
+  border-color: var(--bs-border-color) !important;
+}
+
+.modal-footer {
+  border-color: var(--bs-border-color) !important;
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 DROPDOWNS
+Sistema de dropdowns seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.dropdown-menu {
+  background-color: var(--bs-dropdown-bg) !important;
+  border-color: var(--bs-border-color) !important;
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.dropdown-item {
+  color: var(--bs-body-color) !important;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: rgba(248, 93, 35, 0.1) !important;
+  color: var(--bs-primary) !important;
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 PROGRESS BARS
+Sistema de barras de progresso seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.progress {
+  background-color: #374151 !important;
+  border-radius: var(--bs-border-radius);
+}
+
+.progress-bar {
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-warning)) !important;
+  transition: width 0.6s ease;
+}
+
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 TABLES
+Sistema de tabelas seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.table {
+  color: var(--bs-body-color) !important;
+}
+
+.table-dark {
+  --bs-table-bg: #1a1a1a;
+  --bs-table-striped-bg: #2d2d2d;
+  --bs-table-hover-bg: #374151;
+  --bs-table-border-color: var(--bs-border-color);
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 BADGES
+Sistema de badges seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: var(--bs-border-radius);
+}
+
+.badge.bg-primary {
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-warning)) !important;
+  color: #000 !important;
+}
+
+.badge.bg-success {
+  background: linear-gradient(135deg, var(--bs-success), #059669) !important;
+}
+
+.badge.bg-warning {
+  background: linear-gradient(135deg, var(--bs-warning), #d97706) !important;
+}
+
+.badge.bg-info {
+  background: linear-gradient(135deg, var(--bs-info), #2563eb) !important;
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 BACKGROUND UTILITIES
+Utilitários de background seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bs-dark) !important;
+}
+
+.bg-dark {
+  background-color: #1a1a1a !important;
+}
+
+/*
+==========================================================================
+BOOTSTRAP 5 BORDER UTILITIES
+Utilitários de border seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+.border-primary {
+  border-color: var(--bs-primary) !important;
+}
+
+.border-secondary {
+  border-color: var(--bs-border-color) !important;
+}
+
+/*
+==========================================================================
+XCAFE CUSTOM COMPONENTS
+Componentes customizados específicos do TokenCafe
+==========================================================================
+*/
+
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  z-index: 1070;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--bs-primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+/* XCafe Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-warning) 50%, #fbbf24 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
+/* XCafe Hero Section */
+.hero-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(248, 93, 35, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* XCafe Feature Cards */
+.feature-card {
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid rgba(248, 93, 35, 0.2);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  border-color: rgba(248, 93, 35, 0.4);
+  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.2);
+}
+
+.feature-icon {
+  color: var(--bs-primary);
+  font-size: 2.5rem;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+/*
+==========================================================================
+TOKEN CREATOR SPECIFIC STYLES
+Estilos específicos para o Token Creator
+==========================================================================
+*/
+
+.token-creator-container {
+  background: var(--bs-body-bg);
+  min-height: calc(100vh - 120px);
+  padding: 80px 0 40px 0;
+}
+
+.creator-card {
+  background: var(--bs-card-bg);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  border: 1px solid var(--bs-border-color);
+  padding: 30px;
+}
+
+.creator-header {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, #d97706 100%);
+  color: white;
+  padding: 30px;
+  text-align: left;
+  margin: -30px -30px 30px -30px;
+  border-radius: 20px 20px 0 0;
+}
+
+.creator-header h1 {
+  color: white;
+  font-family: var(--bs-body-font-family);
+  margin-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+/* Progress Steps */
+.progress-steps {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.step-item {
+  position: relative;
+}
+
+.step-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  border: 3px solid var(--bs-secondary);
+}
+
+.step-item.active .step-circle {
+  background: var(--bs-primary) !important;
+  color: #000 !important;
+  border-color: var(--bs-primary);
+  transform: scale(1.1);
+}
+
+.step-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.step-item.active .step-label {
+  color: var(--bs-primary) !important;
+  font-weight: 600;
+}
+
+/* Step Content Animation */
+.step-content {
+  display: none;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.step-content.active {
+  display: block;
+}
+
+/* Wallet Status */
+.wallet-status-connected {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: var(--bs-success) !important;
+  color: #6ee7b7 !important;
+  font-family: 'Courier New', monospace !important;
+  font-weight: 600;
+}
+
+.connection-section.connected-state .card {
+  border-color: var(--bs-success) !important;
+}
+
+.network-info {
+  font-size: 0.875rem;
+  color: #9ca3af !important;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+/*
+==========================================================================
+MOBILE RESPONSIVE STYLES
+Estilos responsivos otimizados para dispositivos móveis
+==========================================================================
+*/
+
+/* Mobile QR Interface */
+.mobile-qr-container {
+  background: var(--bs-card-bg);
+  border: 3px solid var(--bs-success);
+  border-radius: 20px;
+  padding: 25px;
+  margin: 20px 0;
+  box-shadow: 0 10px 30px rgba(40, 167, 69, 0.2);
+}
+
+.mobile-alert {
+  background: linear-gradient(135deg, var(--bs-success), var(--bs-info));
+  border: none;
+  color: white;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  padding: 20px;
+  text-align: center;
+}
+
+.mobile-wallet-btn {
+  background: linear-gradient(135deg, var(--bs-success), var(--bs-info));
+  border: 3px solid transparent;
+  border-radius: 15px;
+  padding: 20px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-wallet-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(40, 167, 69, 0.4);
+  border-color: var(--bs-warning);
+}
+
+.mobile-wallet-icon {
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+
+/*
+==========================================================================
+ANIMATIONS & KEYFRAMES
+Animações reutilizáveis seguindo padrões do Bootstrap
+==========================================================================
+*/
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(20deg); }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/*
+==========================================================================
+RESPONSIVE DESIGN
+Breakpoints seguindo sistema Bootstrap 5
+==========================================================================
+*/
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+  /* Estilos para small devices */
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (max-width: 767.98px) {
+  body {
+    padding-top: 60px;
+  }
+  
+  .creator-header h1 {
+    font-size: 2rem;
+  }
+  
+  .token-creator-container {
+    padding: 60px 0 20px 0;
+  }
+  
+  .display-2 {
+    font-size: 2.5rem !important;
+  }
+  
+  .display-4 {
+    font-size: 2rem !important;
+  }
+  
+  .display-5 {
+    font-size: 1.8rem !important;
+  }
+}
+
+/* Small devices (phones, 576px and down) */
+@media (max-width: 575.98px) {
+  body {
+    padding-top: 50px;
+  }
+  
+  .creator-card {
+    padding: 20px;
+  }
+  
+  .creator-header {
+    margin: -20px -20px 20px -20px;
+    padding: 20px;
+  }
+  
+  .mobile-qr-container {
+    padding: 15px;
+    border-radius: 15px;
+  }
+  
+  .mobile-wallet-btn {
+    padding: 12px;
+  }
+}
+
+/*
+==========================================================================
+PRINT STYLES
+Estilos para impressão seguindo padrões Bootstrap 5
+==========================================================================
+*/
+
+@media print {
+  .header-wrapper,
+  .footer-wrapper {
+    display: none !important;
+  }
+  
+  body {
+    padding-top: 0;
+    background: white !important;
+    color: black !important;
+  }
+  
+  .card {
+    border: 1px solid #000 !important;
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/*
+==========================================================================
+UTILITY CLASSES
+Classes utilitárias customizadas complementando Bootstrap 5
+==========================================================================
+*/
+
+.xcafe-hover-lift {
+  transition: transform 0.3s ease;
+}
+
+.xcafe-hover-lift:hover {
+  transform: translateY(-5px);
+}
+
+.xcafe-glass-effect {
+  background: rgba(248, 93, 35, 0.1);
+  border: 1px solid rgba(248, 93, 35, 0.3);
+  backdrop-filter: blur(10px);
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.xcafe-text-gradient {
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-warning));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button, .btn, .card {
+  transition: all 0.3s ease;
+}
