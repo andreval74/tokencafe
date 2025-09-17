@@ -9,8 +9,8 @@
 const express = require('express');
 const { query, validationResult } = require('express-validator');
 const router = express.Router();
-const logger = require('../utils/logger');
-const { auth, authorize } = require('../middleware/auth');
+const logger = require('./logger');
+const { auth, authorize } = require('./auth');
 
 // GET /api/analytics/overview
 router.get('/overview', auth, [

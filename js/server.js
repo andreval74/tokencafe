@@ -19,17 +19,17 @@ const socketIo = require('socket.io');
 require('dotenv').config();
 
 // Importar middlewares
-const errorHandler = require('./middleware/errorHandler');
-const logger = require('./utils/logger');
-const { auth } = require('./middleware/auth');
+const errorHandler = require('./errorHandler');
+const logger = require('./logger');
+const { auth } = require('./auth');
 
 // Importar rotas
-const authRoutes = require('./routes/auth');
-const widgetRoutes = require('./routes/widgets');
-const userRoutes = require('./routes/users');
-const analyticsRoutes = require('./routes/analytics');
-const templateRoutes = require('./routes/templates');
-const web3Routes = require('./routes/web3');
+const authRoutes = require('./auth-routes');
+const widgetRoutes = require('./widgets');
+const userRoutes = require('./users');
+const analyticsRoutes = require('./analytics-routes');
+const templateRoutes = require('./templates');
+const web3Routes = require('./web3');
 
 class TokenCafeServer {
     constructor() {
@@ -117,7 +117,6 @@ class TokenCafeServer {
         
         // Static files
         this.app.use(express.static(path.join(__dirname, '../')));
-        this.app.use('/assets', express.static(path.join(__dirname, '../shared')));
     }
     
     initializeRoutes() {
@@ -128,37 +127,37 @@ class TokenCafeServer {
                 timestamp: new Date().toISOString(),
                 uptime: process.uptime(),
                 environment: process.env.NODE_ENV || 'development',
-                version: require('../package.json').version
+                version: '1.0.0'
             });
         });
         
         // API routes
-        this.app.use('/api/auth', authRoutes);
-        this.app.use('/api/widgets', widgetRoutes);
-        this.app.use('/api/users', auth, userRoutes);
-        this.app.use('/api/analytics', auth, analyticsRoutes);
-        this.app.use('/api/templates', templateRoutes);
-        this.app.use('/api/web3', web3Routes);
-        
+        this.app.use('auth', authRoutes);
+        this.app.use('users', userRoutes);
+        this.app.use('widgets', widgetRoutes);
+        this.app.use('analytics', analyticsRoutes);
+        this.app.use('templates', templateRoutes);
+        this.app.use('web3', web3Routes);
+
         // Frontend routes
         this.app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, '../pages/index.html'));
         });
         
         this.app.get('/dashboard', (req, res) => {
-            res.sendFile(path.join(__dirname, '../dashboard/main/dashboard.html'));
+            res.sendFile(path.join(__dirname, '../pages/dashboard.html'));
         });
         
         this.app.get('/dashboard/widgets', (req, res) => {
-            res.sendFile(path.join(__dirname, '../dashboard/pages/widget-manager.html'));
+            res.sendFile(path.join(__dirname, '../pages/widget-manager.html'));
         });
         
         this.app.get('/dashboard/admin', (req, res) => {
-            res.sendFile(path.join(__dirname, '../dashboard/pages/admin-panel.html'));
+            res.sendFile(path.join(__dirname, '../pages/admin-panel.html'));
         });
         
         this.app.get('/dashboard/reports', (req, res) => {
-            res.sendFile(path.join(__dirname, '../dashboard/pages/reports.html'));
+            res.sendFile(path.join(__dirname, '../pages/reports.html'));
         });
         
         // Catch-all handler: serve index.html for SPA routes

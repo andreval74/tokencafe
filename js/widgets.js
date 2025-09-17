@@ -9,8 +9,8 @@
 const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const router = express.Router();
-const logger = require('../utils/logger');
-const { auth, optionalAuth, authorize } = require('../middleware/auth');
+const logger = require('./logger');
+const { auth, optionalAuth, authorize } = require('./auth');
 
 // Mock de widgets (em produção seria um banco de dados)
 const widgets = [

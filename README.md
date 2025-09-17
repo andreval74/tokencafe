@@ -1,191 +1,129 @@
-# 🚀 TokenCafe - Ecossistema Unificado de Widgets de Token
+o que temos no arquivo:
 
-## 📋 **O QUE É O TOKENCAFE**
+1. Descrição da TokenCafe
+2. Estrutura do repositório
+3. Roadmap detalhado com módulos, prazos, responsáveis e KPIs
+4. Princípios de desenvolvimento
+5. Prompt para análise da pasta `projeto/`
+6. Próximos passos imediatos
+---
 
-O **TokenCafe** é um ecossistema completo e unificado para criação, gerenciamento e venda de tokens cryptocurrency através de widgets incorporáveis. Inspirado na cultura cafeeira, oferece uma experiência rica e robusta para proprietários de tokens e compradores.
+# README.md
 
-## ☕ **INSPIRAÇÃO**
+# 🚀 TokenCafe — Plataforma Web3 Modular para Criação e Gestão de Tokens
 
-Nascido na capital mundial do café, o TokenCafe combina a tradição cafeeira com a inovação blockchain, oferecendo:
-- **Qualidade Premium**: Como um café especial, cada funcionalidade é cuidadosamente desenvolvida
-- **Experiência Rica**: Interface intuitiva e envolvente
-- **Comunidade Forte**: Ecossistema que conecta pessoas e projetos
+**TokenCafe** é um ecossistema Web3 modular que permite a criação, gestão e negociação de tokens e contratos inteligentes de forma simples, segura e sem necessidade de código.
+Com uma interface intuitiva e recursos avançados, a plataforma democratiza o acesso ao universo cripto para todos, desde iniciantes até desenvolvedores experientes.
 
-## 🎯 **OBJETIVOS DO PROJETO**
+---
 
-### **Principais Metas:**
-- ✅ **Unificar** os sistemas TokenCafe e Widget em um ecossistema coeso
-- ✅ **Eliminar** duplicações de código e funcionalidades
-- ✅ **Padronizar** em Bootstrap 5 com identidade visual única
-- ✅ **Otimizar** performance e manutenibilidade
-- ✅ **Facilitar** expansão futura do sistema
+## 🌐 Visão Geral
 
-## 🏗️ **ARQUITETURA UNIFICADA**
+TokenCafe oferece um ecossistema completo e acessível para a criação e gestão de ativos digitais:
 
-```
-tokencafe/
-├── 🎨 shared/                  # Recursos compartilhados
-│   ├── css/
-│   │   └── tokencafe.css      # CSS unificado Bootstrap 5
-│   ├── js/
-│   │   ├── core/              # Núcleo do sistema
-│   │   ├── modules/           # Módulos reutilizáveis
-│   │   ├── components/        # Componentes UI
-│   │   └── utils/             # Utilitários
-│   ├── templates/             # Templates HTML
-│   └── assets/                # Imagens, ícones, fontes
-│
-├── 🏠 pages/                   # Páginas principais
-│   ├── index.html             # Landing page (baseada em index2.html)
-│   ├── auth.html              # Autenticação unificada
-│   └── about.html             # Sobre o TokenCafe
-│
-├── 📊 dashboards/              # Dashboards especializados
-│   ├── main/                  # Dashboard principal
-│   ├── widgets/               # Gerenciamento de widgets
-│   ├── analytics/             # Analytics e relatórios
-│   └── admin/                 # Painel administrativo
-│
-├── 🔧 api/                     # Backend unificado
-│   ├��─ server.js              # Servidor principal
-│   ├── routes/                # Rotas organizadas
-│   ├── models/                # Modelos de dados
-│   └── middleware/            # Middlewares
-│
-├── 📚 docs/                    # Documentação
-│   ├── README.md              # Este arquivo
-│   ├── DEV.md                 # Padrões de desenvolvimento
-│   ├── API.md                 # Documentação da API
-│   └── CHANGELOG.md           # Histórico de mudanças
-│
-└── 🛠️ setup/                  # Scripts de instalação
-    ├── install.sh             # Instalação Linux/Mac
-    ├── install.ps1            # Instalação Windows
-    └── docker-compose.yml     # Deploy com Docker
-```
+* Criação e gerenciamento de contratos inteligentes e tokens (ERC20/721).
+* Integração Web3 com MetaMask, TrustWallet ou outras carteiras compatíveis.
+* Dashboard, marketplace e rede social integrada para interação e engajamento.
+* Biblioteca de conhecimento e IA assistiva para aprendizado e suporte.
+* Sistema modular que permite lançar funcionalidades independentes, mas com máximo aproveitamento de código, estilos e componentes compartilhados.
 
-## 🎨 **IDENTIDADE VISUAL**
+---
 
-### **Paleta de Cores (Baseada em index2.html)**
-```css
-:root {
-  /* Cores principais do café */
-  --coffee-primary: #8B4513;    /* Marrom café */
-  --coffee-secondary: #D2691E;  /* Laranja queimado */
-  --coffee-accent: #F4A460;     /* Areia */
-  --coffee-dark: #654321;       /* Café escuro */
-  --coffee-light: #FAEBD7;      /* Creme */
-  
-  /* Cores de sistema */
-  --success: #28a745;           /* Verde */
-  --warning: #ffc107;           /* Amarelo */
-  --danger: #dc3545;            /* Vermelho */
-  --info: #17a2b8;              /* Azul */
-}
-```
+## 🛠️ Estrutura do Repositório
 
-## 📋 **ROTEIRO DE UNIFICAÇÃO**
-
-### **FASE 1: PREPARAÇÃO E ANÁLISE** ✅
-- [x] Análise dos repositórios TokenCafe e Widget
-- [x] Identificação de duplicatas e funcionalidades
-- [x] Definição da estrutura unificada
-- [x] Criação do repositório TokenCafe
-
-### **FASE 2: MIGRAÇÃO DE CÓDIGO** 🔄
-- [ ] Extração das cores e layout do index2.html
-- [ ] Unificação do CSS em Bootstrap 5
-- [ ] Consolidação dos módulos JavaScript
-- [ ] Migração das funcionalidades principais
-
-### **FASE 3: CRIAÇÃO DOS DASHBOARDS** 📅
-- [ ] Dashboard principal unificado
-- [ ] Dashboard de widgets
-- [ ] Dashboard administrativo
-- [ ] Dashboard de analytics
-
-### **FASE 4: TESTES E OTIMIZAÇÃO** 📅
-- [ ] Testes de funcionalidade
-- [ ] Otimização de performance
-- [ ] Documentação completa
-- [ ] Deploy inicial
-
-## 🔧 **ANÁLISE DE DUPLICATAS**
-
-### **Arquivos Identificados para Unificação:**
-```
-📊 RELATÓRIO DE ANÁLISE
-├── JavaScript duplicado: ~23 funções
-├── CSS redundante: ~70% de redução possível
-├── Templates similares: 8 arquivos
-├── Funcionalidades repetidas: 12 módulos
-└── Performance estimada: +40% melhoria
-```
-
-### **Módulos a Unificar:**
-- **Autenticação**: auth-manager.js + wallet-connector.js
-- **Templates**: template-loader.js (versões otimizadas)
-- **Dashboard**: dashboard-manager.js + widget-manager.js
-- **API**: server.py + api endpoints
-- **CSS**: styles.css + múltiplos arquivos CSS
-
-## 💻 **INSTALAÇÃO E CONFIGURAÇÃO**
-
-### **Pré-requisitos**
-- Node.js 18+
-- Git
-- MetaMask (para funcionalidades Web3)
-
-### **Instalação Rápida**
 ```bash
-# Clonar o repositório
-git clone https://github.com/andreval74/tokencafe.git
-cd tokencafe
-
-# Instalar dependências
-npm install
-
-# Configurar ambiente
-cp .env.example .env
-
-# Iniciar servidor de desenvolvimento
-npm run dev
+tokencafe/
+├── docs/              # Documentação geral, roadmap, changelog, whitepapers
+├── public/            # HTMLs principais
+│   ├── index.html     # Página "Em breve"
+│   └── pages/         # Páginas oficiais do sistema
+├── src/
+│   ├── css/           # Estilos modularizados
+│   ├── js/            # Funções JS (wallet, widgets, marketplace)
+│   ├── components/    # Includes: headers, menus, footers
+│   ├── contracts/     # Templates de contratos (ERC20/721/Sale)
+│   └── api/           # Backend Node/Flask
+├── shared/            # Recursos comuns (variáveis, helpers)
+├── projeto/           # Pasta de consulta temporária, será removida
+└── README.md          # Este arquivo
 ```
 
-## 🎯 **PRÓXIMOS PASSOS**
+---
 
-### **Imediatos (Esta Sessão)**
-1. ✅ Criar estrutura base do TokenCafe
-2. 🔄 Analisar index2.html para extrair cores
-3. 🔄 Criar CSS unificado Bootstrap 5
-4. 🔄 Migrar funcionalidades principais
-5. 🔄 Criar dashboards básicos
+## 🔄 Princípios de Desenvolvimento
 
-### **Curto Prazo (Próximas Sessões)**
-1. Finalizar migração completa
-2. Testes de integração
-3. Deploy em tokencafe.app
-4. Documentação completa
-
-### **Médio Prazo**
-1. Sistema de webhooks
-2. Analytics avançadas
-3. Otimizações de performance
-4. Expansão de funcionalidades
-
-## 📞 **INFORMAÇÕES DE CONTATO**
-
-- **Domínio Futuro**: tokencafe.app
-- **Repositório**: https://github.com/andreval74/tokencafe
-- **Baseado em**: TokenCafe + Widget Systems
-- **Inspiração**: Cultura cafeeira brasileira
+* **Separação de responsabilidades**: nada de misturar HTML, JS e CSS.
+* **Reutilização máxima**: estilos, funções e componentes compartilhados entre módulos, estamos criando um ecosistema vivo.
+* **Includes modulares**: menus, headers, footers e outros carregados dinamicamente.
+* **Entrega incremental**: cada módulo lançado individualmente.
+* **Contrato Sale único**: centralizar vendas em 1 contrato, com exceções documentadas.
+* **Governança mínima inicial**: dois administradores.
 
 ---
 
-## ☕ **"Do grão à blockchain, conectando tradição e inovação"**
+## 🏗️ Roadmap Modular — Ordem de Implementação
 
-**TokenCafe** - Onde a paixão pelo café encontra a revolução dos tokens! 🚀☕
+## Roadmap TokenCafe — Desenvolvimento Modular
+
+### Fase 1: Core & Lançamento Inicial (0-3 meses)
+- **Página "Em Breve"**: Presença online. Responsável: Dev Team. Status: ✅ Finalizado.
+- **Página oficial do site**: Explicações sobre o projeto e login via MetaMask. Responsáveis: Dev Team / Product Lead. Status: Em desenvolvimento.  
+- **Acesso via Wallet**: Conexão Web3 e verificação de privilégios (usuário ou administrador). Responsável: Dev Team. Status: ✅ Finalizado.
+
+### Fase 2: Funcionalidades Essenciais (3-6 meses)
+- **Widget de Compra e Venda de Tokens**: Integração de compra direta e simplificada. Responsável: Dev Team. Status: Em progresso.  
+- **Compartilhamento Rápido**: Criação de links de tokens para inclusão no MetaMask. Responsável: Dev Team. Status: Base pronta.  
+- **Vanity Wallets**: Geração em massa de carteiras personalizadas para projetos. Responsável: Dev Team. Status: Base pronta.  
+- **Contratos Personalizados**: Padronização e revisão de contratos já existentes. Responsáveis: Dev Team / Tech Lead. Status: Em revisão.
+
+### Fase 3: Crescimento e Automação (6-12 meses)
+- **Landing Pages Automáticas**: Criação automática de páginas para novos contratos. Responsáveis: Dev Team / Design. Status: Planejado.  
+- **Marketplace de Tokens**: Listagem e gerenciamento de tokens criados na plataforma. Responsáveis: Product Lead / Dev Team. Status: Planejado.  
+- **Biblioteca com IA**: Suporte automatizado, guias e recomendações inteligentes. Responsáveis: Dev Team / IA Team. Status: Planejado.
+
+### Fase 4: Expansão e Interoperabilidade (12-24 meses)
+- **Multi-Chain Support**: Integração com diversas blockchains para criar e negociar tokens. Responsável: Dev Team. Status: Planejado.  
+- **Dashboard Administrativo**: Controle completo de usuários, métricas e módulos da plataforma. Responsáveis: Dev Team / Product Lead. Status: Planejado.  
+- **Analytics e Reputação**: Métricas detalhadas de projetos, engajamento e confiabilidade. Responsável: Dev Team. Status: Planejado.
+
+### Fase 5: Consolidação e Recursos Avançados (24+ meses)
+- **Contrato Sale Único**: Centralizar vendas de tokens em um único contrato principal. Responsáveis: Dev Team / Legal. Status: Planejado.  
+- **SDKs / APIs**: Permitir integrações externas e expansão do ecossistema. Responsável: Dev Team. Status: Planejado.  
+- **DAO e Governança**: Descentralizar decisões da plataforma e participação da comunidade. Responsáveis: Product Lead / Community. Status: Planejado.  
+- **On/Off-Ramp Fiat**: Entrada e saída de moeda fiduciária para usuários da plataforma. Responsáveis: Dev Team / Product Lead. Status: Futuro.
 
 ---
 
-*Desenvolvido com ❤️ na capital mundial do café*
+## 💻 Prompt para análise da pasta `projeto/`
+
+🏗️ PROJETOS PRONTOS PARA INTEGRAÇÃO:
+📊 Na pasta projetos encontrei:
+token-calculadora/ 
+apenas para consulta não vai ser integrado diretamente
+Status: Pronto para integração
+Funcionalidade: Calculadora de tokens, gerador de contratos
+Valor: Core business - criação de tokens
+
+MetaConnect/ 🔥
+apenas para consulta não vai ser integrado diretamente
+Status: Projeto TypeScript/Vite avançado
+Funcionalidade: Conexão Web3 robusta
+Valor: Infraestrutura crítica
+
+tokenSale/ 🔥
+apenas para consulta não vai ser integrado diretamente
+Status: Sistema de vendas
+Funcionalidade: Contratos de venda de tokens
+Valor: Monetização direta
+
+carteira-simulador/ 💡
+este vamos integrar ao sistema, é o Vanity Wallets
+Status: Para análise
+Funcionalidade: Simulador de carteira
+Valor: Ferramenta educativa
+
+pix-usdt-backend/ 💡
+em analise
+Status: Para análise
+Funcionalidade: Bridge PIX/USDT
+Valor: On/off ramp brasileiro

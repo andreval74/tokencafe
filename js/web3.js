@@ -9,8 +9,8 @@
 const express = require('express');
 const { query, body, validationResult } = require('express-validator');
 const router = express.Router();
-const logger = require('../utils/logger');
-const { optionalAuth } = require('../middleware/auth');
+const logger = require('./logger');
+const { optionalAuth } = require('./auth');
 
 // Mock de dados blockchain (em produção usaria APIs reais como Moralis, Alchemy, etc.)
 const mockTokens = [

@@ -2,11 +2,7 @@
 ================================================================================
 TEMPLATE LOADER - SISTEMA DE TEMPLATES UNIFICADO TOKENCAFE
 ================================================================================
-Unificação dos módulos:
-- Widget: js/shared/template-loader.js
-- Widget: js/shared/template-loader-optimized.js
-
-Sistema completo de carregamento de templates com:
+- Sistema completo de carregamento de templates com:
 - Auto-detecção de componentes via data-component
 - Cache inteligente
 - Fallbacks de erro
@@ -25,23 +21,23 @@ class TemplateLoader {
         this.loading = new Set();
         
         // Configurações
-        this.templateBasePath = this.config.templateBasePath || 'shared/templates/';
+        this.templateBasePath = this.config.templateBasePath || '';
         this.enableCache = this.config.enableCache !== false;
         this.timeout = this.config.timeout || 10000;
         
         // Templates específicos por contexto
         this.contextTemplates = {
             main: {
-                header: 'headers/main-header.html',
-                footer: 'footers/main-footer.html'
+                header: 'main-header.html',
+                footer: 'main-footer.html'
             },
             dashboard: {
-                header: 'headers/dash-header.html',
-                footer: 'footers/dash-footer.html'
+                header: 'dash-header.html',
+                footer: 'dash-footer.html'
             },
             admin: {
-                header: 'headers/admin-header.html',
-                footer: 'footers/dash-footer.html'
+                header: 'dash-header.html',
+                footer: 'dash-footer.html'
             }
         };
 
@@ -308,13 +304,13 @@ class TemplateLoader {
 
         // Mapeamento de templates especiais
         const templateMap = {
-            'header': 'headers/main-header.html',
-            'footer': 'footers/main-footer.html',
-            'dash-header': 'headers/dash-header.html',
-            'dash-footer': 'footers/dash-footer.html',
-            'admin-header': 'headers/admin-header.html',
-            'auth-modal': 'modals/auth-modal.html',
-            'confirm-modal': 'modals/confirm-modal.html'
+            'header': 'main-header.html',
+            'footer': 'main-footer.html',
+            'dash-header': 'dash-header.html',
+            'dash-footer': 'dash-footer.html',
+            'admin-header': 'dash-header.html',
+            'auth-modal': 'auth-modal.html',
+            'confirm-modal': 'confirm-modal.html'
         };
 
         const mappedTemplate = templateMap[templateName];

@@ -11,8 +11,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
-const logger = require('../utils/logger');
-const { auth } = require('../middleware/auth');
+const logger = require('./logger');
+const { auth } = require('./auth');
 
 // Mock de usuários (em produção seria um banco de dados)
 const users = [

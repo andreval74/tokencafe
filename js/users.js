@@ -9,8 +9,8 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const router = express.Router();
-const logger = require('../utils/logger');
-const { auth, authorize } = require('../middleware/auth');
+const logger = require('./logger');
+const { auth, authorize } = require('./auth');
 
 // Mock de usuários (mesmo do auth.js - em produção seria centralizado)
 const users = [

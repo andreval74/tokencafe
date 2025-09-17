@@ -10,8 +10,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
 const router = express.Router();
-const logger = require('../utils/logger');
-const { optionalAuth } = require('../middleware/auth');
+const logger = require('./logger');
+const { optionalAuth } = require('./auth');
 
 // Cache de templates em memória para performance
 const templateCache = new Map();
