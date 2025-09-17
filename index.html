@@ -1,356 +1,40 @@
 ﻿<!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TokenCafe - Em Breve</title>
   <meta name="description" content="TokenCafe - Sua principal ferramenta de Tokenização chegando em breve">
-  <link rel="icon" type="image/png" sizes="32x32" href="imgs/tokencafe-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="imgs/tokencafe-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="imgs/tkncafe32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="imgs/tkncafe16x16.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="/shared/css/styles.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <style>
-    body {
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-      min-height: 100vh;
-      font-family: 'Inter', sans-serif;
-      overflow-x: hidden;
-    }
-
-    .main-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .logo-container {
-      text-align: center;
-      animation: fadeInUp 1s ease-out;
-    }
-
-    .logo-wrapper {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 2rem;
-    }
-
-    .logo {
-      width: 120px;
-      height: 120px;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(248, 93, 35, 0.3);
-      animation: pulse 2s infinite;
-      transition: transform 0.3s ease;
-    }
-
-    .logo:hover {
-      transform: scale(1.1);
-    }
-
-    .logo-glow {
-      position: absolute;
-      top: -20px;
-      left: -20px;
-      right: -20px;
-      bottom: -20px;
-      background: linear-gradient(135deg, #f85d23, #f59e0b);
-      border-radius: 30px;
-      opacity: 0.2;
-      filter: blur(20px);
-      z-index: -1;
-      animation: glow 3s ease-in-out infinite alternate;
-    }
-
-    .title {
-      font-size: 3.5rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #f85d23 0%, #f59e0b 50%, #fbbf24 100%);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 1rem;
-      animation: slideInLeft 1s ease-out 0.3s both;
-    }
-
-    .subtitle {
-      font-size: 1.8rem;
-      font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 1.5rem;
-      animation: slideInRight 1s ease-out 0.6s both;
-    }
-
-    .description {
-      font-size: 1.2rem;
-      color: #e5e7eb;
-      font-weight: 400;
-      line-height: 1.6;
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      animation: fadeIn 1s ease-out 0.9s both;
-    }
-
-    .coming-soon-badge {
-      background: linear-gradient(135deg, #f85d23 0%, #f59e0b 100%);
-      color: #ffffff;
-      padding: 0.8rem 2rem;
-      border-radius: 50px;
-      font-weight: 600;
-      font-size: 1.1rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      box-shadow: 0 10px 30px rgba(248, 93, 35, 0.4);
-      animation: bounceIn 1s ease-out 1.2s both;
-      border: none;
-      cursor: default;
-      transition: transform 0.3s ease;
-    }
-
-    .coming-soon-badge:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 20px 40px rgba(248, 93, 35, 0.6);
-    }
-
-    .features {
-      margin-top: 3rem;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 2rem;
-      animation: fadeInUp 1s ease-out 1.5s both;
-    }
-
-    .feature-item {
-      background: rgba(248, 93, 35, 0.1);
-      border: 1px solid rgba(248, 93, 35, 0.3);
-      padding: 1.5rem;
-      border-radius: 15px;
-      text-align: center;
-      max-width: 200px;
-      backdrop-filter: blur(10px);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .feature-item:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 20px 40px rgba(248, 93, 35, 0.3);
-      background: rgba(248, 93, 35, 0.15);
-    }
-
-    .feature-icon {
-      font-size: 2.5rem;
-      color: #f85d23;
-      margin-bottom: 1rem;
-    }
-
-    .feature-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 0.5rem;
-    }
-
-    .feature-desc {
-      font-size: 0.9rem;
-      color: #9ca3af;
-    }
-
-    .background-animation {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    .floating-particle {
-      position: absolute;
-      background: linear-gradient(135deg, #f85d23, #f59e0b);
-      border-radius: 50%;
-      opacity: 0.1;
-      animation: float 6s ease-in-out infinite;
-    }
-
-    .particle-1 {
-      width: 20px;
-      height: 20px;
-      top: 20%;
-      left: 10%;
-      animation-delay: 0s;
-    }
-
-    .particle-2 {
-      width: 30px;
-      height: 30px;
-      top: 50%;
-      left: 80%;
-      animation-delay: 2s;
-    }
-
-    .particle-3 {
-      width: 15px;
-      height: 15px;
-      top: 80%;
-      left: 20%;
-      animation-delay: 4s;
-    }
-
-    .particle-4 {
-      width: 25px;
-      height: 25px;
-      top: 30%;
-      left: 90%;
-      animation-delay: 1s;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes slideInLeft {
-      from {
-        opacity: 0;
-        transform: translateX(-50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes slideInRight {
-      from {
-        opacity: 0;
-        transform: translateX(50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-
-    @keyframes bounceIn {
-      from {
-        opacity: 0;
-        transform: scale(0.3) translateY(50px);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 20px 60px rgba(248, 93, 35, 0.3);
-      }
-      50% {
-        box-shadow: 0 25px 80px rgba(248, 93, 35, 0.5);
-      }
-      100% {
-        box-shadow: 0 20px 60px rgba(248, 93, 35, 0.3);
-      }
-    }
-
-    @keyframes glow {
-      from {
-        opacity: 0.2;
-      }
-      to {
-        opacity: 0.4;
-      }
-    }
-
-    @keyframes float {
-      0%, 100% {
-        transform: translateY(0px) rotate(0deg);
-      }
-      33% {
-        transform: translateY(-20px) rotate(120deg);
-      }
-      66% {
-        transform: translateY(-10px) rotate(240deg);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .title {
-        font-size: 2.5rem;
-      }
-      
-      .subtitle {
-        font-size: 1.4rem;
-      }
-      
-      .description {
-        font-size: 1rem;
-        padding: 0 1rem;
-      }
-      
-      .logo {
-        width: 80px;
-        height: 80px;
-      }
-      
-      .features {
-        padding: 0 1rem;
-      }
-      
-      .feature-item {
-        max-width: 150px;
-        padding: 1rem;
-      }
-    }
-  </style>
+  <link href="shared/css/tokencafe.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
   <!-- Background Animation -->
-  <div class="background-animation">
-    <div class="floating-particle particle-1"></div>
-    <div class="floating-particle particle-2"></div>
-    <div class="floating-particle particle-3"></div>
-    <div class="floating-particle particle-4"></div>
+  <div class="TokenCafe-particles">
+    <div class="TokenCafe-particle"></div>
+    <div class="TokenCafe-particle"></div>
+    <div class="TokenCafe-particle"></div>
+    <div class="TokenCafe-particle"></div>
   </div>
 
   <!-- Main Content -->
-  <div class="main-container">
-    <div class="logo-container">
-      
+  <div class="TokenCafe-container">
+    <div class="TokenCafe-content TokenCafe-fade-in-up">
+
       <!-- Logo Section -->
-      <div class="logo-wrapper">
-        <div class="logo-glow"></div>
-        <img src="imgs/tokencafe.png" alt="TokenCafe Logo" class="logo">
+      <div class="TokenCafe-logo-wrapper">
+        <img src="imgs/tkncafe192x192.png" alt="TokenCafe Logo">
       </div>
 
-      <!-- Title Section -->
-      <h1 class="title">TokenCafe</h1>
-      <h2 class="subtitle">Em Breve</h2>
-      
       <!-- Description -->
-      <p class="description">
+      <p class="TokenCafe-description TokenCafe-fade-in">
         A principal ferramenta de Tokenização está chegando.<br>
         Uma plataforma completa para<br>
         Criação, gerenciamento, divulgação e venda de tokens.<br>
@@ -358,43 +42,43 @@
       </p>
 
       <!-- Coming Soon Badge -->
-      <div class="coming-soon-badge">
+      <div class="TokenCafe-badge TokenCafe-bounce-in">
         <i class="bi bi-rocket-takeoff me-2"></i>
         Aguarde
       </div>
 
       <!-- Features Preview -->
-      <div class="features">
-        <div class="feature-item">
-          <div class="feature-icon">
+      <div class="TokenCafe-features TokenCafe-features-animate">
+        <div class="TokenCafe-feature-item">
+          <div class="TokenCafe-feature-icon">
             <i class="bi bi-coin"></i>
           </div>
-          <div class="feature-title">Tokenização</div>
-          <div class="feature-desc">Criação de tokens ERC-20/BEP-20</div>
+          <div class="TokenCafe-feature-title">Tokenização</div>
+          <div class="TokenCafe-feature-desc">Criação de tokens ERC-20/BEP-20</div>
         </div>
-        
-        <div class="feature-item">
-          <div class="feature-icon">
+
+        <div class="TokenCafe-feature-item">
+          <div class="TokenCafe-feature-icon">
             <i class="bi bi-shop"></i>
           </div>
-          <div class="feature-title">Marketplace</div>
-          <div class="feature-desc">Venda e compra de tokens</div>
+          <div class="TokenCafe-feature-title">Marketplace</div>
+          <div class="TokenCafe-feature-desc">Venda e compra de tokens</div>
         </div>
-        
-        <div class="feature-item">
-          <div class="feature-icon">
+
+        <div class="TokenCafe-feature-item">
+          <div class="TokenCafe-feature-icon">
             <i class="bi bi-graph-up"></i>
           </div>
-          <div class="feature-title">Ferramentas</div>
-          <div class="feature-desc">Ferramentas para produtividade na Criação e divulgação</div>
+          <div class="TokenCafe-feature-title">Ferramentas</div>
+          <div class="TokenCafe-feature-desc">Ferramentas para produtividade na Criação e divulgação</div>
         </div>
-        
-        <div class="feature-item">
-          <div class="feature-icon">
+
+        <div class="TokenCafe-feature-item">
+          <div class="TokenCafe-feature-icon">
             <i class="bi bi-shield-check"></i>
           </div>
-          <div class="feature-title">Segurança</div>
-          <div class="feature-desc">Contratos auditados</div>
+          <div class="TokenCafe-feature-title">Segurança</div>
+          <div class="TokenCafe-feature-desc">Contratos auditados</div>
         </div>
       </div>
 
@@ -402,7 +86,7 @@
   </div>
 
   <!-- Footer -->
-  <footer class="text-center py-4" style="background: transparent;">
+  <footer class="text-center py-4" style="background: transparent; bottom: 0; width: 100%;">
     <p class="mb-0" style="color: #6b7280; font-size: 0.9rem;">
       <i class="bi bi-code-slash me-1"></i>
       Desenvolvido pela equipe <strong style="color: #f85d23;">TokenCafe</strong>
@@ -411,4 +95,5 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

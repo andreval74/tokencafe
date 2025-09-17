@@ -936,10 +936,15 @@ Sistema de animações reutilizáveis para todas as páginas
 .TokenCafe-logo {
   width: 120px;
   height: 120px;
-  border-radius: 20px;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none;
   box-shadow: 0 20px 60px rgba(248, 93, 35, 0.3);
   animation: TokenCafe-pulse 2s infinite;
   transition: transform 0.3s ease;
+  /* Força transparência máxima */
+  filter: contrast(1.2) brightness(1.1);
+  object-fit: contain;
 }
 
 .TokenCafe-logo:hover {
