@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> bc93fba5eaf449f56dd6cb0d160d757a8b2e8521
+  <meta charset="UTF-8">
+  <title>Calculadora de Endereço Personalizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      margin: 12px 0;
+    }
+    .toggle-container input[type="checkbox"] {
+      margin-right: 10px;
+      transform: scale(1.3);
+    }
+    #estimativa {
+      margin: 10px 0;
+      font-size: 14px;
+      color: #444;
+      background: #f7f7f7;
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+<<<<<<< HEAD
+=======
+=======
+  <meta charset="UTF-8" />
+  <title>Calculadora de SALT</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link rel="stylesheet" href="..\css\styles.css" />
+>>>>>>> 7fd0caeac51acf9dc600438938d429f67aa575e5
+>>>>>>> bc93fba5eaf449f56dd6cb0d160d757a8b2e8521
+</head>
+<body>
+  <div class="container">
+    <h1>Gerar Endereço Personalizado</h1>
+
+    <label for="deployer">Endereço do Deployer (Contrato Espelhado / Original)</label>
+    <input type="text" id="deployer" placeholder="Ex: 0x2bd4...">
+
+    <label for="bytecode">Bytecode do Contrato</label>
+    <textarea id="bytecode" rows="6" placeholder="⚠️ Cole aqui o bytecode do contrato"></textarea>
+
+    <label for="target">Personalização do Endereço: últimos 4 dígitos desejados (hex)</label>
+    <input type="text" id="target" maxlength="4" placeholder="Ex: AbCd">
+
+    <!-- Estimativa dinâmica -->
+    <div id="estimativa"></div>
+
+    <!-- Botão deslizante de case sensitive -->
+    <div class="toggle-container">
+      <input type="checkbox" id="caseSensitive" checked>
+      <label for="caseSensitive">Diferenciar maiúsculas de minúsculas (case sensitive)</label>
+    </div>
+
+    <button onclick="gerar()">Encontrar Salt</button>
+
+    <pre id="output">// O salt e o endereço serão exibidos aqui...</pre>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const deployerInput = document.getElementById("deployer");
+    const targetInput = document.getElementById("target");
+    const estimativaDiv = document.getElementById("estimativa");
+    const caseCheckbox = document.getElementById("caseSensitive");
+
+    if (params.has("deployer")) {
+      deployerInput.value = params.get("deployer");
+      deployerInput.readOnly = true;
+    }
+
+    // Atualiza estimativa quando o usuário digita
+    targetInput.addEventListener("input", function () {
+      this.value = this.value.replace(/[^a-fA-F0-9]/g, "");
+      atualizarEstimativa(this.value);
+    });
+
+    // Atualiza estimativa quando o checkbox muda
+    caseCheckbox.addEventListener("change", () => {
+      atualizarEstimativa(targetInput.value);
+    });
+
+    function atualizarEstimativa(suffix) {
+      const n = suffix.length;
+      if (n === 0) {
+        estimativaDiv.textContent = "";
+        return;
+      }
+
+      const isCaseSensitive = caseCheckbox.checked;
+      const base = isCaseSensitive ? 22 : 16; // 0-9 + a-f (+ A-F se sensitive)
+      const possibilidades = Math.pow(base, n);
+      const velocidadeEstimada = 10000; // tentativas por segundo
+      const tempoSegundos = (possibilidades / velocidadeEstimada).toFixed(1);
+
+      estimativaDiv.innerHTML = `
+        🔍 <strong>Estimativa (${isCaseSensitive ? 'com' : 'sem'} case sensitive):</strong><br>
+        • Tentativas médias esperadas: ${possibilidades.toLocaleString()}<br>
+        • Tempo estimado: ~${tempoSegundos} segundos
+      `;
+    }
+
+    async function gerar() {
+      const deployer = deployerInput.value.trim();
+      const bytecode = document.getElementById("bytecode").value.trim();
+      const targetSuffix = document.getElementById("target").value.trim();
+      const caseSensitive = document.getElementById("caseSensitive").checked;
+      const output = document.getElementById("output");
+
+      if (!/^0x[a-fA-F0-9]{40}$/.test(deployer)) {
+        output.textContent = "❌ Endereço do deployer inválido.";
+        return;
+      }
+
+      if (!/^0x[a-fA-F0-9]+$/.test(bytecode)) {
+        output.textContent = "❌ Bytecode inválido. Certifique-se de copiar corretamente do Remix.";
+        return;
+      }
+
+      if (!/^[a-fA-F0-9]{4}$/.test(targetSuffix)) {
+        output.textContent = "❌ Os últimos 4 dígitos devem estar em formato hexadecimal.";
+        return;
+      }
+
+      const { keccak256, hexZeroPad, hexlify } = ethers.utils;
+      const bytecodeHash = keccak256(bytecode);
+      let found = false;
+
+      const startTime = performance.now();
+
+      for (let i = 0; i < 100000000; i++) {
+        const salt = hexZeroPad(hexlify(i), 32);
+        const data = `0xff${deployer.slice(2)}${salt.slice(2)}${bytecodeHash.slice(2)}`;
+        const address = "0x" + keccak256(data).slice(-40);
+        const addressSuffix = address.slice(-4);
+
+        const match = caseSensitive
+          ? addressSuffix === targetSuffix
+          : addressSuffix.toLowerCase() === targetSuffix.toLowerCase();
+
+        if (match) {
+          const endTime = performance.now();
+          const durationSeconds = ((endTime - startTime) / 1000).toFixed(2);
+
+          output.textContent = `
+✔️ Endereço com final '${targetSuffix}' encontrado:
+Salt decimal: ${BigInt(salt).toString()}
+Salt hexadecimal: ${salt}
+Endereço gerado: 0x${address}
+Tempo total: ${durationSeconds} segundos
+Tentativas: ${i.toLocaleString()}`;
+          found = true;
+          break;
+        }
+
+        if (i % 1000 === 0) {
+          output.textContent = `⏳ Verificando combinações... ${i.toLocaleString()} tentativas até agora.`;
+          await new Promise(r => setTimeout(r, 1));
+        }
+      }
+
+      if (!found) {
+        const endTime = performance.now();
+        const durationSeconds = ((endTime - startTime) / 1000).toFixed(2);
+        output.textContent = `❌ Nenhum endereço encontrado com esse sufixo nas primeiras 100.000.000 tentativas.
+Tempo total: ${durationSeconds} segundos.`;
+      }
+    }
+  </script>
+</body>
+</html>

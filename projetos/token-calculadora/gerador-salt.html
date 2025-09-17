@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Endereço Personalizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="..\css\styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Gerar Endereço Personalizado</h1>
+
+    <label for="deployer">Endereço do Deployer (Contrato Espelhado / Original)</label>
+    <input type="text" id="deployer" placeholder="Ex: 0x2bd4..." readonly>
+
+    <label for="bytecode">Bytecode do Contrato</label>
+    <textarea id="bytecode" rows="6" placeholder="⚠️ Cole aqui o bytecode do contrato após compilação no Remix (guia Solidity Compiler > Details > Bytecode)..."></textarea>
+
+    <label for="target">Personalização do Endereço: últimos 4 dígitos desejados (hex)</label>
+    <input type="text" id="target" maxlength="4" placeholder="Ex: f262">
+
+    <button onclick="gerar()">Encontrar Salt</button>
+
+    <pre id="output">// O salt e o endereço serão exibidos aqui...</pre>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js">
+    // Preencher automaticamente o campo "deployer" com o parâmetro da URL
+    const params = new URLSearchParams(window.location.search);
+    const deployerInput = document.getElementById("deployer");
+    if (params.has("deployer")) {
+      deployerInput.value = params.get("deployer");
+    }
+
+  </script>
+  <script>
+    async function gerar() {
+      const deployer = document.getElementById("deployer").value.trim().toLowerCase();
+      const bytecode = document.getElementById("bytecode").value.trim();
+      const targetSuffix = document.getElementById("target").value.trim().toLowerCase();
+      const output = document.getElementById("output");
+
+      if (!/^0x[a-f0-9]{40}$/.test(deployer)) {
+        output.textContent = "❌ Endereço do deployer inválido.";
+        return;
+      }
+
+      if (!/^0x[a-f0-9]+$/.test(bytecode)) {
+        output.textContent = "❌ Bytecode inválido. Certifique-se de copiar corretamente do Remix.";
+        return;
+      }
+
+      if (!/^[a-f0-9]{4}$/.test(targetSuffix)) {
+        output.textContent = "❌ Os últimos 4 dígitos devem estar em formato hexadecimal.";
+        return;
+      }
+
+      const { keccak256, hexZeroPad, hexlify } = ethers.utils;
+      const bytecodeHash = keccak256(bytecode);
+      let found = false;
+
+      for (let i = 0; i < 100000000; i++) {
+        const salt = hexZeroPad(hexlify(i), 32);
+        const data = `0xff${deployer.slice(2)}${salt.slice(2)}${bytecodeHash.slice(2)}`;
+        const address = "0x" + keccak256(data).slice(-40);
+        const saltDecimal = BigInt(salt).toString();
+
+        if (address.slice(-4) === targetSuffix) {
+          output.textContent =
+            `✅ Endereço com final '${targetSuffix}' encontrado:
+
+` +
+            `📍 Salt decimal: ${saltDecimal}
+` +
+            `📍 Salt hexadecimal: ${salt}
+` +
+            `📬 Endereço gerado: 0x${address}`;
+          found = true;
+          break;
+        }
+
+        if (i % 1000 === 0) {
+          output.textContent = `⏳ Verificando combinações... ${i} tentativas até agora.`;
+          await new Promise(r => setTimeout(r, 1));
+        }
+      }
+
+      if (!found) {
+        output.textContent = "❌ Nenhum endereço encontrado com esse sufixo nas primeiras 100.000 tentativas.";
+      }
+    }
+  
+    // Preencher automaticamente o campo "deployer" com o parâmetro da URL
+    const params = new URLSearchParams(window.location.search);
+    const deployerInput = document.getElementById("deployer");
+    if (params.has("deployer")) {
+      deployerInput.value = params.get("deployer");
+    }
+
+  </script>
+</body>
+</html>

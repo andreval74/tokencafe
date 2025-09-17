@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Transferir Propriedade do Contrato</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Transferência de Propriedade</h1>
+
+    <label for="contract">Endereço do Contrato:</label>
+    <input type="text" id="contract" placeholder="Ex: 0x..." />
+
+    <label for="newOwner">Novo Dono (carteira):</label>
+    <input type="text" id="newOwner" placeholder="Ex: 0x..." />
+
+    <button onclick="transferOwnership()">👤 Transferir Controle</button>
+
+    <pre id="status">Aguardando ação...</pre>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    const abi = [
+      "function transferOwnership(address newOwner)"
+    ];
+
+    async function transferOwnership() {
+      const status = document.getElementById("status");
+      const contractAddress = document.getElementById("contract").value.trim();
+      const newOwner = document.getElementById("newOwner").value.trim();
+
+      if (!ethers.utils.isAddress(contractAddress)) {
+        alert("⚠️ Endereço do contrato inválido");
+        return;
+      }
+
+      if (!ethers.utils.isAddress(newOwner)) {
+        alert("⚠️ Endereço do novo dono inválido");
+        return;
+      }
+
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const contrato = new ethers.Contract(contractAddress, abi, signer);
+
+        status.textContent = "⏳ Transferindo propriedade do contrato...";
+        const tx = await contrato.transferOwnership(newOwner);
+        await tx.wait();
+        status.textContent = "✅ Propriedade transferida com sucesso!";
+      } catch (err) {
+        console.error(err);
+        status.textContent = "❌ Erro ao transferir controle.";
+      }
+    }
+  </script>
+</body>
+</html>

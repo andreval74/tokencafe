@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Vanity Address BSC</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 95%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .control-group h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .results {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .result-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .address {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #495057;
+            word-break: break-all;
+        }
+        
+        .private-key {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #6c757d;
+            word-break: break-all;
+            margin-top: 5px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        
+        .worker-status {
+            text-align: center;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .copy-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Gerador de Address BSC</h1>
+            <p>Gere endereços personalizados para contratos BSC</p>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ AVISO DE SEGURANÇA:</strong> Nunca compartilhe suas chaves privadas. Salve-as em local seguro!
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>🎨 Configuração do Padrão</h3>
+                <b>Local da Personalização:</b>
+                <select id="position">
+                    <option value="start">Início do endereço</option>
+                    <option value="end">Final do endereço</option>
+                    <option value="both">Início E Final</option>
+                </select>
+                <b>Prefixo:</b>
+                <input type="text" id="prefix" placeholder="Prefixo (ex: 0xABC)" maxlength="10">
+                <b>Sufixo:</b>
+                <input type="text" id="suffix" placeholder="Sufixo (ex: DEF)" maxlength="10">                
+            </div>
+            
+            <div class="control-group">
+                <h3>⚡ Performance</h3>
+                <b>Processadores:</b>
+                <select id="workers">
+                    <option value="1">1 Processador</option>
+                    <option value="2">2 Processador</option>
+                    <option value="4" selected>4 Processador</option>
+                    <option value="8">8 Processador</option>
+                </select>
+                <b>Verificador:</b> 
+                <input type="number" id="batchSize" value="1" min="1" max="1000" placeholder="Verificador" >
+                <b>Nº de Resultados:</b> 
+                <input type="number" id="maxResults" value="1" min="1" max="10" placeholder="Máx Resultados">
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" onclick="startGeneration()">🚀 Iniciar Geração</button>
+            <button id="stopBtn" onclick="stopGeneration()" disabled>⏹️ Parar</button>
+            <button onclick="clearResults()">🗑️ Limpar Resultados</button>
+            <button onclick="exportResults()">💾 Exportar JSON</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number" id="totalChecked">0</span>
+                <span>Endereços Verificados</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="foundCount">0</span>
+                <span>Encontrados</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="speed">0</span>
+                <span>Endereços/seg</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="difficulty">-</span>
+                <span>Dificuldade</span>
+            </div>
+        </div>
+        
+        <div class="worker-status" id="workerStatus"></div>
+        
+        <div class="results" id="results">
+            <h3>🎯 Endereços Encontrados</h3>
+            <p>Os endereços aparecerão aqui conforme forem encontrados...</p>
+        </div>
+    </div>
+
+    <script>
+        let workers = [];
+        let isGenerating = false;
+        let totalChecked = 0;
+        let foundAddresses = [];
+        let startTime = 0;
+        
+        function calculateDifficulty(pattern, position) {
+            let chars = pattern.replace('0x', '').length;
+            if (position === 'both') {
+                const prefix = document.getElementById('prefix').value.replace('0x', '');
+                const suffix = document.getElementById('suffix').value;
+                chars = prefix.length + suffix.length;
+            }
+            return Math.pow(16, chars);
+        }
+        
+        function updateStats() {
+            document.getElementById('totalChecked').textContent = totalChecked.toLocaleString();
+            document.getElementById('foundCount').textContent = foundAddresses.length;
+            
+            const elapsed = (Date.now() - startTime) / 1000;
+            const speed = elapsed > 0 ? Math.round(totalChecked / elapsed) : 0;
+            document.getElementById('speed').textContent = speed.toLocaleString();
+        }
+        
+        function validatePattern(pattern) {
+            const hex = pattern.replace('0x', '');
+            return /^[0-9a-fA-F]*$/.test(hex);
+        }
+        
+        function createWorkerScript() {
+            return `
+                importScripts('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js');
+                importScripts('https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.4/elliptic.min.js');
+                
+                const ec = new elliptic.ec('secp256k1');
+                
+                function keccak256(data) {
+                    return CryptoJS.SHA3(data, { outputLength: 256 });
+                }
+                
+                function generateAddress() {
+                    const keyPair = ec.genKeyPair();
+                    const privateKey = keyPair.getPrivate('hex');
+                    const publicKey = keyPair.getPublic(false, 'hex');
+                    
+                    const publicKeyBytes = CryptoJS.enc.Hex.parse(publicKey.substring(2));
+                    const hash = keccak256(publicKeyBytes);
+                    const address = '0x' + hash.toString().substring(24);
+                    
+                    return {
+                        address: address,
+                        privateKey: privateKey
+                    };
+                }
+                
+                function matchesPattern(address, prefix, suffix, position) {
+                    const addr = address.toLowerCase();
+                    const pref = prefix.toLowerCase().replace('0x', '');
+                    const suff = suffix.toLowerCase();
+                    
+                    switch(position) {
+                        case 'start':
+                            return pref === '' || addr.substring(2, 2 + pref.length) === pref;
+                        case 'end':
+                            return suff === '' || addr.substring(addr.length - suff.length) === suff;
+                        case 'both':
+                            const prefixMatch = pref === '' || addr.substring(2, 2 + pref.length) === pref;
+                            const suffixMatch = suff === '' || addr.substring(addr.length - suff.length) === suff;
+                            return prefixMatch && suffixMatch;
+                        default:
+                            return false;
+                    }
+                }
+                
+                self.onmessage = function(e) {
+                    const { prefix, suffix, position, batchSize, workerId } = e.data;
+                    let checked = 0;
+                    const found = [];
+                    
+                    for (let i = 0; i < batchSize; i++) {
+                        const wallet = generateAddress();
+                        checked++;
+                        
+                        if (matchesPattern(wallet.address, prefix, suffix, position)) {
+                            found.push(wallet);
+                        }
+                    }
+                    
+                    self.postMessage({
+                        workerId,
+                        checked,
+                        found
+                    });
+                };
+            `;
+        }
+        
+        function startGeneration() {
+            const prefix = document.getElementById('prefix').value || '';
+            const suffix = document.getElementById('suffix').value || '';
+            const position = document.getElementById('position').value;
+            const workerCount = parseInt(document.getElementById('workers').value);
+            const batchSize = parseInt(document.getElementById('batchSize').value);
+            const maxResults = parseInt(document.getElementById('maxResults').value);
+            
+            if (prefix && !validatePattern(prefix)) {
+                alert('Prefixo deve conter apenas caracteres hexadecimais (0-9, A-F)');
+                return;
+            }
+            
+            if (suffix && !validatePattern(suffix)) {
+                alert('Sufixo deve conter apenas caracteres hexadecimais (0-9, A-F)');
+                return;
+            }
+            
+            if (!prefix && !suffix) {
+                alert('Defina pelo menos um prefixo ou sufixo');
+                return;
+            }
+            
+            const difficulty = calculateDifficulty(prefix + suffix, position);
+            document.getElementById('difficulty').textContent = difficulty.toLocaleString();
+            
+            isGenerating = true;
+            startTime = Date.now();
+            totalChecked = 0;
+            foundAddresses = [];
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            const workerScript = createWorkerScript();
+            const blob = new Blob([workerScript], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(blob);
+            
+            for (let i = 0; i < workerCount; i++) {
+                const worker = new Worker(workerUrl);
+                worker.onmessage = function(e) {
+                    const { workerId, checked, found } = e.data;
+                    
+                    totalChecked += checked;
+                    foundAddresses.push(...found);
+                    
+                    found.forEach(wallet => {
+                        addResultToDOM(wallet);
+                    });
+                    
+                    updateStats();
+                    
+                    if (foundAddresses.length >= maxResults) {
+                        stopGeneration();
+                        return;
+                    }
+                    
+                    if (isGenerating) {
+                        worker.postMessage({
+                            prefix,
+                            suffix,
+                            position,
+                            batchSize,
+                            workerId: i
+                        });
+                    }
+                };
+                
+                workers.push(worker);
+                
+                worker.postMessage({
+                    prefix,
+                    suffix,
+                    position,
+                    batchSize,
+                    workerId: i
+                });
+            }
+            
+            updateWorkerStatus();
+        }
+        
+        function stopGeneration() {
+            isGenerating = false;
+            
+            workers.forEach(worker => {
+                worker.terminate();
+            });
+            workers = [];
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            updateWorkerStatus();
+        }
+        
+        function updateWorkerStatus() {
+            const status = document.getElementById('workerStatus');
+            if (isGenerating) {
+                status.innerHTML = workers.length + ' workers ativos gerando endereços...';
+                status.style.background = '#d4edda';
+            } else {
+                status.innerHTML = 'Geração parada';
+                status.style.background = '#f8d7da';
+            }
+        }
+        
+        function addResultToDOM(wallet) {
+            const resultsDiv = document.getElementById('results');
+            
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            resultItem.innerHTML = '<div><strong>Endereço:</strong> <span class="address">' + wallet.address + '</span> <button class="copy-btn" onclick="copyToClipboard(\'' + wallet.address + '\')">📋</button></div><div><strong>Chave Privada:</strong> <span class="private-key">' + wallet.privateKey + '</span> <button class="copy-btn" onclick="copyToClipboard(\'' + wallet.privateKey + '\')">📋</button></div>';
+            
+            resultsDiv.appendChild(resultItem);
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copiado para a área de transferência!');
+            });
+        }
+        
+        function clearResults() {
+            foundAddresses = [];
+            document.getElementById('results').innerHTML = '<h3>🎯 Endereços Encontrados</h3><p>Os endereços aparecerão aqui conforme forem encontrados...</p>';
+            updateStats();
+        }
+        
+        function exportResults() {
+            if (foundAddresses.length === 0) {
+                alert('Nenhum resultado para exportar');
+                return;
+            }
+            
+            const data = {
+                timestamp: new Date().toISOString(),
+                totalChecked,
+                results: foundAddresses
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'vanity-addresses-' + Date.now() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        setInterval(updateStats, 1000);
+        updateWorkerStatus();
+    </script>
+</body>
+</html>

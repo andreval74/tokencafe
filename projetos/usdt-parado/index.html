@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRZStable Ecosystem - Dashboard Completo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-online { background-color: #10b981; }
+        .status-offline { background-color: #ef4444; }
+        .status-warning { background-color: #f59e0b; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                        <span class="text-blue-600 font-bold text-xl">B</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">BRZStable Ecosystem</h1>
+                        <p class="text-blue-100">Sistema Multi-Rede de Stablecoins</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="networkStatus" class="flex items-center">
+                        <span class="status-indicator status-offline"></span>
+                        <span class="text-sm">Conectando...</span>
+                    </div>
+                    <button id="connectWallet" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors">
+                        Conectar MetaMask
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Navigation Tabs -->
+        <div class="mb-8">
+            <nav class="flex space-x-1 bg-white rounded-lg p-1 shadow-sm">
+                <button class="tab-button active" data-tab="overview">
+                    <i data-lucide="home" class="w-4 h-4"></i>
+                    Visão Geral
+                </button>
+                <button class="tab-button" data-tab="stablecoins">
+                    <i data-lucide="coins" class="w-4 h-4"></i>
+                    Stablecoins
+                </button>
+                <button class="tab-button" data-tab="liquidity">
+                    <i data-lucide="droplets" class="w-4 h-4"></i>
+                    Liquidez
+                </button>
+                <button class="tab-button" data-tab="arbitrage">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    Arbitragem
+                </button>
+                <button class="tab-button" data-tab="create">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    Criar Token
+                </button>
+                <button class="tab-button" data-tab="monitor">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                    Monitor
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tabContent">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- System Status Card -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Status do Sistema</h3>
+                            <i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Uptime</span>
+                                <span id="systemUptime" class="font-medium">99.8%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Rede</span>
+                                <span class="font-medium">BSC Testnet</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Bloco</span>
+                                <span id="latestBlock" class="font-medium">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Stablecoins Card -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Stablecoins Ativas</h3>
+                            <i data-lucide="coins" class="w-6 h-6 text-blue-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-blue-600" id="totalStablecoins">0</div>
+                        <p class="text-gray-600 text-sm mt-2">Tokens criados</p>
+                    </div>
+
+                    <!-- Total Liquidity Card -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Liquidez Total</h3>
+                            <i data-lucide="droplets" class="w-6 h-6 text-purple-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-purple-600" id="totalLiquidity">$0</div>
+                        <p class="text-gray-600 text-sm mt-2">Em todos os pools</p>
+                    </div>
+
+                    <!-- Arbitrage Opportunities Card -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Oportunidades</h3>
+                            <i data-lucide="trending-up" class="w-6 h-6 text-orange-500"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-orange-600" id="arbitrageOpportunities">0</div>
+                        <p class="text-gray-600 text-sm mt-2">Arbitragem ativa</p>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Preços em Tempo Real</h3>
+                        <canvas id="priceChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Volume de Transações</h3>
+                        <canvas id="volumeChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stablecoins Tab -->
+            <div id="stablecoins" class="tab-content">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">Stablecoins Gerenciadas</h2>
+                        <button id="refreshStablecoins" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                            Atualizar
+                        </button>
+                    </div>
+                    <div id="stablecoinsList" class="space-y-4">
+                        <!-- Stablecoins will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liquidity Tab -->
+            <div id="liquidity" class="tab-content">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">Pools de Liquidez</h2>
+                        <button id="refreshPools" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                            Atualizar
+                        </button>
+                    </div>
+                    <div id="poolsList" class="space-y-4">
+                        <!-- Pools will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arbitrage Tab -->
+            <div id="arbitrage" class="tab-content">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">Sistema de Arbitragem</h2>
+                        <div class="flex space-x-2">
+                            <button id="toggleArbitrage" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                                <i data-lucide="play" class="w-4 h-4 inline mr-2"></i>
+                                Ativar
+                            </button>
+                            <button id="refreshArbitrage" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors">
+                                <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                                Verificar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="arbitrageList" class="space-y-4">
+                        <!-- Arbitrage opportunities will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Token Tab -->
+            <div id="create" class="tab-content">
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Criar Nova Stablecoin</h2>
+                    <form id="createTokenForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Token</label>
+                                <input type="text" id="tokenName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Brazilian Real Stable">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Símbolo</label>
+                                <input type="text" id="tokenSymbol" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: BRLS">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Token de Colateral</label>
+                                <select id="collateralToken" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">Selecione o colateral</option>
+                                    <option value="0x5Fc088c2890fAB8c481cFB6D0d16f15A7f75c760">MockUSDT</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Supply Inicial</label>
+                                <input type="number" id="initialSupply" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1000000">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ratio de Colateral (%)</label>
+                                <input type="number" id="collateralRatio" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="150" min="50" max="200">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Liquidez Inicial (Token)</label>
+                                <input type="number" id="initialLiquidityA" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="10000">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Liquidez Inicial (Colateral)</label>
+                                <input type="number" id="initialLiquidityB" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="10000">
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                                <i data-lucide="plus-circle" class="w-4 h-4 inline mr-2"></i>
+                                Criar Stablecoin
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Monitor Tab -->
+            <div id="monitor" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Logs do Sistema</h3>
+                        <div id="systemLogs" class="space-y-2 max-h-96 overflow-y-auto">
+                            <!-- Logs will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Métricas de Performance</h3>
+                        <div id="performanceMetrics" class="space-y-4">
+                            <!-- Metrics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+            <div class="loading-spinner"></div>
+            <span class="text-gray-700">Processando...</span>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span id="toastMessage">Operação realizada com sucesso!</span>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let web3;
+        let userAccount;
+        let isConnected = false;
+        const API_BASE_URL = 'https://brzstable-api.onrender.com/api';
+        
+        // BSC Testnet configuration
+        const BSC_TESTNET_CONFIG = {
+            chainId: '0x61',
+            chainName: 'BSC Testnet',
+            nativeCurrency: {
+                name: 'tBNB',
+                symbol: 'tBNB',
+                decimals: 18
+            },
+            rpcUrls: ['https://data-seed-prebsc-1-s1.bnbchain.org:8545'],
+            blockExplorerUrls: ['https://testnet.bscscan.com']
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+            loadInitialData();
+        });
+
+        function initializeApp() {
+            // Initialize Lucide icons
+            lucide.createIcons();
+            
+            // Setup tab navigation
+            setupTabNavigation();
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Start auto-refresh
+            startAutoRefresh();
+        }
+
+        function setupEventListeners() {
+            // Connect wallet button
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+            
+            // Refresh buttons
+            document.getElementById('refreshStablecoins').addEventListener('click', loadStablecoins);
+            document.getElementById('refreshPools').addEventListener('click', loadPools);
+            document.getElementById('refreshArbitrage').addEventListener('click', loadArbitrageOpportunities);
+            
+            // Create token form
+            document.getElementById('createTokenForm').addEventListener('submit', handleCreateToken);
+            
+            // Arbitrage toggle
+            document.getElementById('toggleArbitrage').addEventListener('click', toggleArbitrage);
+        }
+
+        function setupTabNavigation() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+                    
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked button and corresponding content
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+        }
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    showLoading(true);
+                    
+                    // Request account access
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // Initialize Web3
+                    web3 = new Web3(window.ethereum);
+                    userAccount = accounts[0];
+                    
+                    // Check if we're on BSC Testnet
+                    const chainId = await web3.eth.getChainId();
+                    if (chainId !== 97) {
+                        await switchToBSCTestnet();
+                    }
+                    
+                    isConnected = true;
+                    updateConnectionStatus();
+                    showToast('MetaMask conectado com sucesso!');
+                    
+                } catch (error) {
+                    console.error('Erro ao conectar MetaMask:', error);
+                    showToast('Erro ao conectar MetaMask', 'error');
+                } finally {
+                    showLoading(false);
+                }
+            } else {
+                showToast('MetaMask não encontrado. Por favor, instale o MetaMask.', 'error');
+            }
+        }
+
+        async function switchToBSCTestnet() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: BSC_TESTNET_CONFIG.chainId }],
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [BSC_TESTNET_CONFIG],
+                        });
+                    } catch (addError) {
+                        throw addError;
+                    }
+                } else {
+                    throw switchError;
+                }
+            }
+        }
+
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('networkStatus');
+            const connectButton = document.getElementById('connectWallet');
+            
+            if (isConnected) {
+                statusElement.innerHTML = `
+                    <span class="status-indicator status-online"></span>
+                    <span class="text-sm">BSC Testnet</span>
+                `;
+                connectButton.textContent = `${userAccount.substring(0, 6)}...${userAccount.substring(38)}`;
+                connectButton.classList.add('bg-green-100', 'text-green-700');
+                connectButton.classList.remove('bg-white', 'text-blue-600');
+            }
+        }
+
+        async function loadInitialData() {
+            try {
+                await Promise.all([
+                    loadSystemStatus(),
+                    loadStablecoins(),
+                    loadPools(),
+                    loadArbitrageOpportunities()
+                ]);
+            } catch (error) {
+                console.error('Erro ao carregar dados iniciais:', error);
+            }
+        }
+
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('latestBlock').textContent = data.network.latestBlock;
+                    updateNetworkStatus(true);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar status:', error);
+                updateNetworkStatus(false);
+            }
+        }
+
+        async function loadStablecoins() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/stablecoins`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('totalStablecoins').textContent = data.totalStablecoins;
+                    renderStablecoins(data.stablecoins);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar stablecoins:', error);
+            }
+        }
+
+        async function loadPools() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/pools`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    renderPools(data.pools);
+                    
+                    // Calculate total liquidity
+                    const totalLiquidity = data.pools.reduce((sum, pool) => sum + (pool.liquidityAmount || 0), 0);
+                    document.getElementById('totalLiquidity').textContent = `$${totalLiquidity.toLocaleString()}`;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar pools:', error);
+            }
+        }
+
+        async function loadArbitrageOpportunities() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/arbitrage/opportunities`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('arbitrageOpportunities').textContent = data.totalOpportunities;
+                    renderArbitrageOpportunities(data.opportunities);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar oportunidades de arbitragem:', error);
+            }
+        }
+
+        function renderStablecoins(stablecoins) {
+            const container = document.getElementById('stablecoinsList');
+            
+            if (stablecoins.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="coins" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                        <p>Nenhuma stablecoin criada ainda</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            container.innerHTML = stablecoins.map(stablecoin => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600 font-bold">${stablecoin.config.symbol.substring(0, 2)}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">${stablecoin.config.name}</h3>
+                                <p class="text-gray-600 text-sm">${stablecoin.config.symbol}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-semibold text-gray-800">$1.00</div>
+                            <div class="text-sm text-gray-600">Supply: ${(stablecoin.tokenInfo?.totalSupply || 0).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">Endereço:</span>
+                            <span class="font-mono text-xs">${stablecoin.address.substring(0, 10)}...</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Status:</span>
+                            <span class="text-green-600 font-medium">${stablecoin.config.isActive ? 'Ativo' : 'Inativo'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPools(pools) {
+            const container = document.getElementById('poolsList');
+            
+            if (pools.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="droplets" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                        <p>Nenhum pool de liquidez criado ainda</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            container.innerHTML = pools.map(pool => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">
+                                ${pool.tokenA?.symbol || 'Token A'} / ${pool.tokenB?.symbol || 'Token B'}
+                            </h3>
+                            <p class="text-gray-600 text-sm">Pool ID: ${pool.poolId.substring(0, 10)}...</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-semibold text-gray-800">$${pool.currentPrice.toFixed(6)}</div>
+                            <div class="text-sm text-gray-600">Liquidez: ${pool.liquidityAmount.toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <span class="text-sm ${pool.isActive ? 'text-green-600' : 'text-red-600'}">
+                            ${pool.isActive ? 'Ativo' : 'Inativo'}
+                        </span>
+                        <span class="text-sm text-gray-600">
+                            Criado: ${new Date(pool.createdAt * 1000).toLocaleDateString()}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderArbitrageOpportunities(opportunities) {
+            const container = document.getElementById('arbitrageList');
+            
+            if (opportunities.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="trending-up" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                        <p>Nenhuma oportunidade de arbitragem no momento</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            container.innerHTML = opportunities.map(opp => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">${opp.tokenPair}</h3>
+                            <p class="text-gray-600 text-sm">Desvio: ${opp.priceDeviation}%</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-semibold text-green-600">+${opp.potentialProfit}%</div>
+                            <div class="text-sm text-gray-600">Lucro potencial</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <span class="text-sm font-medium text-blue-600">${opp.recommendedAction}</span>
+                        <span class="text-sm px-2 py-1 rounded ${
+                            opp.urgency === 'high' ? 'bg-red-100 text-red-700' :
+                            opp.urgency === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-green-100 text-green-700'
+                        }">
+                            ${opp.urgency}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function handleCreateToken(event) {
+            event.preventDefault();
+            
+            if (!isConnected) {
+                showToast('Por favor, conecte sua carteira primeiro', 'error');
+                return;
+            }
+            
+            const formData = new FormData(event.target);
+            const tokenData = {
+                name: document.getElementById('tokenName').value,
+                symbol: document.getElementById('tokenSymbol').value,
+                collateralToken: document.getElementById('collateralToken').value,
+                initialSupply: document.getElementById('initialSupply').value,
+                collateralRatio: document.getElementById('collateralRatio').value,
+                initialLiquidityA: document.getElementById('initialLiquidityA').value,
+                initialLiquidityB: document.getElementById('initialLiquidityB').value
+            };
+            
+            // Validate form data
+            if (!tokenData.name || !tokenData.symbol || !tokenData.collateralToken) {
+                showToast('Por favor, preencha todos os campos obrigatórios', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                
+                // Here you would call the smart contract to create the token
+                // For now, we'll simulate the process
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                showToast('Token criado com sucesso!');
+                
+                // Reset form
+                event.target.reset();
+                
+                // Refresh data
+                await loadStablecoins();
+                
+            } catch (error) {
+                console.error('Erro ao criar token:', error);
+                showToast('Erro ao criar token', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function toggleArbitrage() {
+            const button = document.getElementById('toggleArbitrage');
+            const isActive = button.textContent.includes('Ativar');
+            
+            if (isActive) {
+                button.innerHTML = '<i data-lucide="pause" class="w-4 h-4 inline mr-2"></i>Pausar';
+                button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                button.classList.add('bg-red-500', 'hover:bg-red-600');
+                showToast('Sistema de arbitragem ativado');
+            } else {
+                button.innerHTML = '<i data-lucide="play" class="w-4 h-4 inline mr-2"></i>Ativar';
+                button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                button.classList.add('bg-green-500', 'hover:bg-green-600');
+                showToast('Sistema de arbitragem pausado');
+            }
+            
+            lucide.createIcons();
+        }
+
+        function initializeCharts() {
+            // Price Chart
+            const priceCtx = document.getElementById('priceChart').getContext('2d');
+            new Chart(priceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        label: 'BRZ/USDT',
+                        data: [1.000, 0.998, 1.002, 0.999, 1.001, 1.000],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 0.995,
+                            max: 1.005
+                        }
+                    }
+                }
+            });
+
+            // Volume Chart
+            const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+            new Chart(volumeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+                    datasets: [{
+                        label: 'Volume (USD)',
+                        data: [12000, 19000, 15000, 25000, 22000, 18000, 16000],
+                        backgroundColor: 'rgba(147, 51, 234, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateNetworkStatus(isOnline) {
+            const statusElement = document.getElementById('networkStatus');
+            if (isOnline) {
+                statusElement.innerHTML = `
+                    <span class="status-indicator status-online"></span>
+                    <span class="text-sm">BSC Testnet</span>
+                `;
+            } else {
+                statusElement.innerHTML = `
+                    <span class="status-indicator status-offline"></span>
+                    <span class="text-sm">Desconectado</span>
+                `;
+            }
+        }
+
+        function startAutoRefresh() {
+            // Refresh data every 30 seconds
+            setInterval(async () => {
+                if (document.visibilityState === 'visible') {
+                    await loadSystemStatus();
+                    
+                    // Only refresh current tab data
+                    const activeTab = document.querySelector('.tab-content.active').id;
+                    switch (activeTab) {
+                        case 'overview':
+                            await loadInitialData();
+                            break;
+                        case 'stablecoins':
+                            await loadStablecoins();
+                            break;
+                        case 'liquidity':
+                            await loadPools();
+                            break;
+                        case 'arbitrage':
+                            await loadArbitrageOpportunities();
+                            break;
+                    }
+                }
+            }, 30000);
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            // Update toast color based on type
+            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 z-50 ${
+                type === 'error' ? 'bg-red-500' : 'bg-green-500'
+            } text-white`;
+            
+            // Show toast
+            toast.classList.remove('translate-x-full');
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // Add CSS for tab buttons
+        const style = document.createElement('style');
+        style.textContent = `
+            .tab-button {
+                display: flex;
+                align-items: center;
+                space-x: 2;
+                padding: 0.75rem 1rem;
+                border-radius: 0.5rem;
+                font-medium: true;
+                transition: all 0.2s;
+                color: #6b7280;
+            }
+            .tab-button:hover {
+                background-color: #f3f4f6;
+                color: #374151;
+            }
+            .tab-button.active {
+                background-color: #3b82f6;
+                color: white;
+            }
+            .tab-content {
+                display: none;
+            }
+            .tab-content.active {
+                display: block;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+

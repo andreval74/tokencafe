@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cadastrar Token com Imagemm</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Cadastrar Token com Imagemm</h1>
+
+    <label for="address">Endereço do Token:</label>
+    <input type="text" id="address" placeholder="0x..." />
+
+    <label for="symbol">Símbolo do Token:</label>
+    <input type="text" id="symbol" placeholder="Ex: USDT" />
+
+    <label for="decimals">Decimais:</label>
+    <input type="number" id="decimals" placeholder="Ex: 18" />
+
+    <label for="image">URL da Imagem (.png):</label>
+    <input type="text" id="image" placeholder="https://..." />
+
+    <button onclick="addToken()">➕ Cadastrar no MetaMask</button>
+
+    <pre id="resultado">Resultado aparecerá aqui...</pre>
+  </div>
+
+  <script>
+    async function addToken() {
+      const address = document.getElementById('address').value.trim();
+      const symbol = document.getElementById('symbol').value.trim();
+      const decimals = parseInt(document.getElementById('decimals').value.trim());
+      const image = document.getElementById('image').value.trim();
+      const resultado = document.getElementById('resultado');
+
+      if (!window.ethereum) {
+        resultado.innerText = "❌ MetaMask não detectado!";
+        return;
+      }
+
+      if (!address || !symbol || isNaN(decimals) || !image) {
+        resultado.innerText = "⚠️ Preencha todos os campos corretamente.";
+        return;
+      }
+
+      try {
+        const wasAdded = await window.ethereum.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address,
+              symbol,
+              decimals,
+              image,
+            },
+          },
+        });
+
+        if (wasAdded) {
+          resultado.innerText = '✅ Token adicionado com sucesso ao MetaMask!';
+        } else {
+          resultado.innerText = '❌ Token não foi adicionado.';
+        }
+      } catch (error) {
+        console.error(error);
+        resultado.innerText = '⚠️ Erro ao adicionar token: ' + error.message;
+      }
+    }
+  </script>
+</body>
+</html>

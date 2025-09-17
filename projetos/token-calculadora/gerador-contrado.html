@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de Contrato Inteligente</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="..\css\styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Gerador de Contrato Inteligente</h1>
+
+    <label>Nome do Token</label>
+    <input type="text" id="tokenName" placeholder="Ex: GT Coin">
+
+    <label>Símbolo do Token</label>
+    <input type="text" id="tokenSymbol" placeholder="Ex: GT">
+
+    <label>Decimais</label>
+    <input type="number" id="decimals" placeholder="Ex: 4">
+
+    <label>Endereço do Dono do Contrato</label>
+    <input type="text" id="ownerAddress" placeholder="0x...">
+
+    <label>Total Supply (em unidades inteiras)</label>
+    <input type="text" id="supply" placeholder="Ex: 50000000000">
+
+    <label>Contrato Espelhado (Original)</label>
+    <input type="text" id="originalContract" placeholder="0x...">
+
+    <label>URL da Imagem do Token</label>
+    <input type="text" id="logoURI" placeholder="https://...png">
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+      <button id="gerarBtn" class="small" onclick="gerarContrato(this)">Gerar Contrato</button>
+      <button id="salvarBtn" class="small" onclick="salvarContrato(this)" style="display:none;">Salvar Contrato</button>
+      <button id="proximoBtn" class="small" onclick="proximoPasso(this)" style="display:none;">Personalizar Endereço</button>
+    </div>
+
+    <pre id="codigoGerado" style="white-space: pre-wrap; word-wrap: break-word; margin-top: 20px;"></pre>
+  </div>
+
+  <script>
+    let currentCode = "";
+
+    function gerarContrato(botao) {
+      const name = document.getElementById('tokenName').value.trim();
+      const symbol = document.getElementById('tokenSymbol').value.trim();
+      const decimals = document.getElementById('decimals').value.trim();
+      const owner = document.getElementById('ownerAddress').value.trim();
+      const supply = document.getElementById('supply').value.trim();
+      const original = document.getElementById('originalContract').value.trim();
+      const logoURI = document.getElementById('logoURI').value.trim();
+
+      if (!name || !symbol || !decimals || !owner || !supply || !original) {
+        alert("⚠️ Preencha todos os campos.");
+        return;
+      }
+
+      currentCode = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+/*
+Gerado por:
+Smart Contract Cafe
+https://smartcontract.cafe
+*/
+
+// CONFIGURAÇÕES DO TOKEN
+string constant TOKEN_NAME = "${name}";
+string constant TOKEN_SYMBOL = "${symbol}";
+uint8 constant TOKEN_DECIMALS = ${decimals};
+uint256 constant TOKEN_SUPPLY = ${supply};
+address constant TOKEN_OWNER = ${owner};
+string constant TOKEN_LOGO_URI = "${logoURI || ""}";
+address constant BTCBR_ORIGINAL = ${original};
+// FIM DAS CONFIGURAÇÕES
+
+interface IBTCBROriginal {
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function decimals() external view returns (uint8);
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function allowance(address tokenOwner, address spender) external view returns (uint256);
+}
+
+contract ${symbol} {
+   string public constant name = TOKEN_NAME;
+    string public constant symbol = TOKEN_SYMBOL;
+    uint8 public constant decimals = TOKEN_DECIMALS;
+    uint256 public constant totalSupply = TOKEN_SUPPLY * (10 ** uint256(decimals));
+    string public logoURI;
+
+    address public contractOwner;
+    bool public paused;
+    bool public terminated;
+
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    IBTCBROriginal private btcbrOriginal = IBTCBROriginal(BTCBR_ORIGINAL);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Paused(address indexed account);
+    event Unpaused(address indexed account);
+    event Terminated(address indexed account);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OriginalBalanceChecked(address indexed account, uint256 balance);
+
+    modifier onlyOwner() {
+        require(msg.sender == contractOwner, "Only owner can call this function");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused");
+        _;
+    }
+
+    modifier whenActive() {
+        require(!terminated, "Contract permanently terminated");
+        _;
+    }
+
+    constructor() {
+        contractOwner = TOKEN_OWNER;
+        logoURI = TOKEN_LOGO_URI;
+        _balances[contractOwner] = totalSupply;
+        emit Transfer(address(0x0), contractOwner, totalSupply);
+    }
+
+    // 🔒 Pausa o contrato temporariamente
+    function pause() public onlyOwner {
+        paused = true;
+        emit Paused(msg.sender);
+    }
+
+    function unpause() public onlyOwner {
+        paused = false;
+        emit Unpaused(msg.sender);
+    }
+
+    // 🔐 Encerra o contrato permanentemente (caso o cliente não pague)
+    function terminate() public onlyOwner {
+        terminated = true;
+        emit Terminated(msg.sender);
+    }
+
+    // 🔁 Transfere controle do contrato para o cliente após pagamento
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0x0), "New owner is the zero address");
+        emit OwnershipTransferred(contractOwner, newOwner);
+        contractOwner = newOwner;
+    }
+
+    function transfer(address recipient, uint256 amount) public whenNotPaused whenActive returns (bool) {
+        require(recipient != address(0x0), "Transfer to the zero address");
+        require(amount > 0, "Amount must be greater than zero");
+        require(_balances[msg.sender] >= amount, "Insufficient balance");
+
+        // Checks passed - now apply effects
+        _balances[msg.sender] -= amount;
+        _balances[recipient] += amount;
+
+        emit Transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) public whenNotPaused whenActive returns (bool) {
+        require(spender != address(0x0), "Approve to the zero address");
+        require(amount > 0, "Amount must be greater than zero");
+
+        _allowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public whenNotPaused whenActive returns (bool) {
+        require(sender != address(0x0) && recipient != address(0x0), "Invalid address");
+        require(amount > 0, "Amount must be greater than zero");
+        require(_balances[sender] >= amount, "Insufficient balance");
+        require(_allowances[sender][msg.sender] >= amount, "Allowance exceeded");
+
+        // Checks passed - now apply effects
+        _balances[sender] -= amount;
+        _balances[recipient] += amount;
+        _allowances[sender][msg.sender] -= amount;
+
+        emit Transfer(sender, recipient, amount);
+        return true;
+    }
+
+    // 🧾 Consulta de saldo
+    function balanceOf(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+
+    // 🧾 Consulta de autorização
+    function allowance(address owner, address spender) public view returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    // 🧠 Consulta aos dados do contrato original (referência externa)
+    function getOriginalName() public view returns (string memory) {
+        return btcbrOriginal.name();
+    }
+
+    function getOriginalSymbol() public view returns (string memory) {
+        return btcbrOriginal.symbol();
+    }
+
+    function getOriginalTotalSupply() public view returns (uint256) {
+        return btcbrOriginal.totalSupply();
+    }
+
+    function getOriginalBalance(address account) public returns (uint256) {
+        uint256 balance = btcbrOriginal.balanceOf(account);
+        emit OriginalBalanceChecked(account, balance);
+        return balance;
+    }
+
+    function getOriginalAllowance(address tokenOwner, address spender) public view returns (uint256) {
+        return btcbrOriginal.allowance(tokenOwner, spender);
+    }
+
+    function getBalances(address account) public view returns (uint256 originalBalance, uint256 currentBalance) {
+        return (btcbrOriginal.balanceOf(account), _balances[account]);
+    }
+
+    // ⛔ Rejeita qualquer tentativa de envio de ETH
+    receive() external payable {
+        revert("ETH not accepted");
+    }
+}`;
+
+      document.getElementById('codigoGerado').textContent = currentCode;
+      document.getElementById('salvarBtn').style.display = 'inline-block';
+      botao.classList.add("executado");
+    }
+
+    function salvarContrato(botao) {
+      const name = document.getElementById('tokenName').value.trim();
+      const blob = new Blob([currentCode], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${name}-gerado.sol`;
+      link.click();
+
+      document.getElementById('proximoBtn').style.display = 'inline-block';
+      botao.classList.add("executado");
+    }
+
+    function proximoPasso(botao) {
+      const original = document.getElementById('originalContract').value.trim();
+      if (!original) {
+        alert("Contrato Espelhado (Original) não encontrado.");
+        return;
+      }
+      botao.classList.add("executado");
+      window.location.href = `gerador-salt.html?deployer=${encodeURIComponent(original)}`;
+    }
+  </script>
+</body>
+</html>
