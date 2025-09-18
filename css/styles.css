@@ -103,7 +103,6 @@ body {
   color: var(--bs-body-color) !important;
   font-family: var(--bs-body-font-family) !important;
   line-height: var(--bs-body-line-height) !important;
-  padding-top: 56px; /* Espaço para navbar Bootstrap fixed-top */
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -2218,9 +2217,9 @@ body {
 }
 
 .section-divider {
-  height: 1px;
+  height: 2px;
   background: linear-gradient(90deg, transparent, rgba(248, 93, 35, 0.3), transparent);
-  margin: 2rem 0;
+  margin: 20px;
 }
 
 /* Responsive Design */
@@ -2329,5 +2328,129 @@ body {
   }
   100% {
     transform: translateX(-50%);
+  }
+}
+
+/*
+=============================================================================
+TOKENCAFE - NEON HOVER EFFECTS
+Classes reutilizáveis para efeitos neon padronizados
+=============================================================================
+*/
+
+/* Neon Link Effects - Para links de navegação */
+.neon-link-hover {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 8px 16px;
+  text-decoration: none !important;
+}
+
+.neon-link-hover:hover {
+  color: var(--bs-warning) !important;
+  background: rgba(248, 93, 35, 0.25) !important;
+  box-shadow: 0 0 20px rgba(248, 93, 35, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+/* Neon Link Effects Small - Para links menores (footer) */
+.neon-link-small-hover {
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  padding: 4px 8px;
+  text-decoration: none !important;
+  font-size: 0.9rem;
+}
+
+.neon-link-small-hover:hover {
+  color: var(--bs-warning) !important;
+  background: rgba(248, 93, 35, 0.2) !important;
+  box-shadow: 0 0 15px rgba(248, 93, 35, 0.4) !important;
+}
+
+/* Neon Card Effects - Para cards e containers */
+.neon-card-hover {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(248, 93, 35, 0.1);
+}
+
+.neon-card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(248, 93, 35, 0.3) !important;
+  border-color: rgba(248, 93, 35, 0.4) !important;
+  background: rgba(248, 93, 35, 0.05) !important;
+}
+
+/* Neon Button Effects - Para botões especiais */
+.neon-button-hover {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(248, 93, 35, 0.3);
+  background: rgba(248, 93, 35, 0.1);
+}
+
+.neon-button-hover:hover {
+  background: rgba(248, 93, 35, 0.2) !important;
+  border-color: rgba(248, 93, 35, 0.6) !important;
+  box-shadow: 0 0 25px rgba(248, 93, 35, 0.6) !important;
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Neon Icon Effects - Para ícones com glow */
+.neon-icon-hover {
+  transition: all 0.3s ease;
+  text-decoration: none !important;
+}
+
+.neon-icon-hover:hover {
+  color: var(--bs-warning) !important;
+  filter: drop-shadow(0 0 10px rgba(248, 93, 35, 0.8));
+  transform: scale(1.1);
+}
+
+/* Garantir que os ícones Font Awesome sejam renderizados corretamente */
+.social-icons i {
+  font-family: "Font Awesome 6 Brands", "Font Awesome 6 Free" !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  line-height: 1 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Neon Text Glow - Para textos com brilho */
+.neon-text-glow {
+  color: var(--bs-warning);
+  text-shadow: 0 0 10px rgba(248, 93, 35, 0.5);
+}
+
+.neon-text-glow-hover {
+  transition: all 0.3s ease;
+}
+
+.neon-text-glow-hover:hover {
+  color: var(--bs-warning) !important;
+  text-shadow: 0 0 15px rgba(248, 93, 35, 0.8) !important;
+}
+
+/* Utility Classes para diferentes intensidades */
+.neon-subtle { opacity: 0.7; }
+.neon-medium { opacity: 0.85; }
+.neon-intense { opacity: 1; filter: brightness(1.1); }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .neon-link-hover {
+    padding: 6px 12px;
+  }
+  
+  .neon-link-hover:hover,
+  .neon-link-small-hover:hover {
+    box-shadow: 0 0 10px rgba(248, 93, 35, 0.4) !important;
+  }
+  
+  .neon-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(248, 93, 35, 0.25) !important;
   }
 }

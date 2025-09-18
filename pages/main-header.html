@@ -6,22 +6,23 @@ Header unificado para páginas principais (index, about, contact)
 Baseado no header.html do TokenCafe com tema TokenCafe
 ================================================================================
 -->
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-    <div class="container">
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
         <!-- Brand TokenCafe -->
-        <a class="navbar-brand d-flex align-items-center" href="index.html">
-            <i class="fas fa-coffee me-2 fs-3 text-warning"></i>
+        <a class="navbar-brand d-flex align-items-center" href="../pages/index.html">
+            <img src="../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2" 
+                         style="width: 48px; height: 48px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
             <div>
-                <span class="fw-bold fs-4">Token<span class="text-warning">Cafe</span></span>
-                <small class="d-block text-light opacity-75" style="line-height: 1; margin-top: -2px;">
+                <span class="fw-bold fs-4 text-white">Token<span class="text-warning">Cafe</span></span>
+                <small class="d-block text-white-50" style="line-height: 1; margin-top: -2px; font-size: 0.75rem;">
                     Plataforma Web3
                 </small>
             </div>
         </a>
 
         <!-- Mobile Toggle -->
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -30,27 +31,27 @@ Baseado no header.html do TokenCafe com tema TokenCafe
             <!-- Menu Items -->
             <ul class="navbar-nav ms-auto me-3">
                 <li class="nav-item">
-                    <a class="nav-link" href="#features">
+                    <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#features">
                         <i class="fas fa-coins me-1"></i>Tokens
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#how-it-works">
+                    <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#how-it-works">
                         <i class="fas fa-cogs me-1"></i>Como Funciona
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/dashboard">
+                    <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../dashboard/main/dashboard.html">
                         <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#pricing">
+                    <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#pricing">
                         <i class="fas fa-dollar-sign me-1"></i>Preços
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#support">
+                    <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#support">
                         <i class="fas fa-headset me-1"></i>Suporte
                     </a>
                 </li>
@@ -58,30 +59,27 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 
             <!-- Controls -->
             <div class="d-flex align-items-center gap-2">
-                <a href="/dashboard" class="btn btn-warning btn-lg btn-custom">
-                    <i class="fas fa-plus-circle me-1"></i>
-                    Criar Token
+                <a href="../dashboard/main/dashboard.html" class="btn btn-primary btn-sm">
+                    <i class="fas fa-sign-in-alt me-1"></i>
+                    Conectar
                 </a>
                 
-                <button id="theme-toggle-btn" class="btn btn-outline-light btn-sm" type="button" title="Alternar Tema">
+                <button id="theme-toggle-btn" class="btn btn-sm" type="button" title="Alternar Tema"
+                        style="background: transparent; border: none; color: var(--bs-warning); transition: all 0.3s ease;"
+                        onmouseover="this.style.transform='scale(1.1)'; this.style.color='#fbbf24'"
+                        onmouseout="this.style.transform='scale(1)'; this.style.color='var(--bs-warning)'">
                     <i class="fas fa-sun" id="theme-icon"></i>
                 </button>
                 
-                <button id="language-toggle-btn" class="btn btn-outline-light btn-sm" type="button" title="Mudar Idioma">
+                <button id="language-toggle-btn" class="btn btn-sm" type="button" title="Mudar Idioma"
+                        style="background: transparent; border: none; color: var(--bs-info); transition: all 0.3s ease;"
+                        onmouseover="this.style.transform='scale(1.1)'; this.style.color='#60a5fa'"
+                        onmouseout="this.style.transform='scale(1)'; this.style.color='var(--bs-info)'">
                     <i class="fas fa-globe" id="language-icon"></i>
                 </button>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
+</header>
 
-<!-- Wallet Manager Centralizado -->
-<script src="../js/shared/wallet.js"></script>
-<!-- Template Loader -->
-<script src="../js/core/template-loader.js"></script>
-<!-- Header Theme Controller -->
-<script src="../js/shared/header-theme-controller.js"></script>
-<!-- Header JavaScript -->
-<script src="../js/header.js"></script>
-<!-- Support Modal JavaScript -->
-<script src="../js/shared/support-modal.js"></script>
+<div class="section-divider"></div>
