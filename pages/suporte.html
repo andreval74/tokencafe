@@ -1,5 +1,5 @@
 <!-- Seção de Suporte - TokenCafe Style -->
-<section id="support">
+<section>
     <div class="container position-relative">
         <!-- Header Section -->
         <div class="row justify-content-center text-center mb-5">
@@ -15,19 +15,13 @@
                 <p class="lead text-light mb-4">
                     Preencha com as suas informações abaixo para entrarmos em contato
                 </p>
-                <div class="badge bg-primary text-dark px-4 py-2 mb-4">
-                    <i class="fas fa-clock me-2"></i>
-                    Resposta garantida em até 2 horas
-                </div>
             </div>
         </div>
 
         <!-- Contact Form -->
         <div class="row justify-content-center">
             <div class="col-lg-10 col-xl-8">
-                <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(45, 45, 45, 0.95) 100%); 
-                            backdrop-filter: blur(15px); 
-                            border: 1px solid rgba(248, 93, 35, 0.2);">
+                <div class="card border-0 shadow-lg">
 
                     <!-- Toast Container -->
                     <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050;"></div>
@@ -42,8 +36,7 @@
                                     </label>
                                     <input type="text"
                                         class="form-control form-control-lg bg-dark text-light border-secondary"
-                                        id="contact-name" placeholder="Digite seu nome completo" required
-                                        style="border-radius: 12px; border: 2px solid rgba(248, 93, 35, 0.3);">
+                                        id="contact-name" placeholder="Digite seu nome completo" required>
                                     <div class="invalid-feedback text-warning">
                                         <i class="fas fa-exclamation-triangle me-1"></i>Por favor, informe seu nome
                                         completo.
@@ -57,8 +50,7 @@
                                     </label>
                                     <input type="email"
                                         class="form-control form-control-lg bg-dark text-light border-secondary"
-                                        id="contact-email" placeholder="seu@email.com" required
-                                        style="border-radius: 12px; border: 2px solid rgba(248, 93, 35, 0.3);">
+                                        id="contact-email" placeholder="seu@email.com" required>
                                     <div class="invalid-feedback text-warning">
                                         <i class="fas fa-exclamation-triangle me-1"></i>Por favor, informe um e-mail
                                         válido.
@@ -73,8 +65,7 @@
                                     <input type="tel"
                                         class="form-control form-control-lg bg-dark text-light border-secondary"
                                         id="contact-whatsapp" placeholder="(00) 00000-0000" required
-                                        pattern="^\(\d{2}\)\s\d{4,5}-\d{4}$"
-                                        style="border-radius: 12px; border: 2px solid rgba(248, 93, 35, 0.3);">
+                                        pattern="^\(\d{2}\)\s\d{4,5}-\d{4}$">
                                     <div class="invalid-feedback text-warning">
                                         <i class="fas fa-exclamation-triangle me-1"></i>Por favor, informe um WhatsApp
                                         válido no formato (00) 00000-0000.
@@ -92,8 +83,7 @@
                                     </label>
                                     <input type="text"
                                         class="form-control form-control-lg bg-dark text-light border-secondary"
-                                        id="contact-wallet" placeholder="0x... (opcional)" maxlength="42"
-                                        style="border-radius: 12px; border: 2px solid rgba(248, 93, 35, 0.3);">
+                                        id="contact-wallet" placeholder="0x... (opcional)" maxlength="42">
                                     <small class="text-secondary">
                                         <i class="fas fa-info-circle text-info me-1"></i>
                                         Informe manualmente se desejar (opcional)
@@ -106,8 +96,7 @@
                                         <i class="fas fa-tag text-info me-2"></i>Assunto *
                                     </label>
                                     <select class="form-select form-select-lg bg-dark text-light border-secondary"
-                                        id="contact-subject" required
-                                        style="border-radius: 12px; border: 2px solid rgba(248, 93, 35, 0.3);">
+                                        id="contact-subject" required>
                                         <option value="">🔽 Selecione o assunto...</option>
                                         <option value="saiba-mais">💡 Saiba mais sobre a plataforma</option>
                                         <option value="suporte-tecnico">🛠️ Suporte técnico</option>
@@ -129,8 +118,7 @@
                                     <textarea class="form-control bg-dark text-light border-secondary"
                                         id="contact-message" rows="5"
                                         placeholder="Descreva detalhadamente sua dúvida, solicitação ou problema..."
-                                        required minlength="10"
-                                        style="border-radius: 12px; border: 2px solid rgba(248, 93, 35, 0.3); resize: vertical;"></textarea>
+                                        required minlength="10" style="resize: vertical;"></textarea>
                                     <div class="invalid-feedback text-warning">
                                         <i class="fas fa-exclamation-triangle me-1"></i>Por favor, escreva uma mensagem
                                         com pelo menos 10 caracteres.
@@ -145,9 +133,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="contact-terms" required>
                                         <label class="form-check-label text-light" for="contact-terms">
-                                            Li e aceito os <a href="#" class="text-primary neon-link-hover">termos de
-                                                privacidade</a> e
-                                            autorizo o contato via WhatsApp e e-mail *
+                                            Autorizando contato por WhatsApp e e-mail.<br>
                                         </label>
                                         <div class="invalid-feedback text-warning">
                                             <i class="fas fa-exclamation-triangle me-1"></i>Você deve aceitar os termos
@@ -180,27 +166,21 @@
                                         Preencha todos os campos obrigatórios para enviar.
                                     </small>
                                 </div>
-                            </div>
 
-                            <!-- Info Footer -->
-                            <div class="text-center mt-4">
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <div class="d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-shield-alt text-success me-2"></i>
+                                <!-- Info Footer -->
+                                <div class="text-center mt-4">
+                                    <div class="row g-4">
+                                        <div class="col-md-4">
+                                            <i class="fas fa-user-shield text-primary me-2"></i>
                                             <small class="text-light">100% Seguro</small>
                                         </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-user-shield text-primary me-2"></i>
-                                            <small class="text-light">Dados Protegidos</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="d-flex align-items-center justify-content-center">
+                                        <div class="col-md-4">
                                             <i class="fas fa-clock text-warning me-2"></i>
                                             <small class="text-light">Resposta Rápida</small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <i class="fas fa-headset text-info me-2"></i>
+                                            <small class="text-light">Suporte 24/7</small>
                                         </div>
                                     </div>
                                 </div>

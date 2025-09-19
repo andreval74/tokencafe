@@ -1,17 +1,17 @@
-# Xcafe — Ecossistema Vivo de Tokenização
+# TokenCafe — Ecossistema Vivo de Tokenização
 
 ## 1. Resumo Executivo
-A Xcafe é uma plataforma Web3 completa que democratiza a criação, apresentação, negociação, pesquisa e gestão de contratos inteligentes e tokens sem qualquer conhecimento técnico. É um ecossistema vivo, em constante evolução, que integra criação no‑code, páginas de lançamento com checkout, marketplace social, assistente de IA, suporte multi‑chain e módulos de liquidez e governança.
+A TokenCafe é uma plataforma Web3 completa que democratiza a criação, apresentação, negociação, pesquisa e gestão de contratos inteligentes e tokens sem qualquer conhecimento técnico. É um ecossistema vivo, em constante evolução, que integra criação no‑code, páginas de lançamento com checkout, marketplace social, assistente de IA, suporte multi‑chain e módulos de liquidez e governança.
 
 O Futuro da Tokenização Chegou — O Universo Crypto para todos.
 
 ## 2. O Problema e a Oportunidade
-Criar e lançar tokens ainda é complexo, caro e pouco acessível. Ao mesmo tempo, o mercado de tokenização deve atingir US$ 16 trilhões até 2030 (BCG), com o Brasil na liderança regional de adoção e regulação. Falta ao público em massa uma infraestrutura simples, confiável e educativa — exatamente a lacuna que a Xcafe preenche.
+Criar e lançar tokens ainda é complexo, caro e pouco acessível. Ao mesmo tempo, o mercado de tokenização deve atingir US$ 16 trilhões até 2030 (BCG), com o Brasil na liderança regional de adoção e regulação. Falta ao público em massa uma infraestrutura simples, confiável e educativa — exatamente a lacuna que a TokenCafe preenche.
 
 ## 3. Solução e Proposta de Valor
-A Xcafe oferece: criação no‑code de ERC‑20/721, landing pages automáticas com widget de compra, marketplace e rede social, login por carteira (custódia do usuário), conteúdos educativos e IA assistiva — com um roadmap que inclui DEX/AMM nativo, DeFi, DAO, DID, SDKs/APIs e integração multi‑chain. Tudo com foco em segurança, transparência e experiência de uso.
+A TokenCafe oferece: criação no‑code de ERC‑20/721, landing pages automáticas com widget de compra, marketplace e rede social, login por carteira (custódia do usuário), conteúdos educativos e IA assistiva — com um roadmap que inclui DEX/AMM nativo, DeFi, DAO, DID, SDKs/APIs e integração multi‑chain. Tudo com foco em segurança, transparência e experiência de uso.
 
-3.1 Diferenciais Xcafe (inspirado no site)
+3.1 Diferenciais TokenCafe (inspirado no site)
 - Para Todos: democratizamos Web3 para pessoas comuns, pequenos negócios e criadores.
 - Ecossistema Completo: não somos apenas um criador de contratos; entregamos marketplace, rede social, IA e acompanhamento completo.
 - IA Orientativa: a IA acompanha cada etapa, da criação ao crescimento.
@@ -22,7 +22,7 @@ A Xcafe oferece: criação no‑code de ERC‑20/721, landing pages automáticas
 - Suporte Brasileiro: atendimento local, com conhecimento da realidade do usuário BR.
 
 ## 4. Mercado e Tese de Investimento
-O crescimento de RWAs e DeFi, somado ao avanço regulatório local (Lei de Ativos Virtuais, Drex), cria um terreno fértil. A Xcafe captura esse potencial atendendo o público leigo e PMEs que desejam tokenizar produtos, comunidades, ingressos, fidelidade, ativos digitais e físicos. A tese: reduzir atrito de entrada, aumentar liquidez e dar visibilidade social para projetos tokenizados.
+O crescimento de RWAs e DeFi, somado ao avanço regulatório local (Lei de Ativos Virtuais, Drex), cria um terreno fértil. A TokenCafe captura esse potencial atendendo o público leigo e PMEs que desejam tokenizar produtos, comunidades, ingressos, fidelidade, ativos digitais e físicos. A tese: reduzir atrito de entrada, aumentar liquidez e dar visibilidade social para projetos tokenizados.
 
 ## 5. Modelo de Negócios
 Receita por: (i) taxa de criação (pay‑as‑you‑go), (ii) assinaturas premium, (iii) comissões sobre serviços (auditoria, listagem, marketing), com expansão futura para white‑label e parcerias enterprise.
@@ -60,21 +60,21 @@ Aquisição via conteúdo/SEO, comunidade (Discord/Telegram/X/YouTube), parceria
 Módulos prioritários: DEX/AMM, multi‑chain, DeFi, NFTs avançados, DAO, DID, oráculos, gasless/AA, bridges, on/off‑ramp, tokenomics studio, auditoria automatizada, analytics/reputação, armazenamento descentralizado, apps e PWA. Governança de evolução com votos da comunidade, releases graduais e compatibilidade retroativa.
 
 ## 11. Impacto Social e Empreendedorismo (ESG Web3)
-Para impulsionar investidores orientados a impacto (ESG) e ampliar a adoção responsável, a Xcafe instituirá o programa Xcafe Social, com:
-- Xcafe Academy: trilhas gratuitas (iniciação cripto, tokenização prática, segurança e compliance) e certificações on‑chain (NFTs SBT). 
+Para impulsionar investidores orientados a impacto (ESG) e ampliar a adoção responsável, a TokenCafe instituirá o programa TokenCafe Social, com:
+- TokenCafe Academy: trilhas gratuitas (iniciação cripto, tokenização prática, segurança e compliance) e certificações on‑chain (NFTs SBT). 
 - Bolsas e Inclusão: foco em mulheres, periferias e pequenos empreendedores; meta de 10.000 pessoas capacitadas em 24 meses.
 - Learn‑to‑Earn: missões educativas com recompensas simbólicas; embaixadores locais e mentores certificados.
 - Parcerias: ONGs, escolas técnicas e programas públicos (Sebrae/Senai) para capacitação regional.
 - Métricas de impacto: formados, taxa de publicação de tokens pós‑curso, retenção e geração de renda.
-- Financiamento: compromisso de alocação de 2% da receita anual e 1% do equity (ou pool de tokens) para o Fundo Xcafe Social, com governança e transparência on‑chain.
+- Financiamento: compromisso de alocação de 2% da receita anual e 1% do equity (ou pool de tokens) para o Fundo TokenCafe Social, com governança e transparência on‑chain.
 
 ## 12. Chamada para Ação (com Lista VIP)
 Estamos prontos para acelerar a tokenização no Brasil com uma plataforma segura, simples e escalável, aliando impacto social e governança séria. 
 
-Lista VIP de Acesso Antecipado — Seja o primeiro a testar a Xcafe (beta), com benefícios e suporte prioritário. Convite a investidores e parceiros estratégicos para construir, juntos, o padrão da nova economia digital.
+Lista VIP de Acesso Antecipado — Seja o primeiro a testar a TokenCafe (beta), com benefícios e suporte prioritário. Convite a investidores e parceiros estratégicos para construir, juntos, o padrão da nova economia digital.
 
 ## 13. Desafios e Oportunidades Futuras
-O ecossistema Web3, embora promissor, apresenta desafios inerentes que a Xcafe está preparada para enfrentar, transformando‑os em oportunidades de liderança e inovação.
+O ecossistema Web3, embora promissor, apresenta desafios inerentes que a TokenCafe está preparada para enfrentar, transformando‑os em oportunidades de liderança e inovação.
 
 13.1 Desafios
 - Regulamentação em Evolução: adaptação contínua a novas diretrizes, garantindo conformidade e segurança jurídica.
@@ -107,7 +107,7 @@ Para cada fase do roadmap, definimos marcos claros, responsáveis diretos e Indi
 | **Módulo de Criação de Tokens No-Code (MVP)** | Tech Lead, Dev Team | % de tokens criados sem suporte; tempo médio de criação de token | Mês 3 | Foco em ERC-20 e ERC-721 básicos, com templates pré-definidos e auditados. |
 | **Landing Page Automática & Widget de Compra** | Design Team, Dev Team | % de tokens com LP publicada; taxa de conversão do widget | Mês 4 | Geração automática de LPs otimizadas para conversão, com integração de widget de compra direto. |
 | **Integração com MetaMask/TrustWallet** | Tech Lead, Dev Team | % de usuários conectando carteira com sucesso; tempo de conexão | Mês 2 | Conexão segura e intuitiva para as principais carteiras Web3. |
-| **Conteúdo Educacional Básico (Xcafe Academy)** | Marketing Team, Product Lead | Nº de acessos aos tutoriais; redução de tickets de suporte relacionados a dúvidas básicas | Mês 5 | Primeiras trilhas de aprendizado sobre o básico de cripto e tokenização. |
+| **Conteúdo Educacional Básico (TokenCafe Academy)** | Marketing Team, Product Lead | Nº de acessos aos tutoriais; redução de tickets de suporte relacionados a dúvidas básicas | Mês 5 | Primeiras trilhas de aprendizado sobre o básico de cripto e tokenização. |
 | **Lançamento da Plataforma (Beta)** | Product Lead, Marketing Team | Nº de usuários beta; feedback qualitativo dos usuários | Mês 6 | Lançamento para um grupo seleto de usuários para testes e feedback intensivo. |
 
 #### **Fase 2: Expansão & Engajamento (6-12 meses)**
@@ -119,7 +119,7 @@ Para cada fase do roadmap, definimos marcos claros, responsáveis diretos e Indi
 | **Marketplace & Rede Social (MVP)** | Product Lead, Design Team, Dev Team | Nº de projetos listados; engajamento (curtidas, comentários, compartilhamentos) | Mês 9 | Permite a descoberta e interação com projetos tokenizados, criando um senso de comunidade. |
 | **Assistente de IA (MVP)** | Tech Lead, Dev Team | % de perguntas respondidas pela IA; satisfação do usuário com o suporte da IA | Mês 10 | IA treinada para auxiliar na criação, gestão e dúvidas gerais sobre a plataforma. |
 | **Suporte Multi-Chain (BNB Chain, Polygon)** | Tech Lead, Dev Team | % de transações em múltiplas chains; custo médio por transação | Mês 12 | Habilita a criação e negociação de tokens em blockchains adicionais, aumentando o alcance. |
-| **Programa de Embaixadores Xcafe** | Marketing Team, Community Manager | Nº de embaixadores ativos; crescimento da comunidade impulsionado por embaixadores | Mês 11 | Criação de um programa para incentivar a promoção e o suporte à comunidade. |
+| **Programa de Embaixadores TokenCafe** | Marketing Team, Community Manager | Nº de embaixadores ativos; crescimento da comunidade impulsionado por embaixadores | Mês 11 | Criação de um programa para incentivar a promoção e o suporte à comunidade. |
 
 #### **Fase 3: Liquidez & Interoperabilidade (12-18 meses)**
 
@@ -138,8 +138,8 @@ Para cada fase do roadmap, definimos marcos claros, responsáveis diretos e Indi
 
 | Marco Chave | Responsável Principal | KPIs de Sucesso | Prazo Estimado | Observações |
 | :--- | :--- | :--- | :--- | :--- |
-| **DAO da Xcafe Estabelecida e Ativa** | Product Lead, Marketing Team | Nº de propostas; % de participação em votações; tempo médio de decisão | Mês 21 | Permite que a comunidade participe ativamente das decisões sobre o futuro da plataforma. |
-| **SDKs e APIs Documentados e Disponíveis** | Tech Lead, Dev Team | Nº de desenvolvedores utilizando APIs; Nº de aplicações construídas sobre a Xcafe | Mês 20 | Abre a plataforma para que desenvolvedores externos criem suas próprias soluções. |
+| **DAO da TokenCafe Estabelecida e Ativa** | Product Lead, Marketing Team | Nº de propostas; % de participação em votações; tempo médio de decisão | Mês 21 | Permite que a comunidade participe ativamente das decisões sobre o futuro da plataforma. |
+| **SDKs e APIs Documentados e Disponíveis** | Tech Lead, Dev Team | Nº de desenvolvedores utilizando APIs; Nº de aplicações construídas sobre a TokenCafe | Mês 20 | Abre a plataforma para que desenvolvedores externos criem suas próprias soluções. |
 | **Identidade Digital Descentralizada (DID - MVP)** | Product Lead, Tech Lead, Dev Team | % de usuários com DID; adoção de credenciais verificáveis | Mês 24 | Solução de identidade auto-soberana para usuários e projetos. |
 | **Otimização de Escalabilidade (Layer 2)** | Tech Lead, Dev Team | Redução de custos de transação; aumento da velocidade de processamento | Mês 23 | Implementação de soluções de escalabilidade para lidar com o aumento do volume de usuários e transações. |
 
@@ -155,10 +155,10 @@ Para cada fase do roadmap, definimos marcos claros, responsáveis diretos e Indi
 | **Tokenomics Studio & Simulação (MVP)** | Product Lead, Tech Lead, Dev Team | % de projetos utilizando o simulador; otimização de tokenomics | Mês 27 | Ferramenta para projetar e simular a economia de tokens de novos projetos. |
 | **Oráculos & Dados (RWA) Integrados** | Tech Lead, Dev Team | Nº de casos de uso com RWA; precisão dos dados | Mês 31 | Integração com oráculos para trazer dados do mundo real para a blockchain. |
 | **Gasless & Account Abstraction (MVP)** | Tech Lead, Dev Team | Redução de custos de gás para usuários; simplificação da UX | Mês 29 | Otimização da experiência do usuário, eliminando a necessidade de pagar taxas de gás diretamente. |
-| **White-label & Embedded Solutions (MVP)** | Product Lead, Marketing Team | Nº de parceiros; volume de negócios gerado | Mês 33 | Permite que outras empresas utilizem a tecnologia Xcafe em suas próprias plataformas. |
+| **White-label & Embedded Solutions (MVP)** | Product Lead, Marketing Team | Nº de parceiros; volume de negócios gerado | Mês 33 | Permite que outras empresas utilizem a tecnologia TokenCafe em suas próprias plataformas. |
 | **Analytics & Reputação (MVP)** | Product Lead, Tech Lead, Dev Team | Adoção de dashboards; score de reputação dos projetos | Mês 34 | Ferramentas para análise de dados e construção de reputação on-chain. |
 | **Armazenamento Descentralizado (MVP)** | Tech Lead, Dev Team | % de dados armazenados descentralizadamente; tempo de acesso | Mês 35 | Soluções para armazenamento de dados de forma segura e descentralizada. |
 | **Apps Nativos & PWA (MVP)** | Design Team, Dev Team | Nº de downloads/instalações; engajamento mobile | Mês 36 | Desenvolvimento de aplicativos móveis nativos e Progressive Web Apps para melhor experiência em dispositivos móveis. |
 
-Este plano de implementação é um documento vivo, que será revisado e atualizado regularmente para refletir o progresso, os desafios e as oportunidades emergentes. A transparência e a comunicação contínua serão pilares fundamentais para o sucesso da execução do roadmap da Xcafe.
+Este plano de implementação é um documento vivo, que será revisado e atualizado regularmente para refletir o progresso, os desafios e as oportunidades emergentes. A transparência e a comunicação contínua serão pilares fundamentais para o sucesso da execução do roadmap da TokenCafe.
 

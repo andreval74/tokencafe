@@ -5,14 +5,65 @@ Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
 ==========================================================================
 */
 
-/* Bootstrap 5 CSS Variables Override - TokenCafe Theme */
+/* ============================================================================
+   SISTEMA DE CORES TOKENCAFE - TEMA ESCURO E CLARO
+   ========================================================================== */
+:root {
+  /* ===== CORES PRIMÁRIAS TOKENCAFE ===== */
+  --tokencafe-primary: #f85d23;           /* Laranja principal TokenCafe */
+  --tokencafe-primary-dark: #d97706;      /* Laranja escuro (hover/active) */
+  --tokencafe-primary-light: #fbbf24;     /* Laranja claro (accent) */
+  --tokencafe-secondary: #6b7280;         /* Cinza neutro */
+  
+  /* ===== CORES DE STATUS ===== */
+  --tokencafe-success: #10b981;           /* Verde para sucesso */
+  --tokencafe-success-light: #6ee7b7;     /* Verde claro */
+  --tokencafe-danger: #ef4444;            /* Vermelho para erro */
+  --tokencafe-danger-light: #fca5a5;      /* Vermelho claro */
+  --tokencafe-warning: #f59e0b;           /* Amarelo para aviso */
+  --tokencafe-info: #3b82f6;              /* Azul para informação */
+  --tokencafe-info-light: #93c5fd;        /* Azul claro */
+  
+  /* ===== TEMA ESCURO (PADRÃO) ===== */
+  --tokencafe-bg-primary: #000000;        /* Preto puro */
+  --tokencafe-bg-secondary: #0a0a0a;      /* Preto suave */
+  --tokencafe-bg-tertiary: #1a1a1a;       /* Cinza muito escuro */
+  --tokencafe-bg-quaternary: #2d2d2d;     /* Cinza escuro */
+  --tokencafe-bg-surface: #374151;        /* Cinza médio */
+  --tokencafe-bg-gradient-1: #0d1117;     /* Gradiente 1 */
+  
+  --tokencafe-text-primary: #ffffff;      /* Branco puro */
+  --tokencafe-text-secondary: #e5e7eb;    /* Cinza muito claro */
+  --tokencafe-text-muted: #9ca3af;        /* Cinza médio claro */
+  --tokencafe-text-inverse: #000000;      /* Texto preto (para fundos claros) */
+  
+  --tokencafe-border-light: #374151;      /* Borda escura */
+  --tokencafe-border-medium: #4b5563;     /* Borda média */
+  
+  /* ===== TEMA CLARO (FUTURO) ===== */
+  --tokencafe-light-bg-primary: #ffffff;      /* Branco puro */
+  --tokencafe-light-bg-secondary: #f8fafc;    /* Cinza muito claro */
+  --tokencafe-light-bg-tertiary: #f1f5f9;     /* Cinza claro */
+  --tokencafe-light-bg-quaternary: #e2e8f0;   /* Cinza médio claro */
+  --tokencafe-light-bg-surface: #cbd5e1;      /* Cinza médio */
+  
+  --tokencafe-light-text-primary: #1a202c;    /* Preto suave */
+  --tokencafe-light-text-secondary: #2d3748;  /* Cinza escuro */
+  --tokencafe-light-text-muted: #718096;      /* Cinza médio */
+  --tokencafe-light-text-inverse: #ffffff;    /* Texto branco */
+  
+  --tokencafe-light-border-light: #e2e8f0;    /* Borda clara */
+  --tokencafe-light-border-medium: #cbd5e1;   /* Borda média clara */
+}
+
+/* ===== BOOTSTRAP 5 CSS VARIABLES OVERRIDE - TOKENCAFE THEME ===== */
 :root {
   /* TokenCafe Brand Colors */
-  --bs-primary: #f85d23;
+  --bs-primary: var(--tokencafe-primary);
   --bs-primary-rgb: 248, 93, 35;
   --bs-secondary: #6b7280;
   --bs-secondary-rgb: 107, 114, 128;
-  --bs-success: #10b981;
+  --bs-success: var(--tokencafe-success);
   --bs-success-rgb: 16, 185, 129;
   --bs-danger: #ef4444;
   --bs-danger-rgb: 239, 68, 68;
@@ -26,8 +77,8 @@ Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
   --bs-dark-rgb: 26, 26, 26;
   
   /* Bootstrap Body & Background - Dark Theme */
-  --bs-body-bg: #0a0a0a;
-  --bs-body-color: #ffffff;
+  --bs-body-bg: #000000;
+  --bs-body-color: var(--tokencafe-text-primary);
   --bs-body-color-rgb: 255, 255, 255;
   --bs-body-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --bs-body-font-size: 1rem;
@@ -35,25 +86,25 @@ Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
   --bs-body-line-height: 1.6;
   
   /* Bootstrap Text Colors - Dark Theme */
-  --bs-emphasis-color: #ffffff;
+  --bs-emphasis-color: var(--tokencafe-text-primary);
   --bs-emphasis-color-rgb: 255, 255, 255;
-  --bs-secondary-color: #e5e7eb;
+  --bs-secondary-color: var(--tokencafe-text-secondary);
   --bs-secondary-color-rgb: 229, 231, 235;
   --bs-tertiary-color: #9ca3af;
   --bs-tertiary-color-rgb: 156, 163, 175;
   
   /* Bootstrap Link Colors */
-  --bs-link-color: #f85d23;
+  --bs-link-color: var(--tokencafe-primary);
   --bs-link-color-rgb: 248, 93, 35;
-  --bs-link-hover-color: #fbbf24;
+  --bs-link-hover-color: var(--tokencafe-primary-light);
   --bs-link-hover-color-rgb: 251, 191, 36;
   
   /* Bootstrap Border Colors - Dark Theme */
-  --bs-border-color: #374151;
+  --bs-border-color: var(--tokencafe-bg-surface);
   --bs-border-color-translucent: rgba(55, 65, 81, 0.175);
   
   /* Bootstrap Form Colors - Dark Theme */
-  --bs-form-valid-color: #10b981;
+  --bs-form-valid-color: var(--tokencafe-success);
   --bs-form-invalid-color: #ef4444;
   
   /* Bootstrap Card/Surface - Dark Theme */
@@ -65,18 +116,18 @@ Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
   --bs-tooltip-bg: #1a1a1a;
   
   /* TokenCafe Custom Variables (compatibilidade com cÃ³digo existente) */
-  --primary: #f85d23;
-  --primary-dark: #d97706;
-  --primary-light: #fbbf24;
-  --background-color: #0a0a0a;
+  --primary: var(--tokencafe-primary);
+  --primary-dark: var(--tokencafe-primary-dark);
+  --primary-light: var(--tokencafe-primary-light);
+  --background-color: #000000;
   --surface-color: #1a1a1a;
   --card-color: #2d2d2d;
-  --text-primary: #ffffff;
-  --text-secondary: #e5e7eb;
+  --text-primary: var(--tokencafe-text-primary);
+  --text-secondary: var(--tokencafe-text-secondary);
   --text-muted: #9ca3af;
-  --border-color: #374151;
-  --contrast-color: #ffffff;
-  --default-color: #ffffff;
+  --border-color: var(--tokencafe-bg-surface);
+  --contrast-color: var(--tokencafe-text-primary);
+  --default-color: var(--tokencafe-text-primary);
   
   /* Token Creator Variables */
   --token-primary: var(--bs-primary);
@@ -99,12 +150,29 @@ Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
 
 /* Body Dark Theme Adjustment */
 body {
-  background-color: var(--bs-body-bg) !important;
+  background-color: #000000 !important;
   color: var(--bs-body-color) !important;
   font-family: var(--bs-body-font-family) !important;
   line-height: var(--bs-body-line-height) !important;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Garantir fundo preto 100% em todas as páginas */
+html, body {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+/* Remover gradientes de todas as seções principais */
+section, .section, .hero-section, .main-section {
+  background-image: none !important;
+}
+
+section[style*="gradient"], div[style*="gradient"] {
+  background: #000000 !important;
+  background-image: none !important;
 }
 
 /* Header fixo usando Bootstrap */
@@ -115,27 +183,27 @@ body {
   right: 0;
   z-index: 1030; /* Bootstrap z-index for fixed elements */
   height: 70px;
-  background-color: #1a1a1a;
+  background-color: var(--tokencafe-bg-tertiary);
   border-bottom: 1px solid var(--bs-border-color);
   backdrop-filter: blur(10px);
 }
 
 /* Footer usando Bootstrap */
 .footer-wrapper {
-  background-color: #1a1a1a;
+  background-color: var(--tokencafe-bg-tertiary);
   border-top: 1px solid var(--bs-border-color);
   margin-top: auto;
 }
 
 /* Bootstrap Form Controls - Dark Theme */
 .form-control {
-  background-color: #2d2d2d !important;
+  background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-border-color) !important;
   color: var(--bs-body-color) !important;
 }
 
 .form-control:focus {
-  background-color: #2d2d2d !important;
+  background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-primary) !important;
   color: var(--bs-body-color) !important;
   box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
@@ -156,13 +224,13 @@ body {
 }
 
 .form-select {
-  background-color: #2d2d2d !important;
+  background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-border-color) !important;
   color: var(--bs-body-color) !important;
 }
 
 .form-select:focus {
-  background-color: #2d2d2d !important;
+  background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-primary) !important;
   color: var(--bs-body-color) !important;
   box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
@@ -176,7 +244,7 @@ body {
 }
 
 .card-header {
-  background-color: #2d2d2d !important;
+  background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-border-color) !important;
   color: var(--bs-body-color) !important;
 }
@@ -189,12 +257,12 @@ body {
 .btn-primary {
   --bs-btn-bg: var(--bs-primary);
   --bs-btn-border-color: var(--bs-primary);
-  --bs-btn-hover-bg: #d97706;
-  --bs-btn-hover-border-color: #d97706;
+  --bs-btn-hover-bg: var(--tokencafe-primary-dark);
+  --bs-btn-hover-border-color: var(--tokencafe-primary-dark);
   --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
-  --bs-btn-active-bg: #d97706;
-  --bs-btn-active-border-color: #d97706;
-  color: #000 !important; /* Texto preto no botÃ£o laranja */
+  --bs-btn-active-bg: var(--tokencafe-primary-dark);
+  --bs-btn-active-border-color: var(--tokencafe-primary-dark);
+  color: var(--tokencafe-text-inverse) !important; /* Texto preto no botÃ£o laranja */
 }
 
 .btn-outline-primary {
@@ -202,11 +270,11 @@ body {
   --bs-btn-border-color: var(--bs-primary);
   --bs-btn-hover-bg: var(--bs-primary);
   --bs-btn-hover-border-color: var(--bs-primary);
-  --bs-btn-hover-color: #000;
+  --bs-btn-hover-color: var(--tokencafe-text-inverse);
   --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
   --bs-btn-active-bg: var(--bs-primary);
   --bs-btn-active-border-color: var(--bs-primary);
-  --bs-btn-active-color: #000;
+  --bs-btn-active-color: var(--tokencafe-text-inverse);
 }
 
 .btn-outline-warning {
@@ -217,16 +285,16 @@ body {
   --bs-btn-border-color: var(--bs-warning);
   --bs-btn-hover-bg: var(--bs-warning);
   --bs-btn-hover-border-color: var(--bs-warning);
-  --bs-btn-hover-color: #000;
+  --bs-btn-hover-color: var(--tokencafe-text-inverse);
   --bs-btn-focus-shadow-rgb: var(--bs-warning-rgb);
   --bs-btn-active-bg: var(--bs-warning);
   --bs-btn-active-border-color: var(--bs-warning);
-  --bs-btn-active-color: #000;
+  --bs-btn-active-color: var(--tokencafe-text-inverse);
 }
 
 .btn-outline-warning:hover:not(:disabled) {
   background: var(--bs-warning);
-  color: #000;
+  color: var(--tokencafe-text-inverse);
 }
 
 .btn:disabled {
@@ -237,7 +305,7 @@ body {
 /* Bootstrap Alerts - Dark Theme */
 .alert-success {
   --bs-alert-bg: rgba(16, 185, 129, 0.1);
-  --bs-alert-color: #6ee7b7;
+  --bs-alert-color: var(--tokencafe-success-light);
   --bs-alert-border-color: var(--bs-success);
   border-left: 4px solid var(--bs-success);
 }
@@ -251,21 +319,21 @@ body {
 
 .alert-warning {
   --bs-alert-bg: rgba(245, 158, 11, 0.1);
-  --bs-alert-color: #fbbf24;
+  --bs-alert-color: var(--tokencafe-primary-light);
   --bs-alert-border-color: var(--bs-warning);
   border-left: 4px solid var(--bs-warning);
 }
 
 .alert-info {
   --bs-alert-bg: rgba(59, 130, 246, 0.1);
-  --bs-alert-color: #93c5fd;
+  --bs-alert-color: var(--tokencafe-info-light);
   --bs-alert-border-color: var(--bs-info);
   border-left: 4px solid var(--bs-info);
 }
 
 /* Bootstrap Progress - Dark Theme */
 .progress {
-  background-color: #374151 !important;
+  background-color: var(--tokencafe-bg-surface) !important;
 }
 
 .progress-bar {
@@ -397,7 +465,7 @@ body {
 .table-dark {
   --bs-table-bg: #1a1a1a;
   --bs-table-striped-bg: #2d2d2d;
-  --bs-table-hover-bg: #374151;
+  --bs-table-hover-bg: var(--tokencafe-bg-surface);
   --bs-table-border-color: var(--bs-border-color);
 }
 
@@ -425,7 +493,7 @@ TOKEN CREATOR SPECIFIC STYLES
 
 /* Creator Header */
 .creator-header {
-  background: linear-gradient(135deg, var(--token-primary) 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--token-primary) 0%, var(--tokencafe-primary-dark) 100%);
   color: var(--contrast-color);
   padding: 30px;
   text-align: left;
@@ -576,12 +644,12 @@ TOKEN CREATOR SPECIFIC STYLES
 
 .step-simple.active .step-number {
   background: var(--token-primary);
-  color: #000;
+  color: var(--tokencafe-text-inverse);
 }
 
 .step-simple.completed .step-number {
   background: var(--token-success);
-  color: #000;
+  color: var(--tokencafe-text-inverse);
 }
 
 .step-label {
@@ -618,14 +686,14 @@ TOKEN CREATOR SPECIFIC STYLES
 /* Wallet Connection Enhanced Styles */
 .wallet-status-connected {
   background-color: rgba(16, 185, 129, 0.1) !important;
-  border-color: #10b981 !important;
-  color: #6ee7b7 !important;
+  border-color: var(--tokencafe-success) !important;
+  color: var(--tokencafe-success-light) !important;
   font-family: 'Courier New', monospace !important;
   font-weight: 600;
 }
 
 .connection-section.connected-state .card {
-  border-color: #10b981 !important;
+  border-color: var(--tokencafe-success) !important;
 }
 
 .network-info {
@@ -648,7 +716,7 @@ TOKEN CREATOR SPECIFIC STYLES
 
 /* Hero Section usando Bootstrap */
 .hero-section {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: #000000;
 }
 
 .hero-title {
@@ -657,7 +725,7 @@ TOKEN CREATOR SPECIFIC STYLES
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--bs-primary), #fbbf24);
+  background: linear-gradient(135deg, var(--bs-primary), var(--tokencafe-primary-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -747,21 +815,13 @@ HOMEPAGE SPECIFIC STYLES
 /* Hero Section Enhancements */
 .hero-section {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: #000000;
   position: relative;
   overflow: hidden;
 }
 
 .hero-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(248, 93, 35, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
-  pointer-events: none;
+  display: none;
 }
 
 .hero-content {
@@ -865,7 +925,7 @@ HOMEPAGE SPECIFIC STYLES
 
 /* Enhanced Gradients */
 .gradient-text {
-  background: linear-gradient(135deg, var(--bs-primary) 0%, #fbbf24 50%, var(--bs-info) 100%);
+  background: linear-gradient(135deg, var(--bs-primary) 0%, var(--tokencafe-primary-light) 50%, var(--bs-info) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -907,22 +967,14 @@ Sistema de animações reutilizáveis para todas as páginas
 
 /* Advanced Background Effects */
 .TokenCafe-gradient-bg {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  background: #000000;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
 }
 
 .TokenCafe-gradient-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(248, 93, 35, 0.05) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
-  pointer-events: none;
+  display: none;
 }
 
 /* Logo Effects */
@@ -951,7 +1003,7 @@ Sistema de animações reutilizáveis para todas as páginas
   left: -20px;
   right: -20px;
   bottom: -20px;
-  background: linear-gradient(135deg, #f85d23, #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   border-radius: 30px;
   opacity: 0.2;
   filter: blur(20px);
@@ -963,7 +1015,7 @@ Sistema de animações reutilizáveis para todas as páginas
 .TokenCafe-title {
   font-size: 3.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #f85d23 0%, #f59e0b 50%, #fbbf24 100%);
+  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, #f59e0b 50%, var(--tokencafe-primary-light) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -973,13 +1025,13 @@ Sistema de animações reutilizáveis para todas as páginas
 .TokenCafe-subtitle {
   font-size: 1.8rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--tokencafe-text-primary);
   margin-bottom: 1.5rem;
 }
 
 .TokenCafe-description {
   font-size: 1.2rem;
-  color: #e5e7eb;
+  color: var(--tokencafe-text-secondary);
   font-weight: 400;
   line-height: 1.6;
   max-width: 600px;
@@ -988,8 +1040,8 @@ Sistema de animações reutilizáveis para todas as páginas
 
 /* Badges and Buttons */
 .TokenCafe-badge {
-  background: linear-gradient(135deg, #f85d23 0%, #f59e0b 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, #f59e0b 100%);
+  color: var(--tokencafe-text-primary);
   padding: 0.8rem 2rem;
   border-radius: 50px;
   font-weight: 600;
@@ -1037,7 +1089,7 @@ Sistema de animações reutilizáveis para todas as páginas
 
 .TokenCafe-feature-icon {
   font-size: 2.5rem;
-  color: #f85d23;
+  color: var(--tokencafe-primary);
   margin-bottom: 1rem;
   display: block;
 }
@@ -1045,7 +1097,7 @@ Sistema de animações reutilizáveis para todas as páginas
 .TokenCafe-feature-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--tokencafe-text-primary);
   margin-bottom: 0.5rem;
 }
 
@@ -1067,7 +1119,7 @@ Sistema de animações reutilizáveis para todas as páginas
 
 .TokenCafe-particle {
   position: absolute;
-  background: linear-gradient(135deg, #f85d23, #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   border-radius: 50%;
   opacity: 0.1;
   animation: TokenCafe-float 6s ease-in-out infinite;
@@ -1272,7 +1324,7 @@ Sistema de animações reutilizáveis para todas as páginas
 }
 
 .TokenCafe-text-gradient {
-  background: linear-gradient(135deg, #f85d23, #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1389,13 +1441,13 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
 .status-indicator.loading {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
   border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
+  color: var(--tokencafe-info-light);
 }
 
 .status-indicator.success {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
   border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #6ee7b7;
+  color: var(--tokencafe-success-light);
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
 }
 
@@ -1409,7 +1461,7 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
 .status-indicator.warning {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
   border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
+  color: var(--tokencafe-primary-light);
 }
 
 .status-dot {
@@ -1426,7 +1478,7 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
 }
 
 .status-indicator.success .status-dot {
-  background: #10b981;
+  background: var(--tokencafe-success);
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
 }
 
@@ -1550,7 +1602,7 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
 }
 
 .debug-log .level-success {
-  color: #10b981;
+  color: var(--tokencafe-success);
 }
 
 .debug-log .level-warning {
@@ -1956,7 +2008,7 @@ body {
   left: -15px;
   right: -15px;
   bottom: -15px;
-  background: linear-gradient(135deg, #f85d23, #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   border-radius: 25px;
   opacity: 0.2;
   filter: blur(15px);
@@ -1967,7 +2019,7 @@ body {
 .title {
   font-size: 2.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #f85d23 0%, #f59e0b 50%, #fbbf24 100%);
+  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, #f59e0b 50%, var(--tokencafe-primary-light) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1988,7 +2040,7 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #f85d23 0%, #f59e0b 50%, #fbbf24 100%);
+  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, #f59e0b 50%, var(--tokencafe-primary-light) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2004,29 +2056,29 @@ body {
 
 /* Custom Bootstrap Button Overrides */
 .btn-primary {
-  background: linear-gradient(135deg, #f85d23, #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   border: none;
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #e74c3c, #f85d23);
+  background: linear-gradient(135deg, #e74c3c, var(--tokencafe-primary));
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(248, 93, 35, 0.4);
 }
 
 .btn-outline-primary {
-  border: 2px solid #f85d23;
-  color: #f85d23;
+  border: 2px solid var(--tokencafe-primary);
+  color: var(--tokencafe-primary);
   background: transparent;
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .btn-outline-primary:hover {
-  background: #f85d23;
-  color: #ffffff;
+  background: var(--tokencafe-primary);
+  color: var(--tokencafe-text-primary);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(248, 93, 35, 0.4);
 }
@@ -2058,7 +2110,7 @@ body {
 }
 
 .progress-bar {
-  background: linear-gradient(135deg, #f85d23, #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   border-radius: 8px;
   transition: width 0.6s ease;
 }
@@ -2071,16 +2123,16 @@ body {
 }
 
 .badge.bg-primary {
-  background: linear-gradient(135deg, #f85d23, #f59e0b) !important;
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b) !important;
   color: #0a0a0a !important;
 }
 
 .badge.bg-success {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
+  background: linear-gradient(135deg, var(--tokencafe-success), #059669) !important;
 }
 
 .badge.bg-warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  background: linear-gradient(135deg, #f59e0b, var(--tokencafe-primary-dark)) !important;
 }
 
 .badge.bg-info {
@@ -2089,11 +2141,11 @@ body {
 
 /* Text Color Fixes */
 .text-primary {
-  color: #f85d23 !important;
+  color: var(--tokencafe-primary) !important;
 }
 
 .text-secondary {
-  color: #e5e7eb !important;
+  color: var(--tokencafe-text-secondary) !important;
 }
 
 .text-muted {
@@ -2101,7 +2153,7 @@ body {
 }
 
 .text-white {
-  color: #ffffff !important;
+  color: var(--tokencafe-text-primary) !important;
 }
 .feature-card {
   background: rgba(26, 26, 26, 0.8);
@@ -2118,7 +2170,7 @@ body {
 }
 
 .feature-icon {
-  color: #f85d23;
+  color: var(--tokencafe-primary);
   font-size: 2.5rem;
 }
 
@@ -2153,7 +2205,7 @@ body {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f85d23, #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2542,7 +2594,7 @@ Classes reutilizáveis para efeitos neon padronizados
 .pricing-card .btn-outline-warning:hover {
   background-color: var(--bs-warning) !important;
   border-color: var(--bs-warning) !important;
-  color: #000 !important;
+  color: var(--tokencafe-text-inverse) !important;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(248, 93, 35, 0.3);
 }
@@ -2592,7 +2644,7 @@ Classes reutilizáveis para efeitos neon padronizados
   background: linear-gradient(135deg, var(--bs-warning) 0%, var(--primary-light) 100%);
   border: none;
   border-radius: 50%;
-  color: #000;
+  color: var(--tokencafe-text-inverse);
   font-size: 1.5rem;
   cursor: pointer;
   z-index: 1000;
@@ -2609,7 +2661,7 @@ Classes reutilizáveis para efeitos neon padronizados
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--bs-warning) 100%);
   transform: scale(1.1) translateY(-5px);
   box-shadow: 0 15px 35px rgba(248, 93, 35, 0.4);
-  color: #000;
+  color: var(--tokencafe-text-inverse);
 }
 
 .btn-back-to-top.show {
@@ -2647,4 +2699,186 @@ Classes reutilizáveis para efeitos neon padronizados
     height: 50px;
     font-size: 1.2rem;
   }
+}
+
+/* ============================================================================
+   DASHBOARD STYLES - TOKENCAFE DASHBOARD LAYOUT
+   ========================================================================== */
+
+:root {
+    --dashboard-sidebar-width: 280px;
+    --dashboard-header-height: 65px;
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+    width: var(--dashboard-sidebar-width);
+    background: linear-gradient(145deg, #0d1117 0%, #161b22 100%);
+    border-right: 1px solid rgba(248, 93, 35, 0.2);
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(248, 93, 35, 0.1);
+}
+
+.sidebar-menu {
+    padding: 15px 0;
+}
+
+.menu-item {
+    display: block;
+    padding: 10px 20px;
+    color: #8b949e;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    margin-bottom: 2px;
+    cursor: pointer;
+}
+
+.menu-item:hover,
+.menu-item.active {
+    background: rgba(248, 93, 35, 0.1);
+    color: #f85d23;
+    border-left-color: #f85d23;
+    text-decoration: none;
+}
+
+.menu-item i {
+    width: 20px;
+    text-align: center;
+    margin-right: 12px;
+}
+
+/* Main Content */
+.dashboard-main {
+    margin-left: var(--dashboard-sidebar-width);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-header {
+    height: var(--dashboard-header-height);
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(248, 93, 35, 0.2);
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 20px;
+}
+
+/* Cards Dashboard */
+.dashboard-card {
+    background: linear-gradient(145deg, #161b22 0%, #0d1117 100%);
+    border: 1px solid rgba(248, 93, 35, 0.2);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    border-color: rgba(248, 93, 35, 0.4);
+    box-shadow: 0 8px 32px rgba(248, 93, 35, 0.1);
+}
+
+.wallet-info-card {
+    background: linear-gradient(135deg, #f85d23 0%, #ff7849 100%);
+    color: white;
+    border: none;
+}
+
+.stats-card {
+    text-align: center;
+    padding: 25px;
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #f85d23;
+}
+
+.stats-label {
+    color: #8b949e;
+    font-size: 0.9rem;
+}
+
+/* Status Indicator */
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.connection-status {
+    padding: 10px;
+    background: rgba(13, 17, 23, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(248, 93, 35, 0.1);
+}
+
+/* Notificações do Dashboard */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Responsive Dashboard */
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .dashboard-sidebar.active {
+        transform: translateX(0);
+    }
+
+    .dashboard-main {
+        margin-left: 0;
+    }
+
+    .dashboard-header {
+        padding: 0 15px;
+    }
+
+    .dashboard-content {
+        padding: 15px;
+    }
 }
