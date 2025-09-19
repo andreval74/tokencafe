@@ -59,7 +59,10 @@ class TokenCafeApp {
                 // 5. Inicializar funcionalidades específicas da página
                 this.initializePageSpecificFeatures();
                 
-                // 6. Configurar animações do tema café
+                // 6. Inicializar funcionalidades globais da página
+                this.initPageFeatures();
+                
+                // 7. Configurar animações do tema café
                 this.setupCoffeeAnimations();
                 
                 this.isInitialized = true;
@@ -636,6 +639,63 @@ class TokenCafeApp {
      */
     on(eventName, callback) {
         this.eventBus.addEventListener(eventName, callback);
+    }
+    /**
+     * Inicializa funcionalidades globais da página
+     */
+    initPageFeatures() {
+        this.initBackToTop();
+        this.initSmoothScroll();
+    }
+
+    /**
+     * Inicializa o botão "Voltar ao Topo"
+     */
+    initBackToTop() {
+        // Função para voltar ao topo da página
+        window.scrollToTop = function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        };
+
+        // Mostrar/ocultar o botão baseado na posição do scroll
+        window.addEventListener('scroll', function() {
+            const backToTopBtn = document.getElementById('backToTop');
+            if (backToTopBtn) {
+                if (window.pageYOffset > 300) {
+                    backToTopBtn.classList.add('show');
+                } else {
+                    backToTopBtn.classList.remove('show');
+                }
+            }
+        });
+
+        console.log('☕ Back to Top - Funcionalidade iniciada');
+    }
+
+    /**
+     * Inicializa scroll suave para âncoras
+     */
+    initSmoothScroll() {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const targetId = this.getAttribute('href');
+                if (targetId !== '#' && targetId.length > 1) {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        e.preventDefault();
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+
+        console.log('☕ Smooth Scroll - Funcionalidade iniciada');
     }
 }
 
