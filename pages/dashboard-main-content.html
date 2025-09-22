@@ -1,0 +1,504 @@
+<!--
+================================================================================
+DASHBOARD MAIN CONTENT - COMPONENTE DE CONTEÚDO PRINCIPAL
+================================================================================
+Área principal do dashboard que muda conforme navegação do sidebar
+Integração com sistema de páginas dinâmicas
+================================================================================
+-->
+
+<main class="dashboard-main">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="d-flex align-items-center">
+            <h4 class="text-white mb-0" id="page-title">Visão Geral</h4>
+        </div>
+        
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <!-- Quick Actions -->
+            <button class="btn btn-primary btn-sm" onclick="quickAction('create-token')">
+                <i class="fas fa-plus me-1"></i>Novo Token
+            </button>
+            
+            <button class="btn btn-success btn-sm" onclick="quickAction('create-widget')">
+                <i class="fas fa-cube me-1"></i>Novo Widget
+            </button>
+            
+            <!-- User Menu -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user me-1"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#" onclick="navigateTo('profile')">
+                        <i class="fas fa-user me-2"></i>Meu Perfil
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="navigateTo('settings')">
+                        <i class="fas fa-cog me-2"></i>Configurações
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="disconnectWallet()">
+                        <i class="fas fa-sign-out-alt me-2"></i>Desconectar
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Area -->
+    <div class="dashboard-content">
+        <!-- Overview Content (página inicial) -->
+        <div id="overview-content" class="page-content active">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-lg-8">
+                    <div class="dashboard-card wallet-info-card p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-4">
+                                <i class="fas fa-wallet fa-3x text-white opacity-75"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h3 class="text-white mb-2" id="welcome-title">
+                                    <i class="fas fa-hand-wave me-2"></i>Bem-vindo ao TokenCafe!
+                                </h3>
+                                <p class="text-white mb-3 opacity-90" id="welcome-text">
+                                    Sua plataforma completa para criação e gerenciamento de tokens.
+                                    Conecte sua carteira e comece a construir no Web3.
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-light btn-sm" onclick="quickAction('create-token')">
+                                        <i class="fas fa-plus me-1"></i>Criar Primeiro Token
+                                    </button>
+                                    <button class="btn btn-outline-light btn-sm" onclick="quickAction('token-templates')">
+                                        <i class="fas fa-layer-group me-1"></i>Ver Templates
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="dashboard-card stats-card">
+                                <div class="stats-number" id="tokens-count">0</div>
+                                <div class="stats-label">Tokens Criados</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="dashboard-card stats-card">
+                                <div class="stats-number" id="current-plan">Gratuito</div>
+                                <div class="stats-label">Plano Atual</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="dashboard-card p-4 h-100 quick-action-card" onclick="quickAction('create-token')">
+                        <div class="text-center">
+                            <i class="fas fa-plus-circle fa-2x text-primary mb-3"></i>
+                            <h6 class="text-white">Criar Token</h6>
+                            <p class="text-muted small mb-3">Lance seu próprio token personalizado</p>
+                            <span class="btn btn-primary btn-sm">Começar Agora</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="dashboard-card p-4 h-100 quick-action-card" onclick="quickAction('create-widget')">
+                        <div class="text-center">
+                            <i class="fas fa-cube fa-2x text-success mb-3"></i>
+                            <h6 class="text-white">Criar Widget</h6>
+                            <p class="text-muted small mb-3">Desenvolva widgets personalizados</p>
+                            <span class="btn btn-success btn-sm">Criar Widget</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="dashboard-card p-4 h-100 quick-action-card" onclick="quickAction('marketplace')">
+                        <div class="text-center">
+                            <i class="fas fa-store fa-2x text-warning mb-3"></i>
+                            <h6 class="text-white">Marketplace</h6>
+                            <p class="text-muted small mb-3">Explore tokens e projetos</p>
+                            <span class="btn btn-warning btn-sm">Explorar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="dashboard-card p-4">
+                <h6 class="text-white mb-3">
+                    <i class="fas fa-history me-2"></i>Atividade Recente
+                </h6>
+                <div class="text-center py-4" id="recent-activity">
+                    <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">Nenhuma atividade ainda</p>
+                    <small class="text-muted">Suas ações aparecerão aqui quando você começar a usar a plataforma</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Content Area -->
+        <div id="dynamic-content" class="page-content">
+            <!-- Conteúdo dinâmico será carregado aqui -->
+        </div>
+    </div>
+</main>
+
+<!-- CSS específico para main content -->
+<style>
+.page-content {
+    display: none;
+}
+
+.page-content.active {
+    display: block;
+}
+
+.quick-action-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.stats-card {
+    text-align: center;
+    padding: 20px;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--tokencafe-primary, #f59e0b);
+    margin-bottom: 5px;
+}
+
+.stats-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.wallet-info-card {
+    background: linear-gradient(135deg, var(--tokencafe-primary, #f59e0b), var(--tokencafe-secondary, #d97706));
+}
+
+#welcome-title.personalized {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<!-- JavaScript para gerenciar conteúdo principal -->
+<script>
+class MainContentManager {
+    constructor() {
+        this.currentPage = 'overview';
+        this.pages = {};
+        this.init();
+    }
+
+    init() {
+        // Escutar navegação do sidebar
+        window.addEventListener('sidebarNavigation', (event) => {
+            this.showPage(event.detail.page, event.detail.title);
+        });
+
+        // Personalizar página inicial
+        this.personalizeWelcome();
+        
+        // Carregar estatísticas
+        this.loadStats();
+    }
+
+    async personalizeWelcome() {
+        const walletAddress = localStorage.getItem('tokencafe_wallet_address');
+        if (!walletAddress) return;
+
+        // Tentar carregar perfil personalizado
+        const profileKey = `tokencafe_profile_${walletAddress}`;
+        const savedProfile = localStorage.getItem(profileKey);
+        
+        if (savedProfile) {
+            const profile = JSON.parse(savedProfile);
+            if (profile.displayName) {
+                const welcomeTitle = document.getElementById('welcome-title');
+                const welcomeText = document.getElementById('welcome-text');
+                
+                welcomeTitle.innerHTML = `<i class="fas fa-hand-wave me-2"></i>Olá, ${profile.displayName}!`;
+                welcomeTitle.classList.add('personalized');
+                
+                welcomeText.textContent = `Bem-vindo de volta ao seu dashboard personalizado. Gerencie seus tokens com facilidade.`;
+            }
+        }
+    }
+
+    async loadStats() {
+        // Simular carregamento de estatísticas
+        setTimeout(() => {
+            // Aqui conectaria com APIs reais
+            document.getElementById('tokens-count').textContent = '0';
+            document.getElementById('current-plan').textContent = 'Gratuito';
+        }, 1000);
+    }
+
+    showPage(pageId, title = '') {
+        this.currentPage = pageId;
+        
+        // Atualizar título
+        document.getElementById('page-title').textContent = title || this.getPageTitle(pageId);
+        
+        // Esconder todas as páginas
+        document.querySelectorAll('.page-content').forEach(page => {
+            page.classList.remove('active');
+        });
+
+        // Mostrar página específica
+        if (pageId === 'overview') {
+            document.getElementById('overview-content').classList.add('active');
+        } else {
+            document.getElementById('dynamic-content').classList.add('active');
+            this.loadDynamicContent(pageId);
+        }
+    }
+
+    getPageTitle(pageId) {
+        const titles = {
+            'overview': 'Visão Geral',
+            'tokens-list': 'Meus Tokens',
+            'create-token': 'Criar Token',
+            'token-templates': 'Templates de Token',
+            'token-audit': 'Auditoria de Token',
+            'widgets-list': 'Meus Widgets',
+            'create-widget': 'Criar Widget',
+            'widget-manager': 'Gerenciador de Widgets',
+            'widget-templates': 'Templates de Widget',
+            'dashboard-analytics': 'Dashboard Analytics',
+            'token-metrics': 'Métricas de Tokens',
+            'widget-stats': 'Estatísticas de Widgets',
+            'earnings': 'Ganhos e Receitas',
+            'marketplace': 'Marketplace',
+            'smart-contracts': 'Contratos Inteligentes',
+            'api-docs': 'Documentação da API',
+            'integrations': 'Integrações',
+            'profile': 'Meu Perfil',
+            'settings': 'Configurações',
+            'billing': 'Planos e Cobrança',
+            'support': 'Suporte'
+        };
+        
+        return titles[pageId] || 'Dashboard';
+    }
+
+    loadDynamicContent(pageId) {
+        const dynamicContent = document.getElementById('dynamic-content');
+        
+        // Mostrar loading
+        dynamicContent.innerHTML = `
+            <div class="text-center py-5">
+                <div class="loading-spinner mb-3"></div>
+                <p class="text-muted">Carregando...</p>
+            </div>
+        `;
+
+        // Simular carregamento e renderizar conteúdo
+        setTimeout(() => {
+            this.renderPageContent(pageId);
+        }, 500);
+    }
+
+    renderPageContent(pageId) {
+        const dynamicContent = document.getElementById('dynamic-content');
+        
+        // Definir conteúdo específico para cada página
+        const pageContents = {
+            'widget-manager': this.getWidgetManagerContent(),
+            'create-token': this.getCreateTokenContent(),
+            'profile': this.getProfileContent(),
+            'settings': this.getSettingsContent()
+        };
+
+        const content = pageContents[pageId] || this.getDefaultContent(pageId);
+        dynamicContent.innerHTML = content;
+    }
+
+    getWidgetManagerContent() {
+        return `
+            <div class="container-fluid">
+                <div class="dashboard-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="text-white mb-1">
+                                <i class="fas fa-cube me-2"></i>Gerenciador de Widgets
+                            </h4>
+                            <p class="text-muted mb-0">Crie e gerencie seus widgets personalizados</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="window.open('./widget-manager.html', '_blank')">
+                            <i class="fas fa-external-link-alt me-2"></i>Abrir Gerenciador Completo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="dashboard-card p-4 text-center">
+                            <i class="fas fa-coins fa-3x text-primary mb-3"></i>
+                            <h5 class="text-white mb-2">Token Sale</h5>
+                            <p class="text-muted mb-3">Widgets para venda direta de tokens</p>
+                            <span class="badge bg-success">Disponível</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="dashboard-card p-4 text-center">
+                            <i class="fas fa-exchange-alt fa-3x text-warning mb-3"></i>
+                            <h5 class="text-white mb-2">Swap Widget</h5>
+                            <p class="text-muted mb-3">Interface de troca de tokens</p>
+                            <span class="badge bg-success">Disponível</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="dashboard-card p-4 text-center">
+                            <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                            <h5 class="text-white mb-2">Price Chart</h5>
+                            <p class="text-muted mb-3">Gráficos de preços em tempo real</p>
+                            <span class="badge bg-success">Disponível</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getCreateTokenContent() {
+        return `
+            <div class="container-fluid">
+                <div class="dashboard-card p-4">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-plus-circle me-2"></i>Criar Novo Token
+                    </h4>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Em Desenvolvimento:</strong> O criador de tokens estará disponível em breve!
+                    </div>
+                    <p class="text-muted">
+                        Em breve você poderá criar tokens ERC-20, BEP-20 e outros padrões diretamente pelo dashboard.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    getProfileContent() {
+        return `
+            <div class="container-fluid">
+                <div class="dashboard-card p-4">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-user me-2"></i>Meu Perfil
+                    </h4>
+                    <div class="alert alert-info mb-4" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Perfil Opcional:</strong> Seus dados são salvos localmente apenas para melhorar sua experiência.
+                    </div>
+                    <p class="text-center text-muted">
+                        <i class="fas fa-tools fa-2x mb-3"></i><br>
+                        Funcionalidade de perfil em desenvolvimento
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
+    getSettingsContent() {
+        return `
+            <div class="container-fluid">
+                <div class="dashboard-card p-4">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-cog me-2"></i>Configurações
+                    </h4>
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-tools me-2"></i>
+                        <strong>Em Desenvolvimento:</strong> Configurações avançadas estarão disponíveis em breve!
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getDefaultContent(pageId) {
+        return `
+            <div class="text-center py-5">
+                <div class="dashboard-card p-5" style="max-width: 600px; margin: 0 auto;">
+                    <i class="fas fa-cogs fa-3x text-muted mb-4"></i>
+                    <h3 class="text-white mb-3">Em Desenvolvimento</h3>
+                    <p class="text-muted mb-4 lead">
+                        Esta funcionalidade está sendo desenvolvida e estará disponível em breve.
+                    </p>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Status:</strong> Em desenvolvimento ativo. Fique ligado nas atualizações!
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Funções globais para ações rápidas e navegação
+function quickAction(action) {
+    const actions = {
+        'create-token': 'create-token',
+        'create-widget': 'widget-manager',
+        'token-templates': 'token-templates',
+        'marketplace': 'marketplace'
+    };
+    
+    if (actions[action]) {
+        window.dispatchEvent(new CustomEvent('sidebarNavigation', {
+            detail: { page: actions[action], title: mainContent.getPageTitle(actions[action]) }
+        }));
+    }
+}
+
+function navigateTo(page) {
+    window.dispatchEvent(new CustomEvent('sidebarNavigation', {
+        detail: { page, title: mainContent.getPageTitle(page) }
+    }));
+}
+
+// Inicializar quando DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+    window.mainContent = new MainContentManager();
+});
+</script>

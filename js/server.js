@@ -145,7 +145,7 @@ class TokenCafeServer {
         });
         
         this.app.get('/dashboard', (req, res) => {
-            res.sendFile(path.join(__dirname, '../pages/dashboard.html'));
+            res.sendFile(path.join(__dirname, '../pages/dash-main.html'));
         });
         
         this.app.get('/dashboard/widgets', (req, res) => {

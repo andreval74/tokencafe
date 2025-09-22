@@ -43,6 +43,8 @@ class Web3ConnectionManager {
         
         // Atualizar UI inicial
         this.updateUI();
+        
+        console.log('✅ Web3ConnectionManager inicializado com sucesso');
     }
 
     /**
@@ -253,9 +255,15 @@ class Web3ConnectionManager {
         };
         
         localStorage.setItem('tokencafe_dashboard_data', JSON.stringify(dashboardData));
+        localStorage.setItem('tokencafe_connected', 'true');
         
-        // Redirecionar
-        window.location.href = 'pages/dash-main.html';
+        // Redirecionar baseado na página atual
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('pages/')) {
+            window.location.href = 'dash-main.html';
+        } else {
+            window.location.href = 'pages/dash-main.html';
+        }
     }
 
     /**

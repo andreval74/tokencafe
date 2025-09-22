@@ -153,7 +153,7 @@ def serve_index():
 @app.route('/dashboard')
 def serve_dashboard():
     """Servir dashboard principal"""
-    return send_from_directory('dashboard/main', 'dashboard.html')
+    return send_from_directory('pages', 'dash-main.html')
 
 @app.route('/test-system')
 def serve_test_system():

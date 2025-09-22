@@ -10,7 +10,7 @@ Baseado no header.html do TokenCafe com tema TokenCafe
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
             <!-- Brand TokenCafe -->
-            <a class="navbar-brand d-flex align-items-center" href="../pages/index.html">
+            <a class="navbar-brand d-flex align-items-center" href="../index.html">
                 <img src="../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2"
                     style="width: 48px; height: 48px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                 <div>
@@ -32,32 +32,32 @@ Baseado no header.html do TokenCafe com tema TokenCafe
                 <!-- Menu Items -->
                 <ul class="navbar-nav ms-auto me-3">
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#token">
+                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../index.html#token">
                             <i class="fas fa-coins me-1"></i>Token
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#comofunciona">
+                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../index.html#comofunciona">
                             <i class="fas fa-cogs me-1"></i>Como Funciona
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#ecosistema">
+                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../index.html#ecosistema">
                             <i class="fas fa-globe me-1"></i>EcoSistema
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#precos">
+                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../index.html#precos">
                             <i class="fas fa-dollar-sign me-1"></i>Preços
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#social">
+                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../index.html#social">
                             <i class="fas fa-users me-1"></i>Social
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../pages/index.html#suporte">
+                        <a class="nav-link text-white-50 fw-medium neon-link-hover" href="../index.html#suporte">
                             <i class="fas fa-headset me-1"></i>Suporte
                         </a>
                     </li>
@@ -67,7 +67,7 @@ Baseado no header.html do TokenCafe com tema TokenCafe
                 <div class="d-flex align-items-center gap-2">
                     <!-- Web3 Connection Button -->
                     <div class="dropdown">
-                        <button id="connect-wallet-btn" class="btn btn-primary btn-sm" type="button" onclick="connectWallet()">
+                        <button id="connect-wallet-btn" class="btn btn-primary btn-sm" type="button" onclick="connectWalletFromHeader()">
                             <i class="fas fa-sign-in-alt me-1"></i>
                             <span id="connect-text">Conectar MetaMask</span>
                         </button>
@@ -80,7 +80,7 @@ Baseado no header.html do TokenCafe com tema TokenCafe
                             <li><a class="dropdown-item" href="dash-main.html">
                                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                             </a></li>
-                            <li><button class="dropdown-item" onclick="disconnectWallet()">
+                            <li><button class="dropdown-item" onclick="disconnectWalletFromHeader()">
                                 <i class="fas fa-sign-out-alt me-2"></i>Desconectar
                             </button></li>
                         </ul>
@@ -105,3 +105,34 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 </header>
 
 <div class="section-divider"></div>
+
+<script>
+// Funções específicas para o header
+function connectWalletFromHeader() {
+    console.log('🔗 connectWalletFromHeader() chamado');
+    
+    // Verificar se o Web3ConnectionManager existe
+    if (window.tokencafeWeb3) {
+        window.tokencafeWeb3.connect();
+    } else if (typeof connectWallet === 'function') {
+        connectWallet();
+    } else {
+        console.error('❌ Função de conexão não encontrada');
+        alert('Erro: Sistema de conexão não disponível');
+    }
+}
+
+function disconnectWalletFromHeader() {
+    console.log('🔌 disconnectWalletFromHeader() chamado');
+    
+    // Verificar se o Web3ConnectionManager existe
+    if (window.tokencafeWeb3) {
+        window.tokencafeWeb3.disconnect();
+    } else if (typeof disconnectWallet === 'function') {
+        disconnectWallet();
+    } else {
+        console.error('❌ Função de desconexão não encontrada');
+        alert('Erro: Sistema de desconexão não disponível');
+    }
+}
+</script>
