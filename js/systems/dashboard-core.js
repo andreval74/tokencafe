@@ -26,6 +26,8 @@ class DashboardCore {
         // Páginas disponíveis
         this.pages = {
             'home': { title: '🏠 Dashboard', component: 'dashboard-home', requiresAuth: true },
+            'tokens': { title: '🪙 Meus Tokens', component: 'token-manager', requiresAuth: true },
+            'token-create': { title: '➕ Criar Token', component: 'token-create', requiresAuth: true },
             'widgets': { title: '🧩 Meus Widgets', component: 'widget-manager', requiresAuth: true },
             'widget-create': { title: '➕ Criar Widget', component: 'widget-create', requiresAuth: true },
             'analytics': { title: '📊 Analytics', component: 'analytics-reports', requiresAuth: true },
@@ -152,6 +154,14 @@ class DashboardCore {
         
         if (missing.length > 0) {
             console.warn('⚠️ Elementos de layout ausentes:', missing);
+            
+            // Aguardar carregamento dos templates antes de verificar novamente
+            setTimeout(() => {
+                const stillMissing = requiredElements.filter(id => !document.getElementById(id));
+                if (stillMissing.length === 0) {
+                    console.log('✅ Todos os elementos de layout foram carregados com sucesso');
+                }
+            }, 1000);
         }
         
         // Configurar classes CSS
@@ -385,6 +395,12 @@ class DashboardCore {
             case 'home':
                 content = await this.getHomeContent();
                 break;
+            case 'tokens':
+                content = await this.loadModulePage('tokens', 'token-manager');
+                break;
+            case 'token-create':
+                content = await this.getTokenCreateContent();
+                break;
             case 'widgets':
                 content = await this.getWidgetsContent();
                 break;
@@ -392,16 +408,16 @@ class DashboardCore {
                 content = await this.getWidgetCreateContent();
                 break;
             case 'analytics':
-                content = await this.getAnalyticsContent();
+                content = await this.loadModulePage('analytics', 'analytics-reports');
                 break;
             case 'templates':
-                content = await this.getTemplatesContent();
+                content = await this.loadModulePage('templates', 'template-gallery');
                 break;
             case 'profile':
-                content = await this.getProfileContent();
+                content = await this.loadModulePage('profile', 'user-profile');
                 break;
             case 'settings':
-                content = await this.getSettingsContent();
+                content = await this.loadModulePage('settings', 'system-settings');
                 break;
             case 'support':
                 content = await this.getSupportContent();
@@ -796,21 +812,132 @@ class DashboardCore {
     }
 
     /**
+     * Carregar página de módulo
+     */
+    async loadModulePage(moduleName, pageName) {
+        try {
+            const response = await fetch(`../pages/modules/${moduleName}/${pageName}.html`);
+            if (!response.ok) {
+                throw new Error(`Erro ao carregar módulo ${moduleName}: ${response.status}`);
+            }
+            const html = await response.text();
+            
+            // Extrair apenas o conteúdo do body
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const bodyContent = doc.body.innerHTML;
+            
+            return bodyContent;
+        } catch (error) {
+            console.error(`❌ Erro ao carregar módulo ${moduleName}:`, error);
+            return this.getErrorContent(moduleName, error.message);
+        }
+    }
+
+    /**
+     * Obter conteúdo de erro para módulos
+     */
+    getErrorContent(moduleName, errorMessage) {
+        return `
+            <div class="container-fluid">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="alert alert-danger text-center">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                            <h4>Erro ao Carregar Módulo</h4>
+                            <p>Não foi possível carregar o módulo <strong>${moduleName}</strong>.</p>
+                            <p class="text-muted">${errorMessage}</p>
+                            <button class="btn btn-primary mt-3" onclick="location.reload()">
+                                <i class="fas fa-refresh"></i> Tentar Novamente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Obter conteúdo de criação de token
+     */
+    async getTokenCreateContent() {
+        return `
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-plus-circle"></i> Criar Novo Token</h3>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-center text-muted">
+                                    <i class="fas fa-tools fa-2x mb-3"></i><br>
+                                    Funcionalidade de criação de token em desenvolvimento.
+                                </p>
+                                <div class="text-center">
+                                    <button class="btn btn-primary" onclick="navigateTo('tokens')">
+                                        <i class="fas fa-arrow-left"></i> Voltar para Tokens
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
      * Executar scripts específicos da página
      */
     executePageScripts(pageId) {
         // Executar baseado na página
         switch (pageId) {
+            case 'tokens':
+                this.loadModuleScript('tokens', 'token-manager');
+                break;
+            case 'analytics':
+                this.loadModuleScript('analytics', 'analytics-reports');
+                break;
+            case 'templates':
+                this.loadModuleScript('templates', 'template-gallery');
+                break;
+            case 'profile':
+                this.loadModuleScript('profile', 'user-profile');
+                break;
+            case 'settings':
+                this.loadModuleScript('settings', 'system-settings');
+                break;
             case 'support':
                 this.loadSupportScript();
                 break;
             case 'widgets':
                 this.loadWidgetsScript();
                 break;
-            case 'analytics':
-                this.loadAnalyticsScript();
-                break;
         }
+    }
+
+    /**
+     * Carregar script de módulo
+     */
+    loadModuleScript(moduleName, scriptName) {
+        const scriptPath = `../js/modules/${moduleName}/${scriptName}.js`;
+        const existingScript = document.querySelector(`script[src*="${scriptName}.js"]`);
+        
+        if (existingScript) {
+            existingScript.remove();
+        }
+        
+        const script = document.createElement('script');
+        script.src = scriptPath;
+        script.onload = () => {
+            console.log(`✅ Script do módulo ${moduleName} carregado`);
+        };
+        script.onerror = () => {
+            console.error(`❌ Erro ao carregar script do módulo ${moduleName}`);
+        };
+        
+        document.head.appendChild(script);
     }
 
     /**
@@ -823,6 +950,32 @@ class DashboardCore {
         const script = document.createElement('script');
         script.src = '../js/suporte.js';
         document.head.appendChild(script);
+    }
+    
+    /**
+     * Carregar script de widgets
+     */
+    loadWidgetsScript() {
+        const existingScript = document.querySelector('script[src*="widgets.js"]');
+        if (existingScript) existingScript.remove();
+        
+        const script = document.createElement('script');
+        script.src = '../js/widgets.js';
+        document.head.appendChild(script);
+        console.log('📦 Script de widgets carregado');
+    }
+    
+    /**
+     * Carregar script de analytics
+     */
+    loadAnalyticsScript() {
+        const existingScript = document.querySelector('script[src*="analytics-routes.js"]');
+        if (existingScript) existingScript.remove();
+        
+        const script = document.createElement('script');
+        script.src = '../js/analytics-routes.js';
+        document.head.appendChild(script);
+        console.log('📊 Script de analytics carregado');
     }
 
     /**
@@ -943,6 +1096,44 @@ const TokenCafeNavigation = {
 // Expor globalmente
 window.DashboardCore = DashboardCore;
 window.TokenCafeNavigation = TokenCafeNavigation;
+
+// Função global para navegação
+window.navigateTo = function(pageId) {
+    if (window.tokencafeDashboard && window.tokencafeDashboard.navigateTo) {
+        window.tokencafeDashboard.navigateTo(pageId);
+    } else {
+        console.error('❌ Dashboard não inicializado ou função navigateTo não disponível');
+    }
+};
+
+// Função global para ações rápidas
+window.quickAction = function(action) {
+    console.log('🚀 Ação rápida:', action);
+    
+    switch(action) {
+        case 'create-token':
+            if (window.tokencafeDashboard) {
+                window.tokencafeDashboard.navigateTo('tokens');
+            }
+            break;
+        case 'create-widget':
+            if (window.tokencafeDashboard) {
+                window.tokencafeDashboard.navigateTo('widgets');
+            }
+            break;
+        case 'token-templates':
+            if (window.tokencafeDashboard) {
+                window.tokencafeDashboard.navigateTo('tokens');
+            }
+            break;
+        case 'marketplace':
+            console.log('🏪 Abrindo marketplace...');
+            // Implementar navegação para marketplace
+            break;
+        default:
+            console.warn('⚠️ Ação não reconhecida:', action);
+    }
+};
 
 // Criar instância global quando DOM estiver pronto
 function initializeDashboardCore() {

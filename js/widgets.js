@@ -1,8 +1,9 @@
 /**
  * ================================================================================
- * WIDGETS ROUTES
+ * WIDGETS.JS - MÓDULO DE GERENCIAMENTO DE WIDGETS
  * ================================================================================
- * Rotas para gerenciamento de widgets
+ * API para criação, gerenciamento e interação com widgets
+ * Integração com sistema modular do TokenCafe
  * ================================================================================
  */
 

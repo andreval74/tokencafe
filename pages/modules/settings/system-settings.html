@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações do Sistema - TokenCafe</title>
+    <link rel="stylesheet" href="../../../css/styles.css">
+</head>
+<body>
+    <div class="settings-container">
+        <!-- Header das Configurações -->
+        <div class="settings-header">
+            <div class="header-content">
+                <h1 class="settings-title">
+                    <i class="fas fa-cog"></i>
+                    Configurações do Sistema
+                </h1>
+                <p class="settings-description">Gerencie as configurações e preferências do TokenCafe</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="resetSettingsBtn">
+                    <i class="fas fa-undo"></i>
+                    Restaurar Padrões
+                </button>
+                <button class="btn btn-primary" id="saveAllSettingsBtn">
+                    <i class="fas fa-save"></i>
+                    Salvar Tudo
+                </button>
+            </div>
+        </div>
+
+        <!-- Navegação das Configurações -->
+        <div class="settings-nav">
+            <nav class="settings-tabs">
+                <button class="settings-tab active" data-tab="general">
+                    <i class="fas fa-sliders-h"></i>
+                    Geral
+                </button>
+                <button class="settings-tab" data-tab="appearance">
+                    <i class="fas fa-palette"></i>
+                    Aparência
+                </button>
+                <button class="settings-tab" data-tab="notifications">
+                    <i class="fas fa-bell"></i>
+                    Notificações
+                </button>
+                <button class="settings-tab" data-tab="security">
+                    <i class="fas fa-shield-alt"></i>
+                    Segurança
+                </button>
+                <button class="settings-tab" data-tab="blockchain">
+                    <i class="fas fa-link"></i>
+                    Blockchain
+                </button>
+                <button class="settings-tab" data-tab="advanced">
+                    <i class="fas fa-cogs"></i>
+                    Avançado
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo das Configurações -->
+        <div class="settings-content">
+            <!-- Configurações Gerais -->
+            <div class="settings-section active" id="general">
+                <div class="section-header">
+                    <h2>Configurações Gerais</h2>
+                    <p>Configurações básicas do sistema</p>
+                </div>
+                
+                <div class="settings-groups">
+                    <div class="settings-group">
+                        <h3>Idioma e Região</h3>
+                        <div class="setting-item">
+                            <label for="language">Idioma</label>
+                            <select id="language" class="setting-select">
+                                <option value="pt-BR" selected>Português (Brasil)</option>
+                                <option value="en-US">English (US)</option>
+                                <option value="es-ES">Español</option>
+                                <option value="fr-FR">Français</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="timezone">Fuso Horário</label>
+                            <select id="timezone" class="setting-select">
+                                <option value="America/Sao_Paulo" selected>São Paulo (GMT-3)</option>
+                                <option value="America/New_York">New York (GMT-5)</option>
+                                <option value="Europe/London">London (GMT+0)</option>
+                                <option value="Asia/Tokyo">Tokyo (GMT+9)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label for="currency">Moeda Padrão</label>
+                            <select id="currency" class="setting-select">
+                                <option value="USD" selected>USD ($)</option>
+                                <option value="BRL">BRL (R$)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Comportamento do Sistema</h3>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoSave" checked>
+                                <span class="checkmark"></span>
+                                Salvamento automático
+                            </label>
+                            <p class="setting-description">Salva automaticamente as alterações a cada 30 segundos</p>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="confirmActions" checked>
+                                <span class="checkmark"></span>
+                                Confirmar ações importantes
+                            </label>
+                            <p class="setting-description">Solicita confirmação antes de executar ações críticas</p>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showTooltips" checked>
+                                <span class="checkmark"></span>
+                                Mostrar dicas de ferramentas
+                            </label>
+                            <p class="setting-description">Exibe tooltips explicativos ao passar o mouse</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações de Aparência -->
+            <div class="settings-section" id="appearance">
+                <div class="section-header">
+                    <h2>Aparência</h2>
+                    <p>Personalize a interface do sistema</p>
+                </div>
+
+                <div class="settings-groups">
+                    <div class="settings-group">
+                        <h3>Tema</h3>
+                        <div class="theme-selector">
+                            <div class="theme-option active" data-theme="light">
+                                <div class="theme-preview light-theme">
+                                    <div class="preview-header"></div>
+                                    <div class="preview-sidebar"></div>
+                                    <div class="preview-content"></div>
+                                </div>
+                                <span class="theme-name">Claro</span>
+                            </div>
+                            <div class="theme-option" data-theme="dark">
+                                <div class="theme-preview dark-theme">
+                                    <div class="preview-header"></div>
+                                    <div class="preview-sidebar"></div>
+                                    <div class="preview-content"></div>
+                                </div>
+                                <span class="theme-name">Escuro</span>
+                            </div>
+                            <div class="theme-option" data-theme="auto">
+                                <div class="theme-preview auto-theme">
+                                    <div class="preview-header"></div>
+                                    <div class="preview-sidebar"></div>
+                                    <div class="preview-content"></div>
+                                </div>
+                                <span class="theme-name">Automático</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Layout</h3>
+                        <div class="setting-item">
+                            <label for="sidebarWidth">Largura da Sidebar</label>
+                            <div class="range-input">
+                                <input type="range" id="sidebarWidth" min="200" max="400" value="280" step="20">
+                                <span class="range-value">280px</span>
+                            </div>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="compactMode">
+                                <span class="checkmark"></span>
+                                Modo compacto
+                            </label>
+                            <p class="setting-description">Reduz o espaçamento entre elementos</p>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="sidebarCollapse">
+                                <span class="checkmark"></span>
+                                Sidebar recolhível
+                            </label>
+                            <p class="setting-description">Permite recolher a sidebar automaticamente</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Cores Personalizadas</h3>
+                        <div class="color-picker-grid">
+                            <div class="color-picker-item">
+                                <label>Cor Primária</label>
+                                <input type="color" id="primaryColor" value="#6366f1">
+                            </div>
+                            <div class="color-picker-item">
+                                <label>Cor Secundária</label>
+                                <input type="color" id="secondaryColor" value="#8b5cf6">
+                            </div>
+                            <div class="color-picker-item">
+                                <label>Cor de Sucesso</label>
+                                <input type="color" id="successColor" value="#10b981">
+                            </div>
+                            <div class="color-picker-item">
+                                <label>Cor de Erro</label>
+                                <input type="color" id="errorColor" value="#ef4444">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações de Notificações -->
+            <div class="settings-section" id="notifications">
+                <div class="section-header">
+                    <h2>Notificações</h2>
+                    <p>Configure como e quando receber notificações</p>
+                </div>
+
+                <div class="settings-groups">
+                    <div class="settings-group">
+                        <h3>Notificações do Sistema</h3>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="systemNotifications" checked>
+                                <span class="checkmark"></span>
+                                Notificações do sistema
+                            </label>
+                            <p class="setting-description">Receber notificações sobre atualizações e manutenção</p>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="errorNotifications" checked>
+                                <span class="checkmark"></span>
+                                Notificações de erro
+                            </label>
+                            <p class="setting-description">Ser notificado quando ocorrerem erros</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Notificações de Token</h3>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="tokenCreated" checked>
+                                <span class="checkmark"></span>
+                                Token criado com sucesso
+                            </label>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="tokenTransfer" checked>
+                                <span class="checkmark"></span>
+                                Transferências de token
+                            </label>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="priceAlerts">
+                                <span class="checkmark"></span>
+                                Alertas de preço
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Canais de Notificação</h3>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="browserNotifications" checked>
+                                <span class="checkmark"></span>
+                                Notificações do navegador
+                            </label>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="emailNotifications" checked>
+                                <span class="checkmark"></span>
+                                Notificações por email
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label for="notificationSound">Som de notificação</label>
+                            <select id="notificationSound" class="setting-select">
+                                <option value="default">Padrão</option>
+                                <option value="chime">Chime</option>
+                                <option value="bell">Bell</option>
+                                <option value="none">Silencioso</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações de Segurança -->
+            <div class="settings-section" id="security">
+                <div class="section-header">
+                    <h2>Segurança</h2>
+                    <p>Configure as opções de segurança do sistema</p>
+                </div>
+
+                <div class="settings-groups">
+                    <div class="settings-group">
+                        <h3>Autenticação</h3>
+                        <div class="setting-item">
+                            <label for="sessionTimeout">Timeout da sessão (minutos)</label>
+                            <input type="number" id="sessionTimeout" value="30" min="5" max="480" class="setting-input">
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="requirePassword" checked>
+                                <span class="checkmark"></span>
+                                Exigir senha para ações críticas
+                            </label>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="twoFactorAuth">
+                                <span class="checkmark"></span>
+                                Autenticação de dois fatores (2FA)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Privacidade</h3>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="analyticsTracking">
+                                <span class="checkmark"></span>
+                                Permitir coleta de dados analíticos
+                            </label>
+                            <p class="setting-description">Ajuda a melhorar o sistema coletando dados de uso anônimos</p>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="crashReports" checked>
+                                <span class="checkmark"></span>
+                                Enviar relatórios de erro
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Backup e Recuperação</h3>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoBackup" checked>
+                                <span class="checkmark"></span>
+                                Backup automático
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label for="backupFrequency">Frequência do backup</label>
+                            <select id="backupFrequency" class="setting-select">
+                                <option value="daily" selected>Diário</option>
+                                <option value="weekly">Semanal</option>
+                                <option value="monthly">Mensal</option>
+                            </select>
+                        </div>
+                        <div class="setting-actions">
+                            <button class="btn btn-secondary" id="createBackupBtn">
+                                <i class="fas fa-download"></i>
+                                Criar Backup Agora
+                            </button>
+                            <button class="btn btn-secondary" id="restoreBackupBtn">
+                                <i class="fas fa-upload"></i>
+                                Restaurar Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações de Blockchain -->
+            <div class="settings-section" id="blockchain">
+                <div class="section-header">
+                    <h2>Blockchain</h2>
+                    <p>Configure as conexões e preferências de blockchain</p>
+                </div>
+
+                <div class="settings-groups">
+                    <div class="settings-group">
+                        <h3>Redes Blockchain</h3>
+                        <div class="network-list" id="networkList">
+                            <!-- Redes serão carregadas dinamicamente -->
+                        </div>
+                        <button class="btn btn-secondary" id="addNetworkBtn">
+                            <i class="fas fa-plus"></i>
+                            Adicionar Rede
+                        </button>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Configurações de Gas</h3>
+                        <div class="setting-item">
+                            <label for="gasPrice">Preço do Gas (Gwei)</label>
+                            <input type="number" id="gasPrice" value="20" min="1" max="1000" class="setting-input">
+                        </div>
+                        <div class="setting-item">
+                            <label for="gasLimit">Limite de Gas</label>
+                            <input type="number" id="gasLimit" value="21000" min="21000" max="8000000" class="setting-input">
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoGasEstimate" checked>
+                                <span class="checkmark"></span>
+                                Estimativa automática de gas
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Provedores RPC</h3>
+                        <div class="rpc-providers" id="rpcProviders">
+                            <!-- Provedores serão carregados dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações Avançadas -->
+            <div class="settings-section" id="advanced">
+                <div class="section-header">
+                    <h2>Configurações Avançadas</h2>
+                    <p>Configurações para usuários experientes</p>
+                </div>
+
+                <div class="settings-groups">
+                    <div class="settings-group">
+                        <h3>Desenvolvimento</h3>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="debugMode">
+                                <span class="checkmark"></span>
+                                Modo de depuração
+                            </label>
+                            <p class="setting-description">Ativa logs detalhados para desenvolvimento</p>
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="testnetMode">
+                                <span class="checkmark"></span>
+                                Modo testnet
+                            </label>
+                            <p class="setting-description">Usar redes de teste por padrão</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Performance</h3>
+                        <div class="setting-item">
+                            <label for="cacheSize">Tamanho do cache (MB)</label>
+                            <input type="number" id="cacheSize" value="100" min="50" max="1000" class="setting-input">
+                        </div>
+                        <div class="setting-item">
+                            <label for="maxConnections">Máximo de conexões simultâneas</label>
+                            <input type="number" id="maxConnections" value="10" min="1" max="50" class="setting-input">
+                        </div>
+                        <div class="setting-item checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="preloadData" checked>
+                                <span class="checkmark"></span>
+                                Pré-carregar dados
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>Dados do Sistema</h3>
+                        <div class="setting-actions">
+                            <button class="btn btn-secondary" id="clearCacheBtn">
+                                <i class="fas fa-trash"></i>
+                                Limpar Cache
+                            </button>
+                            <button class="btn btn-secondary" id="exportSettingsBtn">
+                                <i class="fas fa-download"></i>
+                                Exportar Configurações
+                            </button>
+                            <button class="btn btn-secondary" id="importSettingsBtn">
+                                <i class="fas fa-upload"></i>
+                                Importar Configurações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirmar Ação</h2>
+                <button class="modal-close" id="closeConfirmModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Tem certeza que deseja executar esta ação?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelConfirmBtn">Cancelar</button>
+                <button class="btn btn-primary" id="confirmActionBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../js/modules/settings/system-settings.js"></script>
+</body>
+</html>

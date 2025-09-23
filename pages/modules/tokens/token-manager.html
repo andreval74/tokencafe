@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Tokens - TokenCafe</title>
+    <link rel="stylesheet" href="../../../css/styles.css">
+</head>
+<body>
+    <!-- Módulo: Gerenciador de Tokens -->
+    <div class="module-container" id="token-manager-module">
+        
+        <!-- Header do Módulo -->
+        <div class="module-header">
+            <div class="module-title">
+                <h1>🪙 Meus Tokens</h1>
+                <p>Gerencie todos os seus tokens criados na TokenCafe</p>
+            </div>
+            <div class="module-actions">
+                <button class="btn btn-primary" onclick="quickAction('create-token')">
+                    <i class="fas fa-plus"></i> Criar Novo Token
+                </button>
+                <button class="btn btn-secondary" onclick="refreshTokens()">
+                    <i class="fas fa-sync-alt"></i> Atualizar
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros e Busca -->
+        <div class="module-filters">
+            <div class="search-container">
+                <input type="text" id="token-search" placeholder="Buscar tokens..." class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="erc20">ERC-20</button>
+                <button class="filter-btn" data-filter="erc721">ERC-721</button>
+                <button class="filter-btn" data-filter="active">Ativos</button>
+                <button class="filter-btn" data-filter="paused">Pausados</button>
+            </div>
+        </div>
+
+        <!-- Lista de Tokens -->
+        <div class="tokens-grid" id="tokens-grid">
+            <!-- Tokens serão carregados dinamicamente -->
+        </div>
+
+        <!-- Estado Vazio -->
+        <div class="empty-state" id="empty-tokens-state" style="display: none;">
+            <div class="empty-state-icon">🪙</div>
+            <h3>Nenhum token encontrado</h3>
+            <p>Você ainda não criou nenhum token. Que tal começar agora?</p>
+            <button class="btn btn-primary" onclick="quickAction('create-token')">
+                <i class="fas fa-plus"></i> Criar Meu Primeiro Token
+            </button>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" id="tokens-loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Carregando seus tokens...</p>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes do Token -->
+    <div class="modal" id="token-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Token</h3>
+                <button class="close-btn" onclick="closeModal('token-details-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="token-details-content">
+                <!-- Conteúdo carregado dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Token -->
+    <div class="modal" id="edit-token-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Token</h3>
+                <button class="close-btn" onclick="closeModal('edit-token-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-token-form">
+                    <div class="form-group">
+                        <label for="edit-token-name">Nome do Token</label>
+                        <input type="text" id="edit-token-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-token-description">Descrição</label>
+                        <textarea id="edit-token-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-token-website">Website</label>
+                        <input type="url" id="edit-token-website">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('edit-token-modal')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../js/modules/tokens/token-manager.js"></script>
+</body>
+</html>

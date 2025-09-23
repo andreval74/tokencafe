@@ -1,4 +1,13 @@
-// suporte.js
+/**
+ * ================================================================================
+ * SUPORTE.JS - MÓDULO DE SUPORTE E CONTATO
+ * ================================================================================
+ * Sistema de formulário de contato com validação e envio de emails
+ * Integração com sistema modular do TokenCafe
+ * ================================================================================
+ */
+
+// Inicialização do módulo de suporte
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('contact-support-form');
     const submitBtn = form.querySelector('button[type="submit"]');
