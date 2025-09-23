@@ -14,39 +14,8 @@ const router = express.Router();
 const logger = require('./logger');
 const { auth } = require('./auth');
 
-// Mock de usuários (em produção seria um banco de dados)
-const users = [
-    {
-        id: 1,
-        name: 'Admin TokenCafe',
-        email: 'admin@tokencafe.com',
-        password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-        role: 'admin',
-        wallet: '0x742d35Cc6434C0532925a3b8FB7C02d8b03c2d8b',
-        createdAt: new Date('2025-01-01'),
-        isActive: true
-    },
-    {
-        id: 2,
-        name: 'João Silva',
-        email: 'joao@email.com',
-        password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-        role: 'user',
-        wallet: '0x8f3c1234d4c3b5e6a7f8c9d0e1f2a3b4c5d6e7f8',
-        createdAt: new Date('2025-01-05'),
-        isActive: true
-    },
-    {
-        id: 3,
-        name: 'Maria Santos',
-        email: 'maria@email.com',
-        password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-        role: 'user',
-        wallet: '0x55d3a8b7c9e6d5f4a3b2c1d0e9f8g7h6i5j4k3l2',
-        createdAt: new Date('2025-01-08'),
-        isActive: true
-    }
-];
+// Importar dados mock centralizados
+const { mockUsers, findUserByEmail, findUserById } = require('../shared/data/mock-data');
 
 // POST /api/auth/login
 router.post('/login', [
@@ -65,9 +34,9 @@ router.post('/login', [
         
         const { email, password } = req.body;
         
-        // Encontrar usuário
-        const user = users.find(u => u.email === email && u.isActive);
-        if (!user) {
+        // Encontrar usuário usando função centralizada
+        const user = findUserByEmail(email);
+        if (!user || !user.isActive) {
             logger.warn(`Tentativa de login falhada - usuário não encontrado: ${email}`);
             return res.status(401).json({
                 success: false,
@@ -142,8 +111,8 @@ router.post('/register', [
         
         const { name, email, password, wallet } = req.body;
         
-        // Verificar se usuário já existe
-        const existingUser = users.find(u => u.email === email);
+        // Verificar se usuário já existe usando função centralizada
+        const existingUser = findUserByEmail(email);
         if (existingUser) {
             return res.status(409).json({
                 success: false,
@@ -209,7 +178,7 @@ router.post('/register', [
 // GET /api/auth/me
 router.get('/me', auth, (req, res) => {
     try {
-        const user = users.find(u => u.id === req.user.id);
+        const user = findUserById(req.user.id);
         
         if (!user || !user.isActive) {
             return res.status(404).json({
@@ -242,7 +211,7 @@ router.get('/me', auth, (req, res) => {
 // POST /api/auth/refresh
 router.post('/refresh', auth, (req, res) => {
     try {
-        const user = users.find(u => u.id === req.user.id);
+        const user = findUserById(req.user.id);
         
         if (!user || !user.isActive) {
             return res.status(404).json({

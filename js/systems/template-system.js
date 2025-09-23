@@ -23,9 +23,13 @@ class TemplateSystem {
         console.log('📄 Inicializando TemplateSystem...');
         
         if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", () => this.loadAllTemplates());
+            document.addEventListener("DOMContentLoaded", () => {
+                // Pequeno delay para garantir que todos os elementos estejam presentes
+                setTimeout(() => this.loadAllTemplates(), 100);
+            });
         } else {
-            this.loadAllTemplates();
+            // Se DOM já está pronto, aguardar um tick para garantir que scripts anteriores finalizaram
+            setTimeout(() => this.loadAllTemplates(), 100);
         }
         
         // Configurar observer para novos elementos
@@ -86,13 +90,24 @@ class TemplateSystem {
         console.log('🔄 Carregando todos os templates...');
         
         const elements = document.querySelectorAll("[data-component]");
+        console.log(`📋 Encontrados ${elements.length} elementos com data-component:`);
+        
+        // Log detalhado dos elementos encontrados
+        elements.forEach((element, index) => {
+            const templateFile = element.getAttribute("data-component");
+            console.log(`  ${index + 1}. Elemento:`, element.tagName, 'Template:', templateFile);
+        });
+        
         const promises = [];
         
         for (const element of elements) {
             const templateFile = element.getAttribute("data-component");
             if (templateFile && !this.loadedTemplates.has(templateFile)) {
                 const selector = `[data-component="${templateFile}"]`;
+                console.log(`🎯 Adicionando template para carregamento: ${templateFile}`);
                 promises.push(this.loadTemplate(selector, templateFile));
+            } else if (this.loadedTemplates.has(templateFile)) {
+                console.log(`⏭️ Template já carregado, pulando: ${templateFile}`);
             }
         }
         
@@ -108,8 +123,11 @@ class TemplateSystem {
      * Resolver caminho do template
      */
     resolveTemplatePath(templateFile) {
-        // Se já tem extensão .html, usar diretamente
+        console.log(`🔍 Resolvendo caminho para: ${templateFile}`);
+        
+        // Se já tem extensão .html, usar diretamente  
         if (templateFile.endsWith('.html')) {
+            console.log(`✅ Usando caminho completo: ${templateFile}`);
             return templateFile;
         }
         
@@ -121,17 +139,23 @@ class TemplateSystem {
         else if (templateFile.includes('modal')) basePath += 'modals/';
         else if (templateFile.startsWith('dash-')) basePath = '../dasboard/';
         
-        return `${basePath}${templateFile}.html`;
+        const resolvedPath = `${basePath}${templateFile}.html`;
+        console.log(`✅ Caminho resolvido: ${resolvedPath}`);
+        return resolvedPath;
     }
 
     /**
      * Injetar template no DOM
      */
     injectTemplate(selector, html) {
+        console.log(`💉 Injetando template no seletor: ${selector}`);
         const elements = document.querySelectorAll(selector);
+        console.log(`📍 Encontrados ${elements.length} elementos para o seletor`);
         
-        elements.forEach(element => {
+        elements.forEach((element, index) => {
+            console.log(`📝 Injetando HTML no elemento ${index + 1}:`, element);
             element.innerHTML = html;
+            console.log(`✅ HTML injetado com sucesso no elemento ${index + 1}`);
             
             // Executar scripts embarcados
             this.executeEmbeddedScripts(element);
@@ -439,10 +463,19 @@ window.getTemplateType = getTemplateType;
 window.getTemplateCategory = getTemplateCategory;
 
 // Criar instância global quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
+function initializeTemplateSystem() {
     if (!window.tokencafeTemplates) {
+        console.log('🏗️ Inicializando Template System...');
         window.tokencafeTemplates = new TemplateSystem();
+        console.log('✅ Template System inicializado');
     }
-});
+}
+
+// Inicializar imediatamente se DOM já estiver pronto, senão aguardar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeTemplateSystem);
+} else {
+    initializeTemplateSystem();
+}
 
 console.log('✅ Template System carregado');

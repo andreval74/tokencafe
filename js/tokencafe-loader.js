@@ -12,13 +12,18 @@ class TokenCafeLoader {
         this.loadedSystems = new Set();
         this.loadingPromises = new Map();
         
-        // Mapeamento de páginas e seus sistemas necessários
+        // Mapeamento otimizado de páginas e seus sistemas necessários
         this.pageRequirements = {
             'index.html': ['tokencafe-core', 'wallet', 'template-system'],
             'dash-main.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
             'widget-manager.html': ['tokencafe-core', 'wallet', 'widget-system', 'template-system'],
-            'reports.html': ['tokencafe-core', 'wallet', 'analytics-core', 'template-system'],
-            'admin-panel.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'analytics-core', 'template-system']
+            'reports.html': ['tokencafe-core', 'wallet', 'analytics-core', 'template-system']
+        };
+        
+        // Sistemas condicionais - carregados apenas quando necessário
+        this.conditionalSystems = {
+            'analytics-core': ['reports.html', 'dash-main.html'], // só carrega analytics no dashboard se for admin
+            'widget-system': ['widget-manager.html', 'dash-main.html'] // widgets no dashboard
         };
         
         // Configuração dos sistemas
@@ -69,9 +74,16 @@ class TokenCafeLoader {
             const currentPage = this.detectCurrentPage();
             console.log('📍 Página detectada:', currentPage);
             
-            // Obter sistemas necessários
+            // Obter sistemas necessários com otimização inteligente
             const requiredSystems = this.getRequiredSystems(currentPage);
             console.log('📦 Sistemas necessários:', requiredSystems);
+            
+            // Log de otimização
+            const allSystems = Object.keys(this.systems);
+            const skippedSystems = allSystems.filter(s => !requiredSystems.includes(s));
+            if (skippedSystems.length > 0) {
+                console.log('⚡ Sistemas otimizados (não carregados):', skippedSystems);
+            }
             
             // Carregar sistemas em ordem de prioridade
             await this.loadSystems(requiredSystems);
@@ -80,6 +92,7 @@ class TokenCafeLoader {
             await this.waitForSystemsReady();
             
             console.log('✅ TokenCafe Loader - Carregamento concluído!');
+            console.log(`📊 Performance: ${requiredSystems.length}/${allSystems.length} sistemas carregados`);
             
         } catch (error) {
             console.error('❌ Erro no TokenCafe Loader:', error);
@@ -99,15 +112,76 @@ class TokenCafeLoader {
     }
 
     /**
-     * Obter sistemas necessários para a página
+     * Obter sistemas necessários para a página com carregamento inteligente
      */
     getRequiredSystems(page) {
-        const requirements = this.pageRequirements[page] || this.pageRequirements['index.html'];
+        let requirements = this.pageRequirements[page] || this.pageRequirements['index.html'];
+        
+        // Verificar se precisa de sistemas condicionais
+        if (page === 'dash-main.html') {
+            const userRole = this.getUserRole();
+            
+            // Carregar analytics apenas para admins
+            if (userRole === 'admin' && !requirements.includes('analytics-core')) {
+                requirements.push('analytics-core');
+            }
+            
+            // Carregar widgets se o usuário tem widgets
+            const hasWidgets = this.userHasWidgets();
+            if (hasWidgets && !requirements.includes('widget-system')) {
+                requirements.push('widget-system');
+            }
+        }
         
         // Sempre incluir sistemas obrigatórios
         const obligatory = Object.keys(this.systems).filter(key => this.systems[key].required);
         
         return [...new Set([...obligatory, ...requirements])];
+    }
+
+    /**
+     * Obter role do usuário logado
+     */
+    getUserRole() {
+        // Tentar obter do localStorage primeiro
+        const userData = localStorage.getItem('tokencafe_user_data');
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                return user.role || 'user';
+            } catch (e) {
+                console.warn('⚠️ Erro ao parsear dados do usuário');
+            }
+        }
+        
+        // Fallback: verificar JWT token
+        const token = localStorage.getItem('tokencafe_token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                return payload.role || 'user';
+            } catch (e) {
+                console.warn('⚠️ Erro ao decodificar token');
+            }
+        }
+        
+        return 'user'; // Default
+    }
+
+    /**
+     * Verificar se usuário tem widgets
+     */
+    userHasWidgets() {
+        const userData = localStorage.getItem('tokencafe_user_data');
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                return user.widgets && user.widgets > 0;
+            } catch (e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     /**
@@ -324,6 +398,122 @@ function onTokenCafeReady(callback) {
 }
 
 // ================================================================================
+// FUNÇÕES ESPECÍFICAS DE PÁGINA
+// ================================================================================
+
+/**
+ * Funções específicas para página inicial
+ */
+const IndexPageFunctions = {
+    /**
+     * Inicializar sistema Web3 na página inicial
+     */
+    async initIndexPage() {
+        console.log('🏠 Inicializando página inicial...');
+        
+        // Aguardar TokenCafe estar pronto
+        await waitForTokenCafe();
+        
+        // Verificar se está conectado após verificação real
+        if (window.TokenCafe?.wallet?.isConnected && window.TokenCafe.wallet.currentAccount) {
+            this.updateIndexConnectedUI(window.TokenCafe.wallet.currentAccount);
+        }
+        
+        // Listener para mudanças na conexão (sincronizar entre abas)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'tokencafe_wallet_address') {
+                if (e.newValue) {
+                    this.updateIndexConnectedUI(e.newValue);
+                } else {
+                    // Desconectado - resetar UI
+                    location.reload();
+                }
+            }
+        });
+    },
+
+    /**
+     * Função para acessar dashboard
+     */
+    accessDashboard() {
+        const savedAccount = localStorage.getItem('tokencafe_wallet_address');
+        
+        if (savedAccount) {
+            // Se já está conectado, usar navegação centralizada
+            if (window.TokenCafeNavigation) {
+                window.TokenCafeNavigation.goToDashboard();
+            } else {
+                // Como estamos em pages/index.html, o dash-main.html está na mesma pasta
+                window.location.href = 'dash-main.html';
+            }
+        } else {
+            // Se não está conectado, conectar primeiro
+            alert('🔐 Você precisa conectar sua carteira MetaMask primeiro!\n\nClique em "Conectar MetaMask" no topo da página.');
+        }
+    },
+
+    /**
+     * Atualizar UI quando conectado (específico para index.html)
+     */
+    updateIndexConnectedUI(account) {
+        const connectBtn = document.getElementById('connect-wallet-btn');
+        const connectText = document.getElementById('connect-text');
+        const walletDropdown = document.getElementById('wallet-dropdown');
+        const accountDisplay = document.getElementById('account-display');
+        const networkDisplay = document.getElementById('network-display');
+        
+        if (connectBtn && connectText) {
+            connectBtn.classList.add('btn-success');
+            connectBtn.classList.remove('btn-primary');
+            connectText.textContent = 'Conectado';
+            
+            // Mostrar dropdown
+            if (walletDropdown) {
+                walletDropdown.style.display = 'block';
+                connectBtn.setAttribute('data-bs-toggle', 'dropdown');
+            }
+            
+            // Atualizar informações
+            if (accountDisplay) {
+                accountDisplay.textContent = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
+            }
+            
+            const networkId = localStorage.getItem('tokencafe_network_id');
+            if (networkDisplay && networkId) {
+                const networks = {
+                    '1': 'Ethereum',
+                    '56': 'BSC',
+                    '137': 'Polygon',
+                    '11155111': 'Sepolia'
+                };
+                networkDisplay.textContent = networks[networkId] || `Rede ${networkId}`;
+            }
+        }
+    }
+};
+
+/**
+ * Inicializar funções específicas da página atual
+ */
+function initPageSpecificFunctions() {
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    if (currentPage === 'index.html' || currentPage === '') {
+        // Página inicial - inicializar funções específicas
+        IndexPageFunctions.initIndexPage();
+        
+        // Expor funções globalmente para compatibilidade
+        window.accessDashboard = IndexPageFunctions.accessDashboard.bind(IndexPageFunctions);
+        window.updateIndexConnectedUI = IndexPageFunctions.updateIndexConnectedUI.bind(IndexPageFunctions);
+    }
+}
+
+// Inicializar funções específicas da página quando TokenCafe estiver pronto
+onTokenCafeReady(() => {
+    initPageSpecificFunctions();
+});
+
+// ================================================================================
 // INICIALIZAÇÃO AUTOMÁTICA
 // ================================================================================
 
@@ -336,5 +526,6 @@ window.tokencafeLoader = tokencafeLoader;
 window.isTokenCafeReady = isTokenCafeReady;
 window.waitForTokenCafe = waitForTokenCafe;
 window.onTokenCafeReady = onTokenCafeReady;
+window.IndexPageFunctions = IndexPageFunctions;
 
 console.log('🎯 TokenCafe Loader inicializado');

@@ -393,10 +393,19 @@ window.connectWalletFromHeader = connectWalletFromHeader;
 window.disconnectWalletFromHeader = disconnectWalletFromHeader;
 
 // Criar instância global quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
+function initializeWalletSystem() {
     if (!window.tokencafeWallet) {
+        console.log('🏗️ Inicializando Wallet System...');
         window.tokencafeWallet = new WalletSystem();
+        console.log('✅ Wallet System inicializado');
     }
-});
+}
+
+// Inicializar imediatamente se DOM já estiver pronto, senão aguardar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeWalletSystem);
+} else {
+    initializeWalletSystem();
+}
 
 console.log('✅ Wallet System carregado');

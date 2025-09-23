@@ -12,57 +12,15 @@ const router = express.Router();
 const logger = require('./logger');
 const { auth, authorize } = require('./auth');
 
-// Mock de usuários (mesmo do auth.js - em produção seria centralizado)
-const users = [
-    {
-        id: 1,
-        name: 'Admin TokenCafe',
-        email: 'admin@tokencafe.com',
-        role: 'admin',
-        wallet: '0x742d35Cc6434C0532925a3b8FB7C02d8b03c2d8b',
-        createdAt: new Date('2025-01-01'),
-        isActive: true,
-        lastLogin: new Date('2025-01-15'),
-        widgets: 0,
-        totalVolume: 0
-    },
-    {
-        id: 2,
-        name: 'João Silva',
-        email: 'joao@email.com',
-        role: 'user',
-        wallet: '0x8f3c1234d4c3b5e6a7f8c9d0e1f2a3b4c5d6e7f8',
-        createdAt: new Date('2025-01-05'),
-        isActive: true,
-        lastLogin: new Date('2025-01-15'),
-        widgets: 12,
-        totalVolume: 2450000
-    },
-    {
-        id: 3,
-        name: 'Maria Santos',
-        email: 'maria@email.com',
-        role: 'user',
-        wallet: '0x55d3a8b7c9e6d5f4a3b2c1d0e9f8g7h6i5j4k3l2',
-        createdAt: new Date('2025-01-08'),
-        isActive: true,
-        lastLogin: new Date('2025-01-14'),
-        widgets: 8,
-        totalVolume: 1850000
-    },
-    {
-        id: 4,
-        name: 'Carlos Oliveira',
-        email: 'carlos@email.com',
-        role: 'user',
-        wallet: '0x1a2b3c4d5e6f7890abcdef1234567890abcdef12',
-        createdAt: new Date('2025-01-10'),
-        isActive: false,
-        lastLogin: new Date('2025-01-12'),
-        widgets: 6,
-        totalVolume: 980000
-    }
-];
+// Importar dados mock centralizados
+const { 
+    mockUsers, 
+    findUserById, 
+    findUserByEmail, 
+    findUserByWallet,
+    getActiveUsers,
+    getGeneralStats 
+} = require('../shared/data/mock-data');
 
 // GET /api/users - Listar usuários (admin only)
 router.get('/', auth, authorize('admin'), [
@@ -92,7 +50,7 @@ router.get('/', auth, authorize('admin'), [
             sortOrder = 'desc'
         } = req.query;
         
-        let filteredUsers = [...users];
+        let filteredUsers = [...mockUsers];
         
         // Aplicar filtros
         if (search) {
@@ -181,7 +139,7 @@ router.get('/', auth, authorize('admin'), [
 router.get('/:id', auth, (req, res) => {
     try {
         const { id } = req.params;
-        const user = users.find(u => u.id === parseInt(id));
+        const user = mockUsers.find(u => u.id === parseInt(id));
         
         if (!user) {
             return res.status(404).json({
@@ -245,7 +203,7 @@ router.put('/:id', auth, [
         }
         
         const { id } = req.params;
-        const userIndex = users.findIndex(u => u.id === parseInt(id));
+        const userIndex = mockmockUsers.findIndex(u => u.id === parseInt(id));
         
         if (userIndex === -1) {
             return res.status(404).json({
@@ -254,7 +212,7 @@ router.put('/:id', auth, [
             });
         }
         
-        const user = users[userIndex];
+        const user = mockUsers[userIndex];
         
         // Verificar permissões
         const canEdit = user.id === req.user.id || req.user.role === 'admin';
@@ -297,21 +255,21 @@ router.put('/:id', auth, [
         const allowedFields = req.user.role === 'admin' ? [...userFields, ...adminFields] : userFields;
         allowedFields.forEach(field => {
             if (req.body[field] !== undefined) {
-                users[userIndex][field] = req.body[field];
+                mockUsers[userIndex][field] = req.body[field];
             }
         });
         
         const updatedUser = {
-            id: users[userIndex].id,
-            name: users[userIndex].name,
-            email: users[userIndex].email,
-            role: users[userIndex].role,
-            wallet: users[userIndex].wallet,
-            createdAt: users[userIndex].createdAt,
-            isActive: users[userIndex].isActive,
-            lastLogin: users[userIndex].lastLogin,
-            widgets: users[userIndex].widgets,
-            totalVolume: users[userIndex].totalVolume
+            id: mockUsers[userIndex].id,
+            name: mockUsers[userIndex].name,
+            email: mockUsers[userIndex].email,
+            role: mockUsers[userIndex].role,
+            wallet: mockUsers[userIndex].wallet,
+            createdAt: mockUsers[userIndex].createdAt,
+            isActive: mockUsers[userIndex].isActive,
+            lastLogin: mockUsers[userIndex].lastLogin,
+            widgets: mockUsers[userIndex].widgets,
+            totalVolume: mockUsers[userIndex].totalVolume
         };
         
         logger.info(`Usuário atualizado: ${updatedUser.email} (ID: ${id}) por ${req.user.email}`);
@@ -334,7 +292,7 @@ router.put('/:id', auth, [
 router.delete('/:id', auth, authorize('admin'), (req, res) => {
     try {
         const { id } = req.params;
-        const userIndex = users.findIndex(u => u.id === parseInt(id));
+        const userIndex = mockmockUsers.findIndex(u => u.id === parseInt(id));
         
         if (userIndex === -1) {
             return res.status(404).json({
@@ -343,7 +301,7 @@ router.delete('/:id', auth, authorize('admin'), (req, res) => {
             });
         }
         
-        const user = users[userIndex];
+        const user = mockUsers[userIndex];
         
         // Não permitir desativar último admin
         if (user.role === 'admin') {
@@ -357,7 +315,7 @@ router.delete('/:id', auth, authorize('admin'), (req, res) => {
         }
         
         // Soft delete - apenas desativar
-        users[userIndex].isActive = false;
+        mockUsers[userIndex].isActive = false;
         
         logger.info(`Usuário desativado: ${user.email} (ID: ${id}) por ${req.user.email}`);
         
@@ -379,7 +337,7 @@ router.delete('/:id', auth, authorize('admin'), (req, res) => {
 router.post('/:id/activate', auth, authorize('admin'), (req, res) => {
     try {
         const { id } = req.params;
-        const userIndex = users.findIndex(u => u.id === parseInt(id));
+        const userIndex = mockmockUsers.findIndex(u => u.id === parseInt(id));
         
         if (userIndex === -1) {
             return res.status(404).json({
@@ -388,9 +346,9 @@ router.post('/:id/activate', auth, authorize('admin'), (req, res) => {
             });
         }
         
-        users[userIndex].isActive = true;
+        mockUsers[userIndex].isActive = true;
         
-        const user = users[userIndex];
+        const user = mockUsers[userIndex];
         logger.info(`Usuário reativado: ${user.email} (ID: ${id}) por ${req.user.email}`);
         
         res.json({

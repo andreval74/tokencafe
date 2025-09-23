@@ -64,7 +64,82 @@ class DashboardCore {
         // Carregar página inicial
         await this.loadInitialPage();
         
+        // Mostrar dashboard após carregamento
+        this.showDashboard();
+        
         console.log('✅ DashboardCore inicializado com sucesso');
+    }
+
+    /**
+     * Carregar página inicial
+     */
+    async loadInitialPage() {
+        console.log('🏠 Carregando página inicial do dashboard...');
+        
+        try {
+            // Verificar autenticação
+            if (!this.isAuthenticated()) {
+                console.log('⚠️ Usuário não autenticado, redirecionando...');
+                this.redirectToLogin();
+                return;
+            }
+            
+            // Carregar página home por padrão
+            await this.navigateTo('home', false);
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar página inicial:', error);
+            this.showError('Erro ao carregar dashboard');
+        }
+    }
+
+    /**
+     * Mostrar dashboard (ocultar loading)
+     */
+    showDashboard() {
+        const loadingScreen = document.getElementById('loading-screen');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        
+        console.log('👁️ Elementos encontrados:', {
+            loadingScreen: !!loadingScreen,
+            dashboardContainer: !!dashboardContainer
+        });
+        
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+            console.log('✅ Loading screen ocultado');
+        }
+        
+        if (dashboardContainer) {
+            dashboardContainer.style.display = 'flex';
+            dashboardContainer.style.visibility = 'visible';
+            console.log('✅ Dashboard container exibido');
+        }
+        
+        // Adicionar classe ao body para styling
+        document.body.classList.add('dashboard-active');
+        
+        console.log('✅ Dashboard exibido');
+    }
+
+    /**
+     * Redirecionar para login
+     */
+    redirectToLogin() {
+        console.log('🔄 Redirecionando para página de login...');
+        
+        const loadingContent = document.querySelector('.loading-content p');
+        if (loadingContent) {
+            loadingContent.innerHTML = `
+                <i class="fas fa-exclamation-triangle text-warning"></i><br>
+                Carteira não conectada!<br>
+                <small class="text-muted">Redirecionando para página inicial...</small>
+            `;
+        }
+        
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 2000);
     }
 
     /**
@@ -184,6 +259,23 @@ class DashboardCore {
         // Auto-collapse em telas pequenas
         this.handleResponsiveSidebar();
         window.addEventListener('resize', () => this.handleResponsiveSidebar());
+    }
+
+    /**
+     * Gerenciar sidebar responsiva
+     */
+    handleResponsiveSidebar() {
+        const isMobile = window.innerWidth < 768;
+        
+        if (isMobile) {
+            this.sidebarExpanded = false;
+            document.body.classList.remove('sidebar-expanded');
+            document.body.classList.add('sidebar-collapsed');
+        } else {
+            this.sidebarExpanded = true;
+            document.body.classList.add('sidebar-expanded');
+            document.body.classList.remove('sidebar-collapsed');
+        }
     }
 
     /**
@@ -689,8 +781,18 @@ class DashboardCore {
      * Verificar autenticação
      */
     isAuthenticated() {
-        // Verificar se há wallet conectada
-        return window.tokencafeWallet?.isConnected || false;
+        // Verificar múltiplas formas de autenticação
+        const walletConnected = window.tokencafeWallet?.isConnected;
+        const savedAccount = localStorage.getItem('tokencafe_wallet_address');
+        
+        console.log('🔍 Verificando autenticação:', {
+            walletConnected,
+            savedAccount: savedAccount ? 'Presente' : 'Ausente',
+            tokencafeWallet: !!window.tokencafeWallet
+        });
+        
+        // Retorna true se wallet está conectado OU se há conta salva
+        return walletConnected || !!savedAccount;
     }
 
     /**
@@ -738,17 +840,124 @@ class DashboardCore {
 }
 
 // ================================================================================
+// UTILITIES DE NAVEGAÇÃO - INTEGRADAS AO DASHBOARD CORE
+// ================================================================================
+
+/**
+ * Utilitários de navegação TokenCafe
+ * Integrados ao DashboardCore para centralizar toda navegação
+ */
+const TokenCafeNavigation = {
+    // Redirecionar para página principal
+    goToHome() {
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('pages/')) {
+            window.location.href = '../index.html';
+        } else {
+            window.location.href = 'index.html';
+        }
+    },
+
+    // Redirecionar para dashboard
+    goToDashboard() {
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('pages/')) {
+            window.location.href = 'dash-main.html';
+        } else {
+            window.location.href = 'pages/dash-main.html';
+        }
+    },
+
+    // Verificar se está na página correta baseado na conexão
+    checkPageAccess() {
+        const walletAddress = localStorage.getItem('tokencafe_wallet_address');
+        const currentPage = window.location.pathname;
+        
+        // Se não está conectado e está tentando acessar dashboard
+        if (!walletAddress && currentPage.includes('dash-main.html')) {
+            console.log('⚠️ Redirecionando para página principal - wallet não conectada');
+            this.goToHome();
+            return false;
+        }
+        
+        return true;
+    },
+
+    // Conectar wallet e redirecionar para dashboard
+    async connectAndRedirect() {
+        console.log('🔗 TokenCafeNavigation.connectAndRedirect() chamado');
+        
+        if (window.TokenCafe?.wallet) {
+            console.log('✅ WalletSystem encontrado, conectando...');
+            const success = await window.TokenCafe.wallet.connect();
+            if (success) {
+                console.log('✅ Conexão bem-sucedida, redirecionando...');
+                this.goToDashboard();
+            } else {
+                console.log('❌ Falha na conexão');
+            }
+        } else {
+            console.error('❌ WalletSystem não encontrado!');
+            alert('Sistema de conexão não inicializado. Recarregue a página.');
+        }
+    },
+
+    // Desconectar e redirecionar para home
+    disconnectAndRedirect() {
+        console.log('🚪 TokenCafeNavigation.disconnectAndRedirect() chamado');
+        
+        // Limpar dados de conexão
+        localStorage.removeItem('tokencafe_wallet_address');
+        localStorage.removeItem('tokencafe_network_id');
+        localStorage.removeItem('tokencafe_dashboard_data');
+        localStorage.removeItem('tokencafe_connected');
+        
+        // Desconectar via sistema
+        if (window.TokenCafe?.wallet) {
+            window.TokenCafe.wallet.disconnect();
+        }
+        
+        this.goToHome();
+    },
+
+    // Verificar conectividade e redirecionar se necessário
+    validateAccess() {
+        if (!this.checkPageAccess()) {
+            return false;
+        }
+
+        // Verificar se TokenCafe está disponível
+        if (!window.TokenCafe?.isReady) {
+            console.warn('⚠️ TokenCafe não está pronto ainda');
+            return false;
+        }
+
+        return true;
+    }
+};
+
+// ================================================================================
 // EXPOSIÇÃO GLOBAL E INICIALIZAÇÃO
 // ================================================================================
 
 // Expor globalmente
 window.DashboardCore = DashboardCore;
+window.TokenCafeNavigation = TokenCafeNavigation;
 
 // Criar instância global quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
+function initializeDashboardCore() {
     if (!window.tokencafeDashboard) {
+        console.log('🏗️ Inicializando Dashboard Core...');
         window.tokencafeDashboard = new DashboardCore();
+        console.log('✅ Dashboard Core inicializado');
     }
-});
+}
+
+// Inicializar imediatamente se DOM já estiver pronto, senão aguardar
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeDashboardCore);
+} else {
+    initializeDashboardCore();
+}
 
 console.log('✅ Dashboard Core carregado');

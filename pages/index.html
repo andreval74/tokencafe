@@ -39,10 +39,10 @@
 
 <body>
     <!-- Header Dinâmico -->
-    <div data-component="main-header.html"></div>
+    <div data-component="../shared/templates/headers/main-header.html"></div>
 
     <!-- Main Content -->
-    <div class="main-container" style="padding-top: 80px;">
+    <div class="main-container">
 
         <!-- Hero Section Principal TokenCafe -->
         <section>
@@ -117,7 +117,7 @@
             <div class="row g-4 mb-5">
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4"
-                        style="background: rgba(248, 93, 35, 0.1); border: 1px solid rgba(248, 93, 35, 0.2);">
+                        >
                         <div class="feature-icon mb-4">
                             <i class="bi bi-translate text-primary icon-lg"></i>
                         </div>
@@ -139,7 +139,7 @@
 
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4"
-                        style="background: rgba(248, 93, 35, 0.1); border: 1px solid rgba(248, 93, 35, 0.2);">
+                        >
                         <div class="feature-icon mb-4">
                             <i class="bi bi-currency-dollar text-primary icon-lg"></i>
                         </div>
@@ -160,7 +160,7 @@
 
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4"
-                        style="background: rgba(248, 93, 35, 0.1); border: 1px solid rgba(248, 93, 35, 0.2);">
+                        >
                         <div class="feature-icon mb-4">
                             <i class="bi bi-globe text-primary icon-lg"></i>
                         </div>
@@ -264,7 +264,7 @@
                 <div class="col-lg-6 col-md-6">
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="step-number bg-primary text-white rounded-circle position-absolute"
-                            style="width: 50px; height: 50px; top: 20px; right: 20px; display: flex; align-items: center; justify-content: center;">
+                            class="close-btn-style position-absolute">
                             <span class="fw-bold">1</span>
                         </div>
                         <div class="d-flex align-items-start mb-3">
@@ -291,7 +291,7 @@
                 <div class="col-lg-6 col-md-6">
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="step-number bg-primary text-white rounded-circle position-absolute"
-                            style="width: 50px; height: 50px; top: 20px; right: 20px; display: flex; align-items: center; justify-content: center;">
+                            class="close-btn-style position-absolute">
                             <span class="fw-bold">2</span>
                         </div>
                         <div class="d-flex align-items-start mb-3">
@@ -318,7 +318,7 @@
                 <div class="col-lg-6 col-md-6">
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="step-number bg-primary text-white rounded-circle position-absolute"
-                            style="width: 50px; height: 50px; top: 20px; right: 20px; display: flex; align-items: center; justify-content: center;">
+                            class="close-btn-style position-absolute">
                             <span class="fw-bold">3</span>
                         </div>
                         <div class="d-flex align-items-start mb-3">
@@ -344,7 +344,7 @@
                 <div class="col-lg-6 col-md-6">
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="step-number bg-primary text-white rounded-circle position-absolute"
-                            style="width: 50px; height: 50px; top: 20px; right: 20px; display: flex; align-items: center; justify-content: center;">
+                            class="close-btn-style position-absolute">
                             <span class="fw-bold">4</span>
                         </div>
                         <div class="d-flex align-items-start mb-3">
@@ -585,10 +585,10 @@
                 <!-- Plano Basic -->
                 <div class="col-lg-4 col-md-6">
                     <div class="card pricing-card h-100 border-0 shadow-lg"
-                        style="background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(45, 45, 45, 0.95) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(248, 93, 35, 0.2);">
+                        class="premium-card-gradient">
                         <div class="card-body p-4 text-center">
                             <div class="pricing-icon mb-3">
-                                <i class="fas fa-rocket fs-1" style="color: var(--bs-warning);"></i>
+                                <i class="fas fa-rocket fs-1" class="premium-icon-color"></i>
                             </div>
                             <h3 class="card-title text-white fw-bold mb-3">Basic</h3>
                             <div class="pricing-amount mb-4">
@@ -629,15 +629,15 @@
                     <!-- Badge Popular - FORA do card -->
                     <div class="text-center mb-3">
                         <span class="badge bg-warning text-dark px-4 py-2 fw-bold position-relative" 
-                              style="font-size: 0.9rem; border-radius: 25px; box-shadow: 0 4px 15px rgba(248, 193, 35, 0.4);">
+                              class="premium-btn-style">
                             <i class="fas fa-star me-2"></i>MAIS POPULAR
                         </span>
                     </div>
                     <div class="card pricing-card h-100 border-0 shadow-lg"
-                        style="background: linear-gradient(135deg, rgba(248, 93, 35, 0.1) 0%, rgba(26, 26, 26, 0.95) 50%, rgba(45, 45, 45, 0.95) 100%); backdrop-filter: blur(10px); border: 2px solid var(--bs-warning) !important;">
+                        class="premium-special-card">
                         <div class="card-body p-4 text-center">
                             <div class="pricing-icon mb-3">
-                                <i class="fas fa-crown fs-1" style="color: var(--bs-warning);"></i>
+                                <i class="fas fa-crown fs-1" class="premium-icon-color"></i>
                             </div>
                             <h3 class="card-title text-white fw-bold mb-3">Professional</h3>
                             <div class="pricing-amount mb-4">
@@ -675,10 +675,10 @@
                 <!-- Plano Enterprise -->
                 <div class="col-lg-4 col-md-6">
                     <div class="card pricing-card h-100 border-0 shadow-lg"
-                        style="background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(45, 45, 45, 0.95) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(248, 93, 35, 0.2);">
+                        class="premium-card-gradient">
                         <div class="card-body p-4 text-center">
                             <div class="pricing-icon mb-3">
-                                <i class="fas fa-building fs-1" style="color: var(--bs-warning);"></i>
+                                <i class="fas fa-building fs-1" class="premium-icon-color"></i>
                             </div>
                             <h3 class="card-title text-white fw-bold mb-3">Enterprise</h3>
                             <div class="pricing-amount mb-4">
@@ -811,7 +811,7 @@
 
 
     <!-- Footer Dinâmico -->
-    <div data-component="main-footer.html"></div>
+    <div data-component="../shared/templates/footers/main-footer.html"></div>
 
     <!-- Botão Voltar ao Topo -->
     <button id="backToTop" class="btn-back-to-top" onclick="scrollToTop()">

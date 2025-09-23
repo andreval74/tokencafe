@@ -30,12 +30,21 @@
     </div>
 
     <!-- Dashboard Container -->
-    <div class="dashboard-container" id="dashboard-container" style="display: none;">
+    <div class="dashboard-container" id="dashboard-container">
         <!-- Sidebar Component -->
-        <div id="sidebar-container"></div>
+        <aside data-component="dashboard-sidebar.html" class="dashboard-sidebar"></aside>
         
-        <!-- Main Content Component -->
-        <div id="main-content-container"></div>
+        <!-- Main Content Area -->
+        <div class="dashboard-main">
+            <!-- Header Component -->
+            <header data-component="../shared/templates/headers/dash-header.html"></header>
+            
+            <!-- Main Content Component -->
+            <main data-component="dashboard-main-content.html"></main>
+            
+            <!-- Footer Component -->
+            <footer data-component="../shared/templates/footers/dash-footer.html"></footer>
+        </div>
     </div>
 
     <!-- Scripts -->

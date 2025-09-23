@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -15,13 +15,13 @@
     <!-- TokenCafe CSS -->
     <link rel="stylesheet" href="../css/styles.css">
     
-    <!-- CodeMirror para editor de código -->
+    <!-- CodeMirror para editor de cÃ³digo -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css">
 </head>
 <body class="bg-light">
     <!-- Header -->
-    <div data-component="dash-header"></div>
+    <div data-component="../shared/templates/headers/dash-header"></div>
     
     <!-- Main Content -->
     <div class="container-fluid">
@@ -74,10 +74,10 @@
                         <div class="mb-3">
                             <label class="form-label small text-muted">Criado em</label>
                             <select class="form-select form-select-sm" id="filter-date">
-                                <option value="">Qualquer período</option>
+                                <option value="">Qualquer perÃ­odo</option>
                                 <option value="today">Hoje</option>
                                 <option value="week">Esta semana</option>
-                                <option value="month">Este mês</option>
+                                <option value="month">Este mÃªs</option>
                                 <option value="year">Este ano</option>
                             </select>
                         </div>
@@ -90,7 +90,7 @@
                     <!-- Quick Stats -->
                     <div class="bg-white rounded shadow-sm p-3">
                         <h6 class="text-coffee mb-3">
-                            <i class="fas fa-chart-simple me-2"></i>Estatísticas
+                            <i class="fas fa-chart-simple me-2"></i>EstatÃ­sticas
                         </h6>
                         
                         <div class="d-flex justify-content-between mb-2">
@@ -104,7 +104,7 @@
                         </div>
                         
                         <div class="d-flex justify-content-between mb-2">
-                            <small class="text-muted">Visualizações:</small>
+                            <small class="text-muted">VisualizaÃ§Ãµes:</small>
                             <strong id="total-views-count">0</strong>
                         </div>
                         
@@ -153,7 +153,7 @@
                                 <i class="fas fa-search"></i>
                             </span>
                             <input type="text" class="form-control" id="search-widgets" 
-                                   placeholder="Buscar widgets por nome ou descrição...">
+                                   placeholder="Buscar widgets por nome ou descriÃ§Ã£o...">
                         </div>
                     </div>
                     
@@ -181,7 +181,7 @@
                 <div id="widgets-container">
                     <!-- Grid View (Default) -->
                     <div id="widgets-grid" class="row g-3">
-                        <!-- Widgets serão carregados dinamicamente aqui -->
+                        <!-- Widgets serÃ£o carregados dinamicamente aqui -->
                     </div>
                     
                     <!-- List View (Hidden initially) -->
@@ -193,14 +193,14 @@
                                         <th>Widget</th>
                                         <th>Template</th>
                                         <th>Status</th>
-                                        <th>Visualizações</th>
+                                        <th>VisualizaÃ§Ãµes</th>
                                         <th>Volume</th>
                                         <th>Criado</th>
-                                        <th width="100">Ações</th>
+                                        <th width="100">AÃ§Ãµes</th>
                                     </tr>
                                 </thead>
                                 <tbody id="widgets-table-body">
-                                    <!-- Widgets serão carregados dinamicamente aqui -->
+                                    <!-- Widgets serÃ£o carregados dinamicamente aqui -->
                                 </tbody>
                             </table>
                         </div>
@@ -210,7 +210,7 @@
                 <!-- Empty State -->
                 <div id="empty-state" class="text-center py-5 d-none">
                     <div class="mb-3">
-                        <i class="fas fa-cube text-muted" style="font-size: 4rem;"></i>
+                        <i class="fas fa-cube text-muted" class="empty-state-icon text-muted"></i>
                     </div>
                     <h4 class="text-muted">Nenhum widget encontrado</h4>
                     <p class="text-muted mb-4">Comece criando seu primeiro widget personalizado</p>
@@ -230,7 +230,7 @@
                 <!-- Pagination -->
                 <nav id="pagination-nav" class="d-none">
                     <ul class="pagination justify-content-center" id="pagination">
-                        <!-- Pagination será gerada dinamicamente -->
+                        <!-- Pagination serÃ¡ gerada dinamicamente -->
                     </ul>
                 </nav>
             </div>
@@ -244,7 +244,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <!-- Conteúdo dos filtros será duplicado aqui -->
+            <!-- ConteÃºdo dos filtros serÃ¡ duplicado aqui -->
         </div>
     </div>
     
@@ -272,17 +272,17 @@
                                 <div class="step-divider"></div>
                                 <div class="step-indicator" data-step="2">
                                     <div class="step-number">2</div>
-                                    <div class="step-label">Configuração</div>
+                                    <div class="step-label">ConfiguraÃ§Ã£o</div>
                                 </div>
                                 <div class="step-divider"></div>
                                 <div class="step-indicator" data-step="3">
                                     <div class="step-number">3</div>
-                                    <div class="step-label">Personalização</div>
+                                    <div class="step-label">PersonalizaÃ§Ã£o</div>
                                 </div>
                                 <div class="step-divider"></div>
                                 <div class="step-indicator" data-step="4">
                                     <div class="step-number">4</div>
-                                    <div class="step-label">Publicação</div>
+                                    <div class="step-label">PublicaÃ§Ã£o</div>
                                 </div>
                             </div>
                         </div>
@@ -295,13 +295,13 @@
                             <p class="text-muted mb-4">Selecione o tipo de widget que deseja criar</p>
                             
                             <div class="row g-3" id="template-options">
-                                <!-- Templates serão carregados dinamicamente -->
+                                <!-- Templates serÃ£o carregados dinamicamente -->
                             </div>
                         </div>
                         
                         <!-- Step 2: Configuration -->
                         <div class="wizard-step" id="step-2">
-                            <h6 class="text-coffee mb-3">Configuração Básica</h6>
+                            <h6 class="text-coffee mb-3">ConfiguraÃ§Ã£o BÃ¡sica</h6>
                             
                             <div class="row">
                                 <div class="col-md-6">
@@ -312,9 +312,9 @@
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <label class="form-label">Descrição</label>
+                                        <label class="form-label">DescriÃ§Ã£o</label>
                                         <textarea class="form-control" id="widget-description" rows="3"
-                                                  placeholder="Descreva o propósito do seu widget"></textarea>
+                                                  placeholder="Descreva o propÃ³sito do seu widget"></textarea>
                                     </div>
                                     
                                     <div class="mb-3">
@@ -352,7 +352,7 @@
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="widget-public">
                                             <label class="form-check-label" for="widget-public">
-                                                Widget público (visível na galeria)
+                                                Widget pÃºblico (visÃ­vel na galeria)
                                             </label>
                                         </div>
                                     </div>
@@ -362,7 +362,7 @@
                         
                         <!-- Step 3: Customization -->
                         <div class="wizard-step" id="step-3">
-                            <h6 class="text-coffee mb-3">Personalização Visual</h6>
+                            <h6 class="text-coffee mb-3">PersonalizaÃ§Ã£o Visual</h6>
                             
                             <div class="row">
                                 <div class="col-lg-6">
@@ -371,12 +371,12 @@
                                         
                                         <div class="row g-2">
                                             <div class="col-6">
-                                                <label class="form-label small">Cor Primária</label>
+                                                <label class="form-label small">Cor PrimÃ¡ria</label>
                                                 <input type="color" class="form-control form-control-color" 
                                                        id="primary-color" value="#8B4513">
                                             </div>
                                             <div class="col-6">
-                                                <label class="form-label small">Cor Secundária</label>
+                                                <label class="form-label small">Cor SecundÃ¡ria</label>
                                                 <input type="color" class="form-control form-control-color" 
                                                        id="secondary-color" value="#A0522D">
                                             </div>
@@ -390,7 +390,7 @@
                                             <label class="form-label small">Tamanho</label>
                                             <select class="form-select form-select-sm" id="widget-size">
                                                 <option value="sm">Pequeno (300x400px)</option>
-                                                <option value="md" selected>Médio (400x500px)</option>
+                                                <option value="md" selected>MÃ©dio (400x500px)</option>
                                                 <option value="lg">Grande (500x600px)</option>
                                             </select>
                                         </div>
@@ -412,7 +412,7 @@
                                         <div class="widget-preview rounded" id="widget-preview">
                                             <div class="text-center text-muted">
                                                 <i class="fas fa-eye fa-2x mb-2"></i>
-                                                <p class="mb-0">Preview será exibido aqui</p>
+                                                <p class="mb-0">Preview serÃ¡ exibido aqui</p>
                                             </div>
                                         </div>
                                     </div>
@@ -422,14 +422,14 @@
                         
                         <!-- Step 4: Publication -->
                         <div class="wizard-step" id="step-4">
-                            <h6 class="text-coffee mb-3">Publicação</h6>
+                            <h6 class="text-coffee mb-3">PublicaÃ§Ã£o</h6>
                             
                             <div class="row">
                                 <div class="col-lg-8">
                                     <div class="mb-4">
-                                        <h6 class="mb-3">Código de Incorporação</h6>
+                                        <h6 class="mb-3">CÃ³digo de IncorporaÃ§Ã£o</h6>
                                         <p class="text-muted small mb-2">
-                                            Copie e cole este código em seu site para incorporar o widget:
+                                            Copie e cole este cÃ³digo em seu site para incorporar o widget:
                                         </p>
                                         
                                         <div class="position-relative">
@@ -455,7 +455,7 @@
                                 <div class="col-lg-4">
                                     <div class="bg-light rounded p-3">
                                         <h6 class="text-coffee mb-3">
-                                            <i class="fas fa-info-circle me-2"></i>Próximos Passos
+                                            <i class="fas fa-info-circle me-2"></i>PrÃ³ximos Passos
                                         </h6>
                                         
                                         <ul class="list-unstyled small">
@@ -469,7 +469,7 @@
                                             </li>
                                             <li class="mb-2">
                                                 <i class="fas fa-chart-line me-2 text-muted"></i>
-                                                Acompanhar métricas
+                                                Acompanhar mÃ©tricas
                                             </li>
                                             <li class="mb-0">
                                                 <i class="fas fa-edit me-2 text-muted"></i>
@@ -485,13 +485,13 @@
                 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-outline-coffee" id="prev-step" style="display: none;">
+                    <button type="button" class="btn btn-outline-coffee" id="prev-step" class="step-hidden">
                         <i class="fas fa-arrow-left me-2"></i>Anterior
                     </button>
                     <button type="button" class="btn btn-coffee" id="next-step">
-                        Próximo<i class="fas fa-arrow-right ms-2"></i>
+                        PrÃ³ximo<i class="fas fa-arrow-right ms-2"></i>
                     </button>
-                    <button type="button" class="btn btn-coffee" id="create-widget" style="display: none;">
+                    <button type="button" class="btn btn-coffee" id="create-widget" class="step-hidden">
                         <i class="fas fa-check me-2"></i>Criar Widget
                     </button>
                 </div>

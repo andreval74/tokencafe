@@ -1,5 +1,15 @@
 /**
- * ================================================================================
+ * ===================================            // Detectar ambiente
+            this.detectEnvironment();
+            
+            // Com arquitetura modular, o Core foca apenas em:
+            // 1. Configuração global
+            // 2. Sistema de eventos
+            // 3. Tema e UI
+            console.log('📦 Core inicializado - módulos gerenciados independentemente pelo Loader');
+            
+            // Configurar integração entre módulos
+            this.setupModuleIntegration();=====================================
  * TOKENCAFE CORE - SISTEMA PRINCIPAL
  * ================================================================================
  * Sistema de inicialização e integração de todos os módulos
@@ -24,14 +34,9 @@ class TokenCafeCore {
             cacheTimeout: 5 * 60 * 1000 // 5 minutos
         };
         
-        // Módulos disponíveis
-        this.availableModules = {
-            wallet: { class: 'WalletSystem', instance: null, required: true },
-            templates: { class: 'TemplateSystem', instance: null, required: true },
-            dashboard: { class: 'DashboardCore', instance: null, required: false },
-            analytics: { class: 'AnalyticsCore', instance: null, required: false },
-            widgets: { class: 'WidgetSystem', instance: null, required: false }
-        };
+        // Sistema de módulos independente - não precisa mais verificar aqui
+        // Os módulos são carregados pelo TokenCafeLoader conforme necessário
+        this.modules = new Map();
         
         this.init();
     }
@@ -49,8 +54,8 @@ class TokenCafeCore {
             // Detectar ambiente
             this.detectEnvironment();
             
-            // Inicializar módulos principais
-            await this.initializeModules();
+            // Com arquitetura modular, o Core foca apenas em configuração e eventos
+            console.log('📦 Core inicializado - módulos gerenciados independentemente pelo Loader');
             
             // Configurar integração entre módulos
             this.setupModuleIntegration();
@@ -108,95 +113,28 @@ class TokenCafeCore {
     }
 
     /**
-     * Inicializar módulos
-     */
-    async initializeModules() {
-        console.log('📦 Inicializando módulos...');
-        
-        const initPromises = [];
-        
-        for (const [moduleName, moduleConfig] of Object.entries(this.availableModules)) {
-            try {
-                const ModuleClass = window[moduleConfig.class];
-                
-                if (ModuleClass) {
-                    console.log(`📌 Inicializando módulo: ${moduleName}`);
-                    
-                    // Criar instância
-                    const instance = new ModuleClass();
-                    moduleConfig.instance = instance;
-                    this.modules.set(moduleName, instance);
-                    
-                    // Aguardar inicialização se assíncrona
-                    if (instance.init && typeof instance.init === 'function') {
-                        initPromises.push(instance.init());
-                    }
-                    
-                    console.log(`✅ Módulo ${moduleName} inicializado`);
-                    
-                } else if (moduleConfig.required) {
-                    console.warn(`⚠️ Módulo obrigatório não encontrado: ${moduleName}`);
-                } else {
-                    console.log(`ℹ️ Módulo opcional não disponível: ${moduleName}`);
-                }
-                
-            } catch (error) {
-                console.error(`❌ Erro ao inicializar módulo ${moduleName}:`, error);
-                
-                if (moduleConfig.required) {
-                    throw new Error(`Falha na inicialização do módulo obrigatório: ${moduleName}`);
-                }
-            }
-        }
-        
-        // Aguardar todas as inicializações
-        await Promise.allSettled(initPromises);
-        
-        console.log(`✅ ${this.modules.size} módulos inicializados`);
-    }
-
-    /**
-     * Configurar integração entre módulos
+     * Configurar integração entre módulos (simplificado)
      */
     setupModuleIntegration() {
-        console.log('🔗 Configurando integração entre módulos...');
+        console.log('🔗 Configurando sistema de eventos globais...');
         
-        // Wallet + Dashboard integration
-        if (this.hasModule('wallet') && this.hasModule('dashboard')) {
-            const wallet = this.getModule('wallet');
-            const dashboard = this.getModule('dashboard');
-            
-            // Quando wallet conectar, atualizar dashboard
-            wallet.eventBus?.addEventListener('wallet:connected', (e) => {
-                dashboard.onWalletConnected?.(e.detail);
-            });
-            
-            // Quando wallet desconectar, limpar dashboard
-            wallet.eventBus?.addEventListener('wallet:disconnected', () => {
-                dashboard.onWalletDisconnected?.();
-            });
-        }
+        // O Core agora apenas fornece sistema de eventos central
+        // Os módulos se integram através do eventBus global
+        this.setupEventBus();
+        this.setupGlobalListeners();
         
-        // Analytics + Widget integration
-        if (this.hasModule('analytics') && this.hasModule('widgets')) {
-            const analytics = this.getModule('analytics');
-            const widgets = this.getModule('widgets');
-            
-            // Rastrear criação de widgets
-            widgets.eventBus?.addEventListener('widget:created', (e) => {
-                analytics.trackEvent?.('widget_created', e.detail);
-            });
-            
-            // Rastrear exclusão de widgets
-            widgets.eventBus?.addEventListener('widget:deleted', (e) => {
-                analytics.trackEvent?.('widget_deleted', e.detail);
-            });
-        }
-        
-        console.log('✅ Integração entre módulos configurada');
+        console.log('✅ Sistema de eventos configurado');
     }
 
     /**
+     * Configurar Event Bus global
+     */
+    setupEventBus() {
+        if (!window.TokenCafeEvents) {
+            window.TokenCafeEvents = new EventTarget();
+        }
+        this.eventBus = window.TokenCafeEvents;
+    }    /**
      * Configurar listeners globais
      */
     setupGlobalListeners() {
@@ -219,20 +157,6 @@ class TokenCafeCore {
         window.addEventListener('beforeunload', () => {
             this.handleBeforeUnload();
         });
-    }
-
-    /**
-     * Verificar se módulo existe
-     */
-    hasModule(moduleName) {
-        return this.modules.has(moduleName);
-    }
-
-    /**
-     * Obter módulo
-     */
-    getModule(moduleName) {
-        return this.modules.get(moduleName);
     }
 
     /**
@@ -458,15 +382,13 @@ class TokenCafeCore {
     handleGlobalError(error) {
         console.error('🚨 Erro global capturado:', error);
         
-        // Rastrear erro se analytics disponível
-        if (this.hasModule('analytics')) {
-            this.getModule('analytics').trackEvent?.('global_error', {
-                message: error.message,
-                filename: error.filename,
-                lineno: error.lineno,
-                colno: error.colno
-            });
-        }
+        // Disparar evento para que qualquer módulo interessado possa capturar
+        this.dispatchEvent('app:error', {
+            message: error.message,
+            filename: error.filename,
+            lineno: error.lineno,
+            colno: error.colno
+        });
     }
 
     /**
