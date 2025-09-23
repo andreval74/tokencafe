@@ -2706,7 +2706,6 @@ Classes reutilizáveis para efeitos neon padronizados
    ========================================================================== */
 
 :root {
-    --dashboard-sidebar-width: 280px;
     --dashboard-header-height: 65px;
 }
 
@@ -2714,6 +2713,10 @@ Classes reutilizáveis para efeitos neon padronizados
 .dashboard-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow-x: hidden;
+    background-color: var(--tokencafe-bg-primary);
 }
 
 /* Sidebar */
@@ -2725,6 +2728,11 @@ Classes reutilizáveis para efeitos neon padronizados
     height: 100vh;
     z-index: 1000;
     transition: all 0.3s ease;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    left: 0;
+    top: 0;
 }
 
 .sidebar-header {
@@ -2767,6 +2775,11 @@ Classes reutilizáveis para efeitos neon padronizados
     flex: 1;
     display: flex;
     flex-direction: column;
+    width: calc(100% - var(--dashboard-sidebar-width));
+    position: relative;
+    overflow-x: hidden;
+    background-color: var(--tokencafe-bg-primary);
+    min-height: 100vh;
 }
 
 .dashboard-header {
@@ -2779,6 +2792,9 @@ Classes reutilizáveis para efeitos neon padronizados
     padding: 0 25px;
     position: sticky;
     top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
     z-index: 999;
 }
 
