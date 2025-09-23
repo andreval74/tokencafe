@@ -12,70 +12,51 @@ const router = express.Router();
 const logger = require('./logger');
 const { auth, authorize } = require('./auth');
 
+// Helper function to handle validation errors
+const handleValidation = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            error: 'Parâmetros inválidos',
+            errors: errors.array()
+        });
+    }
+    next();
+};
+
+// Generic route handler for analytics endpoints
+const createAnalyticsHandler = (dataGenerator, defaultPeriod = '7d', logMessage = 'dados de analytics') => {
+    return (req, res) => {
+        try {
+            const { period = defaultPeriod } = req.query;
+            const data = dataGenerator(period);
+            
+            res.json({
+                success: true,
+                data
+            });
+            
+        } catch (error) {
+            logger.error(`Erro ao buscar ${logMessage}:`, error);
+            res.status(500).json({
+                success: false,
+                error: 'Erro interno do servidor'
+            });
+        }
+    };
+};
+
 // GET /api/analytics/overview
 router.get('/overview', auth, [
     query('period').optional().isIn(['1d', '7d', '30d', '90d', '1y']).withMessage('Período inválido'),
     query('timezone').optional().isString().withMessage('Timezone deve ser string')
-], (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                error: 'Parâmetros inválidos',
-                errors: errors.array()
-            });
-        }
-        
-        const { period = '7d' } = req.query;
-        
-        // Mock data baseado no período
-        const data = generateOverviewData(period);
-        
-        res.json({
-            success: true,
-            data
-        });
-        
-    } catch (error) {
-        logger.error('Erro ao buscar overview analytics:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Erro interno do servidor'
-        });
-    }
-});
+], handleValidation, createAnalyticsHandler(generateOverviewData, '7d', 'overview analytics'));
 
 // GET /api/analytics/users
 router.get('/users', auth, authorize('admin'), [
     query('period').optional().isIn(['1d', '7d', '30d', '90d', '1y']).withMessage('Período inválido')
-], (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                error: 'Parâmetros inválidos',
-                errors: errors.array()
-            });
-        }
-        
-        const { period = '30d' } = req.query;
-        const data = generateUserAnalytics(period);
-        
-        res.json({
-            success: true,
-            data
-        });
-        
-    } catch (error) {
-        logger.error('Erro ao buscar analytics de usuários:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Erro interno do servidor'
-        });
-    }
-});
+], handleValidation, createAnalyticsHandler(generateUserAnalytics, '30d', 'user analytics'));
 
 // GET /api/analytics/widgets
 router.get('/widgets', auth, [
@@ -116,64 +97,12 @@ router.get('/widgets', auth, [
 // GET /api/analytics/financial
 router.get('/financial', auth, authorize('admin'), [
     query('period').optional().isIn(['1d', '7d', '30d', '90d', '1y']).withMessage('Período inválido')
-], (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                error: 'Parâmetros inválidos',
-                errors: errors.array()
-            });
-        }
-        
-        const { period = '90d' } = req.query;
-        const data = generateFinancialAnalytics(period);
-        
-        res.json({
-            success: true,
-            data
-        });
-        
-    } catch (error) {
-        logger.error('Erro ao buscar analytics financeiros:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Erro interno do servidor'
-        });
-    }
-});
+], handleValidation, createAnalyticsHandler(generateFinancialAnalytics, '90d', 'analytics financeiros'));
 
 // GET /api/analytics/performance
 router.get('/performance', auth, [
     query('period').optional().isIn(['1d', '7d', '30d', '90d', '1y']).withMessage('Período inválido')
-], (req, res) => {
-    try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                error: 'Parâmetros inválidos',
-                errors: errors.array()
-            });
-        }
-        
-        const { period = '7d' } = req.query;
-        const data = generatePerformanceAnalytics(period);
-        
-        res.json({
-            success: true,
-            data
-        });
-        
-    } catch (error) {
-        logger.error('Erro ao buscar analytics de performance:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Erro interno do servidor'
-        });
-    }
-});
+], handleValidation, createAnalyticsHandler(generatePerformanceAnalytics, '7d', 'analytics de performance'));
 
 // GET /api/analytics/realtime
 router.get('/realtime', auth, (req, res) => {
