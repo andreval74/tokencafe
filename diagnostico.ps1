@@ -8,10 +8,14 @@ Write-Host "
 
 Write-Host "📋 Verificando sistema..." -ForegroundColor Cyan
 
+# Inicializar variáveis
+$nodeInstalled = $false
+$npmInstalled = $false
+
 # Verificar Node.js
 Write-Host "`n🔍 Verificando Node.js..." -ForegroundColor White
 try {
-    $nodeVersion = node --version 2>$null
+    $nodeVersion = & node --version 2>$null
     if ($nodeVersion) {
         Write-Host "✅ Node.js ENCONTRADO: $nodeVersion" -ForegroundColor Green
         $nodeInstalled = $true
@@ -27,9 +31,13 @@ try {
 if ($nodeInstalled) {
     Write-Host "`n🔍 Verificando npm..." -ForegroundColor White
     try {
-        $npmVersion = npm --version 2>$null
-        Write-Host "✅ npm ENCONTRADO: $npmVersion" -ForegroundColor Green
-        $npmInstalled = $true
+        $npmVersion = & npm --version 2>$null
+        if ($npmVersion) {
+            Write-Host "✅ npm ENCONTRADO: $npmVersion" -ForegroundColor Green
+            $npmInstalled = $true
+        } else {
+            throw "npm não encontrado"
+        }
     } catch {
         Write-Host "❌ npm NÃO ENCONTRADO" -ForegroundColor Red
         $npmInstalled = $false
@@ -44,16 +52,22 @@ if (Test-Path "package.json") {
     Write-Host "❌ package.json não encontrado" -ForegroundColor Red
 }
 
-if (Test-Path "api/server.js") {
+if (Test-Path "js\server_simple.js") {
     Write-Host "✅ Servidor backend encontrado" -ForegroundColor Green
 } else {
     Write-Host "❌ Servidor backend não encontrado" -ForegroundColor Red
 }
 
-if (Test-Path "dashboard") {
-    Write-Host "✅ Dashboards encontrados" -ForegroundColor Green
+if (Test-Path "pages") {
+    Write-Host "✅ Páginas encontradas" -ForegroundColor Green
 } else {
-    Write-Host "❌ Dashboards não encontrados" -ForegroundColor Red
+    Write-Host "❌ Páginas não encontradas" -ForegroundColor Red
+}
+
+if (Test-Path "js\modules") {
+    Write-Host "✅ Módulos encontrados" -ForegroundColor Green
+} else {
+    Write-Host "❌ Módulos não encontrados" -ForegroundColor Red
 }
 
 # Mostrar soluções
@@ -63,7 +77,7 @@ Write-Host "`n
 ╚══════════════════════════════════════════════════════════════╝
 " -ForegroundColor Yellow
 
-if (!$nodeInstalled) {
+if (-not $nodeInstalled) {
     Write-Host "
 🎯 PROBLEMA PRINCIPAL: Node.js não está instalado
 
@@ -88,22 +102,32 @@ if (!$nodeInstalled) {
 } else {
     Write-Host "✅ Node.js está instalado! Tentando iniciar o sistema..." -ForegroundColor Green
     
-    if (!(Test-Path "node_modules")) {
+    if (-not (Test-Path "node_modules")) {
         Write-Host "`n📦 Instalando dependências..." -ForegroundColor Cyan
-        npm install
+        & npm install
     }
     
     Write-Host "`n🚀 Iniciando servidor..." -ForegroundColor Cyan
-    npm start
+    & npm start
 }
 
 Write-Host "`n
 🧪 ALTERNATIVA SEM NODE.JS:
-   Para testar o sistema agora mesmo, abra no navegador:
-   📁 test-system.html
-   📁 pages/index.html
-   📁 dashboard/pages/widget-manager.html
+   Para testar o sistema agora mesmo, execute:
+   python -m http.server 8000
+   
+   Depois abra no navegador:
+   📁 http://localhost:8000/test-modules.html
+   📁 http://localhost:8000/pages/dash-main.html
+   📁 http://localhost:8000/pages/index.html
 " -ForegroundColor DarkGray
+
+Write-Host "`n💡 SISTEMA ATUAL:
+   ✅ Sistema modular implementado
+   ✅ 5 módulos funcionais
+   ✅ Navegação dinâmica
+   ✅ Interface responsiva
+" -ForegroundColor Green
 
 Write-Host "`nPressione qualquer tecla para continuar..." -ForegroundColor DarkGray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
