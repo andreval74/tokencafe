@@ -77,7 +77,7 @@ class WidgetManager {
         
         // Search
         const searchInput = document.getElementById('search-widgets');
-        searchInput.addEventListener('input', debounce((e) => {
+        searchInput.addEventListener('input', window.debounce((e) => {
             this.filterWidgets();
         }, 300));
         
@@ -1052,19 +1052,6 @@ class WidgetManager {
             return confirm(`Excluir ${item}?`) && onConfirm();
         }
     }
-}
-
-// Utility function
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
 }
 
 // Inicializar quando DOM estiver carregado

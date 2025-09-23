@@ -660,17 +660,40 @@ class TokenCafeApp {
             });
         };
 
-        // Mostrar/ocultar o botão baseado na posição do scroll
-        window.addEventListener('scroll', function() {
+        // Função para configurar o listener de scroll
+        const setupScrollListener = () => {
             const backToTopBtn = document.getElementById('backToTop');
-            if (backToTopBtn) {
-                if (window.pageYOffset > 300) {
-                    backToTopBtn.classList.add('show');
-                } else {
-                    backToTopBtn.classList.remove('show');
-                }
+            if (!backToTopBtn) {
+                // Se o botão não existe ainda, tentar novamente em 500ms
+                setTimeout(setupScrollListener, 500);
+                return;
             }
-        });
+
+            // Configurar o listener de scroll
+            const handleScroll = () => {
+                const backToTopBtn = document.getElementById('backToTop');
+                if (backToTopBtn) {
+                    if (window.pageYOffset > 300) {
+                        backToTopBtn.classList.add('show');
+                    } else {
+                        backToTopBtn.classList.remove('show');
+                    }
+                }
+            };
+
+            // Adicionar listener se ainda não existe
+            if (!window.backToTopScrollListener) {
+                window.addEventListener('scroll', handleScroll);
+                window.backToTopScrollListener = true;
+                console.log('☕ Back to Top - Listener de scroll configurado');
+            }
+
+            // Verificar posição inicial
+            handleScroll();
+        };
+
+        // Iniciar configuração
+        setupScrollListener();
 
         console.log('☕ Back to Top - Funcionalidade iniciada');
     }

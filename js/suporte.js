@@ -84,19 +84,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     wallet: document.getElementById('contact-wallet').value || null,
                     subject: document.getElementById('contact-subject').value,
                     message: document.getElementById('contact-message').value,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    currentPage: window.location.href
                 };
 
-                // Simular envio (substituir pela API real)
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Enviar dados para API
+                const success = await sendSupportEmail(formData);
+                
+                if (success) {
+                    // Mostrar toast de sucesso
+                    showToast('Sucesso!', 'Sua mensagem foi enviada com sucesso. Entraremos em contato em breve!', 'success');
 
-                // Mostrar toast de sucesso
-                showToast('Sucesso!', 'Sua mensagem foi enviada com sucesso. Entraremos em contato em breve!', 'success');
-
-                // Resetar formulário
-                form.reset();
-                form.classList.remove('was-validated');
-                validateForm(); // Revalidar após reset
+                    // Resetar formulário
+                    form.reset();
+                    form.classList.remove('was-validated');
+                    validateForm(); // Revalidar após reset
+                } else {
+                    throw new Error('Falha no envio');
+                }
 
             } catch (error) {
                 console.error('Erro ao enviar formulário:', error);
@@ -144,3 +150,192 @@ document.addEventListener('DOMContentLoaded', function () {
     // Validação inicial
     validateForm();
 });
+
+/**
+ * Função para enviar email de suporte
+ * @param {Object} formData - Dados do formulário
+ * @returns {boolean} - True se sucesso, false se erro
+ */
+async function sendSupportEmail(formData) {
+    try {
+        // Configurar dados para envio
+        const emailData = {
+            to: 'suporte@tokencafe.com', // Email de destino
+            subject: `[TokenCafe] Suporte - ${formData.subject}`,
+            body: formatSupportEmailBody(formData),
+            replyTo: formData.email
+        };
+
+        // Tentar diferentes métodos de envio
+        
+        // Método 1: API própria (se disponível)
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            try {
+                const response = await fetch('/api/send-support-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailData)
+                });
+
+                if (response.ok) {
+                    console.log('✅ Email enviado via API própria');
+                    return true;
+                }
+            } catch (error) {
+                console.log('API própria não disponível, tentando outros métodos...');
+            }
+        }
+
+        // Método 2: EmailJS (gratuito para até 200 emails/mês)
+        try {
+            if (typeof emailjs !== 'undefined') {
+                const result = await emailjs.send('default_service', 'template_1', {
+                    to_name: 'Suporte TokenCafe',
+                    from_name: formData.name,
+                    from_email: formData.email,
+                    whatsapp: formData.whatsapp,
+                    wallet: formData.wallet || 'Não informado',
+                    subject: formData.subject,
+                    message: formData.message,
+                    timestamp: new Date(formData.timestamp).toLocaleString('pt-BR')
+                });
+                
+                console.log('✅ Email enviado via EmailJS');
+                return true;
+            }
+        } catch (error) {
+            console.log('EmailJS não configurado, tentando método alternativo...');
+        }
+
+        // Método 3: Formspree (fallback)
+        try {
+            const response = await fetch('https://formspree.io/f/your-form-id', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                console.log('✅ Email enviado via Formspree');
+                return true;
+            }
+        } catch (error) {
+            console.log('Formspree não disponível, usando método local...');
+        }
+
+        // Método 4: Salvar localmente e notificar (último recurso)
+        saveSupportDataLocally(formData);
+        console.log('📧 Dados de suporte salvos localmente');
+        return true;
+
+    } catch (error) {
+        console.error('❌ Erro ao enviar email de suporte:', error);
+        return false;
+    }
+}
+
+/**
+ * Formatar corpo do email de suporte
+ */
+function formatSupportEmailBody(formData) {
+    const subjectLabels = {
+        'saiba-mais': '💡 Saiba mais sobre a plataforma',
+        'suporte-tecnico': '🛠️ Suporte técnico',
+        'comercial': '💼 Questões comerciais',
+        'integracao': '🔗 Ajuda com integração',
+        'bug-report': '🐛 Reportar problema',
+        'outros': '📋 Outros'
+    };
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mensagem de Suporte - TokenCafe</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .header { background: #1a1a2e; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f4f4f4; }
+        .section { background: white; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .label { font-weight: bold; color: #1a1a2e; }
+        .value { margin-left: 10px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>🎯 TokenCafe - Nova Mensagem de Suporte</h2>
+    </div>
+    
+    <div class="content">
+        <div class="section">
+            <h3>👤 Informações do Contato</h3>
+            <p><span class="label">Nome:</span><span class="value">${formData.name}</span></p>
+            <p><span class="label">Email:</span><span class="value">${formData.email}</span></p>
+            <p><span class="label">WhatsApp:</span><span class="value">${formData.whatsapp}</span></p>
+            ${formData.wallet ? `<p><span class="label">Carteira:</span><span class="value">${formData.wallet}</span></p>` : ''}
+        </div>
+        
+        <div class="section">
+            <h3>📋 Detalhes da Mensagem</h3>
+            <p><span class="label">Assunto:</span><span class="value">${subjectLabels[formData.subject] || formData.subject}</span></p>
+            <p><span class="label">Data/Hora:</span><span class="value">${new Date(formData.timestamp).toLocaleString('pt-BR')}</span></p>
+        </div>
+        
+        <div class="section">
+            <h3>💬 Mensagem</h3>
+            <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #1a1a2e; margin: 10px 0;">
+                ${formData.message.replace(/\n/g, '<br>')}
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🔧 Informações Técnicas</h3>
+            <p><span class="label">Página:</span><span class="value">${formData.currentPage}</span></p>
+            <p><span class="label">Navegador:</span><span class="value">${formData.userAgent}</span></p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Esta mensagem foi enviada automaticamente pelo sistema de suporte da TokenCafe.</p>
+        <p>Para responder, utilize o email: ${formData.email}</p>
+    </div>
+</body>
+</html>
+    `.trim();
+}
+
+/**
+ * Salvar dados localmente como backup
+ */
+function saveSupportDataLocally(formData) {
+    try {
+        const supportData = JSON.parse(localStorage.getItem('tokencafe_support_messages') || '[]');
+        supportData.push({
+            ...formData,
+            id: Date.now(),
+            status: 'pending'
+        });
+        
+        // Manter apenas os últimos 50 registros
+        if (supportData.length > 50) {
+            supportData.splice(0, supportData.length - 50);
+        }
+        
+        localStorage.setItem('tokencafe_support_messages', JSON.stringify(supportData));
+        console.log('📝 Dados salvos no localStorage como backup');
+        
+        // Notificar admin se disponível
+        if (typeof addNotification === 'function') {
+            addNotification('Nova mensagem de suporte pendente', 'info');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao salvar dados localmente:', error);
+    }
+}

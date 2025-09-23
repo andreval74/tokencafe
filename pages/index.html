@@ -827,102 +827,14 @@
     <!-- Web3 Connection System -->
     <script src="../js/web3-connection.js"></script>
     
-    <!-- Global Functions -->
-    <script>
-        // Instância global do Web3ConnectionManager
-        let tokencafeWeb3;
-        
-        // Inicializar quando a página carregar
-        document.addEventListener('DOMContentLoaded', () => {
-            tokencafeWeb3 = new Web3ConnectionManager();
-            
-            // Verificar se já está conectado
-            const savedAccount = localStorage.getItem('tokencafe_wallet_address');
-            if (savedAccount) {
-                updateConnectedUI(savedAccount);
-            }
-        });
-        
-        // Função para conectar MetaMask
-        async function connectWallet() {
-            if (!tokencafeWeb3) {
-                console.error('❌ Web3ConnectionManager não inicializado');
-                return;
-            }
-            
-            console.log('🔄 Tentando conectar carteira...');
-            await tokencafeWeb3.connect();
-        }
-        
-        // Função para desconectar
-        function disconnectWallet() {
-            if (tokencafeWeb3) {
-                tokencafeWeb3.disconnect();
-            }
-        }
-        
-        // Função para acessar dashboard
-        function accessDashboard() {
-            const savedAccount = localStorage.getItem('tokencafe_wallet_address');
-            
-            if (savedAccount) {
-                // Se já está conectado, ir direto para dashboard
-                window.location.href = 'dash-main.html';
-            } else {
-                // Se não está conectado, conectar primeiro
-                alert('🔐 Você precisa conectar sua carteira MetaMask primeiro!\n\nClique em "Conectar MetaMask" no topo da página.');
-            }
-        }
-        
-        // Atualizar UI quando conectado
-        function updateConnectedUI(account) {
-            const connectBtn = document.getElementById('connect-wallet-btn');
-            const connectText = document.getElementById('connect-text');
-            const walletDropdown = document.getElementById('wallet-dropdown');
-            const accountDisplay = document.getElementById('account-display');
-            const networkDisplay = document.getElementById('network-display');
-            
-            if (connectBtn && connectText) {
-                connectBtn.classList.add('btn-success');
-                connectBtn.classList.remove('btn-primary');
-                connectText.textContent = 'Conectado';
-                
-                // Mostrar dropdown
-                if (walletDropdown) {
-                    walletDropdown.style.display = 'block';
-                    connectBtn.setAttribute('data-bs-toggle', 'dropdown');
-                }
-                
-                // Atualizar informações
-                if (accountDisplay) {
-                    accountDisplay.textContent = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
-                }
-                
-                const networkId = localStorage.getItem('tokencafe_network_id');
-                if (networkDisplay && networkId) {
-                    const networks = {
-                        '1': 'Ethereum',
-                        '56': 'BSC',
-                        '137': 'Polygon',
-                        '11155111': 'Sepolia'
-                    };
-                    networkDisplay.textContent = networks[networkId] || `Rede ${networkId}`;
-                }
-            }
-        }
-        
-        // Listener para mudanças na conexão
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'tokencafe_wallet_address') {
-                if (e.newValue) {
-                    updateConnectedUI(e.newValue);
-                } else {
-                    // Desconectado - resetar UI
-                    location.reload();
-                }
-            }
-        });
-    </script>
+    <!-- Utils -->
+    <script src="../js/utils.js"></script>
+    
+    <!-- Header Functions -->
+    <script src="../js/header-functions.js"></script>
+    
+    <!-- Index Page Specific Functions -->
+    <script src="../js/index-page.js"></script>
 </body>
 
 </html>

@@ -84,7 +84,7 @@ class Analytics {
         });
         
         // Window resize handler para charts
-        window.addEventListener('resize', debounce(() => {
+        window.addEventListener('resize', window.debounce(() => {
             this.resizeCharts();
         }, 300));
         
@@ -925,19 +925,6 @@ class Analytics {
             console.log(`${type.toUpperCase()}: ${message}`);
         }
     }
-}
-
-// Utility function
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
 }
 
 // CSS adicional para analytics content

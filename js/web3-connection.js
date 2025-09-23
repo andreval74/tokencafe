@@ -36,7 +36,7 @@ class Web3ConnectionManager {
         console.log('🚀 Inicializando Web3ConnectionManager...');
         
         // Verificar se já existe uma sessão ativa
-        this.checkExistingSession();
+        await this.checkExistingSession();
         
         // Configurar listeners
         this.setupEventListeners();
@@ -50,16 +50,65 @@ class Web3ConnectionManager {
     /**
      * Verificar se existe uma sessão Web3 ativa
      */
-    checkExistingSession() {
+    async checkExistingSession() {
         const savedAccount = localStorage.getItem('tokencafe_wallet_address');
         const savedNetwork = localStorage.getItem('tokencafe_network_id');
         
-        if (savedAccount && this.isMetaMaskAvailable()) {
-            console.log('📱 Sessão encontrada:', savedAccount);
-            this.currentAccount = savedAccount;
-            this.networkId = savedNetwork;
-            this.isConnected = true;
+        if (!savedAccount || !this.isMetaMaskAvailable()) {
+            this.isConnected = false;
+            return false;
         }
+
+        try {
+            console.log('📱 Verificando sessão salva:', savedAccount);
+            
+            // Verificar se MetaMask ainda tem essa conta conectada
+            const accounts = await window.ethereum.request({
+                method: 'eth_accounts'
+            });
+
+            // Se não há contas ou a conta salva não está nas contas conectadas
+            if (accounts.length === 0 || !accounts.find(acc => acc.toLowerCase() === savedAccount.toLowerCase())) {
+                console.log('❌ Conta não está mais conectada no MetaMask');
+                this.clearSession();
+                return false;
+            }
+
+            // Verificar network atual
+            const currentNetworkId = await window.ethereum.request({
+                method: 'net_version'
+            });
+
+            this.currentAccount = savedAccount;
+            this.networkId = currentNetworkId;
+            this.isConnected = true;
+
+            console.log('✅ Sessão válida confirmada:', {
+                account: this.currentAccount,
+                network: this.supportedNetworks[this.networkId] || `Network ${this.networkId}`
+            });
+
+            return true;
+
+        } catch (error) {
+            console.log('❌ Erro ao verificar sessão:', error.message);
+            this.clearSession();
+            return false;
+        }
+    }
+
+    /**
+     * Limpar dados da sessão
+     */
+    clearSession() {
+        this.currentAccount = null;
+        this.networkId = null;
+        this.isConnected = false;
+        
+        localStorage.removeItem('tokencafe_wallet_address');
+        localStorage.removeItem('tokencafe_network_id');
+        localStorage.removeItem('tokencafe_connection_time');
+        localStorage.removeItem('tokencafe_connected');
     }
 
     /**
@@ -104,6 +153,7 @@ class Web3ConnectionManager {
             localStorage.setItem('tokencafe_wallet_address', this.currentAccount);
             localStorage.setItem('tokencafe_network_id', this.networkId);
             localStorage.setItem('tokencafe_connection_time', Date.now());
+            localStorage.setItem('tokencafe_connected', 'true');
 
             console.log('✅ Conectado com sucesso!', {
                 account: this.currentAccount,
@@ -138,15 +188,7 @@ class Web3ConnectionManager {
             console.log('📤 Desconectando...');
             
             // Limpar dados da sessão
-            this.currentAccount = null;
-            this.networkId = null;
-            this.isConnected = false;
-            
-            // Limpar localStorage
-            localStorage.removeItem('tokencafe_wallet_address');
-            localStorage.removeItem('tokencafe_network_id');
-            localStorage.removeItem('tokencafe_connection_time');
-            localStorage.removeItem('tokencafe_user_profile');
+            this.clearSession();
             
             // Atualizar UI
             this.updateUI();
@@ -326,11 +368,28 @@ class Web3ConnectionManager {
     }
 }
 
-// Inicializar quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🌐 Inicializando TokenCafe Web3...');
-    window.tokencafeWeb3 = new Web3ConnectionManager();
-});
-
-// Expor globalmente para debug
+// Expor globalmente para debug e uso em outras páginas
 window.Web3ConnectionManager = Web3ConnectionManager;
+
+// Funções globais para compatibilidade com botões HTML
+function connectWallet() {
+    if (window.tokencafeWeb3) {
+        return window.tokencafeWeb3.connect();
+    } else {
+        console.error('❌ Web3ConnectionManager não inicializado');
+        return false;
+    }
+}
+
+function disconnectWallet() {
+    if (window.tokencafeWeb3) {
+        return window.tokencafeWeb3.disconnect();
+    } else {
+        console.error('❌ Web3ConnectionManager não inicializado');
+        return false;
+    }
+}
+
+// Expor funções globalmente
+window.connectWallet = connectWallet;
+window.disconnectWallet = disconnectWallet;
