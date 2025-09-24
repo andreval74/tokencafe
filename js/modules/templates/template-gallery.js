@@ -316,7 +316,7 @@ contract YieldToken is ERC20 {
         return `
             <div class="template-card" data-template-id="${template.id}">
                 <div class="template-image">
-                    <img src="${template.image}" alt="${template.name}" loading="lazy">
+                    <img src="${template.image}" alt="${template.name}" loading="lazy" />
                     <div class="template-overlay">
                         <div class="template-actions">
                             <button class="action-btn" title="Ver Detalhes">
@@ -451,7 +451,7 @@ contract YieldToken is ERC20 {
 
         // Preview da imagem
         document.getElementById('templatePreview').innerHTML = `
-            <img src="${template.image}" alt="${template.name}">
+            <img src="${template.image}" alt="${template.name}" />
         `;
 
         // Features
