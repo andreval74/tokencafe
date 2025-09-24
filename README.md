@@ -10,10 +10,192 @@ o que temos no arquivo:
 
 # README.md
 
-# 🚀 TokenCafe — Plataforma Web3 Modular para Criação e Gestão de Tokens
+# TokenCafe 🚀
 
-**TokenCafe** é um ecossistema Web3 modular que permite a criação, gestão e negociação de tokens e contratos inteligentes de forma simples, segura e sem necessidade de código.
-Com uma interface intuitiva e recursos avançados, a plataforma democratiza o acesso ao universo cripto para todos, desde iniciantes até desenvolvedores experientes.
+TokenCafe é uma plataforma completa para gerenciamento de tokens e análise de dados financeiros, desenvolvida com arquitetura modular e tecnologias web modernas.
+
+## ✨ Características
+
+- **Dashboard Interativo**: Análise de dados em tempo real com gráficos dinâmicos
+- **Autenticação Segura**: Sistema JWT com middleware de segurança
+- **Carteiras Web3**: Integração completa com MetaMask e outras carteiras
+- **Interface Responsiva**: Design moderno e adaptável
+- **Sistema Modular**: Arquitetura organizada e escalável
+- **Templates Dinâmicos**: Sistema avançado de componentes reutilizáveis
+- **Logging Centralizado**: Monitoramento completo com Winston
+
+## 🏗️ Arquitetura
+
+O TokenCafe foi completamente reorganizado em uma **arquitetura modular hierárquica**:
+
+```
+js/
+├── core/           # Núcleo do sistema (logger, event-bus, utilities)
+├── middleware/     # Middlewares Express (auth, error-handler)
+├── routes/         # Endpoints da API (auth, analytics, users, widgets)
+├── systems/        # Sistemas principais (dashboard, templates, wallet)
+└── modules/        # Módulos específicos (analytics, profile, settings)
+```
+
+## 🚀 Início Rápido
+
+### Pré-requisitos
+- Node.js 16+
+- NPM ou Yarn
+
+### Instalação
+
+1. **Clone e instale**:
+```bash
+git clone [repository-url]
+cd tokencafe
+npm install
+```
+
+2. **Configure o ambiente**:
+```bash
+cp .env.example .env
+# Edite .env com suas configurações
+```
+
+3. **Inicie o servidor**:
+```bash
+node js/server_simple.js
+```
+
+### Acesso à Aplicação
+- **Principal**: http://localhost:3001
+- **Dashboard**: http://localhost:3001/dashboard  
+- **Health Check**: http://localhost:3001/health
+- **API Test**: http://localhost:3001/api/test
+
+## 🛠️ Tecnologias
+
+### Backend
+- **Node.js** + **Express.js**: Framework web
+- **Winston**: Sistema de logging
+- **JWT**: Autenticação segura
+- **bcryptjs**: Hash de senhas
+- **Express Validator**: Validação de dados
+
+### Frontend
+- **JavaScript ES6+**: Programação moderna
+- **Template System**: Componentes dinâmicos
+- **Event Bus**: Comunicação entre módulos
+- **Dependency Injection**: Gerenciamento de dependências
+
+### Segurança
+- **Helmet**: Proteção HTTP
+- **CORS**: Controle de origem
+- **JWT Middleware**: Autenticação de rotas
+- **Error Handling**: Tratamento seguro de erros
+
+## 📚 Documentação
+
+- **[Arquitetura do Sistema](./ARCHITECTURE.md)**: Estrutura detalhada e componentes
+- **[Guia de Desenvolvimento](./DEVELOPMENT_GUIDE.md)**: Como desenvolver e contribuir
+- **[Reorganização Completa](./REORGANIZATION_COMPLETE.md)**: Histórico das mudanças
+
+## 🔧 Desenvolvimento
+
+### Estrutura de Módulos
+```javascript
+// Exemplo de módulo
+class MeuModulo {
+    constructor(dependencies = {}) {
+        this.logger = dependencies.logger;
+        this.eventBus = dependencies.eventBus;
+    }
+
+    async initialize() {
+        this.logger.info('Módulo inicializado');
+        this.eventBus.emit('module:ready', { name: 'MeuModulo' });
+    }
+}
+```
+
+### Sistema de Templates
+```javascript
+// Registrar componente
+templateSystem.registerComponent('meu-componente', {
+    template: 'path/to/template.html',
+    dependencies: ['jquery'],
+    cache: true
+});
+
+// Carregar componente
+await templateSystem.loadComponent('meu-componente');
+```
+
+### API Routes
+```javascript
+// Rota protegida com validação
+router.post('/api/data', [
+    auth,
+    body('name').notEmpty(),
+    body('email').isEmail()
+], async (req, res) => {
+    // Lógica da rota
+});
+```
+
+## 🧪 Testes
+
+```bash
+# Executar servidor de desenvolvimento
+node js/server_simple.js
+
+# Testar endpoints
+curl http://localhost:3001/health
+curl http://localhost:3001/api/test
+```
+
+## 📦 Deploy
+
+### Produção
+```bash
+# Instalar dependências de produção
+npm ci --only=production
+
+# Configurar ambiente
+NODE_ENV=production
+
+# Iniciar servidor
+NODE_ENV=production node js/server_simple.js
+```
+
+## 🤝 Contribuindo
+
+1. **Fork** o projeto
+2. **Crie** uma branch: `git checkout -b feature/nova-feature`
+3. **Siga** as convenções do [Guia de Desenvolvimento](./DEVELOPMENT_GUIDE.md)
+4. **Teste** suas mudanças
+5. **Commit**: `git commit -m 'feat: adiciona nova feature'`
+6. **Push**: `git push origin feature/nova-feature`
+7. **Abra** um Pull Request
+
+### Convenções
+- **Arquivos**: kebab-case (`user-profile.js`)
+- **Classes**: PascalCase (`UserProfile`)
+- **Funções**: camelCase (`getUserProfile`)
+- **Constantes**: UPPER_SNAKE_CASE (`API_BASE_URL`)
+
+## 📊 Status do Projeto
+
+- ✅ **Reorganização Modular**: Completa
+- ✅ **Sistema de Templates**: Implementado
+- ✅ **Integração Testada**: Funcionando
+- ✅ **Documentação**: Atualizada
+- 🔄 **Testes Automatizados**: Em desenvolvimento
+- 🔄 **CI/CD**: Planejado
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+---
+
+**Desenvolvido com ❤️ pela equipe TokenCafe**
 
 ---
 

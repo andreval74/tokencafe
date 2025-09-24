@@ -7,6 +7,9 @@
  * ================================================================================
  */
 
+/* Importar classes utilitárias para substituir estilos inline */
+@import url('utility-classes.css');
+
 /* ============================================================================
    SISTEMA DE CORES TOKENCAFE - TEMA ESCURO E CLARO
    ========================================================================== */

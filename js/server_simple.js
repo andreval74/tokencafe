@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '../pages/dash-main.html'));
+    res.sendFile(path.join(__dirname, '../js/modules/dashboard/templates/dash-main.html'));
 });
 
 app.get('/test-system', (req, res) => {

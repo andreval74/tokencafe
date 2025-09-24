@@ -6,7 +6,7 @@
  * ================================================================================
  */
 
-const logger = require('./logger');
+const logger = require('../core/logger');
 
 const errorHandler = (error, req, res, next) => {
     let customError = {

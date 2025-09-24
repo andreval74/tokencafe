@@ -11,11 +11,11 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
-const logger = require('./logger');
-const { auth } = require('./auth');
+const logger = require('../core/logger');
+const { auth } = require('../middleware/auth');
 
 // Importar dados mock centralizados
-const { mockUsers, findUserByEmail, findUserById } = require('../shared/data/mock-data');
+const { mockUsers, findUserByEmail, findUserById } = require('../../shared/data/mock-data');
 
 // POST /api/auth/login
 router.post('/login', [
@@ -54,20 +54,21 @@ router.post('/login', [
             });
         }
         
-        // Gerar JWT
+        // Atualizar último login
+        user.lastLogin = new Date().toISOString();
+        
+        // Gerar token JWT
         const token = jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                wallet: user.wallet
+            { 
+                id: user.id, 
+                email: user.email, 
+                role: user.role 
             },
-            process.env.JWT_SECRET || 'tokencafe_secret_key',
+            process.env.JWT_SECRET || 'tokencafe-secret-key',
             { expiresIn: '24h' }
         );
         
-        logger.info(`Login bem-sucedido: ${user.email} (ID: ${user.id})`);
+        logger.info(`Login realizado com sucesso: ${email}`);
         
         res.json({
             success: true,
@@ -78,7 +79,13 @@ router.post('/login', [
                     name: user.name,
                     email: user.email,
                     role: user.role,
-                    wallet: user.wallet
+                    wallet: user.wallet,
+                    avatar: user.avatar,
+                    plan: user.plan,
+                    widgets: user.widgets,
+                    totalVolume: user.totalVolume,
+                    createdAt: user.createdAt,
+                    lastLogin: user.lastLogin
                 }
             }
         });
@@ -111,46 +118,50 @@ router.post('/register', [
         
         const { name, email, password, wallet } = req.body;
         
-        // Verificar se usuário já existe usando função centralizada
+        // Verificar se usuário já existe
         const existingUser = findUserByEmail(email);
         if (existingUser) {
             return res.status(409).json({
                 success: false,
-                error: 'Email já cadastrado'
+                error: 'Email já está em uso'
             });
         }
         
         // Hash da senha
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 12);
         
         // Criar novo usuário
         const newUser = {
-            id: users.length + 1,
+            id: mockUsers.length + 1,
             name,
             email,
             password: hashedPassword,
-            role: 'user',
             wallet: wallet || null,
-            createdAt: new Date(),
-            isActive: true
+            role: 'user',
+            plan: 'free',
+            isActive: true,
+            widgets: 0,
+            totalVolume: 0,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f85d23&color=fff`,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString()
         };
         
-        users.push(newUser);
+        // Adicionar à lista de usuários mock
+        mockUsers.push(newUser);
         
-        // Gerar JWT
+        // Gerar token JWT
         const token = jwt.sign(
-            {
-                id: newUser.id,
-                email: newUser.email,
-                name: newUser.name,
-                role: newUser.role,
-                wallet: newUser.wallet
+            { 
+                id: newUser.id, 
+                email: newUser.email, 
+                role: newUser.role 
             },
-            process.env.JWT_SECRET || 'tokencafe_secret_key',
+            process.env.JWT_SECRET || 'tokencafe-secret-key',
             { expiresIn: '24h' }
         );
         
-        logger.info(`Novo usuário registrado: ${newUser.email} (ID: ${newUser.id})`);
+        logger.info(`Novo usuário registrado: ${email}`);
         
         res.status(201).json({
             success: true,
@@ -161,7 +172,13 @@ router.post('/register', [
                     name: newUser.name,
                     email: newUser.email,
                     role: newUser.role,
-                    wallet: newUser.wallet
+                    wallet: newUser.wallet,
+                    avatar: newUser.avatar,
+                    plan: newUser.plan,
+                    widgets: newUser.widgets,
+                    totalVolume: newUser.totalVolume,
+                    createdAt: newUser.createdAt,
+                    lastLogin: newUser.lastLogin
                 }
             }
         });
@@ -179,8 +196,7 @@ router.post('/register', [
 router.get('/me', auth, (req, res) => {
     try {
         const user = findUserById(req.user.id);
-        
-        if (!user || !user.isActive) {
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 error: 'Usuário não encontrado'
@@ -195,12 +211,17 @@ router.get('/me', auth, (req, res) => {
                 email: user.email,
                 role: user.role,
                 wallet: user.wallet,
-                createdAt: user.createdAt
+                avatar: user.avatar,
+                plan: user.plan,
+                widgets: user.widgets,
+                totalVolume: user.totalVolume,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin
             }
         });
         
     } catch (error) {
-        logger.error('Erro ao buscar perfil:', error);
+        logger.error('Erro ao buscar dados do usuário:', error);
         res.status(500).json({
             success: false,
             error: 'Erro interno do servidor'
@@ -212,8 +233,7 @@ router.get('/me', auth, (req, res) => {
 router.post('/refresh', auth, (req, res) => {
     try {
         const user = findUserById(req.user.id);
-        
-        if (!user || !user.isActive) {
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 error: 'Usuário não encontrado'
@@ -222,14 +242,12 @@ router.post('/refresh', auth, (req, res) => {
         
         // Gerar novo token
         const token = jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                wallet: user.wallet
+            { 
+                id: user.id, 
+                email: user.email, 
+                role: user.role 
             },
-            process.env.JWT_SECRET || 'tokencafe_secret_key',
+            process.env.JWT_SECRET || 'tokencafe-secret-key',
             { expiresIn: '24h' }
         );
         
@@ -250,7 +268,8 @@ router.post('/refresh', auth, (req, res) => {
 // POST /api/auth/logout
 router.post('/logout', auth, (req, res) => {
     try {
-        logger.info(`Usuário fez logout: ${req.user.email} (ID: ${req.user.id})`);
+        // Em uma implementação real, você invalidaria o token aqui
+        logger.info(`Logout realizado: usuário ${req.user.id}`);
         
         res.json({
             success: true,

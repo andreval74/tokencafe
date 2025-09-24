@@ -4,6 +4,7 @@
  * ================================================================================
  * Sistema unificado para gerenciamento de templates e componentes
  * Consolidação de todas as funções relacionadas a templates dinâmicos
+ * Integrado com o sistema de carregamento modular
  * ================================================================================
  */
 
@@ -12,6 +13,8 @@ class TemplateSystem {
         this.cache = new Map();
         this.loadedTemplates = new Set();
         this.observers = new Map();
+        this.componentRegistry = new Map();
+        this.dependencies = new Map();
         
         this.init();
     }
@@ -22,13 +25,14 @@ class TemplateSystem {
     init() {
         console.log('📄 Inicializando TemplateSystem...');
         
+        // Registrar componentes padrão
+        this.registerDefaultComponents();
+        
         if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", () => {
-                // Pequeno delay para garantir que todos os elementos estejam presentes
                 setTimeout(() => this.loadAllTemplates(), 100);
             });
         } else {
-            // Se DOM já está pronto, aguardar um tick para garantir que scripts anteriores finalizaram
             setTimeout(() => this.loadAllTemplates(), 100);
         }
         
@@ -39,11 +43,79 @@ class TemplateSystem {
     }
 
     /**
-     * Carregar template individual
+     * Registrar componentes padrão do sistema
+     */
+    registerDefaultComponents() {
+        // Componentes de layout
+        this.registerComponent('header', {
+            template: 'components/layout/header.html',
+            dependencies: ['wallet'],
+            cache: true
+        });
+        
+        this.registerComponent('footer', {
+            template: 'components/layout/footer.html',
+            cache: true
+        });
+        
+        this.registerComponent('sidebar', {
+            template: 'components/layout/sidebar.html',
+            dependencies: ['dashboard-core'],
+            cache: true
+        });
+        
+        // Componentes de UI
+        this.registerComponent('modal', {
+            template: 'components/ui/modal.html',
+            cache: false // Modais podem ter conteúdo dinâmico
+        });
+        
+        this.registerComponent('toast', {
+            template: 'components/ui/toast.html',
+            cache: false
+        });
+        
+        // Componentes específicos
+        this.registerComponent('widget-card', {
+            template: 'components/widgets/widget-card.html',
+            dependencies: ['widget-system'],
+            cache: true
+        });
+        
+        this.registerComponent('analytics-chart', {
+            template: 'components/analytics/chart.html',
+            dependencies: ['analytics-core'],
+            cache: true
+        });
+    }
+
+    /**
+     * Registrar um novo componente
+     */
+    registerComponent(name, config) {
+        this.componentRegistry.set(name, {
+            template: config.template,
+            dependencies: config.dependencies || [],
+            cache: config.cache !== false,
+            processor: config.processor || null,
+            styles: config.styles || null
+        });
+        
+        console.log(`📋 Componente registrado: ${name}`);
+    }
+
+    /**
+     * Carregar template individual com suporte a componentes
      */
     async loadTemplate(selector, templateFile) {
         try {
             console.log(`📋 Carregando template: ${templateFile}`);
+            
+            // Verificar se é um componente registrado
+            const component = this.componentRegistry.get(templateFile);
+            if (component) {
+                return await this.loadComponent(selector, templateFile, component);
+            }
             
             // Verificar cache
             if (this.cache.has(templateFile)) {
@@ -80,6 +152,103 @@ class TemplateSystem {
             console.error(`❌ Erro ao carregar template ${templateFile}:`, error);
             this.handleTemplateError(selector, templateFile, error);
             throw error;
+        }
+    }
+
+    /**
+     * Carregar componente registrado
+     */
+    async loadComponent(selector, componentName, component) {
+        try {
+            // Verificar dependências
+            if (component.dependencies.length > 0) {
+                await this.checkDependencies(component.dependencies);
+            }
+            
+            // Verificar cache se habilitado
+            if (component.cache && this.cache.has(component.template)) {
+                const cachedContent = this.cache.get(component.template);
+                this.injectTemplate(selector, cachedContent);
+                return cachedContent;
+            }
+            
+            // Carregar template do componente
+            const response = await fetch(this.resolveTemplatePath(component.template));
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+            }
+            
+            let html = await response.text();
+            
+            // Processar template se houver processador
+            if (component.processor) {
+                html = await component.processor(html);
+            }
+            
+            // Armazenar no cache se habilitado
+            if (component.cache) {
+                this.cache.set(component.template, html);
+            }
+            
+            // Injetar no DOM
+            this.injectTemplate(selector, html);
+            
+            // Carregar estilos específicos se houver
+            if (component.styles) {
+                await this.loadComponentStyles(component.styles);
+            }
+            
+            console.log(`✅ Componente ${componentName} carregado com sucesso`);
+            
+            return html;
+            
+        } catch (error) {
+            console.error(`❌ Erro ao carregar componente ${componentName}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Verificar dependências do componente
+     */
+    async checkDependencies(dependencies) {
+        for (const dep of dependencies) {
+            if (!window[dep] && !window.tokencafeLoader?.isSystemLoaded(dep)) {
+                console.warn(`⚠️ Dependência ${dep} não encontrada, tentando carregar...`);
+                
+                if (window.tokencafeLoader) {
+                    await window.tokencafeLoader.loadAdditionalSystem(dep);
+                } else {
+                    throw new Error(`Dependência ${dep} não disponível`);
+                }
+            }
+        }
+    }
+
+    /**
+     * Carregar estilos específicos do componente
+     */
+    async loadComponentStyles(stylesPath) {
+        const styleId = `component-styles-${stylesPath.replace(/[^a-zA-Z0-9]/g, '-')}`;
+        
+        // Verificar se já foi carregado
+        if (document.getElementById(styleId)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(stylesPath);
+            if (response.ok) {
+                const css = await response.text();
+                const style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = css;
+                document.head.appendChild(style);
+                
+                console.log(`🎨 Estilos do componente carregados: ${stylesPath}`);
+            }
+        } catch (error) {
+            console.warn(`⚠️ Erro ao carregar estilos do componente: ${stylesPath}`, error);
         }
     }
 
@@ -125,8 +294,27 @@ class TemplateSystem {
     resolveTemplatePath(templateFile) {
         console.log(`🔍 Resolvendo caminho para: ${templateFile}`);
         
-        // Se já tem extensão .html, usar diretamente  
+        // Se já é um caminho completo (contém js/modules), usar como está
+        if (templateFile.includes('js/modules/')) {
+            console.log(`✅ Usando caminho completo do módulo: ${templateFile}`);
+            return templateFile;
+        }
+        
+        // Templates do dashboard estão no módulo dashboard
+        if (templateFile.includes('dashboard-')) {
+            const dashboardPath = `../js/modules/dashboard/templates/${templateFile}`;
+            console.log(`✅ Usando caminho do módulo dashboard: ${dashboardPath}`);
+            return dashboardPath;
+        }
+        
+        // Se já tem extensão .html, verificar se é um template específico
         if (templateFile.endsWith('.html')) {
+            // Verificar se existe na pasta pages primeiro
+            if (templateFile.includes('dash-') || templateFile.includes('dashboard-')) {
+                const dashboardPath = `../js/modules/dashboard/templates/${templateFile}`;
+                console.log(`✅ Usando caminho do módulo dashboard: ${dashboardPath}`);
+                return dashboardPath;
+            }
             console.log(`✅ Usando caminho completo: ${templateFile}`);
             return templateFile;
         }
@@ -137,7 +325,7 @@ class TemplateSystem {
         if (templateFile.includes('header')) basePath += 'headers/';
         else if (templateFile.includes('footer')) basePath += 'footers/';
         else if (templateFile.includes('modal')) basePath += 'modals/';
-        else if (templateFile.startsWith('dash-')) basePath = '../dasboard/';
+        else if (templateFile.startsWith('dash-')) basePath = '../pages/';
         
         const resolvedPath = `${basePath}${templateFile}.html`;
         console.log(`✅ Caminho resolvido: ${resolvedPath}`);

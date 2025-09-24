@@ -9,8 +9,8 @@
 const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const router = express.Router();
-const logger = require('./logger');
-const { auth, authorize } = require('./auth');
+const logger = require('../core/logger');
+const { auth, authorize } = require('../middleware/auth');
 
 // Importar dados mock centralizados
 const { 

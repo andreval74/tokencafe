@@ -285,7 +285,7 @@ class WalletSystem {
     redirectToDashboard() {
         // Se estiver na página inicial, redirecionar para dashboard
         if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
-            window.location.href = 'dash-main.html';
+            window.location.href = '/dashboard';
         }
     }
 

@@ -7,7 +7,7 @@
  */
 
 const jwt = require('jsonwebtoken');
-const logger = require('./logger');
+const logger = require('../core/logger');
 
 const auth = async (req, res, next) => {
     try {

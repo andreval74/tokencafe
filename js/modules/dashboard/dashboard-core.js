@@ -1015,9 +1015,9 @@ const TokenCafeNavigation = {
     goToDashboard() {
         const currentPath = window.location.pathname;
         if (currentPath.includes('pages/')) {
-            window.location.href = 'dash-main.html';
+            window.location.href = '../js/modules/dashboard/templates/dash-main.html';
         } else {
-            window.location.href = 'pages/dash-main.html';
+            window.location.href = 'js/modules/dashboard/templates/dash-main.html';
         }
     },
 

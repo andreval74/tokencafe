@@ -16,14 +16,15 @@ class TokenCafeLoader {
         this.pageRequirements = {
             'index.html': ['tokencafe-core', 'wallet', 'template-system'],
             'dash-main.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
+            'dashboard.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
             'widget-manager.html': ['tokencafe-core', 'wallet', 'widget-system', 'template-system'],
             'reports.html': ['tokencafe-core', 'wallet', 'analytics-core', 'template-system']
         };
         
         // Sistemas condicionais - carregados apenas quando necessário
         this.conditionalSystems = {
-            'analytics-core': ['reports.html', 'dash-main.html'], // só carrega analytics no dashboard se for admin
-            'widget-system': ['widget-manager.html', 'dash-main.html'] // widgets no dashboard
+            'analytics-core': ['reports.html', 'dash-main.html', 'dashboard.html'], // só carrega analytics no dashboard se for admin
+            'widget-system': ['widget-manager.html', 'dash-main.html', 'dashboard.html'] // widgets no dashboard
         };
         
         // Configuração dos sistemas
@@ -44,7 +45,7 @@ class TokenCafeLoader {
                 required: true
             },
             'dashboard-core': {
-                path: 'js/systems/dashboard-core.js',
+                path: 'js/modules/dashboard/dashboard-core.js',
                 priority: 4,
                 required: false
             },
@@ -443,8 +444,8 @@ const IndexPageFunctions = {
             if (window.TokenCafeNavigation) {
                 window.TokenCafeNavigation.goToDashboard();
             } else {
-                // Como estamos em pages/index.html, o dash-main.html está na mesma pasta
-                window.location.href = 'dash-main.html';
+                // Como estamos em pages/index.html, usar rota do servidor
+            window.location.href = '/dashboard';
             }
         } else {
             // Se não está conectado, conectar primeiro
