@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/shared', express.static(path.join(__dirname, '../shared')));
 app.use('/pages', express.static(path.join(__dirname, '../pages')));
 app.use('/dashboard', express.static(path.join(__dirname, '../dashboard')));
-app.use('/dasboard', express.static(path.join(__dirname, '../dasboard'))); // Compatibilidade
+app.use('/dashboard', express.static(path.join(__dirname, '../pages/modules/dashboard'))); // Compatibilidade
 app.use('/', express.static(path.join(__dirname, '..'))); // Arquivos na raiz
 
 // Rota principal

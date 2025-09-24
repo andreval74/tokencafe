@@ -415,6 +415,7 @@ async function addNetwork(chainId) {
 }
 
 async function handleConnectionSuccess() {
+    // CORREÇÃO: Usar eth_accounts para obter contas já autorizadas
     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
     

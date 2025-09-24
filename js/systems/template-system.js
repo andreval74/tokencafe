@@ -300,20 +300,35 @@ class TemplateSystem {
             return templateFile;
         }
         
-        // Templates do dashboard estão no módulo dashboard
+        // Templates do dashboard estão na pasta pages/modules/dashboard
         if (templateFile.includes('dashboard-')) {
-            const dashboardPath = `../js/modules/dashboard/templates/${templateFile}`;
-            console.log(`✅ Usando caminho do módulo dashboard: ${dashboardPath}`);
-            return dashboardPath;
+            // Verificar se estamos acessando de dentro da pasta dashboard
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/pages/modules/dashboard/')) {
+                const dashboardPath = `${templateFile}`;
+                console.log(`✅ Usando caminho local do dashboard: ${dashboardPath}`);
+                return dashboardPath;
+            } else {
+                const dashboardPath = `pages/modules/dashboard/${templateFile}`;
+                console.log(`✅ Usando caminho do dashboard: ${dashboardPath}`);
+                return dashboardPath;
+            }
         }
         
         // Se já tem extensão .html, verificar se é um template específico
         if (templateFile.endsWith('.html')) {
             // Verificar se existe na pasta pages primeiro
             if (templateFile.includes('dash-') || templateFile.includes('dashboard-')) {
-                const dashboardPath = `../js/modules/dashboard/templates/${templateFile}`;
-                console.log(`✅ Usando caminho do módulo dashboard: ${dashboardPath}`);
-                return dashboardPath;
+                const currentPath = window.location.pathname;
+                if (currentPath.includes('/pages/modules/dashboard/')) {
+                    const dashboardPath = `${templateFile}`;
+                    console.log(`✅ Usando caminho local do dashboard: ${dashboardPath}`);
+                    return dashboardPath;
+                } else {
+                    const dashboardPath = `pages/modules/dashboard/${templateFile}`;
+                    console.log(`✅ Usando caminho do dashboard: ${dashboardPath}`);
+                    return dashboardPath;
+                }
             }
             console.log(`✅ Usando caminho completo: ${templateFile}`);
             return templateFile;

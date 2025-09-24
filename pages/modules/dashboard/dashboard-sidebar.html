@@ -1,0 +1,179 @@
+<!--
+================================================================================
+DASHBOARD SIDEBAR - COMPONENTE DO MENU LATERAL
+================================================================================
+Menu lateral do dashboard com sistema de submenus expansíveis
+Integrado ao sistema modular TokenCafe
+================================================================================
+-->
+
+<nav class="dashboard-sidebar" id="dashboard-sidebar">
+    <!-- Logo e Título -->
+    <div class="sidebar-header p-3">
+        <div class="d-flex align-items-center">
+            <img src="../../../imgs/tkncafe32x32.png" alt="TokenCafe" class="me-2" style="width: 24px; height: 24px;">
+            <div class="sidebar-title">
+                <small class="text-muted">Dashboard</small>
+                <h6 class="mb-0 text-white">TokenCafe</h6>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Principal -->
+    <div class="sidebar-menu">
+        <ul class="nav flex-column">
+            <!-- Dashboard Home -->
+            <li class="nav-item">
+                <a class="nav-link active" href="#" data-page="home">
+                    <i class="bi bi-house-door me-2"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Tokens -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-toggle="collapse" data-target="#tokens-menu">
+                    <i class="bi bi-coin me-2"></i>
+                    <span class="menu-text">Tokens</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="tokens-menu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="tokens">
+                                <i class="bi bi-list-ul me-2"></i>
+                                <span class="menu-text">Meus Tokens</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="token-create">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                <span class="menu-text">Criar Token</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Widgets -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-toggle="collapse" data-target="#widgets-menu">
+                    <i class="bi bi-puzzle me-2"></i>
+                    <span class="menu-text">Widgets</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse" id="widgets-menu">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="widgets">
+                                <i class="bi bi-grid-3x3-gap me-2"></i>
+                                <span class="menu-text">Meus Widgets</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-page="widget-create">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                <span class="menu-text">Criar Widget</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Analytics -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="analytics">
+                    <i class="bi bi-graph-up me-2"></i>
+                    <span class="menu-text">Analytics</span>
+                </a>
+            </li>
+
+            <!-- Templates -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="templates">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    <span class="menu-text">Templates</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <li class="nav-divider"></li>
+
+            <!-- Perfil -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="profile">
+                    <i class="bi bi-person me-2"></i>
+                    <span class="menu-text">Perfil</span>
+                </a>
+            </li>
+
+            <!-- Configurações -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="settings">
+                    <i class="bi bi-gear me-2"></i>
+                    <span class="menu-text">Configurações</span>
+                </a>
+            </li>
+
+            <!-- Suporte -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-page="support">
+                    <i class="bi bi-question-circle me-2"></i>
+                    <span class="menu-text">Suporte</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer p-3 mt-auto">
+        <div class="d-flex align-items-center">
+            <div class="wallet-info flex-grow-1">
+                <small class="text-muted d-block">Carteira Conectada</small>
+                <small class="text-white" id="wallet-address">0x1234...5678</small>
+            </div>
+            <button class="btn btn-sm btn-outline-light" onclick="window.TokenCafeWallet?.disconnect()">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toggle Button -->
+    <button class="sidebar-toggle" onclick="window.tokencafeDashboard?.toggleSidebar()">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+</nav>
+
+<!-- Sidebar Manager será inicializado pelo dashboard-controller.js -->
+<script>
+// Inicialização do sidebar será feita pelo DashboardCore
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup navigation listeners
+    document.querySelectorAll('[data-page]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pageId = this.getAttribute('data-page');
+            if (window.tokencafeDashboard && window.tokencafeDashboard.navigateTo) {
+                window.tokencafeDashboard.navigateTo(pageId);
+            }
+        });
+    });
+
+    // Setup collapse toggles
+    document.querySelectorAll('[data-toggle="collapse"]').forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-target');
+            const target = document.querySelector(targetId);
+            if (target) {
+                target.classList.toggle('show');
+                const icon = this.querySelector('.bi-chevron-down, .bi-chevron-up');
+                if (icon) {
+                    icon.classList.toggle('bi-chevron-down');
+                    icon.classList.toggle('bi-chevron-up');
+                }
+            }
+        });
+    });
+});
+</script>

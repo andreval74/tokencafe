@@ -45,6 +45,7 @@ class WalletSystem {
 
     /**
      * Verificar se existe uma sessão Web3 ativa
+     * IMPORTANTE: Usa eth_accounts (não requer ação do usuário) para verificação silenciosa
      */
     async checkExistingSession() {
         const savedAccount = localStorage.getItem('tokencafe_wallet_address');
@@ -58,7 +59,8 @@ class WalletSystem {
         try {
             console.log('📱 Verificando sessão salva:', savedAccount);
             
-            // Verificar se MetaMask ainda tem essa conta conectada
+            // Usar eth_accounts para verificação silenciosa (não requer ação do usuário)
+            // eth_requestAccounts só deve ser usado quando o usuário clica em "conectar"
             const accounts = await window.ethereum.request({
                 method: 'eth_accounts'
             });
@@ -172,7 +174,16 @@ class WalletSystem {
 
         } catch (error) {
             console.error('❌ Erro na conexão:', error);
-            this.showError(`Erro na conexão: ${error.message}`);
+            
+            // Tratamento específico para erro 4001 (usuário rejeitou a conexão)
+            if (error.code === 4001) {
+                this.showError('Conexão cancelada pelo usuário. Clique em "Conectar" novamente quando estiver pronto.');
+            } else if (error.code === -32002) {
+                this.showError('Já existe uma solicitação de conexão pendente. Verifique o MetaMask.');
+            } else {
+                this.showError(`Erro na conexão: ${error.message}`);
+            }
+            
             return false;
         }
     }
@@ -285,7 +296,7 @@ class WalletSystem {
     redirectToDashboard() {
         // Se estiver na página inicial, redirecionar para dashboard
         if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
-            window.location.href = '/dashboard';
+            window.location.href = '/pages/modules/dashboard/';
         }
     }
 
@@ -382,6 +393,199 @@ function disconnectWalletFromHeader() {
 }
 
 // ================================================================================
+// FUNÇÕES ESPECÍFICAS PARA PÁGINA INDEX
+// ================================================================================
+
+/**
+ * Limpar todas as sessões ao carregar a página index.html
+ */
+function clearAllSessions() {
+    console.log('🧹 Limpando todas as sessões...');
+    
+    // Limpar dados do TokenCafe
+    localStorage.removeItem('tokencafe_wallet_address');
+    localStorage.removeItem('tokencafe_network_id');
+    localStorage.removeItem('tokencafe_connection_time');
+    localStorage.removeItem('tokencafe_connected');
+    
+    // Limpar outros dados relacionados à sessão
+    localStorage.removeItem('tokencafe_user_profile');
+    localStorage.removeItem('tokencafe_dashboard_state');
+    localStorage.removeItem('tokencafe_last_activity');
+    
+    console.log('✅ Todas as sessões foram limpas');
+}
+
+/**
+ * Função para verificar se deve limpar sessões ou redirecionar
+ */
+async function checkConnectionAndRedirect() {
+    try {
+        // Verificar se MetaMask está instalado
+        if (typeof window.ethereum === 'undefined') {
+            // MetaMask não instalado - limpar sessões e mostrar página
+            clearAllSessions();
+            checkMetaMaskConnection();
+            return;
+        }
+        
+        // Verificar se há conta salva
+        const savedAccount = localStorage.getItem('tokencafe_wallet_address');
+        
+        if (!savedAccount) {
+            // Não há conta salva - mostrar página normalmente
+            checkMetaMaskConnection();
+            return;
+        }
+        
+        // Verificar se MetaMask ainda tem essa conta conectada
+        // CORREÇÃO: Usar eth_accounts para verificação silenciosa (não requer ação do usuário)
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        
+        // Se não há contas ou a conta salva não está nas contas conectadas
+        if (accounts.length === 0 || !accounts.find(acc => acc.toLowerCase() === savedAccount.toLowerCase())) {
+            console.log('❌ Conta não está mais conectada no MetaMask');
+            // Limpar sessão e mostrar página
+            clearAllSessions();
+            checkMetaMaskConnection();
+        } else {
+            // Já conectado - redirecionar automaticamente para o dashboard
+            console.log('✅ Usuário já conectado, redirecionando para o dashboard...');
+            
+            // Mostrar mensagem de redirecionamento
+            const loadingBtn = document.getElementById('loading-connection-btn');
+            if (loadingBtn) {
+                loadingBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Redirecionando para o Dashboard...';
+                loadingBtn.style.display = 'block';
+            }
+            
+            // Redirecionar para o dashboard
+            setTimeout(() => {
+                window.location.href = 'modules/dashboard/index.html';
+            }, 1500); // Aguardar 1.5 segundos para mostrar feedback visual
+        }
+        
+    } catch (error) {
+        console.error('Erro ao verificar conexão:', error);
+        // Em caso de erro, limpar sessões e mostrar página
+        clearAllSessions();
+        checkMetaMaskConnection();
+    }
+}
+
+/**
+ * Verificar conexão MetaMask na página index
+ */
+async function checkMetaMaskConnection() {
+    const connectBtn = document.getElementById('connect-metamask-btn');
+    const dashboardBtn = document.getElementById('access-dashboard-btn');
+    const loadingBtn = document.getElementById('loading-connection-btn');
+    
+    try {
+        // Verificar se MetaMask está instalado
+        if (typeof window.ethereum === 'undefined') {
+            // MetaMask não instalado
+            if (connectBtn) {
+                connectBtn.innerHTML = '<i class="fas fa-download me-2"></i>Instalar MetaMask';
+                connectBtn.onclick = () => window.open('https://metamask.io/download/', '_blank');
+                connectBtn.style.display = 'block';
+            }
+            if (loadingBtn) loadingBtn.style.display = 'none';
+            return;
+        }
+        
+        // Verificar se já está conectado
+        const savedAccount = localStorage.getItem('tokencafe_wallet_address');
+        
+        if (!savedAccount) {
+            // Não há conta salva - mostrar botão conectar
+            if (connectBtn) connectBtn.style.display = 'block';
+            if (loadingBtn) loadingBtn.style.display = 'none';
+            return;
+        }
+        
+        // Verificar se MetaMask ainda tem essa conta conectada
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        
+        // Se não há contas ou a conta salva não está nas contas conectadas
+        if (accounts.length === 0 || !accounts.find(acc => acc.toLowerCase() === savedAccount.toLowerCase())) {
+            console.log('❌ Conta não está mais conectada no MetaMask');
+            // Limpar sessão
+            localStorage.removeItem('tokencafe_wallet_address');
+            localStorage.removeItem('tokencafe_network_id');
+            localStorage.removeItem('tokencafe_connection_time');
+            localStorage.removeItem('tokencafe_connected');
+            
+            // Mostrar botão conectar
+            if (connectBtn) connectBtn.style.display = 'block';
+            if (loadingBtn) loadingBtn.style.display = 'none';
+        } else {
+            // Já conectado - redirecionar automaticamente para o dashboard
+            console.log('✅ Usuário já conectado, redirecionando para o dashboard...');
+            
+            // Atualizar informações na UI se necessário
+            updateConnectionStatus(savedAccount);
+            
+            // Redirecionar para o dashboard
+            setTimeout(() => {
+                window.location.href = 'modules/dashboard/index.html';
+            }, 1000); // Aguardar 1 segundo para mostrar feedback visual
+            
+            // Mostrar mensagem de redirecionamento
+            if (loadingBtn) {
+                loadingBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Redirecionando para o Dashboard...';
+                loadingBtn.style.display = 'block';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Erro ao verificar conexão MetaMask:', error);
+        // Em caso de erro, mostrar botão conectar
+        if (connectBtn) connectBtn.style.display = 'block';
+        if (loadingBtn) loadingBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Função para atualizar status de conexão na página index
+ */
+function updateConnectionStatus(account) {
+    // Salvar conta no localStorage se não estiver salva
+    if (!localStorage.getItem('tokencafe_wallet_address')) {
+        localStorage.setItem('tokencafe_wallet_address', account);
+    }
+    
+    // Atualizar header se existir
+    if (window.IndexPageFunctions && window.IndexPageFunctions.updateIndexConnectedUI) {
+        window.IndexPageFunctions.updateIndexConnectedUI(account);
+    }
+}
+
+/**
+ * Configurar listeners para mudanças no MetaMask na página index
+ */
+function setupIndexMetaMaskListeners() {
+    if (typeof window.ethereum !== 'undefined') {
+        window.ethereum.on('accountsChanged', function (accounts) {
+            if (accounts.length === 0) {
+                // Desconectado
+                localStorage.removeItem('tokencafe_wallet_address');
+                location.reload(); // Recarregar para atualizar UI
+            } else {
+                // Conta mudou
+                updateConnectionStatus(accounts[0]);
+                checkMetaMaskConnection();
+            }
+        });
+        
+        window.ethereum.on('chainChanged', function (chainId) {
+            // Rede mudou - pode precisar recarregar
+            console.log('Rede alterada para:', chainId);
+        });
+    }
+}
+
+// ================================================================================
 // INICIALIZAÇÃO E EXPOSIÇÃO GLOBAL
 // ================================================================================
 
@@ -391,6 +595,13 @@ window.connectWallet = connectWallet;
 window.disconnectWallet = disconnectWallet;
 window.connectWalletFromHeader = connectWalletFromHeader;
 window.disconnectWalletFromHeader = disconnectWalletFromHeader;
+
+// Expor funções específicas da página index
+window.clearAllSessions = clearAllSessions;
+window.checkConnectionAndRedirect = checkConnectionAndRedirect;
+window.checkMetaMaskConnection = checkMetaMaskConnection;
+window.updateConnectionStatus = updateConnectionStatus;
+window.setupIndexMetaMaskListeners = setupIndexMetaMaskListeners;
 
 // Criar instância global quando DOM estiver pronto
 function initializeWalletSystem() {

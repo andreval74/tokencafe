@@ -1015,9 +1015,9 @@ const TokenCafeNavigation = {
     goToDashboard() {
         const currentPath = window.location.pathname;
         if (currentPath.includes('pages/')) {
-            window.location.href = '../js/modules/dashboard/templates/dash-main.html';
+            window.location.href = '../modules/dashboard/index.html';
         } else {
-            window.location.href = 'js/modules/dashboard/templates/dash-main.html';
+            window.location.href = 'pages/modules/dashboard/index.html';
         }
     },
 
@@ -1027,7 +1027,7 @@ const TokenCafeNavigation = {
         const currentPage = window.location.pathname;
         
         // Se não está conectado e está tentando acessar dashboard
-        if (!walletAddress && currentPage.includes('dash-main.html')) {
+        if (!walletAddress && currentPage.includes('dashboard/index.html')) {
             console.log('⚠️ Redirecionando para página principal - wallet não conectada');
             this.goToHome();
             return false;

@@ -15,7 +15,7 @@ class TokenCafeLoader {
         // Mapeamento otimizado de páginas e seus sistemas necessários
         this.pageRequirements = {
             'index.html': ['tokencafe-core', 'wallet', 'template-system'],
-            'dash-main.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
+            'dashboard/index.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
             'dashboard.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
             'widget-manager.html': ['tokencafe-core', 'wallet', 'widget-system', 'template-system'],
             'reports.html': ['tokencafe-core', 'wallet', 'analytics-core', 'template-system']
@@ -23,8 +23,8 @@ class TokenCafeLoader {
         
         // Sistemas condicionais - carregados apenas quando necessário
         this.conditionalSystems = {
-            'analytics-core': ['reports.html', 'dash-main.html', 'dashboard.html'], // só carrega analytics no dashboard se for admin
-            'widget-system': ['widget-manager.html', 'dash-main.html', 'dashboard.html'] // widgets no dashboard
+            'analytics-core': ['reports.html', 'dashboard/index.html', 'dashboard.html'], // só carrega analytics no dashboard se for admin
+        'widget-system': ['widget-manager.html', 'dashboard/index.html', 'dashboard.html'] // widgets no dashboard
         };
         
         // Configuração dos sistemas
@@ -119,7 +119,7 @@ class TokenCafeLoader {
         let requirements = this.pageRequirements[page] || this.pageRequirements['index.html'];
         
         // Verificar se precisa de sistemas condicionais
-        if (page === 'dash-main.html') {
+        if (page === 'dashboard/index.html') {
             const userRole = this.getUserRole();
             
             // Carregar analytics apenas para admins
@@ -261,8 +261,12 @@ class TokenCafeLoader {
         // Detectar se estamos em uma subpasta (como pages/)
         const currentPath = window.location.pathname;
         const isInSubfolder = currentPath.includes('/pages/') || 
-                             currentPath.includes('/dasboard/') ||
                              currentPath.includes('/dashboard/');
+        
+        // Para páginas em pages/modules/dashboard/, precisamos voltar 3 níveis
+        if (currentPath.includes('/pages/modules/dashboard/')) {
+            return `../../../${path}`;
+        }
         
         return isInSubfolder ? `../${path}` : path;
     }
@@ -444,8 +448,8 @@ const IndexPageFunctions = {
             if (window.TokenCafeNavigation) {
                 window.TokenCafeNavigation.goToDashboard();
             } else {
-                // Como estamos em pages/index.html, usar rota do servidor
-            window.location.href = '/dashboard';
+                // Como estamos em pages/index.html, redirecionar para o dashboard correto
+                window.location.href = 'modules/dashboard/index.html';
             }
         } else {
             // Se não está conectado, conectar primeiro
@@ -528,5 +532,45 @@ window.isTokenCafeReady = isTokenCafeReady;
 window.waitForTokenCafe = waitForTokenCafe;
 window.onTokenCafeReady = onTokenCafeReady;
 window.IndexPageFunctions = IndexPageFunctions;
+
+// Expor funções imediatamente para compatibilidade
+// Isso garante que os botões funcionem mesmo antes do sistema estar totalmente pronto
+window.connectWallet = function() {
+    console.log('connectWallet() chamado - verificando sistema...');
+    if (window.tokencafeWallet && window.tokencafeWallet.connect) {
+        return window.tokencafeWallet.connect();
+    } else {
+        console.log('Sistema wallet não pronto, aguardando...');
+        onTokenCafeReady(() => {
+            if (window.tokencafeWallet && window.tokencafeWallet.connect) {
+                window.tokencafeWallet.connect();
+            } else {
+                alert('Erro: Sistema de conexão não disponível');
+            }
+        });
+    }
+};
+
+window.accessDashboard = function() {
+    console.log('accessDashboard() chamado - verificando sistema...');
+    if (window.IndexPageFunctions && window.IndexPageFunctions.accessDashboard) {
+        return window.IndexPageFunctions.accessDashboard();
+    } else {
+        console.log('Sistema dashboard não pronto, aguardando...');
+        onTokenCafeReady(() => {
+            if (window.IndexPageFunctions && window.IndexPageFunctions.accessDashboard) {
+                window.IndexPageFunctions.accessDashboard();
+            } else {
+                // Fallback simples
+                const savedAccount = localStorage.getItem('tokencafe_wallet_address');
+                if (savedAccount) {
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('🔐 Você precisa conectar sua carteira MetaMask primeiro!');
+                }
+            }
+        });
+    }
+};
 
 console.log('🎯 TokenCafe Loader inicializado');
