@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,45 +9,63 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <link href="css/styles.css" rel="stylesheet" />
 </head>
-<body>
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
 
+<body>
     <!-- Barra Superior -->
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="
+        background-color: var(--tokencafe-bg-primary);
+        border-bottom: 1px solid var(--tokencafe-border-light);
+      ">
         <div class="container-fluid">
             <!-- Coluna Esquerda - Logo e Título -->
-            <div class="navbar-brand">
-                       <h3><i class="fas fa-vial"></i> Ferramentas do TokenCafe</h3>
-                        <p class="text-muted mb-0">Verificação de funcionalidade das ferramentas implementadas</p>
+            <div class="navbar-brand" style="color: var(--tokencafe-primary)">
+                <i class="fas fa-wrench"></i> TokenCafe Tools
             </div>
-            
+
             <!-- Coluna Direita - Status da Carteira -->
             <div class="d-flex align-items-center">
                 <!-- Status da Conexão -->
-                <div id="wallet-status" class="me-3 text-light d-none">
+                <div id="wallet-status" class="me-3 d-none" style="color: var(--tokencafe-text-secondary)">
                     <div class="text-end">
-                        <div id="wallet-address" class="fw-bold"></div>
-                        <div id="network-info" class="text-warning small"></div>
+                        <small class="text-muted">Conectado:</small>
+                        <div id="wallet-address" class="fw-bold" style="color: var(--tokencafe-text-primary)"></div>
+                        <div id="network-info" class="small" style="color: var(--tokencafe-primary)"></div>
                     </div>
                 </div>
 
                 <!-- Botão de Conexão -->
-                <button id="connect-btn" class="btn btn-outline-light me-2">
-                    <i class="fab fa-ethereum"></i> Conectar MetaMask
+                <button id="connect-wallet-btn" class="btn btn-primary btn-sm me-2" type="button">
+                    <i class="fas fa-sign-in-alt me-1"></i>
+                    <span>Conectar ao MetaMask</span>
                 </button>
-                
+
                 <!-- Botão de Desconexão (oculto inicialmente) -->
-                <button id="disconnect-btn" class="btn btn-outline-danger d-none">
-                    <i class="fas fa-sign-out-alt"></i> Desconectar
+                <button id="disconnect-btn" class="btn btn-outline-danger btn-sm d-none" type="button">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Desconectar
                 </button>
             </div>
         </div>
     </nav>
-                 
+
+    <div class="container-fluid py-4" style="background-color: var(--tokencafe-bg-secondary); min-height: 100vh">
+        <div class="row">
+            <div class="col-12">
+                <div class="card" style="
+              background-color: var(--tokencafe-bg-tertiary);
+              border-color: var(--tokencafe-border-light);
+            ">
+                    <div class="card-header" style="
+                background-color: var(--tokencafe-bg-quaternary);
+                border-bottom-color: var(--tokencafe-border-light);
+              ">
+                        <h3 style="color: var(--tokencafe-text-primary)">
+                            <i class="fas fa-vial" style="color: var(--tokencafe-primary)"></i>
+                            Ferramentas do TokenCafe
+                        </h3>
+                        <p class="text-muted mb-0">
+                            Verificação de funcionalidade das ferramentas implementadas
+                        </p>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
@@ -57,7 +76,8 @@
                                         <i class="fas fa-coins fa-3x text-primary mb-3"></i>
                                         <h5>Módulo Tokens</h5>
                                         <p class="text-muted">Gerenciamento de tokens</p>
-                                        <a href="pages/modules/tokens/token-manager.html" class="btn btn-primary tool-button" data-requires-wallet="true">
+                                        <a href="pages/modules/tokens/token-manager.html"
+                                            class="btn btn-primary tool-button" data-requires-wallet="true">
                                             <i class="fas fa-external-link-alt"></i> Testar
                                         </a>
                                     </div>
@@ -71,7 +91,8 @@
                                         <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
                                         <h5>Módulo Analytics</h5>
                                         <p class="text-muted">Relatórios e métricas</p>
-                                        <a href="pages/modules/analytics/analytics-reports.html" class="btn btn-success tool-button" data-requires-wallet="true">
+                                        <a href="pages/modules/analytics/analytics-reports.html"
+                                            class="btn btn-success tool-button" data-requires-wallet="true">
                                             <i class="fas fa-external-link-alt"></i> Testar
                                         </a>
                                     </div>
@@ -85,7 +106,8 @@
                                         <i class="fas fa-layer-group fa-3x text-info mb-3"></i>
                                         <h5>Módulo Templates</h5>
                                         <p class="text-muted">Galeria de templates</p>
-                                        <a href="pages/modules/templates/template-gallery.html" class="btn btn-info tool-button" data-requires-wallet="true">
+                                        <a href="pages/modules/templates/template-gallery.html"
+                                            class="btn btn-info tool-button" data-requires-wallet="true">
                                             <i class="fas fa-external-link-alt"></i> Testar
                                         </a>
                                     </div>
@@ -99,7 +121,8 @@
                                         <i class="fas fa-user fa-3x text-warning mb-3"></i>
                                         <h5>Módulo Profile</h5>
                                         <p class="text-muted">Perfil do usuário</p>
-                                        <a href="pages/modules/profile/user-profile.html" class="btn btn-warning tool-button" data-requires-wallet="true">
+                                        <a href="pages/modules/profile/user-profile.html"
+                                            class="btn btn-warning tool-button" data-requires-wallet="true">
                                             <i class="fas fa-external-link-alt"></i> Testar
                                         </a>
                                     </div>
@@ -113,7 +136,8 @@
                                         <i class="fas fa-cog fa-3x text-danger mb-3"></i>
                                         <h5>Módulo Settings</h5>
                                         <p class="text-muted">Configurações do sistema</p>
-                                        <a href="pages/modules/settings/system-settings.html" class="btn btn-danger tool-button" data-requires-wallet="true">
+                                        <a href="pages/modules/settings/system-settings.html"
+                                            class="btn btn-danger tool-button" data-requires-wallet="true">
                                             <i class="fas fa-external-link-alt"></i> Testar
                                         </a>
                                     </div>
@@ -127,7 +151,8 @@
                                         <i class="fas fa-tachometer-alt fa-3x text-dark mb-3"></i>
                                         <h5>Dashboard Completo</h5>
                                         <p class="text-muted">Sistema integrado</p>
-                                        <a href="/dashboard" class="btn btn-dark tool-button" data-requires-wallet="true">
+                                        <a href="/dashboard" class="btn btn-dark tool-button"
+                                            data-requires-wallet="true">
                                             <i class="fas fa-external-link-alt"></i> Acessar
                                         </a>
                                     </div>
@@ -138,13 +163,24 @@
                         <div class="row mt-4">
                             <div class="col-12">
                                 <div class="alert alert-info">
-                                    <h5><i class="fas fa-info-circle"></i> Instruções de Teste</h5>
+                                    <h5>
+                                        <i class="fas fa-info-circle"></i> Instruções de Teste
+                                    </h5>
                                     <ul class="mb-0">
-                                        <li>Teste cada módulo individualmente clicando nos botões "Testar"</li>
-                                        <li>Verifique se os scripts JavaScript estão carregando corretamente</li>
+                                        <li>
+                                            Teste cada módulo individualmente clicando nos botões
+                                            "Testar"
+                                        </li>
+                                        <li>
+                                            Verifique se os scripts JavaScript estão carregando
+                                            corretamente
+                                        </li>
                                         <li>Teste a navegação no Dashboard Completo</li>
                                         <li>Verifique se os dados mock estão sendo exibidos</li>
-                                        <li>Teste as funcionalidades interativas (filtros, modais, etc.)</li>
+                                        <li>
+                                            Teste as funcionalidades interativas (filtros, modais,
+                                            etc.)
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -156,166 +192,47 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Scripts do TokenCafe -->
     <script src="js/systems/wallet.js"></script>
-    
+
     <script>
-        // Estado da aplicação
-        let isWalletConnected = false;
-        let currentAccount = null;
-        let currentNetwork = null;
+        // Inicializar o sistema de carteira
+        const walletSystem = new WalletSystem();
 
         // Elementos DOM
-        const connectBtn = document.getElementById('connect-btn');
+        const connectBtn = document.getElementById('connect-wallet-btn');
         const disconnectBtn = document.getElementById('disconnect-btn');
         const walletStatus = document.getElementById('wallet-status');
         const walletAddress = document.getElementById('wallet-address');
         const networkInfo = document.getElementById('network-info');
         const toolButtons = document.querySelectorAll('.tool-button');
 
-        // Redes suportadas
-        const networks = {
-            '0x1': 'Ethereum Mainnet',
-            '0x89': 'Polygon Mainnet',
-            '0xa86a': 'Avalanche C-Chain',
-            '0x38': 'BSC Mainnet',
-            '0xaa36a7': 'Sepolia Testnet',
-            '0x13881': 'Mumbai Testnet'
-        };
-
         // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeWalletConnection();
-            updateButtonStates();
+        document.addEventListener('DOMContentLoaded', async function () {
+            await walletSystem.init();
+            updateToolButtonStates();
+
+            // Configurar event listeners
+            if (connectBtn) {
+                connectBtn.addEventListener('click', () => connectWalletFromHeader());
+            }
+            if (disconnectBtn) {
+                disconnectBtn.addEventListener('click', () =>
+                    disconnectWalletFromHeader()
+                );
+            }
         });
 
-        // Verificar se MetaMask está instalado
-        function isMetaMaskInstalled() {
-            return typeof window.ethereum !== 'undefined';
-        }
+        // Atualizar estado dos botões de ferramentas
+        function updateToolButtonStates() {
+            const isConnected = walletSystem.isConnected;
 
-        // Inicializar conexão da carteira
-        async function initializeWalletConnection() {
-            if (!isMetaMaskInstalled()) {
-                showError('MetaMask não está instalado. Por favor, instale o MetaMask para continuar.');
-                return;
-            }
-
-            // Verificar se já está conectado
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) {
-                    await handleAccountsChanged(accounts);
-                }
-            } catch (error) {
-                console.error('Erro ao verificar contas:', error);
-            }
-
-            // Event listeners do MetaMask
-            if (window.ethereum) {
-                window.ethereum.on('accountsChanged', handleAccountsChanged);
-                window.ethereum.on('chainChanged', handleChainChanged);
-                window.ethereum.on('disconnect', handleDisconnect);
-            }
-        }
-
-        // Conectar carteira
-        async function connectWallet() {
-            if (!isMetaMaskInstalled()) {
-                showError('MetaMask não está instalado!');
-                return;
-            }
-
-            try {
-                const accounts = await window.ethereum.request({
-                    method: 'eth_requestAccounts'
-                });
-                
-                if (accounts.length > 0) {
-                    await handleAccountsChanged(accounts);
-                    showSuccess('Carteira conectada com sucesso!');
-                }
-            } catch (error) {
-                console.error('Erro ao conectar carteira:', error);
-                if (error.code === 4001) {
-                    showError('Conexão rejeitada pelo usuário.');
-                } else {
-                    showError('Erro ao conectar carteira: ' + error.message);
-                }
-            }
-        }
-
-        // Desconectar carteira
-        function disconnectWallet() {
-            isWalletConnected = false;
-            currentAccount = null;
-            currentNetwork = null;
-            updateUI();
-            updateButtonStates();
-            showInfo('Carteira desconectada.');
-        }
-
-        // Manipular mudança de contas
-        async function handleAccountsChanged(accounts) {
-            if (accounts.length === 0) {
-                disconnectWallet();
-            } else {
-                currentAccount = accounts[0];
-                isWalletConnected = true;
-                await getCurrentNetwork();
-                updateUI();
-                updateButtonStates();
-            }
-        }
-
-        // Manipular mudança de rede
-        async function handleChainChanged(chainId) {
-            currentNetwork = chainId;
-            if (isWalletConnected) {
-                updateUI();
-            }
-        }
-
-        // Manipular desconexão
-        function handleDisconnect() {
-            disconnectWallet();
-        }
-
-        // Obter rede atual
-        async function getCurrentNetwork() {
-            try {
-                currentNetwork = await window.ethereum.request({ method: 'eth_chainId' });
-            } catch (error) {
-                console.error('Erro ao obter rede:', error);
-            }
-        }
-
-        // Atualizar interface
-        function updateUI() {
-            if (isWalletConnected && currentAccount) {
-                // Mostrar informações da carteira
-                walletAddress.textContent = formatAddress(currentAccount);
-                networkInfo.textContent = networks[currentNetwork] || `Rede: ${currentNetwork}`;
-                
-                // Mostrar/ocultar elementos
-                connectBtn.classList.add('d-none');
-                disconnectBtn.classList.remove('d-none');
-                walletStatus.classList.remove('d-none');
-            } else {
-                // Ocultar informações da carteira
-                connectBtn.classList.remove('d-none');
-                disconnectBtn.classList.add('d-none');
-                walletStatus.classList.add('d-none');
-            }
-        }
-
-        // Atualizar estado dos botões
-        function updateButtonStates() {
             toolButtons.forEach(button => {
-                const requiresWallet = button.getAttribute('data-requires-wallet') === 'true';
-                
-                if (requiresWallet && !isWalletConnected) {
+                const requiresWallet =
+                    button.getAttribute('data-requires-wallet') === 'true';
+
+                if (requiresWallet && !isConnected) {
                     button.classList.add('disabled');
                     button.style.pointerEvents = 'none';
                     button.style.opacity = '0.5';
@@ -332,44 +249,25 @@
         // Prevenir clique em botões desabilitados
         function preventClick(e) {
             e.preventDefault();
-            showWarning('Conecte sua carteira MetaMask para acessar esta funcionalidade.');
+            showNotification(
+                'Conecte sua carteira MetaMask para acessar esta funcionalidade.',
+                'warning'
+            );
         }
 
-        // Formatar endereço
-        function formatAddress(address) {
-            return `${address.slice(0, 6)}...${address.slice(-4)}`;
-        }
-
-        // Funções de notificação
-        function showSuccess(message) {
-            showNotification(message, 'success');
-        }
-
-        function showError(message) {
-            showNotification(message, 'danger');
-        }
-
-        function showWarning(message) {
-            showNotification(message, 'warning');
-        }
-
-        function showInfo(message) {
-            showNotification(message, 'info');
-        }
-
+        // Função de notificação simples
         function showNotification(message, type) {
-            // Criar elemento de notificação
             const notification = document.createElement('div');
             notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.style.cssText =
+                'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
             notification.innerHTML = `
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            
+
             document.body.appendChild(notification);
-            
-            // Remover após 5 segundos
+
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.remove();
@@ -377,9 +275,11 @@
             }, 5000);
         }
 
-        // Event listeners
-        connectBtn.addEventListener('click', connectWallet);
-        disconnectBtn.addEventListener('click', disconnectWallet);
+        // Listener para mudanças no estado da carteira
+        document.addEventListener('walletStateChanged', function () {
+            updateToolButtonStates();
+        });
     </script>
 </body>
+
 </html>
