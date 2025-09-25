@@ -60,6 +60,9 @@ class DashboardCore {
         // Configurar sidebar
         this.setupSidebar();
         
+        // Atualizar informações da carteira
+        this.updateWalletInfo();
+        
         // Configurar atalhos de teclado
         this.setupKeyboardShortcuts();
         
@@ -139,9 +142,12 @@ class DashboardCore {
             `;
         }
         
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 2000);
+        // DESABILITADO: Redirecionamento automático removido para evitar reload da página
+        console.log('🚫 Redirecionamento automático para index.html desabilitado');
+        
+        // setTimeout(() => {
+        //     window.location.href = 'index.html';
+        // }, 2000);
     }
 
     /**
@@ -248,6 +254,16 @@ class DashboardCore {
      * Configurar sidebar
      */
     setupSidebar() {
+        // Restaurar estado do sidebar do localStorage
+        const savedState = localStorage.getItem('tokencafe_sidebar_expanded');
+        if (savedState !== null) {
+            this.sidebarExpanded = JSON.parse(savedState);
+        }
+        
+        // Aplicar estado inicial
+        document.body.classList.toggle('sidebar-expanded', this.sidebarExpanded);
+        document.body.classList.toggle('sidebar-collapsed', !this.sidebarExpanded);
+        
         // Toggle do sidebar
         const sidebarToggle = document.getElementById('sidebar-toggle');
         if (sidebarToggle) {
@@ -764,6 +780,41 @@ class DashboardCore {
     }
 
     /**
+     * Atualizar informações da carteira
+     */
+    async updateWalletInfo() {
+        try {
+            const walletAddressElement = document.getElementById('wallet-address');
+            if (!walletAddressElement) return;
+
+            // Verificar se há carteira conectada
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                const address = window.ethereum.selectedAddress;
+                const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+                walletAddressElement.textContent = shortAddress;
+                walletAddressElement.title = address; // Mostrar endereço completo no hover
+            } else if (window.TokenCafeWallet && window.TokenCafeWallet.getConnectedAccount) {
+                const account = await window.TokenCafeWallet.getConnectedAccount();
+                if (account) {
+                    const shortAddress = `${account.slice(0, 6)}...${account.slice(-4)}`;
+                    walletAddressElement.textContent = shortAddress;
+                    walletAddressElement.title = account;
+                } else {
+                    walletAddressElement.textContent = 'Não conectada';
+                }
+            } else {
+                walletAddressElement.textContent = 'Não conectada';
+            }
+        } catch (error) {
+            console.error('❌ Erro ao atualizar informações da carteira:', error);
+            const walletAddressElement = document.getElementById('wallet-address');
+            if (walletAddressElement) {
+                walletAddressElement.textContent = 'Erro ao carregar';
+            }
+        }
+    }
+
+    /**
      * Atualizar título da página
      */
     updatePageTitle(title) {
@@ -847,7 +898,7 @@ class DashboardCore {
                             <h4>Erro ao Carregar Módulo</h4>
                             <p>Não foi possível carregar o módulo <strong>${moduleName}</strong>.</p>
                             <p class="text-muted">${errorMessage}</p>
-                            <button class="btn btn-primary mt-3" onclick="location.reload()">
+                            <button class="btn btn-primary mt-3" onclick="console.log('✅ Botão tentar novamente clicado - reload desabilitado')">
                                 <i class="fas fa-refresh"></i> Tentar Novamente
                             </button>
                         </div>
@@ -1003,22 +1054,28 @@ class DashboardCore {
 const TokenCafeNavigation = {
     // Redirecionar para página principal
     goToHome() {
-        const currentPath = window.location.pathname;
-        if (currentPath.includes('pages/')) {
-            window.location.href = '../index.html';
-        } else {
-            window.location.href = 'index.html';
-        }
+        // DESABILITADO: Redirecionamentos automáticos removidos para evitar reload da página
+        console.log('🚫 Redirecionamento para home desabilitado');
+        
+        // const currentPath = window.location.pathname;
+        // if (currentPath.includes('pages/')) {
+        //     window.location.href = '../index.html';
+        // } else {
+        //     window.location.href = 'index.html';
+        // }
     },
 
     // Redirecionar para dashboard
     goToDashboard() {
-        const currentPath = window.location.pathname;
-        if (currentPath.includes('pages/')) {
-            window.location.href = '../modules/dashboard/index.html';
-        } else {
-            window.location.href = 'pages/modules/dashboard/index.html';
-        }
+        // DESABILITADO: Redirecionamentos automáticos removidos para evitar reload da página
+        console.log('🚫 Redirecionamento para dashboard desabilitado');
+        
+        // const currentPath = window.location.pathname;
+        // if (currentPath.includes('pages/')) {
+        //     window.location.href = '../modules/dashboard/index.html';
+        // } else {
+        //     window.location.href = 'modules/dashboard/index.html';
+        // }
     },
 
     // Verificar se está na página correta baseado na conexão

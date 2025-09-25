@@ -28,13 +28,16 @@ class TemplateSystem {
         // Registrar componentes padrão
         this.registerDefaultComponents();
         
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", () => {
-                setTimeout(() => this.loadAllTemplates(), 100);
-            });
-        } else {
-            setTimeout(() => this.loadAllTemplates(), 100);
-        }
+        // DESABILITADO: Carregamento automático de templates removido para evitar múltiplas leituras
+        console.log('🚫 Carregamento automático de templates desabilitado');
+        
+        // if (document.readyState === "loading") {
+        //     document.addEventListener("DOMContentLoaded", () => {
+        //         setTimeout(() => this.loadAllTemplates(), 100);
+        //     });
+        // } else {
+        //     setTimeout(() => this.loadAllTemplates(), 100);
+        // }
         
         // Configurar observer para novos elementos
         this.setupDynamicLoading();

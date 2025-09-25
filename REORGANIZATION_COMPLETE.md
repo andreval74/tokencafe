@@ -83,7 +83,7 @@ js/systems/
 
 **🧩 Componentes Dinâmicos:**
 - ✅ `pages/dashboard-sidebar.html` - Sidebar do dashboard
-- ✅ `pages/dashboard-main-content.html` - Conteúdo principal
+- ✅ `pages/dashboard-content.html` - Conteúdo principal
 
 ### 🎯 **BENEFÍCIOS ALCANÇADOS:**
 
@@ -130,7 +130,7 @@ tokencafe/
 │   ├── widget-manager.html          ✅ Widgets (CSS limpo)
 │   ├── reports.html                 ✅ Analytics
 │   ├── dashboard-sidebar.html       ✅ Componente sidebar
-│   └── dashboard-main-content.html  ✅ Componente conteúdo
+│   └── dashboard-content.html       ✅ Componente conteúdo
 └── shared/
     ├── data/
     │   └── mock-data.js             ✅ Dados centralizados

@@ -368,7 +368,7 @@ class TokenCafeCore {
                     <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
                     <h3>Erro na inicialização</h3>
                     <p class="text-muted">Ocorreu um erro ao carregar a aplicação.</p>
-                    <button class="btn btn-primary" onclick="window.location.reload()">
+                    <button class="btn btn-primary" onclick="console.log('✅ Botão recarregar página clicado - reload desabilitado')">
                         Recarregar Página
                     </button>
                 </div>

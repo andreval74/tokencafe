@@ -31,14 +31,16 @@ class WalletManager {
             await this.checkConnection();
             this.setupEventListeners();
             
-            // Aguardar DOM carregar antes de atualizar botões
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    setTimeout(() => this.updateButtonsUI(), 100);
-                });
-            } else {
-                setTimeout(() => this.updateButtonsUI(), 100);
-            }
+            // DESABILITADO: Atualização automática da UI removida para evitar múltiplas leituras
+            console.log('🚫 Atualização automática da UI desabilitada');
+            
+            // if (document.readyState === 'loading') {
+            //     document.addEventListener('DOMContentLoaded', () => {
+            //         setTimeout(() => this.updateButtonsUI(), 100);
+            //     });
+            // } else {
+            //     setTimeout(() => this.updateButtonsUI(), 100);
+            // }
         } else {
             console.warn('⚠️ MetaMask não detectado');
         }
@@ -102,13 +104,15 @@ class WalletManager {
                     chainId: this.chainId 
                 });
                 
-                // Redirecionamento se solicitado
-                if (redirectToDashboard) {
-                    console.log('🔄 Redirecionando para dashboard...');
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 500);
-                }
+                // COMENTADO: Redirecionamento removido para evitar reload da página
+                // if (redirectToDashboard) {
+                //     console.log('🔄 Redirecionando para dashboard...');
+                //     setTimeout(() => {
+                //         window.location.href = 'index.html';
+                //     }, 500);
+                // }
+                
+                console.log('✅ Conexão realizada - redirecionamento automático desabilitado');
                 
                 return this.currentAccount;
             }
@@ -204,10 +208,10 @@ class WalletManager {
                 chainId: chainId 
             });
             
-            // Recarregar página para evitar problemas
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            // Recarregar página para evitar problemas - COMENTADO PARA EVITAR RELOAD AUTOMÁTICO
+            // setTimeout(() => {
+            //     window.location.reload();
+            // }, 1000);
         });
 
         // Desconexão
@@ -264,8 +268,9 @@ class WalletManager {
                         ${this.formatAddress(this.currentAccount)}
                     `;
                 };
-                // Ação: ir para dashboard
-                button.onclick = () => window.location.href = 'dashboard.html';
+                // COMENTADO: Redirecionamento removido para evitar reload da página
+                // button.onclick = () => window.location.href = 'index.html';
+                button.onclick = () => console.log('✅ Botão clicado - redirecionamento desabilitado');
             } else {
                 // Botão no estado desconectado - laranja com tooltip "Conectar"
                 button.innerHTML = `

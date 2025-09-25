@@ -109,9 +109,12 @@ class IndexPageManager {
             loadingBtn.style.display = 'block';
         }
         
-        setTimeout(() => {
-            window.location.href = 'modules/dashboard/index.html';
-        }, 1500);
+        // COMENTADO: Redirecionamento automático removido para evitar reload da página
+        // setTimeout(() => {
+        //     window.location.href = 'modules/dashboard/index.html';
+        // }, 1500);
+        
+        console.log('✅ Sessão válida detectada - redirecionamento automático desabilitado');
     }
 
     /**
@@ -166,9 +169,16 @@ if (typeof onTokenCafeReady === 'function') {
 } else {
     // Fallback se onTokenCafeReady não estiver disponível
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            const indexManager = new IndexPageManager();
-            indexManager.init();
-        }, 1000);
+        // DESABILITADO: setTimeout removido para evitar múltiplas inicializações
+        console.log('🚫 Inicialização com delay desabilitada');
+        
+        // setTimeout(() => {
+        //     const indexManager = new IndexPageManager();
+        //     indexManager.init();
+        // }, 1000);
+        
+        // Inicialização imediata
+        const indexManager = new IndexPageManager();
+        indexManager.init();
     });
 }

@@ -60,7 +60,7 @@ Para parar o servidor: Ctrl+C
    1. Abra o arquivo: test-system.html no navegador
    2. Navegue pelos dashboards diretamente:
       • pages/index.html
-      • dashboard/main/dashboard.html  
+      • dashboard/main/index.html  
       • dashboard/pages/widget-manager.html
       • dashboard/pages/admin-panel.html
       • dashboard/pages/reports.html

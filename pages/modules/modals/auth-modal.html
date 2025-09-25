@@ -288,15 +288,35 @@ async function handleWalletSelection(e) {
     updateConnectingMessage(`Conectando com ${getWalletName(walletType)}...`);
     
     try {
-        const connected = await connectWallet(walletType);
+        // Use the new WalletIntegration system
+        let connected = false;
+        
+        if (window.walletIntegration) {
+            // Try Web3-Onboard first, then fallback systems
+            const result = await window.walletIntegration.connect();
+            connected = result.success || result === true;
+        } else {
+            // Fallback to legacy connection method
+            connected = await connectWallet(walletType);
+        }
         
         if (connected) {
-            // Se conectou com sucesso, verificar rede
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            // Get current account and chain info from the integration system
+            let chainId, account;
+            
+            if (window.walletIntegration) {
+                account = window.walletIntegration.getCurrentAccount();
+                chainId = await window.walletIntegration.getChainId();
+            } else if (window.ethereum) {
+                chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                account = accounts[0];
+            }
+            
             const supportedChains = ['0x1', '0x38', '0x89', '0xa4b1'];
             
             if (supportedChains.includes(chainId)) {
-                await handleConnectionSuccess();
+                await handleConnectionSuccess(account, chainId);
             } else {
                 showStep('network-selection');
             }
@@ -414,28 +434,32 @@ async function addNetwork(chainId) {
     });
 }
 
-async function handleConnectionSuccess() {
-    // CORREÇÃO: Usar eth_accounts para obter contas já autorizadas
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    
-    // Atualizar UI com informações de conexão
-    document.querySelector('#connected-address span').textContent = 
-        `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
-    document.querySelector('#connected-network span').textContent = 
-        getNetworkName(chainId);
+async function handleConnectionSuccess(account, chainId) {
+    // Update UI with connection information
+    if (account && chainId) {
+        document.querySelector('#connected-address span').textContent = 
+            `${account.slice(0, 6)}...${account.slice(-4)}`;
+        document.querySelector('#connected-network span').textContent = 
+            getNetworkName(chainId);
+    }
     
     showStep('connection-success');
     
-    // Notificar outros componentes sobre conexão bem-sucedida
+    // Notify other components about successful connection
     if (typeof window.EventBus !== 'undefined') {
         window.EventBus.emit('wallet:connected', {
-            address: accounts[0],
+            address: account,
             chainId: chainId
         });
     }
     
-    // Fechar modal após 2 segundos
+    // Emit global wallet events for compatibility
+    if (window.walletIntegration) {
+        // The integration system will handle event emission
+        console.log('✅ Wallet connected via Web3-Onboard integration');
+    }
+    
+    // Close modal after 2 seconds
     setTimeout(() => {
         const modalInstance = bootstrap.Modal.getInstance(document.getElementById('authModal'));
         modalInstance?.hide();
@@ -493,10 +517,28 @@ function getNetworkName(chainId) {
 }
 
 async function checkExistingConnection() {
+    // Check Web3-Onboard integration first
+    if (window.walletIntegration && window.walletIntegration.isConnected()) {
+        const account = window.walletIntegration.getCurrentAccount();
+        const chainId = await window.walletIntegration.getChainId();
+        
+        if (account && chainId) {
+            // Already connected via Web3-Onboard, emit event
+            if (typeof window.EventBus !== 'undefined') {
+                window.EventBus.emit('wallet:connected', {
+                    address: account,
+                    chainId: chainId
+                });
+            }
+            return;
+        }
+    }
+    
+    // Fallback to legacy ethereum provider check
     if (window.ethereum && window.ethereum.selectedAddress) {
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         
-        // Se já está conectado, fechar modal ou mostrar sucesso
+        // If already connected, close modal or show success
         if (typeof window.EventBus !== 'undefined') {
             window.EventBus.emit('wallet:connected', {
                 address: window.ethereum.selectedAddress,

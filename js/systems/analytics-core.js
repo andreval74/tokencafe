@@ -107,12 +107,16 @@ class AnalyticsCore {
      * Configurar auto-refresh
      */
     setupAutoRefresh() {
-        if (!this.isAutoRefreshEnabled) return;
+        // DESABILITADO: Auto-refresh removido para evitar múltiplas leituras de arquivos
+        console.log('🚫 Auto-refresh desabilitado para evitar recarregamentos');
+        return;
         
-        this.clearAutoRefresh();
-        this.autoRefreshInterval = setInterval(async () => {
-            await this.refreshData();
-        }, 30000); // 30 segundos
+        // if (!this.isAutoRefreshEnabled) return;
+        
+        // this.clearAutoRefresh();
+        // this.autoRefreshInterval = setInterval(async () => {
+        //     await this.refreshData();
+        // }, 30000); // 30 segundos
     }
 
     /**
@@ -440,12 +444,16 @@ class AnalyticsCore {
      * Processar fila de eventos
      */
     processEventQueue() {
-        setInterval(() => {
-            if (this.eventQueue.length > 0) {
-                const events = this.eventQueue.splice(0, 10); // Processar até 10 por vez
-                events.forEach(event => this.sendEvent(event));
-            }
-        }, 5000); // A cada 5 segundos
+        // DESABILITADO: Processamento de fila removido para evitar múltiplas leituras
+        console.log('🚫 Processamento de fila de eventos desabilitado');
+        return;
+        
+        // setInterval(() => {
+        //     if (this.eventQueue.length > 0) {
+        //         const events = this.eventQueue.splice(0, 10); // Processar até 10 por vez
+        //         events.forEach(event => this.sendEvent(event));
+        //     }
+        // }, 5000); // A cada 5 segundos
     }
 
     // ================================================================================

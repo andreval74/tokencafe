@@ -67,7 +67,7 @@ class WalletSystem {
 
             // Se não há contas ou a conta salva não está nas contas conectadas
             if (accounts.length === 0 || !accounts.find(acc => acc.toLowerCase() === savedAccount.toLowerCase())) {
-                console.log('❌ Conta não está mais conectada no MetaMask');
+                console.log('❌ Conta não está mais conectada.');
                 this.clearSession();
                 return false;
             }
@@ -162,6 +162,13 @@ class WalletSystem {
             // Atualizar UI
             this.updateUI();
             
+            // Atualizar botão do header quando conecta
+            if (typeof debounceUpdateHeaderButton === 'function') {
+                debounceUpdateHeaderButton();
+            } else if (typeof updateHeaderButton === 'function') {
+                updateHeaderButton();
+            }
+            
             // Mostrar sucesso
             this.showSuccess(`Conectado: ${this.formatAddress(this.currentAccount)}`);
             
@@ -201,11 +208,38 @@ class WalletSystem {
             // Atualizar UI
             this.updateUI();
             
+            // Atualizar botão do header quando desconecta
+            if (typeof debounceUpdateHeaderButton === 'function') {
+                debounceUpdateHeaderButton();
+            } else if (typeof updateHeaderButton === 'function') {
+                updateHeaderButton();
+            }
+            
             this.showSuccess('Desconectado com sucesso!');
+            
+            // Redirecionar para página inicial se estiver no dashboard
+            if (window.location.pathname.includes('dashboard')) {
+                setTimeout(() => {
+                    window.location.href = '../../pages/modules/dashboard/index.html';
+                }, 1000);
+            }
             
         } catch (error) {
             console.error('❌ Erro ao desconectar:', error);
             this.showError('Erro ao desconectar');
+        }
+    }
+
+    /**
+     * Função global de desconexão que pode ser chamada de qualquer lugar
+     */
+    globalDisconnect() {
+        if (this.isConnected) {
+            this.disconnect();
+        } else {
+            // Se não está conectado, apenas limpa a sessão e redireciona
+            this.clearSession();
+            window.location.href = '/index.html';
         }
     }
 
@@ -233,7 +267,9 @@ class WalletSystem {
             this.networkId = parseInt(chainId, 16);
             localStorage.setItem('tokencafe_network_id', this.networkId);
             this.updateUI();
-            window.location.reload(); // Recarregar para evitar problemas
+            // Removido window.location.reload() - não é necessário recarregar a página
+            // A UI será atualizada automaticamente através do updateUI()
+            console.log('🌐 Rede alterada, UI atualizada automaticamente');
         });
 
         // Desconexão
@@ -311,10 +347,8 @@ class WalletSystem {
             showToast(message, 'success');
         } else if (window.TokenCafe?.ui?.showNotification) {
             window.TokenCafe.ui.showNotification(message, 'success');
-        } else {
-            // Fallback para alert temporário
-            alert(message);
         }
+        // Removido alert para evitar janelas de aviso
     }
 
     /**
@@ -328,10 +362,8 @@ class WalletSystem {
             showToast(message, 'error');
         } else if (window.TokenCafe?.ui?.showNotification) {
             window.TokenCafe.ui.showNotification(message, 'error');
-        } else {
-            // Fallback para alert temporário
-            alert(message);
         }
+        // Removido alert para evitar janelas de aviso
     }
 
     /**
@@ -375,7 +407,14 @@ function disconnectWallet() {
 function connectWalletFromHeader() {
     console.log('connectWalletFromHeader() chamado');
     if (window.tokencafeWallet) {
-        window.tokencafeWallet.connect();
+        // Verificar se já está conectado
+        if (window.tokencafeWallet.isConnected) {
+            // Se já está conectado, redirecionar para o dashboard
+            window.location.href = 'pages/modules/dashboard/index.html';
+        } else {
+            // Se não está conectado, conectar
+            window.tokencafeWallet.connect();
+        }
     } else {
         console.error('WalletSystem não encontrado');
         alert('Erro: Sistema de conexão não disponível');
@@ -570,10 +609,15 @@ function setupIndexMetaMaskListeners() {
             if (accounts.length === 0) {
                 // Desconectado
                 localStorage.removeItem('tokencafe_wallet_address');
-                location.reload(); // Recarregar para atualizar UI
+                localStorage.removeItem('tokencafe_connected');
+                // Usar debounce para evitar múltiplas atualizações
+                debounceUpdateHeaderButton();
+                console.log('👤 Conta desconectada, UI atualizada');
             } else {
                 // Conta mudou
                 updateConnectionStatus(accounts[0]);
+                // Usar debounce para evitar múltiplas atualizações
+                debounceUpdateHeaderButton();
                 checkMetaMaskConnection();
             }
         });
@@ -581,9 +625,21 @@ function setupIndexMetaMaskListeners() {
         window.ethereum.on('chainChanged', function (chainId) {
             // Rede mudou - pode precisar recarregar
             console.log('Rede alterada para:', chainId);
+            // Usar debounce para evitar múltiplas atualizações
+            debounceUpdateHeaderButton();
+        });
+        
+        // Listener para mudanças no localStorage (quando conecta/desconecta)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'tokencafe_connected') {
+                // Usar debounce para evitar múltiplas atualizações
+                debounceUpdateHeaderButton();
+            }
         });
     }
 }
+
+// ...existing code ...
 
 // ================================================================================
 // INICIALIZAÇÃO E EXPOSIÇÃO GLOBAL
@@ -602,6 +658,9 @@ window.checkConnectionAndRedirect = checkConnectionAndRedirect;
 window.checkMetaMaskConnection = checkMetaMaskConnection;
 window.updateConnectionStatus = updateConnectionStatus;
 window.setupIndexMetaMaskListeners = setupIndexMetaMaskListeners;
+window.updateHeaderButton = updateHeaderButton;
+window.debounceUpdateHeaderButton = debounceUpdateHeaderButton;
+window.startHeaderButtonUpdater = startHeaderButtonUpdater;
 
 // Criar instância global quando DOM estiver pronto
 function initializeWalletSystem() {
@@ -620,3 +679,76 @@ if (document.readyState === 'loading') {
 }
 
 console.log('✅ Wallet System carregado');
+
+// ================================================================================
+// VERIFICAÇÃO DE BOTÃO DE DESCONEXÃO NA PÁGINA INICIAL
+// ================================================================================
+
+/**
+ * Verifica se o usuário está conectado e mostra/esconde o botão de desconexão
+ * na página inicial
+ */
+function checkDisconnectButtonVisibility() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkConnection = () => {
+            const isConnected = localStorage.getItem('tokencafe_connected') === 'true';
+            const disconnectBtn = document.getElementById('disconnect-btn-container');
+            
+            if (disconnectBtn) {
+                disconnectBtn.style.display = isConnected ? 'block' : 'none';
+            }
+        };
+        
+        // Verificar apenas inicialmente
+        checkConnection();
+        
+        // Removido setInterval - agora só verifica quando há mudanças reais
+        // A verificação será feita através dos eventos do MetaMask
+    });
+}
+
+// Função para atualizar o botão do header na página inicial
+// Debounce para evitar múltiplas atualizações do header button
+let headerButtonUpdateTimeout;
+function debounceUpdateHeaderButton() {
+    clearTimeout(headerButtonUpdateTimeout);
+    headerButtonUpdateTimeout = setTimeout(() => {
+        updateHeaderButton();
+    }, 100); // Aguarda 100ms antes de atualizar
+}
+
+function updateHeaderButton() {
+    const connectBtn = document.getElementById('connect-wallet-btn');
+    const connectText = document.getElementById('connect-text');
+    
+    if (!connectBtn || !connectText) return;
+    
+    // Verificar se está conectado através do localStorage
+    const isConnected = localStorage.getItem('tokencafe_connected') === 'true';
+    
+    if (isConnected) {
+        // Se conectado, mostrar "Ir para Dashboard"
+        connectText.textContent = 'Ir para Dashboard';
+        connectBtn.onclick = () => {
+            // DESABILITADO: Redirecionamento automático removido para evitar reload da página
+            console.log('🚫 Redirecionamento para dashboard desabilitado');
+            // window.location.href = 'pages/modules/dashboard/index.html';
+        };
+    } else {
+        // Se não conectado, mostrar "Conectar ao MetaMask"
+        connectText.textContent = 'Conectar ao MetaMask';
+        connectBtn.onclick = connectWalletFromHeader;
+    }
+}
+
+// Verificar e atualizar o botão apenas quando necessário
+function startHeaderButtonUpdater() {
+    updateHeaderButton();
+    // Removido setInterval - agora só atualiza quando há mudanças reais
+}
+
+// Inicializar verificação do botão de desconexão
+checkDisconnectButtonVisibility();
+
+// Inicializar atualizador do botão do header
+startHeaderButtonUpdater();

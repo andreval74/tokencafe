@@ -15,16 +15,15 @@ class TokenCafeLoader {
         // Mapeamento otimizado de páginas e seus sistemas necessários
         this.pageRequirements = {
             'index.html': ['tokencafe-core', 'wallet', 'template-system'],
-            'dashboard/index.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
-            'dashboard.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
+            'index.html': ['tokencafe-core', 'wallet', 'dashboard-core', 'template-system'],
             'widget-manager.html': ['tokencafe-core', 'wallet', 'widget-system', 'template-system'],
             'reports.html': ['tokencafe-core', 'wallet', 'analytics-core', 'template-system']
         };
         
         // Sistemas condicionais - carregados apenas quando necessário
         this.conditionalSystems = {
-            'analytics-core': ['reports.html', 'dashboard/index.html', 'dashboard.html'], // só carrega analytics no dashboard se for admin
-        'widget-system': ['widget-manager.html', 'dashboard/index.html', 'dashboard.html'] // widgets no dashboard
+            'analytics-core': ['reports.html', 'index.html'], // só carrega analytics no dashboard se for admin
+            'widget-system': ['widget-manager.html', 'index.html'] // widgets no dashboard
         };
         
         // Configuração dos sistemas
@@ -318,7 +317,7 @@ class TokenCafeLoader {
                     <h4>Erro de Carregamento</h4>
                     <p class="text-muted mb-3">Não foi possível carregar todos os componentes necessários.</p>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-primary" onclick="window.location.reload()">
+                        <button class="btn btn-primary" onclick="console.log('✅ Botão recarregar clicado - reload desabilitado')">
                             🔄 Recarregar Página
                         </button>
                         <button class="btn btn-outline-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">
@@ -430,8 +429,9 @@ const IndexPageFunctions = {
                 if (e.newValue) {
                     this.updateIndexConnectedUI(e.newValue);
                 } else {
-                    // Desconectado - resetar UI
-                    location.reload();
+                    // Desconectado - resetar UI sem recarregar a página
+                    console.log('🔌 Carteira desconectada - atualizando UI');
+                    this.updateIndexDisconnectedUI();
                 }
             }
         });
@@ -492,6 +492,27 @@ const IndexPageFunctions = {
                     '11155111': 'Sepolia'
                 };
                 networkDisplay.textContent = networks[networkId] || `Rede ${networkId}`;
+            }
+        }
+    },
+
+    /**
+     * Atualizar UI quando desconectado (específico para index.html)
+     */
+    updateIndexDisconnectedUI() {
+        const connectBtn = document.getElementById('connect-wallet-btn');
+        const connectText = document.getElementById('connect-text');
+        const walletDropdown = document.getElementById('wallet-dropdown');
+        
+        if (connectBtn && connectText) {
+            connectBtn.classList.remove('btn-success');
+            connectBtn.classList.add('btn-primary');
+            connectText.textContent = 'Conectar ao MetaMask';
+            
+            // Esconder dropdown
+            if (walletDropdown) {
+                walletDropdown.style.display = 'none';
+                connectBtn.removeAttribute('data-bs-toggle');
             }
         }
     }
