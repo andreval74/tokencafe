@@ -397,25 +397,34 @@
         }
         
         async function connectWallet() {
+            console.log('🚀 connectWallet() called');
+            console.log('📊 Current walletState:', window.walletState);
+            
             const method = window.walletState.selectedMethod;
+            console.log('🎯 Selected method:', method);
             
             if (!method) {
-                updateStatus('Selecione um método de conexão primeiro', 'error');
+                console.log('❌ No method selected');
+                updateStatus('⚠️ Selecione um método de conexão primeiro', 'error');
                 return;
             }
             
             setLoading(true);
             updateStatus('Iniciando conexão...', 'info');
+            console.log(`🔄 Starting connection with method: ${method}`);
             
             try {
                 switch (method) {
                     case 'web3modal':
+                        console.log('📱 Calling connectWithWeb3Modal()');
                         await connectWithWeb3Modal();
                         break;
                     case 'metamask':
+                        console.log('🦊 Calling connectWithMetaMask()');
                         await connectWithMetaMask();
                         break;
                     case 'walletconnect':
+                        console.log('🔗 Calling connectWithWalletConnect()');
                         await connectWithWalletConnect();
                         break;
                     default:
@@ -445,45 +454,80 @@
         }
         
         async function connectWithMetaMask() {
-            console.log('🦊 Connecting with MetaMask directly...');
+            console.log('🦊 === STARTING METAMASK CONNECTION ===');
+            console.log('🔍 Checking window.ethereum availability...');
+            
             updateStatus('Conectando com MetaMask...', 'info');
             
             if (!window.ethereum) {
+                console.error('❌ window.ethereum not found');
                 throw new Error('MetaMask não detectado. Instale a extensão MetaMask.');
             }
             
+            console.log('✅ window.ethereum found:', window.ethereum);
+            console.log('🔍 Checking if it is MetaMask...');
+            
             if (!window.ethereum.isMetaMask) {
+                console.error('❌ Not MetaMask provider');
                 throw new Error('MetaMask não detectado. Certifique-se de que está usando MetaMask.');
             }
             
-            // Request account access
-            const accounts = await window.ethereum.request({
-                method: 'eth_requestAccounts'
-            });
+            console.log('✅ MetaMask provider confirmed');
+            console.log('🚀 Calling eth_requestAccounts...');
             
-            if (!accounts || accounts.length === 0) {
-                throw new Error('Nenhuma conta encontrada ou acesso negado');
+            // Request account access - THIS SHOULD TRIGGER THE POPUP
+            try {
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+                
+                console.log('✅ eth_requestAccounts response:', accounts);
+                
+                if (!accounts || accounts.length === 0) {
+                    console.error('❌ No accounts returned or access denied');
+                    throw new Error('Nenhuma conta encontrada ou acesso negado');
+                }
+                
+                console.log('📋 Accounts found:', accounts);
+                console.log('🌐 Getting network info...');
+                
+                // Get network info
+                const chainId = await window.ethereum.request({
+                    method: 'eth_chainId'
+                });
+                
+                console.log('🔗 Chain ID received:', chainId);
+                
+                const networkId = parseInt(chainId, 16);
+                console.log('🔢 Network ID parsed:', networkId);
+                
+                // Update state
+                window.walletState.isConnected = true;
+                window.walletState.account = accounts[0];
+                window.walletState.network = getNetworkName(networkId);
+                window.walletState.provider = window.ethereum;
+                
+                console.log('💾 State updated:', {
+                    isConnected: window.walletState.isConnected,
+                    account: window.walletState.account,
+                    network: window.walletState.network
+                });
+                
+                updateStatus('Conectado com MetaMask!', 'success');
+                updateUI();
+                
+                console.log('✅ === METAMASK CONNECTION SUCCESSFUL ===');
+                
+            } catch (requestError) {
+                console.error('❌ Error during eth_requestAccounts:', requestError);
+                console.error('Error details:', {
+                    name: requestError.name,
+                    message: requestError.message,
+                    code: requestError.code,
+                    stack: requestError.stack
+                });
+                throw requestError;
             }
-            
-            // Get network info
-            const chainId = await window.ethereum.request({
-                method: 'eth_chainId'
-            });
-            const networkId = parseInt(chainId, 16);
-            
-            // Update state
-            window.walletState.isConnected = true;
-            window.walletState.account = accounts[0];
-            window.walletState.network = getNetworkName(networkId);
-            window.walletState.provider = window.ethereum;
-            
-            updateStatus('Conectado com MetaMask!', 'success');
-            updateUI();
-            
-            console.log('✅ MetaMask connected:', {
-                account: accounts[0],
-                network: window.walletState.network
-            });
         }
         
         async function connectWithWalletConnect() {
