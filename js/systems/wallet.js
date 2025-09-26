@@ -281,12 +281,18 @@ class WalletSystem {
 
     /**
      * Atualizar interface do usuário
+     * Atualiza todos os elementos relacionados à carteira na página
      */
     updateUI() {
         const connectBtn = document.getElementById('connect-wallet-btn');
         const walletInfo = document.getElementById('wallet-info');
         const accountDisplay = document.getElementById('account-display');
         const networkDisplay = document.getElementById('network-display');
+        
+        // Elementos específicos da página tools.html
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const walletStatus = document.getElementById('wallet-status');
+        const walletAddress = document.getElementById('wallet-address');
 
         if (!connectBtn) return;
 
@@ -307,6 +313,23 @@ class WalletSystem {
                 networkDisplay.textContent = this.supportedNetworks[this.networkId] || `Network ${this.networkId}`;
             }
             
+            // Atualizar elementos específicos da página tools.html
+            if (disconnectBtn && walletStatus && walletAddress) {
+                // Mostrar informações da carteira
+                walletAddress.textContent = this.formatAddress(this.currentAccount);
+                
+                // Atualizar informação da rede
+                const networkInfo = document.getElementById('network-info');
+                if (networkInfo) {
+                    networkInfo.textContent = this.supportedNetworks[this.networkId] || `Rede ${this.networkId}`;
+                }
+                
+                // Mostrar/ocultar elementos
+                connectBtn.classList.add('d-none');
+                disconnectBtn.classList.remove('d-none');
+                walletStatus.classList.remove('d-none');
+            }
+            
         } else {
             // Mostrar como desconectado
             connectBtn.innerHTML = `
@@ -315,6 +338,19 @@ class WalletSystem {
             `;
             connectBtn.className = 'btn btn-primary btn-sm';
             connectBtn.onclick = () => this.connect();
+            
+            // Atualizar elementos específicos da página tools.html
+            if (disconnectBtn && walletStatus) {
+                // Ocultar informações da carteira
+                connectBtn.classList.remove('d-none');
+                disconnectBtn.classList.add('d-none');
+                walletStatus.classList.add('d-none');
+            }
+        }
+        
+        // Atualizar estado dos botões de ferramentas se a função existir
+        if (typeof window.updateToolButtonStates === 'function') {
+            window.updateToolButtonStates();
         }
     }
 
@@ -752,3 +788,52 @@ checkDisconnectButtonVisibility();
 
 // Inicializar atualizador do botão do header
 startHeaderButtonUpdater();
+
+/**
+ * Atualiza o estado dos botões de ferramentas com base no estado da conexão
+ * Usado principalmente na página tools.html
+ * @param {string} toolButtonSelector - Seletor CSS para os botões de ferramentas (padrão: '.tool-button')
+ */
+function updateToolButtonStates(toolButtonSelector = '.tool-button') {
+    const isConnected = localStorage.getItem('tokencafe_connected') === 'true';
+    const toolButtons = document.querySelectorAll(toolButtonSelector);
+    
+    if (!toolButtons || toolButtons.length === 0) return;
+    
+    toolButtons.forEach(button => {
+        const requiresWallet = button.getAttribute('data-requires-wallet') === 'true';
+
+        if (requiresWallet && !isConnected) {
+            // Desabilitar botão
+            button.classList.add('disabled');
+            button.style.pointerEvents = 'none';
+            button.style.opacity = '0.5';
+            button.addEventListener('click', preventToolButtonClick);
+        } else {
+            // Habilitar botão
+            button.classList.remove('disabled');
+            button.style.pointerEvents = 'auto';
+            button.style.opacity = '1';
+            button.removeEventListener('click', preventToolButtonClick);
+        }
+    });
+}
+
+/**
+ * Previne o clique em botões de ferramentas desabilitados
+ * @param {Event} e - Evento de clique
+ */
+function preventToolButtonClick(e) {
+    e.preventDefault();
+    
+    // Verificar se o sistema de carteira está disponível
+    if (window.tokencafeWallet) {
+        window.tokencafeWallet.showError('Conecte sua carteira MetaMask para acessar esta funcionalidade.');
+    } else {
+        console.error('Conecte sua carteira MetaMask para acessar esta funcionalidade.');
+        alert('Conecte sua carteira MetaMask para acessar esta funcionalidade.');
+    }
+}
+
+// Expor a função globalmente
+window.updateToolButtonStates = updateToolButtonStates;

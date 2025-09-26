@@ -12,14 +12,18 @@
 
 <body>
     <!-- Barra Superior -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="
-        background-color: var(--tokencafe-bg-primary);
-        border-bottom: 1px solid var(--tokencafe-border-light);
-      ">
+    <nav class="navbar navbar-expand-lg navbar-dark"
+        style="background-color: var(--tokencafe-bg-primary); border-bottom: 1px solid var(--tokencafe-border-light);">
         <div class="container-fluid">
             <!-- Coluna Esquerda - Logo e Título -->
             <div class="navbar-brand" style="color: var(--tokencafe-primary)">
-                <i class="fas fa-wrench"></i> TokenCafe Tools
+                <h3 style="color: var(--tokencafe-text-primary)">
+                    <i class="fas fa-vial" style="color: var(--tokencafe-primary)"></i>
+                    Ferramentas do TokenCafe
+                </h3>
+                <p class="text-muted mb-0">
+                    Verificação de funcionalidade das ferramentas implementadas
+                </p>
             </div>
 
             <!-- Coluna Direita - Status da Carteira -->
@@ -51,138 +55,120 @@
     <div class="container-fluid py-4" style="background-color: var(--tokencafe-bg-secondary); min-height: 100vh">
         <div class="row">
             <div class="col-12">
-                <div class="card" style="
-              background-color: var(--tokencafe-bg-tertiary);
-              border-color: var(--tokencafe-border-light);
-            ">
-                    <div class="card-header" style="
-                background-color: var(--tokencafe-bg-quaternary);
-                border-bottom-color: var(--tokencafe-border-light);
-              ">
-                        <h3 style="color: var(--tokencafe-text-primary)">
-                            <i class="fas fa-vial" style="color: var(--tokencafe-primary)"></i>
-                            Ferramentas do TokenCafe
-                        </h3>
-                        <p class="text-muted mb-0">
-                            Verificação de funcionalidade das ferramentas implementadas
-                        </p>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <!-- Tokens Module -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border-primary">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-coins fa-3x text-primary mb-3"></i>
-                                        <h5>Módulo Tokens</h5>
-                                        <p class="text-muted">Gerenciamento de tokens</p>
-                                        <a href="pages/modules/tokens/token-manager.html"
-                                            class="btn btn-primary tool-button" data-requires-wallet="true">
-                                            <i class="fas fa-external-link-alt"></i> Testar
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Analytics Module -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border-success">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
-                                        <h5>Módulo Analytics</h5>
-                                        <p class="text-muted">Relatórios e métricas</p>
-                                        <a href="pages/modules/analytics/analytics-reports.html"
-                                            class="btn btn-success tool-button" data-requires-wallet="true">
-                                            <i class="fas fa-external-link-alt"></i> Testar
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Templates Module -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border-info">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-layer-group fa-3x text-info mb-3"></i>
-                                        <h5>Módulo Templates</h5>
-                                        <p class="text-muted">Galeria de templates</p>
-                                        <a href="pages/modules/templates/template-gallery.html"
-                                            class="btn btn-info tool-button" data-requires-wallet="true">
-                                            <i class="fas fa-external-link-alt"></i> Testar
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Profile Module -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border-warning">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-user fa-3x text-warning mb-3"></i>
-                                        <h5>Módulo Profile</h5>
-                                        <p class="text-muted">Perfil do usuário</p>
-                                        <a href="pages/modules/profile/user-profile.html"
-                                            class="btn btn-warning tool-button" data-requires-wallet="true">
-                                            <i class="fas fa-external-link-alt"></i> Testar
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Settings Module -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border-danger">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-cog fa-3x text-danger mb-3"></i>
-                                        <h5>Módulo Settings</h5>
-                                        <p class="text-muted">Configurações do sistema</p>
-                                        <a href="pages/modules/settings/system-settings.html"
-                                            class="btn btn-danger tool-button" data-requires-wallet="true">
-                                            <i class="fas fa-external-link-alt"></i> Testar
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Dashboard Integration -->
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border-dark">
-                                    <div class="card-body text-center">
-                                        <i class="fas fa-tachometer-alt fa-3x text-dark mb-3"></i>
-                                        <h5>Dashboard Completo</h5>
-                                        <p class="text-muted">Sistema integrado</p>
-                                        <a href="/dashboard" class="btn btn-dark tool-button"
-                                            data-requires-wallet="true">
-                                            <i class="fas fa-external-link-alt"></i> Acessar
-                                        </a>
-                                    </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Tokens Module -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-coins fa-3x text-primary mb-3"></i>
+                                    <h5>Módulo Tokens</h5>
+                                    <p class="text-muted">Gerenciamento de tokens</p>
+                                    <a href="pages/modules/tokens/token-manager.html"
+                                        class="btn btn-primary tool-button" data-requires-wallet="true">
+                                        <i class="fas fa-external-link-alt"></i> Testar
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="alert alert-info">
-                                    <h5>
-                                        <i class="fas fa-info-circle"></i> Instruções de Teste
-                                    </h5>
-                                    <ul class="mb-0">
-                                        <li>
-                                            Teste cada módulo individualmente clicando nos botões
-                                            "Testar"
-                                        </li>
-                                        <li>
-                                            Verifique se os scripts JavaScript estão carregando
-                                            corretamente
-                                        </li>
-                                        <li>Teste a navegação no Dashboard Completo</li>
-                                        <li>Verifique se os dados mock estão sendo exibidos</li>
-                                        <li>
-                                            Teste as funcionalidades interativas (filtros, modais,
-                                            etc.)
-                                        </li>
-                                    </ul>
+                        <!-- Analytics Module -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                                    <h5>Módulo Analytics</h5>
+                                    <p class="text-muted">Relatórios e métricas</p>
+                                    <a href="pages/modules/analytics/analytics-reports.html"
+                                        class="btn btn-success tool-button" data-requires-wallet="true">
+                                        <i class="fas fa-external-link-alt"></i> Testar
+                                    </a>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Templates Module -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-layer-group fa-3x text-info mb-3"></i>
+                                    <h5>Módulo Templates</h5>
+                                    <p class="text-muted">Galeria de templates</p>
+                                    <a href="pages/modules/templates/template-gallery.html"
+                                        class="btn btn-info tool-button" data-requires-wallet="true">
+                                        <i class="fas fa-external-link-alt"></i> Testar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Module -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user fa-3x text-warning mb-3"></i>
+                                    <h5>Módulo Profile</h5>
+                                    <p class="text-muted">Perfil do usuário</p>
+                                    <a href="pages/modules/profile/user-profile.html"
+                                        class="btn btn-warning tool-button" data-requires-wallet="true">
+                                        <i class="fas fa-external-link-alt"></i> Testar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings Module -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-danger">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-cog fa-3x text-danger mb-3"></i>
+                                    <h5>Módulo Settings</h5>
+                                    <p class="text-muted">Configurações do sistema</p>
+                                    <a href="pages/modules/settings/system-settings.html"
+                                        class="btn btn-danger tool-button" data-requires-wallet="true">
+                                        <i class="fas fa-external-link-alt"></i> Testar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Integration -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-dark">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-tachometer-alt fa-3x text-dark mb-3"></i>
+                                    <h5>Dashboard Completo</h5>
+                                    <p class="text-muted">Sistema integrado</p>
+                                    <a href="/dashboard" class="btn btn-dark tool-button" data-requires-wallet="true">
+                                        <i class="fas fa-external-link-alt"></i> Acessar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h5>
+                                    <i class="fas fa-info-circle"></i> Instruções de Teste
+                                </h5>
+                                <ul class="mb-0">
+                                    <li>
+                                        Teste cada módulo individualmente clicando nos botões
+                                        "Testar"
+                                    </li>
+                                    <li>
+                                        Verifique se os scripts JavaScript estão carregando
+                                        corretamente
+                                    </li>
+                                    <li>Teste a navegação no Dashboard Completo</li>
+                                    <li>Verifique se os dados mock estão sendo exibidos</li>
+                                    <li>
+                                        Teste as funcionalidades interativas (filtros, modais,
+                                        etc.)
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -191,93 +177,44 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Scripts do TokenCafe -->
     <script src="js/systems/wallet.js"></script>
 
     <script>
-        // Inicializar o sistema de carteira
-        const walletSystem = new WalletSystem();
-
-        // Elementos DOM
-        const connectBtn = document.getElementById('connect-wallet-btn');
-        const disconnectBtn = document.getElementById('disconnect-btn');
-        const walletStatus = document.getElementById('wallet-status');
-        const walletAddress = document.getElementById('wallet-address');
-        const networkInfo = document.getElementById('network-info');
-        const toolButtons = document.querySelectorAll('.tool-button');
-
-        // Inicialização
+        // Inicialização do sistema de carteira
         document.addEventListener('DOMContentLoaded', async function () {
-            await walletSystem.init();
-            updateToolButtonStates();
-
-            // Configurar event listeners
-            if (connectBtn) {
-                connectBtn.addEventListener('click', () => connectWalletFromHeader());
+            // Inicializar o sistema de carteira global
+            if (!window.tokencafeWallet) {
+                window.tokencafeWallet = new WalletSystem();
+                await window.tokencafeWallet.init();
             }
+            
+            // Configurar event listeners para os botões de conexão/desconexão
+            const connectBtn = document.getElementById('connect-wallet-btn');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            
+            if (connectBtn) {
+                connectBtn.addEventListener('click', connectWalletFromHeader);
+            }
+            
             if (disconnectBtn) {
-                disconnectBtn.addEventListener('click', () =>
-                    disconnectWalletFromHeader()
-                );
+                disconnectBtn.addEventListener('click', disconnectWalletFromHeader);
+            }
+            
+            // Atualizar a UI inicial
+            if (window.tokencafeWallet) {
+                window.tokencafeWallet.updateUI();
             }
         });
-
-        // Atualizar estado dos botões de ferramentas
-        function updateToolButtonStates() {
-            const isConnected = walletSystem.isConnected;
-
-            toolButtons.forEach(button => {
-                const requiresWallet =
-                    button.getAttribute('data-requires-wallet') === 'true';
-
-                if (requiresWallet && !isConnected) {
-                    button.classList.add('disabled');
-                    button.style.pointerEvents = 'none';
-                    button.style.opacity = '0.5';
-                    button.addEventListener('click', preventClick);
-                } else {
-                    button.classList.remove('disabled');
-                    button.style.pointerEvents = 'auto';
-                    button.style.opacity = '1';
-                    button.removeEventListener('click', preventClick);
-                }
-            });
-        }
-
-        // Prevenir clique em botões desabilitados
-        function preventClick(e) {
-            e.preventDefault();
-            showNotification(
-                'Conecte sua carteira MetaMask para acessar esta funcionalidade.',
-                'warning'
-            );
-        }
-
-        // Função de notificação simples
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-            notification.style.cssText =
-                'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-            notification.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 5000);
-        }
-
+        
         // Listener para mudanças no estado da carteira
         document.addEventListener('walletStateChanged', function () {
-            updateToolButtonStates();
+            if (window.tokencafeWallet) {
+                window.tokencafeWallet.updateUI();
+            }
         });
     </script>
 </body>
