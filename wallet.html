@@ -240,6 +240,13 @@
     </div>
 
     <!-- Web3Modal v2 Libraries via CDN -->
+    <script>
+        // Polyfill for process.env (required by some Web3 libraries)
+        if (typeof process === 'undefined') {
+            window.process = { env: {} };
+        }
+    </script>
+    
     <script type="module">
         // Import Web3Modal v2 libraries
         import {
@@ -265,8 +272,8 @@
             wagmiConfig: null
         };
 
-        // WalletConnect Project ID (você precisa criar um em https://cloud.walletconnect.com)
-        const projectId = "3fcc6bba6f1de962d911bb5b5c3dba68"; // ID de exemplo - substitua pelo seu
+        // WalletConnect Project ID - usando um ID público válido para testes
+        const projectId = "2f5a2896ac272c6b2a2d186306bce7d6"; // ID público válido para desenvolvimento
 
         // Supported chains
         const { mainnet, polygon, arbitrum, optimism, bsc } = WagmiCoreChains;
@@ -523,49 +530,59 @@
         }
         
         function updateStatus(message, type = 'info') {
-            const statusCard = document.getElementById('status-card');
-            const statusContent = document.getElementById('status-content');
-            
-            statusContent.textContent = message;
-            
-            // Remove existing classes
-            statusCard.classList.remove('connected-info', 'error-info');
-            
-            // Add appropriate class
-            if (type === 'success') {
-                statusCard.classList.add('connected-info');
-            } else if (type === 'error') {
-                statusCard.classList.add('error-info');
-            }
-            
-            console.log(`📊 Status: ${message}`);
-        }
+             const statusCard = document.getElementById('status-card');
+             const statusContent = document.getElementById('status-content');
+             
+             if (!statusCard || !statusContent) {
+                 console.warn('⚠️ Status elements not found');
+                 return;
+             }
+             
+             statusContent.textContent = message;
+             
+             // Remove existing classes
+             statusCard.classList.remove('connected-info', 'error-info');
+             
+             // Add appropriate class
+             if (type === 'success') {
+                 statusCard.classList.add('connected-info');
+             } else if (type === 'error') {
+                 statusCard.classList.add('error-info');
+             }
+             
+             console.log(`📊 Status: ${message}`);
+         }
         
         function updateUI() {
-            const networkInfo = document.getElementById('network-info');
-            const accountDisplay = document.getElementById('account-display');
-            const networkDisplay = document.getElementById('network-display');
-            const connectBtn = document.getElementById('connect-btn');
-            
-            if (window.walletState.isConnected) {
-                // Show connection info
-                networkInfo.style.display = 'flex';
-                accountDisplay.textContent = formatAddress(window.walletState.account);
-                networkDisplay.textContent = window.walletState.network || 'Desconhecida';
-                
-                // Update connect button
-                connectBtn.innerHTML = '<i class="fas fa-check me-2"></i>Conectado';
-                connectBtn.disabled = true;
-                
-            } else {
-                // Hide connection info
-                networkInfo.style.display = 'none';
-                
-                // Reset connect button
-                connectBtn.innerHTML = '<i class="fas fa-plug me-2"></i>Conectar Carteira';
-                connectBtn.disabled = false;
-            }
-        }
+             const networkInfo = document.getElementById('network-info');
+             const accountDisplay = document.getElementById('account-display');
+             const networkDisplay = document.getElementById('network-display');
+             const connectBtn = document.getElementById('connect-btn');
+             
+             if (!networkInfo || !accountDisplay || !networkDisplay || !connectBtn) {
+                 console.warn('⚠️ UI elements not found');
+                 return;
+             }
+             
+             if (window.walletState.isConnected) {
+                 // Show connection info
+                 networkInfo.style.display = 'flex';
+                 accountDisplay.textContent = formatAddress(window.walletState.account);
+                 networkDisplay.textContent = window.walletState.network || 'Desconhecida';
+                 
+                 // Update connect button
+                 connectBtn.innerHTML = '<i class="fas fa-check me-2"></i>Conectado';
+                 connectBtn.disabled = true;
+                 
+             } else {
+                 // Hide connection info
+                 networkInfo.style.display = 'none';
+                 
+                 // Reset connect button
+                 connectBtn.innerHTML = '<i class="fas fa-plug me-2"></i>Conectar Carteira';
+                 connectBtn.disabled = false;
+             }
+         }
         
         function formatAddress(address) {
             if (!address) return '';
@@ -573,17 +590,22 @@
         }
         
         function setLoading(loading) {
-            const spinner = document.getElementById('loading-spinner');
-            const connectBtn = document.getElementById('connect-btn');
-            
-            if (loading) {
-                spinner.style.display = 'inline-block';
-                connectBtn.disabled = true;
-            } else {
-                spinner.style.display = 'none';
-                connectBtn.disabled = window.walletState.isConnected;
-            }
-        }
+             const spinner = document.getElementById('loading-spinner');
+             const connectBtn = document.getElementById('connect-btn');
+             
+             if (!spinner || !connectBtn) {
+                 console.warn('⚠️ Loading elements not found');
+                 return;
+             }
+             
+             if (loading) {
+                 spinner.style.display = 'inline-block';
+                 connectBtn.disabled = true;
+             } else {
+                 spinner.style.display = 'none';
+                 connectBtn.disabled = window.walletState.isConnected;
+             }
+         }
         
         function getNetworkName(chainId) {
             const networks = {
@@ -597,22 +619,40 @@
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 TokenCafe Wallet Connection initialized');
-            
-            // Select Web3Modal by default
-            selectWalletMethod('web3modal');
-            
-            // Check if already connected (for page refresh)
-            setTimeout(() => {
-                if (window.walletState.wagmiConfig) {
-                    const account = getAccount();
-                    if (account.address) {
-                        handleAccountConnected(account);
-                    }
-                }
-            }, 1000);
-        });
+         document.addEventListener('DOMContentLoaded', function() {
+             console.log('🚀 TokenCafe Wallet Connection initialized');
+             
+             // Initialize wallet state if not exists
+             if (!window.walletState) {
+                 window.walletState = {
+                     selectedMethod: 'web3modal',
+                     isConnected: false,
+                     account: null,
+                     network: null,
+                     provider: null,
+                     web3Modal: null,
+                     ethereumClient: null,
+                     wagmiConfig: null
+                 };
+             }
+             
+             // Select Web3Modal by default
+             selectWalletMethod('web3modal');
+             
+             // Check if already connected (for page refresh)
+             setTimeout(() => {
+                 try {
+                     if (window.walletState.wagmiConfig && typeof getAccount === 'function') {
+                         const account = getAccount();
+                         if (account && account.address) {
+                             handleAccountConnected(account);
+                         }
+                     }
+                 } catch (error) {
+                     console.warn('⚠️ Error checking existing connection:', error);
+                 }
+             }, 1000);
+         });
         
     </script>
     
