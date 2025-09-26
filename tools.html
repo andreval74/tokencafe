@@ -182,41 +182,6 @@
 
     <!-- Scripts do TokenCafe -->
     <script src="js/systems/wallet.js"></script>
-
-    <script>
-        // Inicialização do sistema de carteira
-        document.addEventListener('DOMContentLoaded', async function () {
-            // Inicializar o sistema de carteira global
-            if (!window.tokencafeWallet) {
-                window.tokencafeWallet = new WalletSystem();
-                await window.tokencafeWallet.init();
-            }
-            
-            // Configurar event listeners para os botões de conexão/desconexão
-            const connectBtn = document.getElementById('connect-wallet-btn');
-            const disconnectBtn = document.getElementById('disconnect-btn');
-            
-            if (connectBtn) {
-                connectBtn.addEventListener('click', connectWalletFromHeader);
-            }
-            
-            if (disconnectBtn) {
-                disconnectBtn.addEventListener('click', disconnectWalletFromHeader);
-            }
-            
-            // Atualizar a UI inicial
-            if (window.tokencafeWallet) {
-                window.tokencafeWallet.updateUI();
-            }
-        });
-        
-        // Listener para mudanças no estado da carteira
-        document.addEventListener('walletStateChanged', function () {
-            if (window.tokencafeWallet) {
-                window.tokencafeWallet.updateUI();
-            }
-        });
-    </script>
 </body>
 
 </html>
