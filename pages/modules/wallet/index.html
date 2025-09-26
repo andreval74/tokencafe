@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Carteira (Web3Modal)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../../css/styles.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-wallet2"></i>
+                Gerenciador de Carteira Web3Modal
+            </a>
+        </div>
+    </nav>
+    <div class="container py-5">
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8 col-md-10 text-center">
+                <h1 class="display-5 mb-3">Bem-vindo ao seu Gerenciador de Carteira</h1>
+                <p class="lead text-muted">Conecte sua carteira de criptomoedas de forma simples e segura para acessar
+                    informações detalhadas sobre suas contas.</p>
+            </div>
+        </div>
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-6 col-md-8">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <div class="wallet-icon mb-3">
+                                <i class="bi bi-wallet-fill" style="font-size:2.5rem;"></i>
+                            </div>
+                            <h3 class="mb-2">Conectar Conta da Carteira</h3>
+                            <p class="text-muted mb-0">Clique no botão abaixo para conectar e autenticar sua conta em
+                                qualquer carteira suportada</p>
+                        </div>
+                        <div id="connectionStatus" class="alert alert-info d-none" role="alert">
+                            <i class="bi bi-info-circle"></i>
+                            <span id="statusMessage">Verificando carteiras disponíveis...</span>
+                        </div>
+                        <div class="d-grid gap-2 my-3">
+                            <button id="connectWallet" class="btn btn-primary btn-lg">
+                                <i class="bi bi-link-45deg"></i>
+                                Conectar Conta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="walletInfo" class="row justify-content-center mt-5 d-none">
+            <div class="col-lg-6 col-md-8">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-success text-white text-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            Carteira Conectada
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-section">
+                            <h5 class="mb-3"><i class="bi bi-person-circle"></i> Informações da Conta</h5>
+                            <div class="info-item mb-2">
+                                <strong>Endereço:</strong>
+                                <span id="walletAddress" class="font-monospace"></span>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" id="copyAddressBtn">
+                                    <i class="bi bi-copy"></i>
+                                </button>
+                            </div>
+                            <div class="info-item mb-2">
+                                <strong>Rede:</strong>
+                                <span id="networkName"></span>
+                            </div>
+                            <div class="info-item mb-2">
+                                <strong>Saldo ETH:</strong>
+                                <span id="ethBalance"></span>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <button id="disconnectWallet" class="btn btn-outline-danger">
+                                    <i class="bi bi-x-circle"></i>
+                                    Desconectar Carteira
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-4 bg-light">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                <i class="bi bi-shield-lock"></i>
+                Suas informações são processadas localmente e nunca são enviadas para servidores externos.
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="../../../js/modules/wallet/script.js"></script>
+    
+</body>
+</html>

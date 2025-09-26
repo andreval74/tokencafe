@@ -34,7 +34,7 @@ class TokenCafeLoader {
                 required: true
             },
             'wallet': {
-                path: 'js/systems/wallet.js',
+                path: 'js/modules/wallet/script.js',
                 priority: 2,
                 required: true
             },
