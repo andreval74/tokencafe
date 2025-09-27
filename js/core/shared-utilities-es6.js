@@ -1,6 +1,6 @@
 /**
  * ================================================================================
- * SHARED UTILITIES - BIBLIOTECA DE UTILITÁRIOS COMPARTILHADOS
+ * SHARED UTILITIES - BIBLIOTECA DE UTILITÁRIOS COMPARTILHADOS (ES6)
  * ================================================================================
  * Utilitários comuns para todo o ecossistema TokenCafe
  * Evita duplicação de código e centraliza funcionalidades
@@ -44,20 +44,20 @@ export class SharedUtilities {
                 inThrottle = true;
                 setTimeout(() => inThrottle = false, limit);
             }
-        };
+        }
     }
 
     /**
-     * Memoização - Cache de resultados
+     * Memoização - Cache de resultados de função
      */
     memoize(fn, keyGenerator = (...args) => JSON.stringify(args)) {
         const cache = new Map();
-        return (...args) => {
+        return function(...args) {
             const key = keyGenerator(...args);
             if (cache.has(key)) {
                 return cache.get(key);
             }
-            const result = fn(...args);
+            const result = fn.apply(this, args);
             cache.set(key, result);
             return result;
         };
@@ -68,7 +68,7 @@ export class SharedUtilities {
     // ============================================================================
 
     /**
-     * Seletor de elementos com cache
+     * Seletor jQuery-like
      */
     $(selector, context = document) {
         if (typeof selector === 'string') {
@@ -78,18 +78,19 @@ export class SharedUtilities {
     }
 
     /**
-     * Seletor múltiplo
+     * Seletor múltiplo jQuery-like
      */
     $$(selector, context = document) {
         return Array.from(context.querySelectorAll(selector));
     }
 
     /**
-     * Criar elemento com atributos
+     * Criar elemento com atributos e filhos
      */
     createElement(tag, attributes = {}, children = []) {
         const element = document.createElement(tag);
         
+        // Adicionar atributos
         Object.entries(attributes).forEach(([key, value]) => {
             if (key === 'className') {
                 element.className = value;
@@ -97,13 +98,12 @@ export class SharedUtilities {
                 element.innerHTML = value;
             } else if (key === 'textContent') {
                 element.textContent = value;
-            } else if (key.startsWith('data-')) {
-                element.setAttribute(key, value);
             } else {
-                element[key] = value;
+                element.setAttribute(key, value);
             }
         });
-
+        
+        // Adicionar filhos
         children.forEach(child => {
             if (typeof child === 'string') {
                 element.appendChild(document.createTextNode(child));
@@ -111,7 +111,7 @@ export class SharedUtilities {
                 element.appendChild(child);
             }
         });
-
+        
         return element;
     }
 
@@ -120,10 +120,7 @@ export class SharedUtilities {
      */
     addEventListenerWithCleanup(element, event, handler, options = {}) {
         element.addEventListener(event, handler, options);
-        
-        return () => {
-            element.removeEventListener(event, handler, options);
-        };
+        return () => element.removeEventListener(event, handler, options);
     }
 
     /**
@@ -148,12 +145,11 @@ export class SharedUtilities {
             block: 'start',
             inline: 'nearest'
         };
-        
         element.scrollIntoView({ ...defaultOptions, ...options });
     }
 
     // ============================================================================
-    // UTILITÁRIOS DE VALIDAÇÃO
+    // VALIDAÇÕES
     // ============================================================================
 
     /**
@@ -187,32 +183,38 @@ export class SharedUtilities {
      * Validar número
      */
     isValidNumber(value, options = {}) {
-        const num = parseFloat(value);
+        const num = Number(value);
         if (isNaN(num)) return false;
-        
         if (options.min !== undefined && num < options.min) return false;
         if (options.max !== undefined && num > options.max) return false;
         if (options.integer && !Number.isInteger(num)) return false;
-        
         return true;
     }
 
     // ============================================================================
-    // UTILITÁRIOS DE FORMATAÇÃO
+    // FORMATAÇÃO
     // ============================================================================
 
     /**
-     * Formatar número com separadores
+     * Formatar endereço Ethereum (truncar)
+     */
+    formatAddress(address, startChars = 6, endChars = 4) {
+        if (!address) return '';
+        if (address.length <= startChars + endChars) return address;
+        return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
+    }
+
+    /**
+     * Formatar número
      */
     formatNumber(number, options = {}) {
-        const defaults = {
-            locale: 'pt-BR',
+        const defaultOptions = {
             minimumFractionDigits: 0,
-            maximumFractionDigits: 2
+            maximumFractionDigits: 2,
+            locale: 'pt-BR'
         };
-        
-        return new Intl.NumberFormat(options.locale || defaults.locale, {
-            ...defaults,
+        return new Intl.NumberFormat(options.locale || defaultOptions.locale, {
+            ...defaultOptions,
             ...options
         }).format(number);
     }
@@ -231,17 +233,17 @@ export class SharedUtilities {
      * Formatar data
      */
     formatDate(date, options = {}) {
-        const defaults = {
-            locale: 'pt-BR',
+        const defaultOptions = {
             year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
+            month: 'long',
+            day: 'numeric',
+            locale: 'pt-BR'
         };
+        const finalOptions = { ...defaultOptions, ...options };
+        const locale = finalOptions.locale;
+        delete finalOptions.locale;
         
-        return new Intl.DateTimeFormat(options.locale || defaults.locale, {
-            ...defaults,
-            ...options
-        }).format(new Date(date));
+        return new Intl.DateTimeFormat(locale, finalOptions).format(new Date(date));
     }
 
     /**
@@ -249,24 +251,19 @@ export class SharedUtilities {
      */
     formatRelativeTime(date) {
         const now = new Date();
-        const diff = now - new Date(date);
-        const seconds = Math.floor(diff / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
-
-        if (days > 0) return `${days} dia${days > 1 ? 's' : ''} atrás`;
-        if (hours > 0) return `${hours} hora${hours > 1 ? 's' : ''} atrás`;
-        if (minutes > 0) return `${minutes} minuto${minutes > 1 ? 's' : ''} atrás`;
-        return 'Agora mesmo';
+        const diffInSeconds = Math.floor((now - new Date(date)) / 1000);
+        
+        if (diffInSeconds < 60) return 'agora mesmo';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutos atrás`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} horas atrás`;
+        return `${Math.floor(diffInSeconds / 86400)} dias atrás`;
     }
 
     /**
      * Truncar texto
      */
     truncateText(text, maxLength, suffix = '...') {
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength - suffix.length) + suffix;
+        return text.length > maxLength ? text.substring(0, maxLength) + suffix : text;
     }
 
     /**
@@ -277,7 +274,7 @@ export class SharedUtilities {
     }
 
     /**
-     * Converter para slug
+     * Criar slug
      */
     slugify(text) {
         return text
@@ -291,7 +288,7 @@ export class SharedUtilities {
     }
 
     // ============================================================================
-    // UTILITÁRIOS DE DADOS
+    // UTILITÁRIOS DE OBJETO
     // ============================================================================
 
     /**
@@ -302,16 +299,16 @@ export class SharedUtilities {
         if (obj instanceof Date) return new Date(obj.getTime());
         if (obj instanceof Array) return obj.map(item => this.deepClone(item));
         if (typeof obj === 'object') {
-            const cloned = {};
+            const clonedObj = {};
             Object.keys(obj).forEach(key => {
-                cloned[key] = this.deepClone(obj[key]);
+                clonedObj[key] = this.deepClone(obj[key]);
             });
-            return cloned;
+            return clonedObj;
         }
     }
 
     /**
-     * Merge profundo de objetos
+     * Deep merge de objetos
      */
     deepMerge(target, ...sources) {
         if (!sources.length) return target;
@@ -339,24 +336,24 @@ export class SharedUtilities {
     }
 
     /**
-     * Obter valor aninhado de objeto
+     * Obter valor aninhado
      */
     getNestedValue(obj, path, defaultValue = undefined) {
         const keys = path.split('.');
         let result = obj;
         
         for (const key of keys) {
-            if (result === null || result === undefined || !(key in result)) {
+            if (result == null || typeof result !== 'object') {
                 return defaultValue;
             }
             result = result[key];
         }
         
-        return result;
+        return result !== undefined ? result : defaultValue;
     }
 
     /**
-     * Definir valor aninhado em objeto
+     * Definir valor aninhado
      */
     setNestedValue(obj, path, value) {
         const keys = path.split('.');
@@ -364,14 +361,13 @@ export class SharedUtilities {
         let current = obj;
         
         for (const key of keys) {
-            if (!(key in current) || !this.isObject(current[key])) {
+            if (!(key in current) || typeof current[key] !== 'object') {
                 current[key] = {};
             }
             current = current[key];
         }
         
         current[lastKey] = value;
-        return obj;
     }
 
     // ============================================================================
@@ -382,16 +378,19 @@ export class SharedUtilities {
      * Remover duplicatas de array
      */
     unique(array, key = null) {
-        if (key) {
-            const seen = new Set();
-            return array.filter(item => {
-                const value = this.getNestedValue(item, key);
-                if (seen.has(value)) return false;
-                seen.add(value);
-                return true;
-            });
+        if (!key) {
+            return [...new Set(array)];
         }
-        return [...new Set(array)];
+        
+        const seen = new Set();
+        return array.filter(item => {
+            const keyValue = typeof key === 'function' ? key(item) : item[key];
+            if (seen.has(keyValue)) {
+                return false;
+            }
+            seen.add(keyValue);
+            return true;
+        });
     }
 
     /**
@@ -399,9 +398,11 @@ export class SharedUtilities {
      */
     groupBy(array, key) {
         return array.reduce((groups, item) => {
-            const value = this.getNestedValue(item, key);
-            if (!groups[value]) groups[value] = [];
-            groups[value].push(item);
+            const keyValue = typeof key === 'function' ? key(item) : item[key];
+            if (!groups[keyValue]) {
+                groups[keyValue] = [];
+            }
+            groups[keyValue].push(item);
             return groups;
         }, {});
     }
@@ -412,20 +413,24 @@ export class SharedUtilities {
     sortBy(array, ...criteria) {
         return array.sort((a, b) => {
             for (const criterion of criteria) {
-                let key, direction = 'asc';
+                let aVal, bVal, desc = false;
                 
                 if (typeof criterion === 'string') {
-                    key = criterion;
-                } else {
-                    key = criterion.key;
-                    direction = criterion.direction || 'asc';
+                    if (criterion.startsWith('-')) {
+                        desc = true;
+                        aVal = a[criterion.slice(1)];
+                        bVal = b[criterion.slice(1)];
+                    } else {
+                        aVal = a[criterion];
+                        bVal = b[criterion];
+                    }
+                } else if (typeof criterion === 'function') {
+                    aVal = criterion(a);
+                    bVal = criterion(b);
                 }
                 
-                const aVal = this.getNestedValue(a, key);
-                const bVal = this.getNestedValue(b, key);
-                
-                if (aVal < bVal) return direction === 'asc' ? -1 : 1;
-                if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+                if (aVal < bVal) return desc ? 1 : -1;
+                if (aVal > bVal) return desc ? -1 : 1;
             }
             return 0;
         });
@@ -436,7 +441,7 @@ export class SharedUtilities {
     // ============================================================================
 
     /**
-     * Storage com expiração
+     * LocalStorage com expiração
      */
     setWithExpiry(key, value, ttl) {
         const now = new Date();
@@ -448,12 +453,12 @@ export class SharedUtilities {
     }
 
     /**
-     * Obter do storage com verificação de expiração
+     * Obter do localStorage com verificação de expiração
      */
     getWithExpiry(key) {
         const itemStr = localStorage.getItem(key);
         if (!itemStr) return null;
-        
+
         try {
             const item = JSON.parse(itemStr);
             const now = new Date();
@@ -465,16 +470,17 @@ export class SharedUtilities {
             
             return item.value;
         } catch {
+            localStorage.removeItem(key);
             return null;
         }
     }
 
     // ============================================================================
-    // UTILITÁRIOS DE PROMISE
+    // UTILITÁRIOS ASSÍNCRONOS
     // ============================================================================
 
     /**
-     * Delay com Promise
+     * Delay assíncrono
      */
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -497,52 +503,70 @@ export class SharedUtilities {
     }
 
     /**
-     * Timeout para Promise
+     * Promise com timeout
      */
     withTimeout(promise, ms) {
         const timeout = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Timeout')), ms)
         );
-        
         return Promise.race([promise, timeout]);
     }
 
     // ============================================================================
-    // UTILITÁRIOS DE NOTIFICAÇÃO
+    // UTILITÁRIOS DE UI
     // ============================================================================
 
     /**
-     * Mostrar notificação toast
+     * Mostrar toast/notificação
      */
     showToast(message, type = 'info', duration = 3000) {
+        // Remover toasts existentes
+        const existingToasts = document.querySelectorAll('.toast-notification');
+        existingToasts.forEach(toast => toast.remove());
+
         const toast = this.createElement('div', {
-            className: `toast toast-${type}`,
-            innerHTML: `
-                <div class="toast-content">
-                    <span class="toast-message">${message}</span>
-                    <button class="toast-close">&times;</button>
-                </div>
-            `
+            className: `toast-notification toast-${type}`,
+            innerHTML: message
         });
+
+        // Estilos inline para garantir funcionamento
+        Object.assign(toast.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: '4px',
+            color: 'white',
+            fontWeight: 'bold',
+            zIndex: '10000',
+            opacity: '0',
+            transform: 'translateX(100%)',
+            transition: 'all 0.3s ease'
+        });
+
+        // Cores por tipo
+        const colors = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8'
+        };
+        toast.style.backgroundColor = colors[type] || colors.info;
 
         document.body.appendChild(toast);
 
-        // Auto remove
+        // Animação de entrada
         setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        }, 10);
+
+        // Remover após duração
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
         }, duration);
-
-        // Manual close
-        const closeBtn = toast.querySelector('.toast-close');
-        closeBtn.addEventListener('click', () => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        });
-
-        return toast;
     }
 
     // ============================================================================
@@ -554,7 +578,7 @@ export class SharedUtilities {
      */
     log(...args) {
         if (this.debug) {
-            console.log('🔧 SharedUtilities:', ...args);
+            console.log('[SharedUtilities]', ...args);
         }
     }
 
@@ -563,31 +587,24 @@ export class SharedUtilities {
      */
     setDebug(enabled) {
         this.debug = enabled;
-        return this;
+        this.log('Debug mode:', enabled ? 'enabled' : 'disabled');
     }
 
     /**
      * Medir performance de função
      */
     measurePerformance(fn, label = 'Function') {
-        return (...args) => {
+        return async (...args) => {
             const start = performance.now();
-            const result = fn(...args);
+            const result = await fn(...args);
             const end = performance.now();
-            
-            if (this.debug) {
-                console.log(`⏱️ ${label}: ${(end - start).toFixed(2)}ms`);
-            }
-            
+            this.log(`${label} took ${end - start} milliseconds`);
             return result;
         };
     }
 }
 
-// Disponibilizar globalmente
-window.SharedUtilities = SharedUtilities;
-
-// Suporte para Node.js
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SharedUtilities;
+// Disponibilizar globalmente para compatibilidade
+if (typeof window !== 'undefined') {
+    window.SharedUtilities = SharedUtilities;
 }

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Token - TokenCafe</title>
+    <meta name="description" content="Adicione tokens personalizados às suas wallets MetaMask e TrustWallet com facilidade">
+    <meta name="keywords" content="token, wallet, MetaMask, TrustWallet, blockchain, crypto">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- TokenCafe Global CSS -->
+    <link href="../../../css/styles.css" rel="stylesheet">
+
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-primary">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="../../../index.html">
+                <img src="../../../imgs/tkncafe.png" alt="TokenCafe" height="40" class="me-2">
+                <span class="fw-bold text-primary">TokenCafe</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../../../index.html">
+                            <i class="fas fa-home me-1"></i>Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../wallet/wallet-index.html">
+                            <i class="fas fa-wallet me-1"></i>Carteira
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="link-index.html">
+                            <i class="fas fa-link me-1"></i>Links
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-plus-circle text-primary me-1"></i>
+                        <small>Adicionar Token</small>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-10 col-lg-11">
+                    <!-- Main Card -->
+                    <div class="card bg-dark border-primary shadow-lg">
+                        <div class="card-header bg-primary text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h1 class="h3 mb-1">
+                                        <i class="fas fa-plus-circle me-2"></i>Adicionar Token
+                                    </h1>
+                                    <p class="mb-0 opacity-75">Adicione este token às suas wallets MetaMask e TrustWallet</p>
+                                </div>
+                                <div class="d-none d-md-block">
+                                    <img src="../../../imgs/tkncafe.png" alt="TokenCafe" style="height: 50px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body p-4">
+
+                        <!-- Loading State -->
+                        <div id="tokenInfo" class="text-center py-5" style="display: block;">
+                            <div class="spinner-border text-primary mb-3" role="status"
+                                style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <h5 class="text-white">Carregando informações do token...</h5>
+                            <p class="text-secondary">Aguarde enquanto buscamos os dados</p>
+                        </div>
+
+                        <!-- Token Content -->
+                        <div id="addTokenContent" style="display: none;">
+
+                            <!-- Seção 0: Status da Conexão -->
+                            <div class="card bg-dark border-success shadow mb-4" id="connection-status-section">
+                                <div class="card-header bg-success text-dark">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-check-circle me-2"></i>Status da Conexão
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="connectedWallet" class="form-label text-white">
+                                                <i class="bi bi-wallet2 me-1"></i>Carteira Conectada
+                                            </label>
+                                            <input id="connectedWallet" class="form-control bg-dark text-white border-secondary" 
+                                                   placeholder="Detectando carteira..." readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="connectedNetwork" class="form-label text-white">
+                                                <i class="bi bi-globe me-1"></i>Rede Conectada
+                                            </label>
+                                            <input id="connectedNetwork" class="form-control bg-dark text-white border-secondary" 
+                                                   placeholder="Detectando rede..." readonly>
+                                        </div>
+                                    </div>
+                                    <div id="connection-warning" class="alert alert-warning border-warning mb-0" style="display: none;">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <strong>Atenção:</strong> <span id="connection-warning-text">
+                                            A rede da sua carteira pode ser diferente da rede do token.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Seção 1: Informações do Token -->
+                            <div class="card bg-dark border-info shadow mb-4">
+                                <div class="card-header bg-info text-dark">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-coin me-2"></i>Informações do Token
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <!-- Coluna da Imagem -->
+                                        <div class="col-md-2 col-12 text-center mb-3">
+                                            <div id="tokenIcon" class="d-flex justify-content-center align-items-center"
+                                                style="height: 120px;">
+                                                <img id="tokenImage" src="" alt="Token Icon" style="max-width: 80px; max-height: 80px; display: none;" class="rounded">
+                                                <i class="bi bi-currency-bitcoin text-primary" style="font-size: 4rem;"
+                                                    id="defaultIcon"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Coluna dos Dados -->
+                                        <div class="col-md-10 col-12">
+                                            <!-- Rede Blockchain -->
+                                            <div class="mb-3">
+                                                <label for="networkDisplay" class="form-label text-white">Rede Blockchain</label>
+                                                <input id="networkDisplay" class="form-control bg-dark text-white border-secondary" 
+                                                       placeholder="Carregando rede..." readonly>
+                                            </div>
+
+                                            <!-- Endereço do Token -->
+                                            <div class="mb-3">
+                                                <div class="row g-3 align-items-end">
+                                                    <div class="col-md-9">
+                                                        <label for="tokenAddress" class="form-label text-white">Endereço do Token</label>
+                                                        <input id="tokenAddress" class="form-control bg-dark text-white border-secondary" 
+                                                               placeholder="Endereço do Token (0x...)" style="font-family: monospace;" readonly>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <button id="explorer-btn" class="btn btn-outline-primary w-100" type="button">
+                                                            <i class="bi bi-box-arrow-up-right me-2"></i>Ver no Explorer
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Nome, Símbolo e Decimais em uma linha -->
+                                            <div class="row g-3">
+                                                <div class="col-md-5">
+                                                    <label for="tokenName" class="form-label text-white">Nome do Token</label>
+                                                    <input id="tokenName" class="form-control bg-dark text-white border-secondary" 
+                                                           placeholder="Token Name" readonly>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="tokenSymbol" class="form-label text-white">Símbolo</label>
+                                                    <input id="tokenSymbol" class="form-control bg-dark text-white border-secondary" 
+                                                           placeholder="SYMBOL" readonly>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label for="tokenDecimals" class="form-label text-white">Decimais</label>
+                                                    <input id="tokenDecimals" class="form-control bg-dark text-white border-secondary" 
+                                                           placeholder="18" type="number" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Seção 2: Adicionar às Wallets -->
+                            <div class="card bg-dark border-warning shadow mb-4">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-wallet2 me-2"></i>Adicionar às Wallets
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+
+                                    <div id="wallet-buttons" class="d-grid gap-2 mb-3">
+                                        <!-- Botões serÃo inseridos aqui dinamicamente -->
+                                    </div>
+
+                                    <div class="text-center mb-3">
+                                        <small class="text-muted" id="wallet-detected">
+                                            <i class="bi bi-search"></i>
+                                            Detectando wallets...
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Error Content -->
+                            <div id="errorContent" style="display: none;" class="text-center">
+                                <div class="alert alert-danger border-danger">
+                                    <i class="bi bi-exclamation-triangle me-2 fs-1 text-danger"></i>
+                                    <h4 class="text-danger mt-3">Erro ao carregar token</h4>
+                                    <p class="mb-0 mt-2">ParÃmetros de token inválidos ou nÃo encontrados.</p>
+                                </div>
+                                <div class="text-center mt-4">
+                                    <a href="link-index.html" class="btn btn-primary">
+                                        <i class="bi bi-arrow-left me-2"></i>
+                                        Voltar ao Gerador
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Scripts da Estrutura Principal -->
+    <script type="module" src="../../../js/core/shared-utilities-es6.js"></script>
+    
+    <!-- Sistema de Carteira Principal -->
+    <script type="module" src="../../../js/modules/wallet/script.js"></script>
+    
+    <!-- Scripts Específicos do Link -->
+    <script type="module" src="../../../js/modules/link/link-core.js"></script>
+    <script type="module" src="../../../js/modules/link/link-token-display.js"></script>
+    <script type="module" src="js/link-token.js"></script>
+</body>
+
+</html>
+

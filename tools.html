@@ -28,30 +28,11 @@
 
             <!-- Coluna Direita - Status da Carteira -->
             <div class="d-flex align-items-center">
-                <!-- Status da Conexão -->
-                <div id="wallet-status" class="me-3 d-none" style="color: var(--tokencafe-text-secondary)">
-                    <div class="text-end">
-                        <small class="text-muted">Conectado:</small>
-                        <div id="wallet-address" class="fw-bold" style="color: var(--tokencafe-text-primary)"></div>
-                        <div id="network-info" class="small" style="color: var(--tokencafe-primary)"></div>
-                    </div>
-                </div>
-
-                <!-- Botão de Conexão -->
-                <button id="connect-wallet-btn" class="btn btn-primary btn-sm me-2" type="button">
-                    <i class="fas fa-sign-in-alt me-1"></i>
-                    <span>Conectar ao MetaMask</span>
-                </button>
-
-                <!-- Botão de Desconexão (oculto inicialmente) -->
-                <button id="disconnect-btn" class="btn btn-outline-danger btn-sm d-none" type="button">
-                    <i class="fas fa-sign-out-alt me-1"></i>
-                    Desconectar
-                </button>
+                
             </div>
         </div>
     </nav>
-
+    <!-- corpo html -->
     <div class="container-fluid py-4" style="background-color: var(--tokencafe-bg-secondary); min-height: 100vh">
         <div class="row">
             <div class="col-12">
@@ -64,7 +45,7 @@
                                     <i class="fas fa-wallet fa-3x text-primary mb-3"></i>
                                     <h5>Módulo Wallet</h5>
                                     <p class="text-muted">Gerenciamento de carteira</p>
-                                    <a href="pages/modules/wallet/index.html"
+                                    <a href="pages/modules/wallet/wallet-index.html"
                                         class="btn btn-primary tool-button" data-requires-wallet="true">
                                         <i class="fas fa-external-link-alt"></i> Testar
                                     </a>
@@ -76,10 +57,10 @@
                         <div class="col-md-6 col-lg-4">
                             <div class="card border-success">
                                 <div class="card-body text-center">
-                                    <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
-                                    <h5>Módulo Analytics</h5>
-                                    <p class="text-muted">Relatórios e métricas</p>
-                                    <a href="pages/modules/analytics/analytics-reports.html"
+                                    <i class="fas fa-link fa-3x text-success mb-3"></i>
+                                    <h5>Link para Token</h5>
+                                    <p class="text-muted">Crie links personalizados para seus tokens</p>
+                                    <a href="pages/modules/link/link-index.html"
                                         class="btn btn-success tool-button" data-requires-wallet="true">
                                         <i class="fas fa-external-link-alt"></i> Testar
                                     </a>

@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MetaMask: Conectar e Adicionar/Atualizar RPC</title>
+  <style>
+    :root { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    body { margin: 0; background: #0f172a; color: #e5e7eb; }
+    .wrap { max-width: 900px; margin: 40px auto; padding: 24px; }
+    .card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    h1 { margin: 0 0 12px; font-size: 22px; }
+    p.small { color: #94a3b8; margin-top: 6px; font-size: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; font-size: 12px; color: #9ca3af; margin: 6px 0; }
+    input, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #374151; background: #0b1220; color: #e5e7eb; }
+    textarea { min-height: 64px; resize: vertical; }
+    button { background: #2563eb; border: none; color: white; padding: 12px 16px; border-radius: 12px; cursor: pointer; font-weight: 600; }
+    button.secondary { background: #334155; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .status { margin-top: 16px; padding: 12px; border-radius: 12px; background: #0b1220; border: 1px solid #1f2937; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; }
+    .hint { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .ok { color: #4ade80; }
+    .err { color: #fca5a5; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #1f2937; color: #e5e7eb; font-size: 12px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>MetaMask – Conectar & Adicionar/Atualizar RPC <span id="mmStatus" class="badge">MetaMask: …</span></h1>
+      <p class="small">Use este formulário para solicitar à MetaMask a adição/atualização de uma rede (RPC) existente por <code>wallet_addEthereumChain</code> e alternar para ela via <code>wallet_switchEthereumChain</code>.</p>
+
+      <div class="actions">
+        <button id="btnConnect">Conectar MetaMask</button>
+        <button id="btnGetChain" class="secondary" disabled>Chain atual</button>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #1f2937; margin: 16px 0" />
+
+      <form id="chainForm">
+        <div class="row">
+          <div>
+            <label>Chain ID (decimal ou hex, ex: 11155111 ou 0xaa36a7)</label>
+            <input id="chainId" placeholder="ex: 11155111" />
+            <div class="hint">Será convertido para hexadecimal conforme a especificação.</div>
+          </div>
+          <div>
+            <label>Nome da Rede (chainName)</label>
+            <input id="chainName" placeholder="ex: Sepolia test network" />
+          </div>
+        </div>
+
+        <div class="row-3">
+          <div>
+            <label>Símbolo (nativeCurrency.symbol)</label>
+            <input id="symbol" placeholder="ex: SEP" />
+          </div>
+          <div>
+            <label>Precisão (nativeCurrency.decimals)</label>
+            <input id="decimals" type="number" min="0" max="255" placeholder="18" />
+          </div>
+          <div>
+            <label>Nome da Moeda (nativeCurrency.name)</label>
+            <input id="currencyName" placeholder="ex: Sepolia ETH" />
+          </div>
+        </div>
+
+        <div class="full">
+          <label>RPC URLs (uma por linha)</label>
+          <textarea id="rpcUrls" placeholder="https://rpc1.example.com
+https://rpc2.example.com"></textarea>
+          <div class="hint">Para “adicionar outro RPC” inclua o novo endpoint aqui junto com os atuais.</div>
+        </div>
+
+        <div class="full">
+          <label>Block Explorer URLs (opcional, uma por linha)</label>
+          <textarea id="explorerUrls" placeholder="https://sepolia.etherscan.io"></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="btnAddOrUpdate" disabled>Adicionar/Atualizar RPC</button>
+          <button type="button" id="btnSwitch" class="secondary" disabled>Trocar para esta rede</button>
+        </div>
+      </form>
+
+      <div id="status" class="status">Pronto.</div>
+
+      <p class="small">
+        Dicas:
+        <br>• Se a rede já existir na MetaMask para o <code>chainId</code> informado, ela pode ser atualizada com os novos dados; caso contrário, será adicionada.
+        <br>• Erro <code>4902</code>: rede não adicionada; chame <code>wallet_addEthereumChain</code> primeiro.
+        <br>• Erro <code>4001</code>: ação cancelada pelo usuário.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const mmStatus = document.getElementById('mmStatus');
+    const btnConnect = document.getElementById('btnConnect');
+    const btnGetChain = document.getElementById('btnGetChain');
+    const btnAddOrUpdate = document.getElementById('btnAddOrUpdate');
+    const btnSwitch = document.getElementById('btnSwitch');
+    const statusBox = document.getElementById('status');
+
+    const chainIdEl = document.getElementById('chainId');
+    const chainNameEl = document.getElementById('chainName');
+    const symbolEl = document.getElementById('symbol');
+    const decimalsEl = document.getElementById('decimals');
+    const currencyNameEl = document.getElementById('currencyName');
+    const rpcUrlsEl = document.getElementById('rpcUrls');
+    const explorerUrlsEl = document.getElementById('explorerUrls');
+
+    let isConnected = false;
+
+    function log(msg, type = 'info') {
+      const time = new Date().toLocaleTimeString();
+      const tag = type === 'error' ? 'err' : 'ok';
+      statusBox.innerHTML = `[${time}] ${msg}\n` + statusBox.innerHTML;
+      if (type === 'error') console.error(msg);
+      else console.log(msg);
+    }
+
+    function ensureEthereum() {
+      if (typeof window.ethereum === 'undefined') {
+        mmStatus.textContent = 'MetaMask: não detectada';
+        log('MetaMask não detectada. Instale a extensão.', 'error');
+        return false;
+      }
+      mmStatus.textContent = 'MetaMask: detectada';
+      return true;
+    }
+
+    function toHexChainId(input) {
+      const s = String(input).trim().toLowerCase();
+      if (s.startsWith('0x')) return s;
+      const n = Number(s);
+      if (!Number.isFinite(n) || n <= 0) throw new Error('ChainId inválido');
+      return '0x' + n.toString(16);
+    }
+
+    async function connect() {
+      if (!ensureEthereum()) return;
+      try {
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        isConnected = accounts && accounts.length > 0;
+        btnAddOrUpdate.disabled = !isConnected;
+        btnSwitch.disabled = !isConnected;
+        btnGetChain.disabled = !isConnected;
+        mmStatus.textContent = isConnected ? 'MetaMask: conectada' : 'MetaMask: detectada';
+        log('Conectado: ' + (accounts[0] || '(sem contas)'));
+      } catch (err) {
+        if (err && err.code === 4001) {
+          log('Conexão rejeitada pelo usuário (4001).', 'error');
+        } else {
+          log('Falha ao conectar: ' + (err && err.message ? err.message : err), 'error');
+        }
+      }
+    }
+
+    async function getCurrentChain() {
+      try {
+        const cid = await ethereum.request({ method: 'eth_chainId' });
+        log('Chain atual: ' + cid);
+      } catch (err) {
+        log('Erro ao obter chain atual: ' + err.message, 'error');
+      }
+    }
+
+    function buildAddChainParams() {
+      const chainIdHex = toHexChainId(chainIdEl.value);
+      const chainName = chainNameEl.value.trim();
+      const symbol = symbolEl.value.trim();
+      const decimals = decimalsEl.value.trim() ? Number(decimalsEl.value.trim()) : 18;
+      const currencyName = currencyNameEl.value.trim() || symbol || 'ETH';
+
+      // Lista de RPCs (limpa linhas vazias)
+      const rpcUrls = rpcUrlsEl.value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      if (rpcUrls.length === 0) throw new Error('Informe ao menos 1 RPC URL.');
+
+      // Explorers (opcional)
+      const blockExplorerUrls = explorerUrlsEl.value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      return [{
+        chainId: chainIdHex,
+        chainName,
+        nativeCurrency: {
+          name: currencyName,
+          symbol: symbol || 'ETH',
+          decimals: Number.isFinite(decimals) ? decimals : 18,
+        },
+        rpcUrls,
+        blockExplorerUrls,
+      }];
+    }
+
+    async function addOrUpdateChain() {
+      if (!isConnected) {
+        log('Conecte a MetaMask primeiro.', 'error');
+        return;
+      }
+      let params;
+      try {
+        params = buildAddChainParams();
+      } catch (e) {
+        log('Parâmetros inválidos: ' + e.message, 'error');
+        return;
+      }
+
+      try {
+        await ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params,
+        });
+        log('Solicitação enviada: adicionar/atualizar rede com sucesso (verifique a MetaMask).');
+      } catch (err) {
+        if (err.code === 4001) {
+          log('Usuário cancelou a adição/atualização (4001).', 'error');
+        } else if (err.code === -32602) {
+          log('Parâmetros inválidos (-32602). Revise os campos.', 'error');
+        } else {
+          log('Erro wallet_addEthereumChain: ' + (err.message || err), 'error');
+        }
+      }
+    }
+
+    async function switchChain() {
+      if (!isConnected) {
+        log('Conecte a MetaMask primeiro.', 'error');
+        return;
+      }
+      let chainIdHex;
+      try {
+        chainIdHex = toHexChainId(chainIdEl.value);
+      } catch (e) {
+        log('ChainId inválido: ' + e.message, 'error');
+        return;
+      }
+
+      try {
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainIdHex }],
+        });
+        log('Trocado para a rede: ' + chainIdHex);
+      } catch (err) {
+        if (err.code === 4902) {
+          log('Rede não encontrada (4902). Tentando adicionar e depois trocar…');
+          try {
+            await ethereum.request({ method: 'wallet_addEthereumChain', params: buildAddChainParams() });
+            await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainIdHex }] });
+            log('Rede adicionada e selecionada com sucesso.');
+          } catch (e2) {
+            log('Falha ao adicionar/trocar: ' + (e2.message || e2), 'error');
+          }
+        } else if (err.code === 4001) {
+          log('Usuário cancelou a troca (4001).', 'error');
+        } else {
+          log('Erro wallet_switchEthereumChain: ' + (err.message || err), 'error');
+        }
+      }
+    }
+
+    // Pré-preenche com exemplo (Sepolia)
+    window.addEventListener('DOMContentLoaded', () => {
+      ensureEthereum();
+      chainIdEl.value = '11155111';            // ou 0xaa36a7
+      chainNameEl.value = 'Sepolia test network';
+      symbolEl.value = 'SEP';
+      decimalsEl.value = '18';
+      currencyNameEl.value = 'Sepolia ETH';
+      rpcUrlsEl.value = [
+        'https://rpc.sepolia.org',
+        'https://sepolia.infura.io/v3/YOUR_KEY'
+      ].join('\n');
+      explorerUrlsEl.value = 'https://sepolia.etherscan.io';
+    });
+
+    // UI events
+    btnConnect.addEventListener('click', connect);
+    btnGetChain.addEventListener('click', getCurrentChain);
+    btnAddOrUpdate.addEventListener('click', addOrUpdateChain);
+    btnSwitch.addEventListener('click', switchChain);
+
+    // Atualiza disponibilidade dos botões quando usuário muda campos
+    document.getElementById('chainForm').addEventListener('input', () => {
+      const hasChain = chainIdEl.value.trim() !== '' && (rpcUrlsEl.value.trim() !== '');
+      btnAddOrUpdate.disabled = !isConnected || !hasChain;
+      btnSwitch.disabled = !isConnected || chainIdEl.value.trim() === '';
+      btnGetChain.disabled = !isConnected;
+    });
+  </script>
+</body>
+</html>

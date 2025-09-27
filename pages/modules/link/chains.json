@@ -1,0 +1,79 @@
+[
+  {
+    "name": "BNB Smart Chain Mainnet",
+    "chainId": 56,
+    "rpc": ["https://bsc-dataseed.binance.org/"],
+    "explorers": [{"url": "https://bscscan.com"}],
+    "nativeCurrency": {"symbol": "BNB", "decimals": 18}
+  },
+  {
+    "name": "BNB Smart Chain Testnet", 
+    "chainId": 97,
+    "rpc": ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
+    "explorers": [{"url": "https://testnet.bscscan.com"}],
+    "nativeCurrency": {"symbol": "tBNB", "decimals": 18}
+  },
+  {
+    "name": "Ethereum Mainnet",
+    "chainId": 1,
+    "rpc": ["https://rpc.ankr.com/eth"],
+    "explorers": [{"url": "https://etherscan.io"}],
+    "nativeCurrency": {"symbol": "ETH", "decimals": 18}
+  },
+  {
+    "name": "Polygon Mainnet",
+    "chainId": 137,
+    "rpc": ["https://polygon-rpc.com"],
+    "explorers": [{"url": "https://polygonscan.com"}],
+    "nativeCurrency": {"symbol": "MATIC", "decimals": 18}
+  },
+  {
+    "name": "Polygon Mumbai Testnet",
+    "chainId": 80001,
+    "rpc": ["https://rpc-mumbai.maticvigil.com"],
+    "explorers": [{"url": "https://mumbai.polygonscan.com"}],
+    "nativeCurrency": {"symbol": "MATIC", "decimals": 18}
+  },
+  {
+    "name": "Avalanche C-Chain",
+    "chainId": 43114,
+    "rpc": ["https://api.avax.network/ext/bc/C/rpc"],
+    "explorers": [{"url": "https://snowtrace.io"}],
+    "nativeCurrency": {"symbol": "AVAX", "decimals": 18}
+  },
+  {
+    "name": "Fantom Opera",
+    "chainId": 250,
+    "rpc": ["https://rpc.ftm.tools"],
+    "explorers": [{"url": "https://ftmscan.com"}],
+    "nativeCurrency": {"symbol": "FTM", "decimals": 18}
+  },
+  {
+    "name": "Arbitrum One",
+    "chainId": 42161,
+    "rpc": ["https://arb1.arbitrum.io/rpc"],
+    "explorers": [{"url": "https://arbiscan.io"}],
+    "nativeCurrency": {"symbol": "ETH", "decimals": 18}
+  },
+  {
+    "name": "Optimism",
+    "chainId": 10,
+    "rpc": ["https://mainnet.optimism.io"],
+    "explorers": [{"url": "https://optimistic.etherscan.io"}],
+    "nativeCurrency": {"symbol": "ETH", "decimals": 18}
+  },
+  {
+    "name": "Base",
+    "chainId": 8453,
+    "rpc": ["https://mainnet.base.org"],
+    "explorers": [{"url": "https://basescan.org"}],
+    "nativeCurrency": {"symbol": "ETH", "decimals": 18}
+  },
+  {
+    "name": "Sepolia Testnet",
+    "chainId": 11155111,
+    "rpc": ["https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"],
+    "explorers": [{"url": "https://sepolia.etherscan.io"}],
+    "nativeCurrency": {"symbol": "ETH", "decimals": 18}
+  }
+]

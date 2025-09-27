@@ -1,32 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciador de Carteira (Web3Modal)</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../../../css/styles.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TokenCafe Tools - Área de Testes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="../../../css/styles.css" rel="stylesheet" />
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-wallet2"></i>
-                Gerenciador de Carteira Web3Modal
-            </a>
-        </div>
-    </nav>
-    <div class="container py-5">
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-8 col-md-10 text-center">
-                <h1 class="display-5 mb-3">Bem-vindo ao seu Gerenciador de Carteira</h1>
-                <p class="lead text-muted">Conecte sua carteira de criptomoedas de forma simples e segura para acessar
-                    informações detalhadas sobre suas contas.</p>
+    <!-- Barra Superior -->
+    <nav class="navbar navbar-expand-lg navbar-dark"
+        style="background-color: var(--tokencafe-bg-primary); border-bottom: 1px solid var(--tokencafe-border-light);">
+        <div class="container-fluid">
+            <!-- Coluna Esquerda - Logo e Título -->
+            <div class="navbar-brand" style="color: var(--tokencafe-primary)">
+                <h3 style="color: var(--tokencafe-text-primary)">
+                    <i class="fas fa-vial" style="color: var(--tokencafe-primary)"></i>
+                    Gerenciador de Carteira Web3
+                </h3>
+                <p class="text-muted mb-0">
+                    Verificação de funcionalidade do Gerenciador de Carteira Web3
+                </p>
+            </div>
+
+            <!-- Coluna Direita - Status da Carteira -->
+            <div class="d-flex align-items-center">
+                
             </div>
         </div>
+    </nav>
+    <!--corpo do html-->    
+    <div class="container py-5">
         <div class="row justify-content-center mb-4">
             <div class="col-lg-6 col-md-8">
                 <div class="card shadow-lg border-0">
@@ -92,20 +99,11 @@
             </div>
         </div>
     </div>
-
-    <footer class="mt-5 py-4 bg-light">
-        <div class="container text-center">
-            <p class="text-muted mb-0">
-                <i class="bi bi-shield-lock"></i>
-                Suas informações são processadas localmente e nunca são enviadas para servidores externos.
-            </p>
-        </div>
-    </footer>
-
+    <!-- scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="../../../js/modules/wallet/script.js"></script>
-    
+
 </body>
 </html>

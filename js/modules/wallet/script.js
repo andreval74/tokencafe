@@ -432,13 +432,20 @@ class TokenCafeWalletManager {
      * Atualizar UI baseado no estado da carteira
      */
     updateUI() {
-        // Mostrar/ocultar informações da carteira
-        const walletInfo = document.getElementById('walletInfo');
-        if (walletInfo) {
-            if (this.isConnected && this.currentAccount) {
+        // Elementos principais da UI
+        const connectCard = document.querySelector('.card:not(#walletInfo .card)'); // Quadro de conexão
+        const walletInfo = document.getElementById('walletInfo'); // Quadro de dados da carteira
+        
+        if (this.isConnected && this.currentAccount) {
+            // CONECTADO: Ocultar quadro de conexão e mostrar dados da carteira
+            if (connectCard) {
+                connectCard.style.display = 'none';
+            }
+            
+            if (walletInfo) {
                 walletInfo.classList.remove('d-none');
                 
-                // Atualizar dados da carteira APENAS se conectada manualmente
+                // Atualizar dados da carteira
                 const addressElement = document.getElementById('walletAddress');
                 if (addressElement) {
                     addressElement.textContent = this.currentAccount;
@@ -450,15 +457,26 @@ class TokenCafeWalletManager {
                     networkElement.textContent = `${networkName} (${this.chainId})`;
                 }
                 
-                // Atualizar saldo APENAS se provider está disponível
+                // Atualizar saldo se provider está disponível
                 if (this.ethersProvider && this.currentAccount) {
                     this.updateBalance();
                 }
-            } else {
-                // Sempre ocultar dados quando não conectado
+            }
+            
+            // Atualizar elementos do header/sidebar
+            this.updateHeaderElements();
+            this.updateSidebarElements();
+            
+        } else {
+            // DESCONECTADO: Mostrar quadro de conexão e ocultar dados da carteira
+            if (connectCard) {
+                connectCard.style.display = 'block';
+            }
+            
+            if (walletInfo) {
                 walletInfo.classList.add('d-none');
                 
-                // Limpar dados dos elementos para garantir que não mostrem dados antigos
+                // Limpar dados dos elementos
                 const addressElement = document.getElementById('walletAddress');
                 if (addressElement) {
                     addressElement.textContent = '';
@@ -474,22 +492,16 @@ class TokenCafeWalletManager {
                     balanceElement.textContent = '';
                 }
             }
+            
+            // Limpar elementos do header/sidebar
+            this.clearHeaderElements();
+            this.clearSidebarElements();
         }
         
-        // Atualizar botão de conexão
+        // Atualizar texto do botão de conexão (se ainda visível)
         const connectBtn = document.getElementById('connectWallet');
         if (connectBtn) {
             connectBtn.textContent = this.isConnected ? 'Reconectar' : 'Conectar Carteira';
-        }
-        
-        // Atualizar elementos do header/sidebar apenas se conectado
-        if (this.isConnected) {
-            this.updateHeaderElements();
-            this.updateSidebarElements();
-        } else {
-            // Limpar elementos do header/sidebar quando desconectado
-            this.clearHeaderElements();
-            this.clearSidebarElements();
         }
     }
 
