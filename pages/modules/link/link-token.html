@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Token - TokenCafe</title>
+    <meta name="description" content="Adicione tokens personalizados ao MetaMask e TrustWallet">
+    <meta name="keywords" content="token, wallet, MetaMask, TrustWallet, blockchain, crypto">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- TokenCafe Global CSS -->
+    <link href="../../../css/styles.css" rel="stylesheet">
+
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg link-navbar">
+        <div class="container-fluid">
+            <div class="link-navbar-brand">
+                <h3 class="link-navbar-title">
+                    <i class="fas fa-link link-navbar-icon"></i>
+                    Gerador de Links de Tokens
+                </h3>
+            </div>
+        </div>
+    </nav>
+    <!--corpo do html-->
+    <div class="container-fluid py-3">
+        <div class="row justify-content-start">
+            <div class="col-lg-6 col-xl-5">
+
+                <!-- Estado de Erro -->
+                <div id="error-state" class="alert alert-danger d-none" role="alert">
+                    <h4 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Erro ao carregar token
+                    </h4>
+                    <p id="error-message" class="mb-0">Não foi possível carregar as informações do token.</p>
+                </div>
+
+                <!-- Informações do Token -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="bi bi-info-circle section-icon"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">Dados do Token</h4>
+                            <small class="text-muted">Dados obtidos da blockchain</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="form-token-name" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="form-token-name" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="form-token-symbol" class="form-label">Símbolo</label>
+                            <input type="text" class="form-control" id="form-token-symbol" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="form-token-decimals" class="form-label">Decimais</label>
+                            <input type="number" class="form-control" id="form-token-decimals" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="form-chain-id" class="form-label">Blockchain</label>
+                            <input type="text" class="form-control" id="form-chain-id" readonly>
+                        </div>
+                        <div class="col-12">
+                            <label for="form-token-address" class="form-label">Endereço do Contrato</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="form-token-address" readonly>
+                                <button class="btn btn-outline-primary" type="button" id="copy-address-btn" title="Copiar endereço">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Botão Adicionar à Carteira -->
+                        <div class="text-center mt-4" id="clear-section">
+                            <button id="add-to-wallet-btn" class="btn btn-primary btn-lg">
+                                <i class="fas fa-wallet me-2"></i>
+                                Adicionar à Carteira
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notificações Toast -->
+                <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                    <div id="notification-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <i id="toast-icon" class="me-2"></i>
+                            <strong id="toast-title" class="me-auto">Notificação</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body" id="toast-message">
+                            Mensagem da notificação
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Consolidated Core Modules -->
+    <script type="module" src="../../../js/core/shared_utilities_es6.js"></script>
+    <script type="module" src="../../../js/modules/blockchain.js"></script>
+    <script type="module" src="../../../js/modules/token.js"></script>
+    <script src="../../../js/modules/link/link_token_display.js"></script>
+</body>
+
+</html>

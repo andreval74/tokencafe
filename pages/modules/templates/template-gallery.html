@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Template Gallery - TokenCafe</title>
+    <link rel="stylesheet" href="../../../css/styles.css" />
+</head>
+<body>
+    <div class="template-gallery-container">
+        <!-- Header do Módulo -->
+        <div class="module-header">
+            <div class="header-content">
+                <h1 class="module-title">
+                    <i class="fas fa-layer-group"></i>
+                    Galeria de Templates
+                </h1>
+                <p class="module-description">Explore e gerencie templates para seus tokens</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="createTemplateBtn">
+                    <i class="fas fa-plus"></i>
+                    Criar Template
+                </button>
+                <button class="btn btn-secondary" id="importTemplateBtn">
+                    <i class="fas fa-upload"></i>
+                    Importar
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros e Busca -->
+        <div class="filters-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="templateSearch" placeholder="Buscar templates...">
+                </div>
+            </div>
+            <div class="filter-controls">
+                <select id="categoryFilter" class="filter-select">
+                    <option value="">Todas as Categorias</option>
+                    <option value="defi">DeFi</option>
+                    <option value="nft">NFT</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="utility">Utility</option>
+                    <option value="meme">Meme</option>
+                </select>
+                <select id="typeFilter" class="filter-select">
+                    <option value="">Todos os Tipos</option>
+                    <option value="erc20">ERC-20</option>
+                    <option value="erc721">ERC-721</option>
+                    <option value="erc1155">ERC-1155</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <select id="sortFilter" class="filter-select">
+                    <option value="newest">Mais Recentes</option>
+                    <option value="popular">Mais Populares</option>
+                    <option value="name">Nome A-Z</option>
+                    <option value="rating">Melhor Avaliação</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Grid de Templates -->
+        <div class="templates-grid" id="templatesGrid">
+            <!-- Templates serão carregados dinamicamente -->
+        </div>
+
+        <!-- Estado Vazio -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <h3>Nenhum template encontrado</h3>
+            <p>Não encontramos templates que correspondam aos seus critérios de busca.</p>
+            <button class="btn btn-primary" id="clearFiltersBtn">
+                <i class="fas fa-filter"></i>
+                Limpar Filtros
+            </button>
+        </div>
+
+        <!-- Estado de Carregamento -->
+        <div class="loading-state" id="loadingState">
+            <div class="loading-spinner"></div>
+            <p>Carregando templates...</p>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Template -->
+    <div class="modal" id="templateDetailsModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="templateModalTitle">Detalhes do Template</h2>
+                <button class="modal-close" id="closeTemplateModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="template-details">
+                    <div class="template-preview">
+                        <div class="preview-image" id="templatePreview">
+                            <!-- Preview será carregado aqui -->
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn btn-primary" id="useTemplateBtn">
+                                <i class="fas fa-rocket"></i>
+                                Usar Template
+                            </button>
+                            <button class="btn btn-secondary" id="duplicateTemplateBtn">
+                                <i class="fas fa-copy"></i>
+                                Duplicar
+                            </button>
+                            <button class="btn btn-outline" id="downloadTemplateBtn">
+                                <i class="fas fa-download"></i>
+                                Download
+                            </button>
+                        </div>
+                    </div>
+                    <div class="template-info">
+                        <div class="info-section">
+                            <h3>Informações Gerais</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Nome:</label>
+                                    <span id="templateName">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Categoria:</label>
+                                    <span id="templateCategory">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Tipo:</label>
+                                    <span id="templateType">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Avaliação:</label>
+                                    <div class="rating" id="templateRating">
+                                        <!-- Estrelas serão carregadas aqui -->
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <label>Usos:</label>
+                                    <span id="templateUses">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Criado em:</label>
+                                    <span id="templateCreated">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3>Descrição</h3>
+                            <p id="templateDescription">-</p>
+                        </div>
+                        <div class="info-section">
+                            <h3>Características</h3>
+                            <div class="features-list" id="templateFeatures">
+                                <!-- Features serão carregadas aqui -->
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3>Código</h3>
+                            <div class="code-preview">
+                                <pre><code id="templateCode">// Código do template será exibido aqui</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Criação de Template -->
+    <div class="modal" id="createTemplateModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Criar Novo Template</h2>
+                <button class="modal-close" id="closeCreateModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createTemplateForm" class="template-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newTemplateName">Nome do Template</label>
+                            <input type="text" id="newTemplateName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newTemplateCategory">Categoria</label>
+                            <select id="newTemplateCategory" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="defi">DeFi</option>
+                                <option value="nft">NFT</option>
+                                <option value="gaming">Gaming</option>
+                                <option value="utility">Utility</option>
+                                <option value="meme">Meme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newTemplateType">Tipo</label>
+                            <select id="newTemplateType" required>
+                                <option value="">Selecione um tipo</option>
+                                <option value="erc20">ERC-20</option>
+                                <option value="erc721">ERC-721</option>
+                                <option value="erc1155">ERC-1155</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newTemplateImage">Imagem do Template</label>
+                            <input type="file" id="newTemplateImage" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newTemplateDescription">Descrição</label>
+                        <textarea id="newTemplateDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="newTemplateFeatures">Características (uma por linha)</label>
+                        <textarea id="newTemplateFeatures" rows="4" placeholder="Mintable&#10;Burnable&#10;Pausable&#10;Ownable"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="newTemplateCode">Código do Template</label>
+                        <textarea id="newTemplateCode" rows="10" required placeholder="// Cole aqui o código do seu template"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCreateBtn">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Criar Template
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../js/modules/templates/template-gallery.js"></script>
+</body>
+</html>

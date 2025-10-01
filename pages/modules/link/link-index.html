@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Links de Tokens - TokenCafe</title>
+    <meta name="description" content="Gerador de links de tokens personalizados para MetaMask e TrustWallet">
+    <meta name="keywords" content="token, wallet, MetaMask, TrustWallet, blockchain, crypto">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- TokenCafe Global CSS -->
+    <link href="../../../css/styles.css" rel="stylesheet">
+
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg link-navbar">
+        <div class="container-fluid">
+            <div class="link-navbar-brand">
+                <h3 class="link-navbar-title">
+                    <i class="fas fa-link link-navbar-icon"></i>
+                    Gerador de Links de Tokens
+                </h3>
+            </div>
+        </div>
+    </nav>
+    
+    <!--corpo do html-->
+    <div class="container-fluid py-3">
+        <div class="row justify-content-start">
+            <div class="col-lg-6 col-xl-5">
+
+                <!-- Seção 1: Seleção da Rede -->
+                <div class="mb-4" id="network-section">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-3">
+                            <i class="bi bi-globe section-icon"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">1. Selecionar Rede Blockchain</h4>
+                            <p class="text-muted mb-0">Escolha a rede blockchain onde seu token está localizado</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 position-relative">
+                            <label for="networkSearch" class="form-label">Rede Blockchain</label>
+                            <input id="networkSearch" class="form-control form-control-lg" autocomplete="off"
+                                placeholder="Digite o nome ou ChainID da Rede (Ex: Ethereum ou 1)">
+                            <div id="networkAutocomplete"
+                                class="list-group position-absolute w-100 network-autocomplete"></div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="rpcUrl" class="form-label">RPC URL</label>
+                            <input id="rpcUrl" class="form-control monospace-input"
+                                placeholder="https://bsc-dataseed.binance.org" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="blockExplorer" class="form-label">Block Explorer URL</label>
+                            <input id="explorerUrl" class="form-control monospace-input"
+                                placeholder="https://bscscan.com" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Dados do Token (inicialmente oculta) -->
+                <div class="mb-4 hidden-section" id="token-section">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-3">
+                            <i class="bi bi-coin section-icon"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">2. Informações do Token</h4>
+                            <p class="text-muted mb-0">Insira o endereço do token para buscar suas informações</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3 align-items-end">
+                        <div class="col-md-9">
+                            <label for="tokenAddress" class="form-label">Endereço do Token</label>
+                            <input id="tokenAddress" class="form-control form-control-lg monospace-input"
+                                placeholder="Endereço do Token (0x...)">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-primary" id="btnTokenSearch">
+                                <i class="bi bi-search me-2"></i>Buscar Token
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="tokenLoading" class="text-center py-3 loading-container">
+                        <div class="spinner-border text-primary me-2" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <span class="text-primary">Buscando dados do token...</span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label for="tokenName" class="form-label">Nome do Token</label>
+                            <input id="tokenName" class="form-control" placeholder="Nome" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tokenSymbol" class="form-label">Símbolo</label>
+                            <input id="tokenSymbol" class="form-control" placeholder="Símbolo" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tokenDecimals" class="form-label">Decimais</label>
+                            <input id="tokenDecimals" class="form-control" placeholder="18" type="number" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tokenImage" class="form-label">Imagem (opcional)</label>
+                        <input id="tokenImage" class="form-control monospace-input" placeholder="URL da Imagem"
+                            readonly>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Links Gerados (inicialmente oculta) -->
+                <div class="mb-4 hidden-section" id="generate-section">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-3">
+                            <i class="bi bi-link-45deg section-icon"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">3. Links Gerados</h4>
+                            <p class="text-muted mb-0">Seu link compartilhável foi gerado com sucesso</p>
+                        </div>
+                    </div>
+
+                    <div id="generatedLinkContainer" class="hidden-section">
+                        <div class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>Link Gerado com Sucesso!</strong>
+                        </div>
+
+                        <label class="form-label">Link Compartilhável:</label>
+                        <div class="input-group">
+                            <input id="generatedLink" class="form-control monospace-input" readonly>
+                            <button class="btn btn-outline-success" id="btnCopyLink" type="button" title="Copiar Link">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                            <button class="btn btn-outline-info" id="btnShareLink" type="button"
+                                title="Compartilhar Link">
+                                <i class="bi bi-share"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" id="btnPreviewLink" type="button"
+                                title="Visualizar Link">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botão Limpar -->
+                <div class="text-center mt-4" id="clear-section">
+                    <button id="btnClearAll" type="button" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>LIMPAR TUDO E RECOMEÇAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript Modules -->
+    <script type="module" src="../../../js/core/shared_utilities_es6.js"></script>
+
+    <!-- Consolidated Core Modules -->
+    <script type="module" src="../../../js/modules/blockchain.js"></script>
+    <script type="module" src="../../../js/modules/token.js"></script>
+    <script type="module" src="../../../js/modules/link/link_index.js"></script>
+
+</body>
+
+</html>
