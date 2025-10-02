@@ -2,40 +2,56 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TokenCafe - O Futuro da Tokenização | Democratizando a Web3</title>
-    <meta name="description"
-        content="TokenCafe - O ecossistema mais completo para Criação, gestão e negociação de tokens e contratos inteligentes. Democratize seus ativos digitais com nossa plataforma Web3 no-code.">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';" />
-    <link rel="icon" type="image/png" sizes="32x32" href="../imgs/tkncafe32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../imgs/tkncafe16x16.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="../css/styles.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-
-    <!-- Meta tags adicionais SEO -->
-    <meta name="keywords"
-        content="tokencafe, criar token, blockchain, ethereum, polygon, NFT, Web3, Tokenização, contratos inteligentes, DeFi, DAO, marketplace">
-    <meta name="author" content="TokenCafe Team">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="TokenCafe - O Futuro da Tokenização">
-    <meta property="og:description"
-        content="O ecossistema mais completo para democratizar a Criação de ativos digitais">
-    <meta property="og:image" content="../imgs/tkncafe512x512.png">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://tokencafe.app">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="TokenCafe - O Futuro da Tokenização">
-    <meta name="twitter:description"
-        content="O ecossistema mais completo para democratizar a Criação de ativos digitais">
-    <meta name="twitter:image" content="../imgs/tkncafe512x512.png">
+  <meta charset="UTF-8" />
+  <me                            <button id="connect-text" class="TokenCafe-badge TokenCafe-bounce-in" type="button" onclick="connectWalletFromHeader()">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                <span id="connect-text">Conectar ao MetaMask</span> 
+                            </button>ame="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- SEO Primary Tags -->
+  <title>TokenCafe - Plataforma Brasileira de Tokenização Web3 | Crie Tokens sem Código</title>
+  <meta name="description" content="TokenCafe é a principal plataforma brasileira para criação de tokens ERC-20, BEP-20 e NFTs sem conhecimento técnico. Deploy instantâneo, IA integrada, marketplace e ferramentas completas para Web3." />
+  <meta name="keywords" content="tokenização, criar token, ERC-20, BEP-20, NFT, blockchain, Web3, Brasil, criptomoedas, smart contracts, DeFi, marketplace, sem código, no-code" />
+  <meta name="author" content="TokenCafe Team" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://tokencafe.app/pages/" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://tokencafe.app/pages/" />
+  <meta property="og:title" content="TokenCafe - Plataforma Brasileira de Tokenização Web3" />
+  <meta property="og:description" content="Crie tokens ERC-20, BEP-20 e NFTs em minutos sem conhecimento técnico. A plataforma mais completa do Brasil para Web3." />
+  <meta property="og:image" content="https://tokencafe.app/imgs/tokencafe-og-image.png" />
+  <meta property="og:site_name" content="TokenCafe" />
+  <meta property="og:locale" content="pt_BR" />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://tokencafe.app/pages/" />
+  <meta property="twitter:title" content="TokenCafe - Plataforma Brasileira de Tokenização Web3" />
+  <meta property="twitter:description" content="Crie tokens ERC-20, BEP-20 e NFTs em minutos sem conhecimento técnico. A plataforma mais completa do Brasil para Web3." />
+  <meta property="twitter:image" content="https://tokencafe.app/imgs/tokencafe-og-image.png" />
+  
+  <!-- Technical SEO -->
+  <meta name="language" content="Portuguese" />
+  <meta name="geo.region" content="BR" />
+  <meta name="geo.country" content="Brasil" />
+  <meta name="theme-color" content="#f85d23" />
+  
+  <!-- Security -->
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';" />
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="../imgs/tkncafe32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../imgs/tkncafe16x16.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="../imgs/tkncafe192x192.png" />
+  
+  <!-- Stylesheets -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  <link href="../css/styles.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 
 <body>
@@ -43,7 +59,7 @@
     <div data-component="header.html"></div>
 
     <!-- Hero Section Principal TokenCafe -->
-    <section>
+    <section class="TokenCafe-fade-in">
         <div class="container">
             <div class="row justify-content-center text-center mb-5">
                     <!-- <div class="col-lg-8">
@@ -55,37 +71,37 @@
 
                 <div class="col-lg-12 text-center">
                     <div class="hero-content">
-                        <h1 class="display-2 fw-bold mb-4 text-primary-tokencafe">
-                            Crie e Gerencie o seu <span class="gradient-text">Token</span>
-                            em apenas <span class="text-primary-tokencafe"> 4 passos</span> e em menos de
-                            <span class="gradient-text">5 minutos</span>.
+                        <h1 class="display-1 fw-bold text-white mb-4">
+                            Crie e Gerencie o seu <span class="text-warning fw-bold">Token</span>
+                            em apenas <span class="text-warning fw-bold">4 passos</span> e em menos de
+                            <span class="text-warning fw-bold">5 minutos</span>.
                         </h1>
-                        <p class="lead mb-5 fs-4 text-white">
+                        <p class="lead text-white mb-5">
                             A plataforma brasileira mais avançada para tokenização.<br>
                             <strong>Deploy instantâneo • IA integrada • Multi-blockchain</strong>
                         </p>
                         
                         <div class="d-flex justify-content-center gap-3 mb-4">
-                            <button id="connect-text" class="btn btn-primary btn-lg" type="button" onclick="connectWalletFromHeader()">
-                                <i class="fas fa-sign-in-alt me-1"></i>
-                                <span id="connect-text">Conectar ao MetaMask</span> 
+                            <button id="connect-text" class="btn btn-primary btn-lg px-5 py-3" type="button" onclick="connectWalletFromHeader()">
+                                <i class="fas fa-wallet me-2"></i>
+                                Conectar MetaMask
                             </button>
                             
-                            <a href="tools.html" class="btn btn-outline-light btn-lg">
-                                <i class="fas fa-tools me-1"></i>
-                                Hub de Ferramentas
+                            <a href="tools.html" class="btn btn-outline-light btn-lg px-5 py-3">
+                                <i class="fas fa-tools me-2"></i>
+                                Ferramentas
                             </a>
                         </div>
 
                         <div class="text-center mt-4">
                             <div class="d-flex justify-content-center gap-4">
                                 <div>
-                                    <i class="fas fa-user me-2 text-tokencafe"></i>
-                                    <small class="text-secondary-tokencafe">Sem Habilidades Técnicas</small>
+                                    <i class="fas fa-user me-2 text-warning"></i>
+                                    <small class="text-muted">Sem Habilidades Técnicas</small>
                                 </div>
                                 <div>
-                                    <i class="fas fa-network-wired me-2 text-warning-tokencafe"></i>
-                                    <small class="text-secondary-tokencafe">Rede descentralizada</small>
+                                    <i class="fas fa-network-wired me-2 text-warning"></i>
+                                    <small class="text-muted">Rede descentralizada</small>
                                 </div>
                             </div>
                         </div>
@@ -98,16 +114,16 @@
     <!-- Token - Seção Unificada (ex-"Por que escolher" + "Feito para o Mundo") -->
     <div id="token" class="section-divider"></div>
 
-    <section>
+    <section class="TokenCafe-fade-in">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center mb-5">
-                    <h2 class="display-4 fw-bold mb-3">Token<span class="gradient-text">Cafe</span> - Democratizando
+                    <h2 class="title">Token<span class="text-tokencafe">Cafe</span> - Democratizando
                         a Web3</h2>
-                    <p class="lead text-light mb-4">
+                    <p class="TokenCafe-description">
                         O EcoSistema mais completo do mundo criado especialmente para o mercado brasileiro e global
                     </p>
-                                        <div class="badge bg-primary-tokencafe text-dark px-4 py-2">
+                    <div class="TokenCafe-badge">
                         <i class="fas fa-globe me-2"></i>
                         Plataforma brasileira com alcance mundial
                     </div>
@@ -119,19 +135,19 @@
                 <div class="col-lg-4">
                     <div class="feature-card text-center p-4">
                         <div class="feature-icon mb-4 text-center">
-                            <i class="bi bi-translate icon-lg text-primary-tokencafe"></i>
+                            <i class="bi bi-translate icon-lg text-tokencafe"></i>
                         </div>
-                        <h4 class="card-title mb-3 text-primary-tokencafe">Linguagem Brasileira</h4>
-                        <p class="card-text text-light mb-4">
+                        <h4 class="card-title mb-3 text-tokencafe">Linguagem Brasileira</h4>
+                        <p class="card-text text-muted mb-4">
                             Explicamos em português claro com IA especializada no mercado financeiro brasileiro.
                             Sem termos técnicos complexos.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Interface 100% em
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>Interface 100% em
                                 português</li>
-                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>IA orientativa brasileira
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>IA orientativa brasileira
                             </li>
-                            <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Templates para iniciantes
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>Templates para iniciantes
                             </li>
                         </ul>
                     </div>
@@ -140,19 +156,19 @@
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4">
                         <div class="feature-icon mb-4">
-                            <i class="bi bi-currency-dollar icon-lg text-primary-tokencafe"></i>
+                            <i class="bi bi-currency-dollar icon-lg text-tokencafe"></i>
                         </div>
-                        <h4 class="card-title mb-3 text-primary-tokencafe">Pagamentos Brasileiros</h4>
-                        <p class="card-text text-light mb-4">
+                        <h4 class="card-title mb-3 text-tokencafe">Pagamentos Brasileiros</h4>
+                        <p class="card-text text-muted mb-4">
                             Aceite cartões, PIX e crypto. Nossa principal moeda são criptomoedas com conversão
                             automática para múltiplas moedas.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li class="mb-2"><i class="bi bi-check text-success-tokencafe me-2"></i>PIX e cartões nacionais
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>PIX e cartões nacionais
                             </li>
-                            <li class="mb-2"><i class="bi bi-check text-success-tokencafe me-2"></i>Crypto como moeda
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>Crypto como moeda
                                 principal</li>
-                            <li class="mb-2"><i class="bi bi-check text-success-tokencafe me-2"></i>Conversão automática</li>
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>Conversão automática</li>
                         </ul>
                     </div>
                 </div>
@@ -160,17 +176,17 @@
                 <div class="col-lg-4">
                     <div class="feature-card h-100 text-center p-4">
                         <div class="feature-icon mb-4">
-                            <i class="bi bi-globe icon-lg text-primary-tokencafe"></i>
+                            <i class="bi bi-globe icon-lg text-tokencafe"></i>
                         </div>
-                        <h4 class="card-title mb-3 text-primary-tokencafe">EcoSistema Completo</h4>
-                        <p class="card-text text-light mb-4">
+                        <h4 class="card-title mb-3 text-tokencafe">EcoSistema Completo</h4>
+                        <p class="card-text text-muted mb-4">
                             Não somos apenas uma ferramenta de criação. Oferecemos marketplace, rede social,
                             IA e suporte completo do Brasil para o mundo.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li class="mb-2"><i class="bi bi-check text-success-tokencafe me-2"></i>Marketplace integrado</li>
-                            <li class="mb-2"><i class="bi bi-check text-success-tokencafe me-2"></i>Rede social Web3</li>
-                            <li class="mb-2"><i class="bi bi-check text-success-tokencafe me-2"></i>Suporte multilíngue</li>
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>Marketplace integrado</li>
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>Rede social Web3</li>
+                            <li class="mb-2"><i class="bi bi-check text-tokencafe me-2"></i>Suporte multilíngue</li>
                         </ul>
                     </div>
                 </div>
@@ -182,10 +198,10 @@
                     <div class="card bg-dark border-0 h-100 p-4 shadow">
                         <div class="text-center">
                             <div class="feature-icon mb-3">
-                                <i class="bi bi-shield-lock text-primary-tokencafe icon-xl"></i>
+                                <i class="bi bi-shield-lock text-tokencafe icon-xl"></i>
                             </div>
-                            <h5 class="fw-bold mb-3 text-primary-tokencafe">100% Descentralizado</h5>
-                            <p class="text-light mb-0">
+                            <h5 class="fw-bold mb-3 text-tokencafe">100% Descentralizado</h5>
+                            <p class="text-muted mb-0">
                                 Acesso via carteira Web3, sem contas tradicionais. Sua custódia permanece sempre com
                                 você.
                             </p>
@@ -197,10 +213,10 @@
                     <div class="card bg-dark border-0 h-100 p-4 shadow">
                         <div class="text-center">
                             <div class="feature-icon mb-3">
-                                <i class="bi bi-people text-primary-tokencafe icon-xl"></i>
+                                <i class="bi bi-people text-tokencafe icon-xl"></i>
                             </div>
-                            <h5 class="fw-bold mb-3 text-primary-tokencafe">Impacto Social</h5>
-                            <p class="text-light mb-0">
+                            <h5 class="fw-bold mb-3 text-tokencafe">Impacto Social</h5>
+                            <p class="text-muted mb-0">
                                 Democratizamos a Web3 para pessoas comuns, pequenos negócios e comunidades
                                 brasileiras.
                             </p>
@@ -212,10 +228,10 @@
                     <div class="card bg-dark border-0 h-100 p-4 shadow">
                         <div class="text-center">
                             <div class="feature-icon mb-3">
-                                <i class="bi bi-magic text-primary-tokencafe icon-xl"></i>
+                                <i class="bi bi-magic text-tokencafe icon-xl"></i>
                             </div>
-                            <h5 class="fw-bold mb-3 text-primary-tokencafe">Deploy em 1 Clique</h5>
-                            <p class="text-light mb-0">
+                            <h5 class="fw-bold mb-3 text-tokencafe">Deploy em 1 Clique</h5>
+                            <p class="text-muted mb-0">
                                 Interface drag & drop com templates prontos. Do zero ao token live em menos de 5
                                 minutos.
                             </p>
@@ -227,10 +243,10 @@
                     <div class="card bg-dark border-0 h-100 p-4 shadow">
                         <div class="text-center">
                             <div class="feature-icon mb-3">
-                                <i class="bi bi-graph-up text-primary-tokencafe icon-xl"></i>
+                                <i class="bi bi-graph-up text-tokencafe icon-xl"></i>
                             </div>
-                            <h5 class="fw-bold mb-3 text-primary-tokencafe">Multi-Blockchain</h5>
-                            <p class="text-light mb-0">
+                            <h5 class="fw-bold mb-3 text-tokencafe">Multi-Blockchain</h5>
+                            <p class="text-muted mb-0">
                                 Suporte nativo para Ethereum, BSC, Polygon, Solana e mais de 30 blockchains.
                             </p>
                         </div>
@@ -243,7 +259,7 @@
     <!-- Como Funciona - Seção Unificada e Melhorada -->
     <div id="comofunciona" class="section-divider"></div>
 
-    <section>
+    <section class=\"TokenCafe-fade-in\">
         <div class="container">
             <div class="row justify-content-center text-center mb-5">
                 <div class="col-lg-10">
@@ -251,7 +267,7 @@
                     <p class="lead text-secondary mb-4">
                         Democratizamos a criação de tokens com 4 passos simples e intuitivos
                     </p>
-                    <div class="badge bg-primary text-dark mb-4 px-3 py-2 pulse-animation">
+                    <div class="badge bg-tokencafe text-dark mb-4 px-3 py-2 pulse-animation">
                         <i class="fas fa-rocket me-2"></i>
                         Do zero ao seu primeiro token em menos de 5 minutos
                     </div>
@@ -263,7 +279,7 @@
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="fas fa-wallet text-primary-tokencafe icon-xl"></i>
+                                <i class="fas fa-wallet text-tokencafe icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2 fw-bold">Conecte sua Carteira Web3</h5>
@@ -286,7 +302,7 @@
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="fas fa-cogs text-primary-tokencafe icon-xl"></i>
+                                <i class="fas fa-cogs text-tokencafe icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2 fw-bold">Configure seu Token</h5>
@@ -309,7 +325,7 @@
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="fas fa-shield-alt text-primary-tokencafe icon-xl"></i>
+                                <i class="fas fa-shield-alt text-tokencafe icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2 fw-bold">Teste e Valide Gratuitamente</h5>
@@ -331,7 +347,7 @@
                     <div class="tool-card h-100 p-4 position-relative">
                         <div class="d-flex align-items-start mb-3">
                             <div class="feature-icon me-3">
-                                <i class="fas fa-chart-line text-primary-tokencafe icon-xl"></i>
+                                <i class="fas fa-chart-line text-tokencafe icon-xl"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <h5 class="card-title mb-2 fw-bold">Deploy e Gerencie</h5>
@@ -340,9 +356,9 @@
                                     gerenciar, monitorar e fazer seu projeto prosperar no ecossistema Web3.
                                 </p>
                                 <div class="d-flex gap-2 flex-wrap">
-                                    <span class="badge bg-warning text-dark">Dashboard</span>
-                                    <span class="badge bg-warning text-dark">Analytics</span>
-                                    <span class="badge bg-warning text-dark">Management</span>
+                                    <span class="badge bg-tokencafe text-dark">Dashboard</span>
+                                    <span class="badge bg-tokencafe text-dark">Analytics</span>
+                                    <span class="badge bg-tokencafe text-dark">Management</span>
                                 </div>
                             </div>
                         </div>
@@ -355,14 +371,14 @@
     <!-- Ecosystem Section -->
     <div id="ecosistema" class="section-divider"></div>
 
-    <section>
+    <section class=\"TokenCafe-fade-in\">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center mb-5">
                     <h2 class="display-4 fw-bold mb-3">Funcionalidades
                         <span class="gradient-text">Principais</span>
                     </h2>
-                    <p class="lead text-light">
+                    <p class="lead text-muted">
                         Um EcoSistema vivo e completo que evolui com base na necessidade do mercado e sugestão dos
                         usuários.
                     </p>
@@ -373,9 +389,9 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="feature-card h-100 p-4">
                         <div class="feature-icon mb-3">
-                            <i class="bi bi-wallet2 icon-md text-primary-tokencafe"></i>
+                            <i class="bi bi-wallet2 icon-md text-tokencafe"></i>
                         </div>
-                        <h5 class="mb-3 text-primary-tokencafe">Acesso via Wallet</h5>
+                        <h5 class="mb-3 text-tokencafe">Acesso via Wallet</h5>
                         <p class="text-secondary">Descentralizado, Padrão cripto. Conecte-se com qualquer carteira
                             Web3 compatível.</p>
                         <div class="d-flex justify-content-between align-items-center">
@@ -394,7 +410,7 @@
                         <p class="text-secondary">Criação automatizada de contratos inteligentes com endereços
                             simples ou sufixos personalizados.</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-warning">Em Teste</span>
+                            <span class="badge bg-tokencafe">Em Teste</span>
                         </div>
                     </div>
                 </div>
@@ -408,7 +424,7 @@
                         <p class="text-secondary">Widget integrado para páginas externas/internas com funcionalidade
                             de compra direta.</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-warning">Em Teste</span>
+                            <span class="badge bg-tokencafe">Em Teste</span>
                         </div>
                     </div>
                 </div>
@@ -492,7 +508,7 @@
                         <p class="text-secondary">Geração em massa de carteiras personalizadas (vanity wallets) para
                             projetos.</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-warning">Em Teste</span>
+                            <span class="badge bg-tokencafe">Em Teste</span>
                         </div>
                     </div>
                 </div>
@@ -508,7 +524,7 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="tool-card h-100 p-3">
                         <div class="text-center">
-                            <i class="bi bi-shield-check text-primary-tokencafe fs-1 mb-2"></i>
+                            <i class="bi bi-shield-check text-tokencafe fs-1 mb-2"></i>
                             <h6 class="mb-2">Auditoria Automatizada com IA para Contratos</h6>
                         </div>
                     </div>
@@ -517,7 +533,7 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="tool-card h-100 p-3">
                         <div class="text-center">
-                            <i class="bi bi-graph-up text-primary-tokencafe fs-1 mb-2"></i>
+                            <i class="bi bi-graph-up text-tokencafe fs-1 mb-2"></i>
                             <h6 class="mb-2">Dashboard Individual e Induitivo</h6>
                         </div>
                     </div>
@@ -526,7 +542,7 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="tool-card h-100 p-3">
                         <div class="text-center">
-                            <i class="bi bi-credit-card text-primary-tokencafe fs-1 mb-2"></i>
+                            <i class="bi bi-credit-card text-tokencafe fs-1 mb-2"></i>
                             <h6 class="mb-2">Formas de Pagamentos Diferenciadas </h6>
                         </div>
                     </div>
@@ -535,7 +551,7 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="tool-card h-100 p-3">
                         <div class="text-center">
-                            <i class="bi bi-shop text-primary-tokencafe fs-1 mb-2"></i>
+                            <i class="bi bi-shop text-tokencafe fs-1 mb-2"></i>
                             <h6 class="mb-2">Marketing Place de Tokens e Projetos </h6>
                         </div>
                     </div>
@@ -547,12 +563,12 @@
     <!-- Seção de Valores/Pricing -->
     <div id="precos" class="section-divider"></div>
 
-    <section>
+    <section class=\"TokenCafe-fade-in\">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center mb-5">
                     <h2 class="display-4 fw-bold mb-3">Preços <span class="gradient-text">Competitivos</span></h2>
-                    <p class="lead text-light mb-4">
+                    <p class="lead text-muted mb-4">
                         Planos flexíveis para todos os tamanhos de projeto. <strong>40% mais barato</strong> que
                         concorrentes
                     </p>
@@ -569,28 +585,28 @@
                     <div class="card pricing-card h-100 border-0 shadow-lg">
                         <div class="card-body p-4 text-center">
                             <div class="pricing-icon mb-3">
-                                <i class="fas fa-rocket fs-1 text-primary-tokencafe"></i>
+                                <i class="fas fa-rocket fs-1 text-tokencafe"></i>
                             </div>
                             <h3 class="card-title  fw-bold mb-3">Basic</h3>
                             <div class="pricing-amount mb-4">
-                                <span class="price-currency text-warning-tokencafe">$</span>
+                                <span class="price-currency text-tokencafe">$</span>
                                 <span class="price-value  display-4 fw-bold">19</span>
                                 <span class="price-period text-secondary">/mês</span>
                             </div>
                             <ul class="list-unstyled text-start mb-4">
-                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i> <strong>5 tokens
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>5 tokens
                                         ERC-20</strong> por mês</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Dashboard
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Dashboard
                                         completo</strong> com analytics básicos</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Smart
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Smart
                                         contracts</strong> auditados</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Suporte por
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Suporte por
                                         email</strong> (48h resposta)</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Templates
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Templates
                                         básicos</strong> personalizáveis</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Integração
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Integração
                                         MetaMask</strong></li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i>
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i>
                                     <strong>Documentação</strong> completa
                                 </li>
                                 <li class="mb-2 text-muted"><i class="fas fa-times text-secondary me-2"></i> API
@@ -609,39 +625,39 @@
                 <div class="col-lg-4 col-md-6">
                     <!-- Badge Popular - FORA do card -->
                     <div class="text-center mb-3">
-                        <span class="badge bg-warning text-dark px-4 py-2 fw-bold position-relative">
+                        <span class="badge bg-tokencafe text-dark px-4 py-2 fw-bold position-relative">
                             <i class="fas fa-star me-2"></i>MAIS POPULAR
                         </span>
                     </div>
                     <div class="card pricing-card h-100 border-0 shadow-lg">
                         <div class="card-body p-4 text-center">
                             <div class="pricing-icon mb-3">
-                                <i class="fas fa-crown fs-1 text-primary-tokencafe"></i>
+                                <i class="fas fa-crown fs-1 text-tokencafe"></i>
                             </div>
                             <h3 class="card-title  fw-bold mb-3">Professional</h3>
                             <div class="pricing-amount mb-4">
-                                <span class="price-currency text-warning-tokencafe">$</span>
+                                <span class="price-currency text-tokencafe">$</span>
                                 <span class="price-value  display-4 fw-bold">49</span>
                                 <span class="price-period text-secondary">/mês</span>
                             </div>
                             <ul class="list-unstyled text-start mb-4">
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Tokens
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Tokens
                                         ilimitados</strong> ERC-20, BEP-20, SPL</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Analytics
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Analytics
                                         avançados</strong> + relatórios</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>API REST
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>API REST
                                         completa</strong> para integrações</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Suporte
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Suporte
                                         prioritário</strong> (4h resposta)</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Templates
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Templates
                                         premium</strong> + editor visual</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Multi-chain
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Multi-chain
                                         support</strong> (ETH, BSC, Polygon)</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Webhook
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Webhook
                                         notifications</strong></li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Custom
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Custom
                                         branding</strong></li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Advanced
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Advanced
                                         security</strong> features</li>
                             </ul>
                             <button onclick="connectWallet()" class="btn btn-primary btn-lg px-5 py-3 w-100">
@@ -656,32 +672,32 @@
                     <div class="card pricing-card h-100 border-0 shadow-lg">
                         <div class="card-body p-4 text-center">
                             <div class="pricing-icon mb-3">
-                                <i class="fas fa-building fs-1 text-primary-tokencafe"></i>
+                                <i class="fas fa-building fs-1 text-tokencafe"></i>
                             </div>
                             <h3 class="card-title  fw-bold mb-3">Enterprise</h3>
                             <div class="pricing-amount mb-4">
-                                <span class="price-currency text-warning-tokencafe">$</span>
+                                <span class="price-currency text-tokencafe">$</span>
                                 <span class="price-value  display-4 fw-bold">199</span>
                                 <span class="price-period text-secondary">/mês</span>
                             </div>
                             <ul class="list-unstyled text-start mb-4">
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Solução
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Solução
                                         white-label</strong> completa</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Suporte
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Suporte
                                         dedicado</strong> 24/7 + account manager</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Integração
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Integração
                                         personalizada</strong> + SDK</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>SLA
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>SLA
                                         99.9%</strong> uptime garantido</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Consultoria
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Consultoria
                                         blockchain</strong> incluída</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Custom smart
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Custom smart
                                         contracts</strong></li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Private
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Private
                                         cloud</strong> deployment</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Advanced
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Advanced
                                         compliance</strong> tools</li>
-                                <li class="mb-2"><i class="fas fa-check text-success-tokencafe me-2"></i> <strong>Priority
+                                <li class="mb-2"><i class="fas fa-check text-tokencafe me-2"></i> <strong>Priority
                                         feature requests</strong></li>
                             </ul>
                             <button onclick="connectWallet()" class="btn btn-primary btn-lg px-5 py-3 w-100">
@@ -699,7 +715,7 @@
                     <div class="row g-4 mt-4">
                         <div class="col-md-4">
                             <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-bolt text-warning-tokencafe fs-2 me-3"></i>
+                                <i class="fas fa-bolt text-tokencafe fs-2 me-3"></i>
                                 <div>
                                     <h5 class=" mb-1">Deploy em 30s</h5>
                                     <small class="text-secondary">Mais rápido que 20lab.app</small>
@@ -708,7 +724,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-dollar-sign text-warning-tokencafe fs-2 me-3"></i>
+                                <i class="fas fa-dollar-sign text-tokencafe fs-2 me-3"></i>
                                 <div>
                                     <h5 class=" mb-1">Preços 40% menores</h5>
                                     <small class="text-secondary">Comparado aos concorrentes</small>
@@ -717,7 +733,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-code text-warning-tokencafe fs-2 me-3"></i>
+                                <i class="fas fa-code text-tokencafe fs-2 me-3"></i>
                                 <div>
                                     <h5 class=" mb-1">Multi-blockchain</h5>
                                     <small class="text-secondary">Ethereum, BSC, Polygon, Solana</small>
@@ -733,7 +749,7 @@
     <!-- Social Impact Section -->
     <div id="social" class="section-divider"></div>
 
-    <section>
+    <section class=\"TokenCafe-fade-in\">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
@@ -743,23 +759,23 @@
                     </p>
                     <ul class="list-unstyled">
                         <li class="mb-3">
-                            <i class="bi bi-mortarboard text-primary-tokencafe me-3 fs-4"></i>
+                            <i class="bi bi-mortarboard text-tokencafe me-3 fs-4"></i>
                             <strong>TokenCafe Academy:</strong> Trilhas gratuitas de educação Web3 em português
                         </li>
                         <li class="mb-3">
-                            <i class="bi bi-people text-primary-tokencafe me-3 fs-4"></i>
+                            <i class="bi bi-people text-tokencafe me-3 fs-4"></i>
                             <strong>Inclusão Real:</strong> Foco em mulheres, periferias e PMEs brasileiras
                         </li>
                         <li class="mb-3">
-                            <i class="bi bi-award text-primary-tokencafe me-3 fs-4"></i>
+                            <i class="bi bi-award text-tokencafe me-3 fs-4"></i>
                             <strong>Learn-to-Earn:</strong> Missões educativas com recompensas em tokens
                         </li>
                         <li class="mb-3">
-                            <i class="bi bi-heart text-primary-tokencafe me-3 fs-4"></i>
+                            <i class="bi bi-heart text-tokencafe me-3 fs-4"></i>
                             <strong>2% da receita</strong> dedicada ao Fundo TokenCafe Social
                         </li>
                         <li class="mb-3">
-                            <i class="bi bi-geo-alt text-primary-tokencafe me-3 fs-4"></i>
+                            <i class="bi bi-geo-alt text-tokencafe me-3 fs-4"></i>
                             <strong>Foco Regional:</strong> Programas específicos para cada região do Brasil
                         </li>
                     </ul>
@@ -768,7 +784,7 @@
                     <div class="card bg-dark border-primary p-4">
                         <h4 class="text-center mb-4">Meta de Impacto</h4>
                         <div class="text-center">
-                            <h2 class="display-4 text-primary-tokencafe fw-bold">10.000</h2>
+                            <h2 class="display-4 text-tokencafe fw-bold">10.000</h2>
                             <p class="text-secondary">Pessoas capacitadas em Web3</p>
                             <p class="text-muted small">Até 2028 - Compromisso social verificável on-chain</p>
                         </div>
@@ -794,10 +810,16 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- TokenCafe Unified Page Manager -->
+    <!-- TokenCafe Base System for Component Loading -->
     <script type="module">
-      import { PageManager } from '../js/shared/page-manager.js';
-      window.createPageManager('main');
+      import { BaseSystem } from '../js/shared/base-system.js';
+      
+      // Aguardar DOM completo
+      document.addEventListener('DOMContentLoaded', async () => {
+        const baseSystem = new BaseSystem();
+        await baseSystem.init();
+        console.log('🚀 TokenCafe Base System iniciado');
+      });
     </script>
 </body>
 </html>

@@ -213,6 +213,16 @@ body {
 .bg-dark-surface { background: var(--bg-surface) !important; }
 .bg-dark-elevated { background: var(--bg-elevated) !important; }
 
+/* === BOTÕES CUSTOMIZADOS === */
+.btn-primary {
+  background-color: var(--tokencafe-primary) !important;
+  border-color: var(--tokencafe-primary) !important;
+}
+.btn-primary:hover {
+  background-color: var(--tokencafe-primary-dark) !important;
+  border-color: var(--tokencafe-primary-dark) !important;
+}
+
 /* === TEXTOS === */
 .text-tokencafe { color: var(--tokencafe-primary) !important; }
 .text-muted-light { color: var(--text-muted) !important; }

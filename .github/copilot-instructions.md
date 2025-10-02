@@ -126,18 +126,6 @@ seoManager.init('pageType', customMetadata);
 - **Espaçamento**: `py-5`, `mb-4`, `g-4` em vez de CSS customizado
 - **NUNCA styles inline**: Use classes CSS ou variáveis CSS
 
-### Sistema de Cores Unificado
-```css
-/* Use variáveis CSS para facilitar manutenção */
-:root {
-  --tokencafe-primary: #f85d23;
-  --text-primary: #ffffff;
-  --text-secondary: #e5e7eb;
-  --text-muted: #9ca3af;
-  /* Máximo 8 cores principais */
-}
-```
-
 ## 🔄 Padrões de Comunicação
 
 ### Navegação
