@@ -2,13 +2,10 @@
 # Sistema de inicialização unificado
 
 Write-Host "
-╔══════════════════════════════════════════════════════════════╗
-║                    ☕ TOKENCAFE UNIFICADO ☕                 ║
-║                                                              ║
-║  🚀 Sistema completo de widgets blockchain                   ║
-║  🎯 Unificação TokenCafe + Widget sem perdas                     ║
-║  ☕ Tema inspirado na cultura cafeeira brasileira            ║
-╚══════════════════════════════════════════════════════════════╝
+TOKENCAFE UNIFICADO
+🚀 Sistema completo de widgets blockchain
+🎯 Unificação TokenCafe + Widget sem perdas
+☕ Tema inspirado na cultura cafeeira brasileira
 " -ForegroundColor Yellow
 
 Write-Host "📋 Verificando estrutura do projeto..." -ForegroundColor Cyan
@@ -53,8 +50,8 @@ Para parar o servidor: Ctrl+C
         throw "Node.js não encontrado"
     }
 } catch {
-    Write-Host "⚠️  Node.js não encontrado ou não configurado no PATH" -ForegroundColor Yellow
-    Write-Host "`n📖 Modo de demonstração ativado!" -ForegroundColor Cyan
+    Write-Host "⚠️ Node.js não encontrado ou não configurado no PATH" -ForegroundColor Yellow
+    Write-Host "📖 Modo de demonstração ativado!" -ForegroundColor Cyan
     Write-Host "
 🧪 Para testar o sistema sem Node.js:
    1. Abra o arquivo: test-system.html no navegador

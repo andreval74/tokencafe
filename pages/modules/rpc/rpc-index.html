@@ -2,308 +2,845 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ============================================================================
+         TEMPLATE UNIFICADO - HEAD
+         ========================================================================== -->
     <title>Gerenciador de RPCs - TokenCafe</title>
     <meta name="description" content="Adicione e gerencie RPCs personalizados para redes blockchain">
     <meta name="keywords" content="RPC, blockchain, MetaMask, rede, personalizado">
 
-    <!-- Favicons -->
+    <!-- Head unificado com meta tags, favicons, Bootstrap, fontes -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="TokenCafe Team">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';">
+    
+    <!-- Favicons TokenCafe -->
     <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png">
-
+    <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
+    
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-    <!-- TokenCafe Global CSS -->
+    
+    <!-- TokenCafe CSS Unificado -->
     <link href="../../../css/styles.css" rel="stylesheet">
 
+    <!-- Estilos específicos da página RPC -->
     <style>
-        .hidden-section {
-            display: none !important;
+        /* === CUSTOMIZAÇÕES ESPECÍFICAS RPC === */
+        .rpc-container { 
+            background: var(--gradient-dark); 
+            min-height: 100vh; 
+        }
+        
+        .rpc-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-icon { 
+            font-size: 1.5rem; 
+            color: var(--tokencafe-primary); 
+        }
+        
+        .rpc-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: var(--transition-fast);
+        }
+        
+        .rpc-item:hover {
+            border-color: var(--tokencafe-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        
+        .rpc-url {
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            word-break: break-all;
         }
         
         .network-autocomplete {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
             max-height: 300px;
             overflow-y: auto;
-            z-index: 1000;
+            z-index: 1050;
         }
         
-        .list-group-item:hover {
-            background-color: #f8f9fa;
+        .autocomplete-item {
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            transition: var(--transition-fast);
+            border-bottom: 1px solid var(--border-color);
         }
         
-        .monospace-input {
-            font-family: 'Courier New', Consolas, monospace;
-            font-size: 0.9em;
-        }
-
-        /* Estilos para lista de RPCs */
-        .rpc-item {
-            background-color: #f8f9fa;
-            transition: all 0.2s ease;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .rpc-item:hover {
-            background-color: #e9ecef;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .rpc-item.metamask-rpc {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-        }
-
-        .rpc-info {
-            flex-grow: 1;
-        }
-
-        .rpc-url {
-            word-break: break-all;
-            font-size: 0.85em;
-            color: #6c757d;
-            font-family: 'Courier New', Consolas, monospace;
-        }
-
-        .rpc-name {
-            color: #495057;
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-
-        .add-rpc-btn {
-            white-space: nowrap;
-            margin-left: 15px;
-        }
-
-        .rpc-list-container {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .section-icon {
-            font-size: 1.5rem;
-            color: #0d6efd;
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background: var(--tokencafe-primary);
+            color: white;
         }
     </style>
-
-    <!-- Ethers.js -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg link-navbar">
-        <div class="container-fluid">
-            <div class="link-navbar-brand">
-                <h3 class="link-navbar-title">
-                    <i class="fas fa-plus link-navbar-icon"></i>
-                    Adicionar Rede e RPC Personalizado
-                </h3>
+<body class="rpc-container">
+    <!-- ============================================================================
+         NAVBAR PERSONALIZADA PARA RPC
+         ========================================================================== -->
+    <nav class="navbar navbar-tokencafe">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center">
+                <a href="../../../" class="btn btn-outline-light btn-sm me-3">
+                    <i class="bi bi-house me-1"></i>
+                    Início
+                </a>
+                <div>
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-network-wired me-2"></i>
+                        Gerenciador de RPCs
+                    </h4>
+                    <small class="text-white-50">Adicione redes blockchain personalizadas</small>
+                </div>
+            </div>
+            
+            <!-- Status da carteira no header -->
+            <div class="d-flex align-items-center">
+                <div id="header-wallet-status" class="me-3 d-none">
+                    <small class="text-white-50">
+                        <i class="bi bi-wallet2 me-1"></i>
+                        <span id="header-wallet-address">Não conectado</span>
+                    </small>
+                </div>
+                <button id="header-connect-btn" class="btn btn-tokencafe btn-sm">
+                    <i class="bi bi-wallet2 me-1"></i>
+                    Conectar Carteira
+                </button>
             </div>
         </div>
     </nav>
 
-    <!--corpo do html-->
-    <div class="container-fluid py-3">
-        <div class="row">
+    <!-- ============================================================================
+         CONTEÚDO PRINCIPAL - USANDO SISTEMA UNIFICADO
+         ========================================================================== -->
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
             <div class="col-lg-8 col-xl-6">
 
-                <!-- Seção 0: Conexão da Wallet -->
-                <div class="mb-4" id="wallet-connection-section">
-                    <div class="d-flex align-items-center mb-2">
+                <!-- ===== SEÇÃO 0: CONEXÃO DA CARTEIRA ===== -->
+                <div class="rpc-section fade-in" id="wallet-connection-section">
+                    <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             <i class="bi bi-wallet section-icon"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="mb-0">0. Conectar Carteira Web3</h4>
-                            <p class="text-muted mb-0">Conecte sua carteira MetaMask para gerenciar RPCs</p>
+                            <h4 class="mb-0 text-white">0. Conectar Carteira Web3</h4>
+                            <p class="text-muted-light mb-0">Conecte sua carteira MetaMask para gerenciar RPCs</p>
                         </div>
                     </div>
 
-                    <div id="wallet-status" class="alert alert-info mb-3" role="alert">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <span id="wallet-status-message">Clique no botão abaixo para conectar sua carteira</span>
+                    <!-- Status da carteira -->
+                    <div id="wallet-status-card" class="card card-darker mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle text-tokencafe me-2 fs-5"></i>
+                                <span id="wallet-status-message" class="text-white">
+                                    Clique no botão abaixo para conectar sua carteira
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Botões de conexão -->
                     <div class="d-grid gap-2 mb-3">
-                        <button id="connect-wallet-btn" class="btn btn-primary btn-lg">
-                            <i class="bi bi-link-45deg me-2"></i>
+                        <button id="connect-wallet-btn" class="btn btn-tokencafe btn-lg">
+                            <i class="bi bi-wallet2 me-2"></i>
                             Conectar MetaMask
                         </button>
                     </div>
 
                     <div class="text-center">
-                        <small class="text-muted">
+                        <small class="text-muted-light">
                             <i class="fas fa-info-circle me-1"></i>
                             Não possui MetaMask? 
-                            <a href="https://metamask.io" target="_blank" class="text-decoration-none">
+                            <a href="https://metamask.io" target="_blank" class="text-tokencafe text-decoration-none">
                                 Instalar MetaMask
                             </a>
                         </small>
                     </div>
                 </div>
 
-                <!-- Seção 1: Seleção da Rede Blockchain -->
-                <div class="mb-4 hidden-section" id="network-section">
-                    <div class="d-flex align-items-center mb-2">
+                <!-- ===== SEÇÃO 1: SELEÇÃO DA REDE ===== -->
+                <div class="rpc-section fade-in d-none" id="network-section">
+                    <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             <i class="bi bi-globe section-icon"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="mb-0">1. Selecionar Rede Blockchain</h4>
-                            <p class="text-muted mb-0">Escolha a rede blockchain onde seu token está localizado</p>
+                            <h4 class="mb-0 text-white">1. Selecionar Rede Blockchain</h4>
+                            <p class="text-muted-light mb-0">Escolha a rede blockchain para configurar RPC</p>
                         </div>
                     </div>
 
-                    <!-- Busca de Rede Blockchain -->
+                    <!-- Campo de busca unificado -->
                     <div class="mb-4">
-                        <label for="networkSearch" class="form-label">
+                        <label for="networkSearch" class="form-label text-white">
                             <i class="bi bi-search me-2"></i>Buscar Rede Blockchain
                         </label>
                         <div class="position-relative">
-                            <input type="text" class="form-control form-control-lg" id="networkSearch" 
+                            <input type="text" 
+                                   class="form-control form-control-dark form-control-lg" 
+                                   id="networkSearch" 
                                    placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, Polygon, 1, 137)">
-                            <div id="networkAutocomplete" class="list-group position-absolute w-100" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 0.375rem 0.375rem;">
+                            <div id="networkAutocomplete" class="autocomplete-dropdown position-absolute w-100 d-none">
                                 <!-- Resultados da busca aparecerão aqui -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Moeda Nativa -->
-                    <div id="native-currency-section" class="mb-4 hidden-section">
-                        <h5><i class="bi bi-currency-exchange me-2"></i>Moeda Nativa</h5>
-                        <div class="row g-3">
-                            <div class="col-md-8">
-                                <label for="nativeCurrency" class="form-label">Nome da Moeda</label>
-                                <input type="text" class="form-control" id="nativeCurrency" placeholder="Ex: Ether">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="nativeCurrencySymbol" class="form-label">Símbolo</label>
-                                <input type="text" class="form-control" id="nativeCurrencySymbol" placeholder="Ex: ETH">
+                    <!-- Informações da rede selecionada -->
+                    <div id="selected-network-info" class="card card-darker mb-4 d-none">
+                        <div class="card-body">
+                            <h6 class="text-tokencafe mb-2">Rede Selecionada:</h6>
+                            <div id="network-details" class="text-white">
+                                <!-- Detalhes da rede aparecerão aqui -->
                             </div>
                         </div>
-                    </div>
-
-                    <!-- URLs da Rede -->
-                    <div id="network-urls-section" class="mb-4 hidden-section">
-                        <h5><i class="bi bi-link-45deg me-2"></i>URLs da Rede</h5>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="rpcUrl" class="form-label">URL RPC</label>
-                                <input type="url" class="form-control" id="rpcUrl" placeholder="https://...">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="explorerUrl" class="form-label">Block Explorer</label>
-                                <input type="url" class="form-control" id="explorerUrl" placeholder="https://...">
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-
-                <!-- Seção para Adicionar Rede (Etapa 2) -->
-                <div id="add-network-section" class="mb-4 hidden-section">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="me-3">
-                            <i class="bi bi-plus-circle section-icon"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h4 class="mb-0">Etapa 2: Adicionar Rede ao MetaMask</h4>
-                            <p class="text-muted mb-0">A rede selecionada não está cadastrada no seu MetaMask</p>
-                        </div>
-                    </div>
-                    
-                    <div id="networkInfo">
-                        <!-- Informações da rede serão carregadas aqui -->
                     </div>
                 </div>
 
-                <!-- Seção para Gerenciamento de RPCs (Etapa 3) -->
-                <div id="rpc-management-section" class="mb-4 hidden-section">
+                <!-- ===== SEÇÃO 2: CONFIGURAÇÃO RPC ===== -->
+                <div class="rpc-section fade-in d-none" id="rpc-config-section">
                     <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             <i class="bi bi-gear section-icon"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="mb-0">Etapa 3: Gerenciar RPCs</h4>
-                            <p class="text-muted mb-0">Adicione RPCs personalizados ou escolha entre os disponíveis</p>
+                            <h4 class="mb-0 text-white">2. Configurar RPC</h4>
+                            <p class="text-muted-light mb-0">Defina as URLs RPC e explorador</p>
                         </div>
                     </div>
-                    
-                    <div id="rpcManagementContainer">
-                        <!-- Interface de gerenciamento de RPCs será carregada aqui -->
+
+                    <!-- Formulário de configuração -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="rpcUrl" class="form-label text-white">URL RPC</label>
+                            <input type="url" 
+                                   class="form-control form-control-dark" 
+                                   id="rpcUrl" 
+                                   placeholder="https://...">
+                            <small class="text-muted-light">URL do nó RPC da rede</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="explorerUrl" class="form-label text-white">Block Explorer</label>
+                            <input type="url" 
+                                   class="form-control form-control-dark" 
+                                   id="explorerUrl" 
+                                   placeholder="https://...">
+                            <small class="text-muted-light">URL do explorador de blocos</small>
+                        </div>
+                    </div>
+
+                    <!-- Moeda nativa -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label for="nativeCurrency" class="form-label text-white">Nome da Moeda Nativa</label>
+                            <input type="text" 
+                                   class="form-control form-control-dark" 
+                                   id="nativeCurrency" 
+                                   placeholder="Ex: Ether">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="nativeCurrencySymbol" class="form-label text-white">Símbolo</label>
+                            <input type="text" 
+                                   class="form-control form-control-dark" 
+                                   id="nativeCurrencySymbol" 
+                                   placeholder="Ex: ETH">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Lista de RPCs Disponíveis (Mantida para compatibilidade) -->
-                <div id="rpc-list-section" class="mb-4 hidden-section">
-                    <h5><i class="bi bi-list-ul me-2"></i>RPCs Disponíveis para esta Rede</h5>
-                    <p class="text-muted small">Clique no botão "Adicionar" ao lado de qualquer RPC para adicioná-lo diretamente ao seu MetaMask:</p>
-                    <div id="rpcListContainer" class="rpc-list-container">
-                        <!-- Lista de RPCs será carregada aqui dinamicamente -->
+                <!-- ===== SEÇÃO 3: ADICIONAR AO METAMASK ===== -->
+                <div class="rpc-section fade-in d-none" id="add-network-section">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="bi bi-plus-circle section-icon"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0 text-white">3. Adicionar ao MetaMask</h4>
+                            <p class="text-muted-light mb-0">Adicione a rede configurada à sua carteira</p>
+                        </div>
+                    </div>
+
+                    <!-- Preview da configuração -->
+                    <div class="card card-darker mb-4">
+                        <div class="card-header bg-tokencafe">
+                            <h6 class="mb-0 text-white">
+                                <i class="bi bi-eye me-2"></i>Preview da Configuração
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="network-preview" class="text-white">
+                                <!-- Preview aparecerá aqui -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão de ação -->
+                    <div class="d-grid gap-2">
+                        <button id="add-network-btn" class="btn btn-tokencafe btn-lg" disabled>
+                            <i class="bi bi-plus-lg me-2"></i>
+                            Adicionar Rede ao MetaMask
+                        </button>
                     </div>
                 </div>
 
-                <!-- Botões de Ação -->
-                <div class="text-center mb-4">
-                    <button id="clearBtn" type="button" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-clockwise me-2"></i>Limpar e Reiniciar
-                    </button>
-                </div>
+                <!-- ===== SEÇÃO 4: RPCS DISPONÍVEIS ===== -->
+                <div class="rpc-section fade-in" id="available-rpcs-section">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="bi bi-list section-icon"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0 text-white">RPCs Populares</h4>
+                            <p class="text-muted-light mb-0">Redes mais utilizadas com RPCs confiáveis</p>
+                        </div>
+                    </div>
 
-                <!-- Mensagens de Status -->
-                <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <span id="errorText"></span>
+                    <!-- Lista de RPCs populares -->
+                    <div id="popular-rpcs-list" class="rpc-list-container">
+                        <!-- Lista será carregada dinamicamente -->
+                    </div>
                 </div>
-
-                <div id="successMessage" class="alert alert-success mt-3" style="display: none;">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <span id="successText">Operação realizada com sucesso!</span>
-                </div>
-
-                <div id="warningMessage" class="alert alert-warning mt-3" style="display: none;">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <span id="warningText"></span>
-                </div>
-
-                <div id="infoMessage" class="alert alert-info mt-3" style="display: none;">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <span id="infoText"></span>
-                </div>
-                </div>
-
-                <!-- Campos ocultos para manter dados em memória -->
-                <input type="hidden" id="chainId" value="">
-                <input type="hidden" id="networkName" value="">
 
             </div>
         </div>
     </div>
 
-    <!-- scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Scripts -->
-    <script src="../../../js/modules/rpc/rpc-simple.js"></script>
-    <script src="../../../js/modules/rpc/rpc-interface.js"></script>
+    <!-- ============================================================================
+         SCRIPTS UNIFICADOS - TOKENCAFE
+         ========================================================================== -->
     
-    <!-- RPC Manager Script -->
-    <script src="../../../js/modules/rpc/rpc-manager.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Ethers.js (para Web3) -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    
+    <!-- TokenCafe Base System Unificado -->
+    <script type="module">
+        import baseSystem from '../../../js/shared/base-system.js';
+        import { PageManager } from '../../../js/shared/page-manager.js';
+        
+        // Estado específico do RPC Manager
+        const rpcState = {
+            selectedNetwork: null,
+            rpcUrl: '',
+            isConnected: false,
+            testing: false
+        };
+        
+        // Inicializar sistemas
+        window.initBaseSystem(rpcState);
+        window.createPageManager('rpc');
+        
+        // Configurar debug em desenvolvimento
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            window.walletConnector.setDebug(true);
+            window.networkManager.setDebug(true);
+        }
+        
+        // Inicializar RPC Manager quando DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 RPC Manager - Sistema Unificado Carregado');
+            initRPCManager();
+        });
+    </script>
+        
+        /**
+         * Inicializar gerenciador de RPC com módulos unificados
+         */
+        async function initRPCManager() {
+            // Carregar RPCs populares
+            await loadPopularRPCs();
+            
+            // Configurar event listeners
+            setupEventListeners();
+            
+            // Verificar conexão existente
+            checkExistingConnection();
+        }
+        
+        /**
+         * Configurar event listeners usando APIs unificadas
+         */
+        function setupEventListeners() {
+            // Botão conectar carteira (header)
+            document.getElementById('header-connect-btn')?.addEventListener('click', async () => {
+                await connectWallet();
+            });
+            
+            // Botão conectar carteira (seção principal)
+            document.getElementById('connect-wallet-btn')?.addEventListener('click', async () => {
+                await connectWallet();
+            });
+            
+            // Busca de rede
+            const networkSearch = document.getElementById('networkSearch');
+            if (networkSearch) {
+                // Debounce para otimizar busca
+                let searchTimeout;
+                networkSearch.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        searchNetworks(e.target.value);
+                    }, 300);
+                });
+            }
+            
+            // Botão adicionar rede
+            document.getElementById('add-network-btn')?.addEventListener('click', async () => {
+                await addNetworkToMetaMask();
+            });
+            
+            // Listeners de eventos de carteira
+            document.addEventListener('wallet:connected', onWalletConnected);
+            document.addEventListener('wallet:disconnected', onWalletDisconnected);
+            document.addEventListener('wallet:chainChanged', onChainChanged);
+        }
+        
+        /**
+         * Conectar carteira usando módulo unificado
+         */
+        async function connectWallet() {
+            try {
+                showLoading('Conectando carteira...');
+                
+                const result = await walletConnector.connect('metamask');
+                
+                if (result.success) {
+                    showToast('Carteira conectada com sucesso!', 'success');
+                    updateWalletUI(result);
+                    showNextSection('network-section');
+                } else {
+                    throw new Error('Falha na conexão');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao conectar:', error);
+                showToast(`Erro ao conectar: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        /**
+         * Buscar redes usando network manager unificado
+         */
+        async function searchNetworks(query) {
+            try {
+                if (!query || query.length < 2) {
+                    hideAutocomplete();
+                    return;
+                }
+                
+                const results = networkManager.searchNetworks(query, 10);
+                showAutocompleteResults(results);
+                
+            } catch (error) {
+                console.error('Erro na busca:', error);
+                hideAutocomplete();
+            }
+        }
+        
+        /**
+         * Mostrar resultados do autocomplete
+         */
+        function showAutocompleteResults(networks) {
+            const autocomplete = document.getElementById('networkAutocomplete');
+            if (!autocomplete) return;
+            
+            if (networks.length === 0) {
+                hideAutocomplete();
+                return;
+            }
+            
+            autocomplete.innerHTML = networks.map(network => `
+                <div class="autocomplete-item" data-chainid="${network.chainId}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${network.name}</strong>
+                            <small class="d-block text-muted">Chain ID: ${network.chainId}</small>
+                        </div>
+                        <span class="badge bg-dark-elevated text-tokencafe">${network.nativeCurrency?.symbol || 'N/A'}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Adicionar listeners
+            autocomplete.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectNetwork(parseInt(item.dataset.chainid));
+                });
+            });
+            
+            autocomplete.classList.remove('d-none');
+        }
+        
+        /**
+         * Selecionar rede
+         */
+        function selectNetwork(chainId) {
+            const network = networkManager.getNetworkById(chainId);
+            if (!network) return;
+            
+            // Atualizar UI
+            document.getElementById('networkSearch').value = network.name;
+            hideAutocomplete();
+            
+            // Mostrar detalhes da rede
+            showNetworkDetails(network);
+            showNextSection('rpc-config-section');
+            
+            // Pré-preencher formulário
+            fillNetworkForm(network);
+        }
+        
+        /**
+         * Mostrar detalhes da rede selecionada
+         */
+        function showNetworkDetails(network) {
+            const detailsContainer = document.getElementById('network-details');
+            if (!detailsContainer) return;
+            
+            detailsContainer.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <strong>Nome:</strong> ${network.name}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Chain ID:</strong> ${network.chainId}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Moeda:</strong> ${network.nativeCurrency?.name || 'N/A'}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Símbolo:</strong> ${network.nativeCurrency?.symbol || 'N/A'}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('selected-network-info').classList.remove('d-none');
+        }
+        
+        /**
+         * Pré-preencher formulário com dados da rede
+         */
+        function fillNetworkForm(network) {
+            // RPC URL (primeira disponível)
+            const rpcUrl = network.rpc && network.rpc.length > 0 ? network.rpc[0] : '';
+            document.getElementById('rpcUrl').value = rpcUrl;
+            
+            // Explorer URL
+            const explorerUrl = network.explorers && network.explorers.length > 0 ? 
+                (network.explorers[0].url || network.explorers[0]) : '';
+            document.getElementById('explorerUrl').value = explorerUrl;
+            
+            // Moeda nativa
+            document.getElementById('nativeCurrency').value = network.nativeCurrency?.name || '';
+            document.getElementById('nativeCurrencySymbol').value = network.nativeCurrency?.symbol || '';
+            
+            // Habilitar próxima seção
+            showNextSection('add-network-section');
+            updateNetworkPreview(network);
+        }
+        
+        /**
+         * Atualizar preview da rede
+         */
+        function updateNetworkPreview(network) {
+            const preview = document.getElementById('network-preview');
+            if (!preview) return;
+            
+            const rpcUrl = document.getElementById('rpcUrl').value;
+            const explorerUrl = document.getElementById('explorerUrl').value;
+            
+            preview.innerHTML = `
+                <div class="row g-2 small">
+                    <div class="col-12"><strong>Nome:</strong> ${network.name}</div>
+                    <div class="col-12"><strong>Chain ID:</strong> ${network.chainId}</div>
+                    <div class="col-12"><strong>RPC URL:</strong> <code class="text-tokencafe">${rpcUrl}</code></div>
+                    <div class="col-12"><strong>Explorer:</strong> <code class="text-tokencafe">${explorerUrl}</code></div>
+                    <div class="col-12"><strong>Símbolo:</strong> ${network.nativeCurrency?.symbol || 'N/A'}</div>
+                </div>
+            `;
+            
+            // Habilitar botão se dados válidos
+            const addBtn = document.getElementById('add-network-btn');
+            if (addBtn && rpcUrl && network.chainId) {
+                addBtn.disabled = false;
+            }
+        }
+        
+        /**
+         * Adicionar rede ao MetaMask usando módulo unificado
+         */
+        async function addNetworkToMetaMask() {
+            try {
+                showLoading('Adicionando rede ao MetaMask...');
+                
+                const networkData = {
+                    chainId: parseInt(document.getElementById('networkSearch').dataset.chainId),
+                    name: document.getElementById('networkSearch').value,
+                    rpc: [document.getElementById('rpcUrl').value],
+                    nativeCurrency: {
+                        name: document.getElementById('nativeCurrency').value,
+                        symbol: document.getElementById('nativeCurrencySymbol').value,
+                        decimals: 18
+                    },
+                    explorers: [{url: document.getElementById('explorerUrl').value}]
+                };
+                
+                await walletConnector.addNetwork(networkData);
+                showToast('Rede adicionada com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao adicionar rede:', error);
+                showToast(`Erro ao adicionar rede: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        /**
+         * Carregar RPCs populares
+         */
+        async function loadPopularRPCs() {
+            try {
+                const popularNetworks = networkManager.getPopularNetworks(8);
+                const listContainer = document.getElementById('popular-rpcs-list');
+                
+                if (!listContainer) return;
+                
+                listContainer.innerHTML = popularNetworks.map(network => `
+                    <div class="rpc-item network-card scale-hover" data-chainid="${network.chainId}">
+                        <div class="rpc-info">
+                            <div class="rpc-name text-white">${network.name}</div>
+                            <div class="rpc-url">${network.rpc && network.rpc[0] ? network.rpc[0] : 'RPC não disponível'}</div>
+                            <small class="text-muted-light">Chain ID: ${network.chainId} • ${network.nativeCurrency?.symbol || 'N/A'}</small>
+                        </div>
+                        <button class="btn btn-tokencafe btn-sm add-rpc-btn" onclick="selectNetworkFromList(${network.chainId})">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Usar
+                        </button>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro ao carregar RPCs populares:', error);
+            }
+        }
+        
+        /**
+         * Selecionar rede da lista popular
+         */
+        window.selectNetworkFromList = function(chainId) {
+            const network = networkManager.getNetworkById(chainId);
+            if (network) {
+                document.getElementById('networkSearch').value = network.name;
+                document.getElementById('networkSearch').dataset.chainId = chainId;
+                selectNetwork(chainId);
+                
+                // Scroll para a seção de configuração
+                document.getElementById('network-section').scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+        
+        /**
+         * Event handlers da carteira
+         */
+        function onWalletConnected(event) {
+            const { account, wallet, network } = event.detail;
+            updateWalletUI({ account, wallet, network });
+        }
+        
+        function onWalletDisconnected() {
+            resetWalletUI();
+        }
+        
+        function onChainChanged(event) {
+            const { chainId } = event.detail;
+            console.log('Rede alterada:', chainId);
+            showToast('Rede alterada na carteira', 'info');
+        }
+        
+        /**
+         * Atualizar UI da carteira
+         */
+        function updateWalletUI(result) {
+            const { account, wallet, network } = result;
+            const shortAddress = formatAddress(account);
+            
+            // Atualizar status no header
+            document.getElementById('header-wallet-address').textContent = shortAddress;
+            document.getElementById('header-wallet-status').classList.remove('d-none');
+            document.getElementById('header-connect-btn').classList.add('d-none');
+            
+            // Atualizar status na seção principal
+            document.getElementById('wallet-status-message').innerHTML = `
+                <i class="bi bi-check-circle text-success me-2"></i>
+                Carteira conectada: <code class="text-tokencafe">${shortAddress}</code>
+                ${network ? ` • Rede: ${network.name}` : ''}
+            `;
+            
+            document.getElementById('connect-wallet-btn').innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                Conectado (${shortAddress})
+            `;
+            document.getElementById('connect-wallet-btn').disabled = true;
+        }
+        
+        /**
+         * Resetar UI da carteira
+         */
+        function resetWalletUI() {
+            // Header
+            document.getElementById('header-wallet-status').classList.add('d-none');
+            document.getElementById('header-connect-btn').classList.remove('d-none');
+            
+            // Seção principal
+            document.getElementById('wallet-status-message').innerHTML = `
+                <i class="bi bi-info-circle text-tokencafe me-2"></i>
+                Clique no botão abaixo para conectar sua carteira
+            `;
+            
+            document.getElementById('connect-wallet-btn').innerHTML = `
+                <i class="bi bi-wallet2 me-2"></i>
+                Conectar MetaMask
+            `;
+            document.getElementById('connect-wallet-btn').disabled = false;
+            
+            // Ocultar seções
+            hideAllSections();
+        }
+        
+        /**
+         * Verificar conexão existente
+         */
+        function checkExistingConnection() {
+            if (walletConnector.isConnected) {
+                const status = walletConnector.getStatus();
+                updateWalletUI(status);
+                showNextSection('network-section');
+            }
+        }
+        
+        /**
+         * Mostrar próxima seção
+         */
+        function showNextSection(sectionId) {
+            document.getElementById(sectionId)?.classList.remove('d-none');
+        }
+        
+        /**
+         * Ocultar autocomplete
+         */
+        function hideAutocomplete() {
+            document.getElementById('networkAutocomplete')?.classList.add('d-none');
+        }
+        
+        /**
+         * Ocultar todas as seções
+         */
+        function hideAllSections() {
+            ['network-section', 'rpc-config-section', 'add-network-section'].forEach(id => {
+                document.getElementById(id)?.classList.add('d-none');
+            });
+        }
+    </script>
+    
+    <!-- Utilitários globais -->
+    <script>
+        // Shorthand para querySelector
+        window.$ = (selector) => document.querySelector(selector);
+        window.$$ = (selector) => document.querySelectorAll(selector);
+        
+        // Mostrar notificação toast
+        window.showToast = function(message, type = 'info') {
+            const toastHTML = `
+                <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            let container = $('#toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '9999';
+                document.body.appendChild(container);
+            }
+            
+            container.insertAdjacentHTML('beforeend', toastHTML);
+            const toastElement = container.lastElementChild;
+            
+            const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        };
+        
+        // Mostrar loading spinner
+        window.showLoading = function(message = 'Carregando...') {
+            const loadingHTML = `
+                <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.8); z-index: 9999;">
+                    <div class="text-center text-white">
+                        <div class="loading-spinner mx-auto mb-3"></div>
+                        <p>${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loadingHTML);
+        };
+        
+        // Esconder loading
+        window.hideLoading = function() {
+            const overlay = $('#loading-overlay');
+            if (overlay) overlay.remove();
+        };
+        
+        // Formatar endereço de carteira
+        window.formatAddress = function(address, chars = 4) {
+            if (!address) return '';
+            return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`;
+        };
+    </script>
 
 </body>
-
 </html>

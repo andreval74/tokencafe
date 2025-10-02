@@ -1,15 +1,26 @@
 ﻿/**
  * ================================================================================
- * SHARED UTILITIES - BIBLIOTECA DE UTILITARIOS COMPARTILHADOS (ES6)
+ * SHARED UTILITIES - BIBLIOTECA UNIFICADA DE UTILITÁRIOS
  * ================================================================================
- * Utilitarios comuns para todo o ecossistema TokenCafe
- * Evita duplicacao de codigo e centraliza funcionalidades
+ * Utilitários comuns para todo o ecossistema TokenCafe
+ * ARQUIVO ÚNICO - Centraliza todas as funções utilitárias
+ * 
+ * CATEGORIAS:
+ * - Performance (debounce, throttle, memoize)
+ * - DOM (seletores, criação de elementos)
+ * - Validação (email, URL, wallet)
+ * - Formatação (números, datas, texto)
+ * - HTTP (fetch com retry, timeout)
+ * - Armazenamento (localStorage, cache)
+ * - UI (notifications, modals, loading)
  * ================================================================================
  */
 
 export class SharedUtilities {
     constructor() {
         this.debug = false;
+        this.cache = new Map();
+        this.activeRequests = new Map();
     }
 
     // ============================================================================

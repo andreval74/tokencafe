@@ -1,0 +1,110 @@
+<!--
+================================================================================
+CARD BASE - TOKENCAFE
+================================================================================
+Template base para cards padronizados
+Usa classes Bootstrap + tema TokenCafe
+Variações: card-basic, card-with-header, card-interactive
+================================================================================
+-->
+
+<!-- Card Básico -->
+<template id="card-basic-template">
+    <div class="card card-dark h-100 fade-in">
+        <div class="card-body">
+            <h5 class="card-title text-white">{{title}}</h5>
+            <p class="card-text text-muted-light">{{content}}</p>
+        </div>
+    </div>
+</template>
+
+<!-- Card com Header -->
+<template id="card-header-template">
+    <div class="card card-dark h-100 fade-in">
+        <div class="card-header bg-tokencafe">
+            <h5 class="mb-0 text-white">
+                <i class="{{icon}} me-2"></i>{{title}}
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="card-text text-muted-light">{{content}}</p>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-tokencafe btn-sm">{{buttonText}}</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- Card Interativo (hover effects) -->
+<template id="card-interactive-template">
+    <div class="card card-dark h-100 fade-in scale-hover network-card">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-tokencafe rounded-circle p-2 me-3">
+                    <i class="{{icon}} text-white"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 text-white">{{title}}</h6>
+                    <small class="text-muted-light">{{subtitle}}</small>
+                </div>
+            </div>
+            <p class="card-text text-muted-light">{{content}}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-dark-elevated text-tokencafe">{{badge}}</span>
+                <button class="btn btn-outline-light btn-sm">{{action}}</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+/**
+ * Utilitário para criar cards usando templates
+ */
+window.CardBuilder = {
+    /**
+     * Criar card básico
+     */
+    createBasic(title, content) {
+        const template = document.getElementById('card-basic-template');
+        const clone = template.content.cloneNode(true);
+        
+        clone.querySelector('.card-title').textContent = title;
+        clone.querySelector('.card-text').textContent = content;
+        
+        return clone;
+    },
+    
+    /**
+     * Criar card com header
+     */
+    createWithHeader(title, content, icon = 'bi bi-info-circle', buttonText = 'Ação') {
+        const template = document.getElementById('card-header-template');
+        const clone = template.content.cloneNode(true);
+        
+        clone.querySelector('.card-title i').className = icon + ' me-2';
+        clone.querySelector('.card-title').innerHTML = `<i class="${icon} me-2"></i>${title}`;
+        clone.querySelector('.card-text').textContent = content;
+        clone.querySelector('.btn').textContent = buttonText;
+        
+        return clone;
+    },
+    
+    /**
+     * Criar card interativo
+     */
+    createInteractive(title, subtitle, content, icon = 'bi bi-star', badge = 'Novo', action = 'Ver mais') {
+        const template = document.getElementById('card-interactive-template');
+        const clone = template.content.cloneNode(true);
+        
+        clone.querySelector('.bg-tokencafe i').className = icon + ' text-white';
+        clone.querySelector('h6').textContent = title;
+        clone.querySelector('small').textContent = subtitle;
+        clone.querySelector('.card-text').textContent = content;
+        clone.querySelector('.badge').textContent = badge;
+        clone.querySelector('.btn').textContent = action;
+        
+        return clone;
+    }
+};
+</script>

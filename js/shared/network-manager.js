@@ -1,0 +1,555 @@
+/**
+ * ================================================================================
+ * NETWORK MANAGER - GERENCIADOR UNIFICADO DE REDES BLOCKCHAIN
+ * ================================================================================
+ * Centraliza TODA a lógica de gerenciamento de redes blockchain
+ * Substitui código duplicado em: múltiplos arquivos com NETWORK_CONFIGS
+ * 
+ * FUNCIONALIDADES:
+ * - Carregamento otimizado de chains.json (80k+ linhas)
+ * - Cache inteligente de dados de rede
+ * - Fallback para redes populares
+ * - Busca e filtro de redes
+ * - Integração com ChainList API
+ * - Otimização de performance
+ * ================================================================================
+ */
+
+import { SharedUtilities } from '../core/shared_utilities_es6.js';
+
+export class NetworkManager {
+    constructor() {
+        this.utils = new SharedUtilities();
+        
+        // Cache de redes
+        this.networks = [];
+        this.networksMap = new Map(); // Para busca rápida por ID
+        this.lastUpdate = 0;
+        this.cacheTimeout = 10 * 60 * 1000; // 10 minutos
+        
+        // Status de carregamento
+        this.isLoading = false;
+        this.isLoaded = false;
+        
+        // Configurações
+        this.debug = false;
+        this.useChainListAPI = true;
+        
+        // Redes populares hardcoded para fallback RÁPIDO
+        this.popularNetworks = [
+            {
+                chainId: 1,
+                name: 'Ethereum Mainnet',
+                shortName: 'eth',
+                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                rpc: ['https://eth.llamarpc.com', 'https://rpc.ankr.com/eth'],
+                explorers: [{ name: 'Etherscan', url: 'https://etherscan.io' }],
+                icon: 'ethereum'
+            },
+            {
+                chainId: 56,
+                name: 'BNB Smart Chain',
+                shortName: 'bnb',
+                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                rpc: ['https://bsc-dataseed.binance.org', 'https://rpc.ankr.com/bsc'],
+                explorers: [{ name: 'BscScan', url: 'https://bscscan.com' }],
+                icon: 'binancecoin'
+            },
+            {
+                chainId: 137,
+                name: 'Polygon Mainnet',
+                shortName: 'matic',
+                nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+                rpc: ['https://polygon-rpc.com', 'https://rpc.ankr.com/polygon'],
+                explorers: [{ name: 'PolygonScan', url: 'https://polygonscan.com' }],
+                icon: 'polygon'
+            },
+            {
+                chainId: 42161,
+                name: 'Arbitrum One',
+                shortName: 'arb1',
+                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                rpc: ['https://arb1.arbitrum.io/rpc', 'https://rpc.ankr.com/arbitrum'],
+                explorers: [{ name: 'Arbiscan', url: 'https://arbiscan.io' }],
+                icon: 'arbitrum'
+            },
+            {
+                chainId: 10,
+                name: 'Optimism',
+                shortName: 'oeth',
+                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                rpc: ['https://mainnet.optimism.io', 'https://rpc.ankr.com/optimism'],
+                explorers: [{ name: 'Optimistic Etherscan', url: 'https://optimistic.etherscan.io' }],
+                icon: 'optimism'
+            },
+            {
+                chainId: 43114,
+                name: 'Avalanche C-Chain',
+                shortName: 'avax',
+                nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
+                rpc: ['https://api.avax.network/ext/bc/C/rpc', 'https://rpc.ankr.com/avalanche'],
+                explorers: [{ name: 'SnowTrace', url: 'https://snowtrace.io' }],
+                icon: 'avalanche'
+            },
+            {
+                chainId: 250,
+                name: 'Fantom Opera',
+                shortName: 'ftm',
+                nativeCurrency: { name: 'Fantom', symbol: 'FTM', decimals: 18 },
+                rpc: ['https://rpc.ftm.tools', 'https://rpc.ankr.com/fantom'],
+                explorers: [{ name: 'FTMScan', url: 'https://ftmscan.com' }],
+                icon: 'fantom'
+            },
+            {
+                chainId: 25,
+                name: 'Cronos Mainnet',
+                shortName: 'cro',
+                nativeCurrency: { name: 'Cronos', symbol: 'CRO', decimals: 18 },
+                rpc: ['https://evm.cronos.org', 'https://rpc.ankr.com/cronos'],
+                explorers: [{ name: 'Cronoscan', url: 'https://cronoscan.com' }],
+                icon: 'cronos'
+            }
+        ];
+        
+        this.init();
+    }
+
+    /**
+     * Inicialização do gerenciador
+     */
+    async init() {
+        this.log('🚀 Inicializando NetworkManager...');
+        
+        // Carregar redes populares imediatamente para uso rápido
+        this.loadPopularNetworks();
+        
+        // Carregar todas as redes em background
+        this.loadAllNetworks();
+        
+        this.log('✅ NetworkManager inicializado com redes populares');
+    }
+
+    /**
+     * Carregar redes populares imediatamente
+     */
+    loadPopularNetworks() {
+        this.popularNetworks.forEach(network => {
+            this.networksMap.set(network.chainId, network);
+        });
+        
+        this.networks = [...this.popularNetworks];
+        this.log(`⚡ ${this.popularNetworks.length} redes populares carregadas`);
+    }
+
+    /**
+     * Carregar todas as redes (assíncrono)
+     */
+    async loadAllNetworks() {
+        // Verificar cache
+        if (this.isLoaded && (Date.now() - this.lastUpdate) < this.cacheTimeout) {
+            this.log('📦 Usando cache de redes');
+            return this.networks;
+        }
+        
+        if (this.isLoading) {
+            this.log('⏳ Carregamento já em andamento...');
+            return this.networks;
+        }
+        
+        this.isLoading = true;
+        
+        try {
+            this.log('📡 Carregando todas as redes...');
+            
+            // Tentar ChainList API primeiro
+            if (this.useChainListAPI) {
+                try {
+                    await this.loadFromChainListAPI();
+                } catch (apiError) {
+                    this.log(`⚠️ ChainList API falhou: ${apiError.message}`, 'warn');
+                    await this.loadFromLocalFile();
+                }
+            } else {
+                await this.loadFromLocalFile();
+            }
+            
+            this.isLoaded = true;
+            this.lastUpdate = Date.now();
+            
+            this.log(`✅ ${this.networks.length} redes carregadas com sucesso`);
+            
+        } catch (error) {
+            this.log(`❌ Erro ao carregar redes: ${error.message}`, 'error');
+            // Manter redes populares como fallback
+        } finally {
+            this.isLoading = false;
+        }
+        
+        return this.networks;
+    }
+
+    /**
+     * Carregar redes do ChainList API
+     */
+    async loadFromChainListAPI() {
+        const response = await fetch('https://chainid.network/chains.json', {
+            timeout: 10000
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API response: ${response.status}`);
+        }
+        
+        const chains = await response.json();
+        this.processNetworkData(chains);
+        
+        this.log(`🌐 Redes carregadas do ChainList API`);
+    }
+
+    /**
+     * Carregar redes do arquivo local
+     */
+    async loadFromLocalFile() {
+        const response = await fetch('/shared/data/chains.json');
+        
+        if (!response.ok) {
+            throw new Error(`Arquivo local não encontrado: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        // O arquivo pode ter formato diferente, extrair apenas as redes
+        const chains = Array.isArray(data) ? data : data.chains || [];
+        
+        this.processNetworkData(chains);
+        
+        this.log(`📁 Redes carregadas do arquivo local`);
+    }
+
+    /**
+     * Processar dados de rede vindos de diferentes fontes
+     * @param {Array} chains - Array de redes
+     */
+    processNetworkData(chains) {
+        const networksSet = new Map();
+        
+        // Manter redes populares com prioridade
+        this.popularNetworks.forEach(network => {
+            networksSet.set(network.chainId, network);
+        });
+        
+        // Processar redes da API
+        chains.forEach(chain => {
+            // Pular se não tem chainId válido
+            if (!chain.chainId || chain.chainId <= 0) return;
+            
+            // Filtrar redes teste/obsoletas para performance
+            if (this.shouldSkipNetwork(chain)) return;
+            
+            const processedNetwork = {
+                chainId: chain.chainId,
+                name: chain.name || `Chain ${chain.chainId}`,
+                shortName: chain.shortName || chain.chain || `chain${chain.chainId}`,
+                nativeCurrency: chain.nativeCurrency || {
+                    name: 'Unknown',
+                    symbol: 'UNKNOWN',
+                    decimals: 18
+                },
+                rpc: this.processRPCUrls(chain.rpc || []),
+                explorers: chain.explorers || [],
+                infoURL: chain.infoURL,
+                icon: chain.icon,
+                features: chain.features,
+                faucets: chain.faucets
+            };
+            
+            networksSet.set(chain.chainId, processedNetwork);
+        });
+        
+        // Converter para arrays
+        this.networks = Array.from(networksSet.values());
+        this.networksMap = networksSet;
+        
+        // Ordenar por popularidade (redes conhecidas primeiro)
+        this.networks.sort((a, b) => {
+            const popularIds = this.popularNetworks.map(n => n.chainId);
+            const aPopular = popularIds.includes(a.chainId);
+            const bPopular = popularIds.includes(b.chainId);
+            
+            if (aPopular && !bPopular) return -1;
+            if (!aPopular && bPopular) return 1;
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    /**
+     * Verificar se deve pular rede (filtros de performance)
+     * @param {Object} chain - Dados da rede
+     */
+    shouldSkipNetwork(chain) {
+        const name = (chain.name || '').toLowerCase();
+        
+        // Pular testnets muito específicas ou antigas
+        const skipPatterns = [
+            'deprecated',
+            'abandoned',
+            'old',
+            'legacy',
+            'test-',
+            '-test',
+            'devnet',
+            'experimental'
+        ];
+        
+        return skipPatterns.some(pattern => name.includes(pattern));
+    }
+
+    /**
+     * Processar URLs RPC para garantir qualidade
+     * @param {Array} rpcUrls - URLs RPC brutas
+     */
+    processRPCUrls(rpcUrls) {
+        if (!Array.isArray(rpcUrls)) return [];
+        
+        return rpcUrls
+            .map(rpc => typeof rpc === 'string' ? rpc : rpc.url)
+            .filter(url => url && url.startsWith('https://'))
+            .filter(url => !url.includes('${') && !url.includes('API_KEY'))
+            .slice(0, 3); // Máximo 3 RPCs por rede para performance
+    }
+
+    /**
+     * Buscar rede por ID
+     * @param {number|string} chainId - ID da rede
+     * @returns {Object|null} Dados da rede
+     */
+    getNetworkById(chainId) {
+        const id = parseInt(chainId);
+        return this.networksMap.get(id) || null;
+    }
+
+    /**
+     * Buscar redes por texto
+     * @param {string} query - Texto de busca
+     * @param {number} limit - Limite de resultados
+     * @returns {Array} Array de redes
+     */
+    searchNetworks(query, limit = 20) {
+        if (!query || query.length < 2) {
+            return this.getPopularNetworks(limit);
+        }
+        
+        const searchTerm = query.toLowerCase();
+        const results = [];
+        
+        // Busca exata por chainId primeiro
+        if (!isNaN(searchTerm)) {
+            const byId = this.getNetworkById(parseInt(searchTerm));
+            if (byId) results.push(byId);
+        }
+        
+        // Busca por nome e símbolo
+        this.networks.forEach(network => {
+            if (results.includes(network)) return;
+            
+            const name = network.name.toLowerCase();
+            const shortName = (network.shortName || '').toLowerCase();
+            const symbol = (network.nativeCurrency?.symbol || '').toLowerCase();
+            
+            if (name.includes(searchTerm) || 
+                shortName.includes(searchTerm) || 
+                symbol.includes(searchTerm)) {
+                results.push(network);
+            }
+        });
+        
+        return results.slice(0, limit);
+    }
+
+    /**
+     * Obter redes populares
+     * @param {number} limit - Limite de resultados
+     */
+    getPopularNetworks(limit = 8) {
+        return this.popularNetworks.slice(0, limit);
+    }
+
+    /**
+     * Obter todas as redes (com carregamento assíncrono se necessário)
+     * @returns {Promise<Array>} Array de todas as redes
+     */
+    async getAllNetworks() {
+        if (!this.isLoaded) {
+            await this.loadAllNetworks();
+        }
+        return this.networks;
+    }
+
+    /**
+     * Filtrar redes por critérios
+     * @param {Object} filters - Filtros de busca
+     * @returns {Array} Redes filtradas
+     */
+    filterNetworks(filters = {}) {
+        let filtered = this.networks;
+        
+        // Filtro por tipo (mainnet/testnet)
+        if (filters.type) {
+            filtered = filtered.filter(network => {
+                const isTestnet = this.isTestnet(network);
+                return filters.type === 'testnet' ? isTestnet : !isTestnet;
+            });
+        }
+        
+        // Filtro por tem explorer
+        if (filters.hasExplorer) {
+            filtered = filtered.filter(network => 
+                network.explorers && network.explorers.length > 0
+            );
+        }
+        
+        // Filtro por tem RPC funcionando
+        if (filters.hasRPC) {
+            filtered = filtered.filter(network =>
+                network.rpc && network.rpc.length > 0
+            );
+        }
+        
+        return filtered;
+    }
+
+    /**
+     * Verificar se é rede de teste
+     * @param {Object} network - Dados da rede
+     */
+    isTestnet(network) {
+        const name = network.name.toLowerCase();
+        const testnetKeywords = ['test', 'sepolia', 'goerli', 'rinkeby', 'kovan', 'mumbai'];
+        return testnetKeywords.some(keyword => name.includes(keyword));
+    }
+
+    /**
+     * Obter estatísticas das redes
+     */
+    getStats() {
+        const mainnets = this.filterNetworks({ type: 'mainnet' });
+        const testnets = this.filterNetworks({ type: 'testnet' });
+        
+        return {
+            total: this.networks.length,
+            mainnets: mainnets.length,
+            testnets: testnets.length,
+            withExplorers: this.filterNetworks({ hasExplorer: true }).length,
+            withRPC: this.filterNetworks({ hasRPC: true }).length,
+            popular: this.popularNetworks.length,
+            lastUpdate: this.lastUpdate,
+            isLoaded: this.isLoaded
+        };
+    }
+
+    /**
+     * Validar dados de rede
+     * @param {Object} network - Dados da rede
+     */
+    validateNetwork(network) {
+        const errors = [];
+        
+        if (!network.chainId) errors.push('chainId obrigatório');
+        if (!network.name) errors.push('name obrigatório');
+        if (!network.nativeCurrency) errors.push('nativeCurrency obrigatório');
+        if (!network.rpc || network.rpc.length === 0) errors.push('RPC obrigatório');
+        
+        return {
+            isValid: errors.length === 0,
+            errors
+        };
+    }
+
+    /**
+     * Adicionar rede customizada
+     * @param {Object} networkData - Dados da rede
+     */
+    addCustomNetwork(networkData) {
+        const validation = this.validateNetwork(networkData);
+        
+        if (!validation.isValid) {
+            throw new Error(`Rede inválida: ${validation.errors.join(', ')}`);
+        }
+        
+        // Verificar se já existe
+        if (this.networksMap.has(networkData.chainId)) {
+            this.log(`⚠️ Rede ${networkData.chainId} já existe, sobrescrevendo`, 'warn');
+        }
+        
+        // Adicionar
+        this.networksMap.set(networkData.chainId, networkData);
+        this.networks = Array.from(this.networksMap.values());
+        
+        this.log(`✅ Rede customizada adicionada: ${networkData.name}`);
+    }
+
+    /**
+     * Remover rede customizada
+     * @param {number} chainId - ID da rede
+     */
+    removeCustomNetwork(chainId) {
+        if (this.networksMap.delete(chainId)) {
+            this.networks = Array.from(this.networksMap.values());
+            this.log(`🗑️ Rede ${chainId} removida`);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Limpar cache e recarregar
+     */
+    async refresh() {
+        this.log('🔄 Atualizando cache de redes...');
+        
+        this.isLoaded = false;
+        this.lastUpdate = 0;
+        this.networks = [];
+        this.networksMap.clear();
+        
+        this.loadPopularNetworks();
+        await this.loadAllNetworks();
+        
+        this.log('✅ Cache atualizado');
+    }
+
+    /**
+     * Configurar debug mode
+     * @param {boolean} enabled - Ativar debug
+     */
+    setDebug(enabled) {
+        this.debug = enabled;
+        this.log(`🐛 Debug mode: ${enabled ? 'ON' : 'OFF'}`);
+    }
+
+    /**
+     * Logging com controle de debug
+     */
+    log(message, level = 'info') {
+        if (!this.debug && level !== 'error') return;
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const prefix = `[${timestamp}] NetworkManager:`;
+        
+        switch (level) {
+            case 'error':
+                console.error(prefix, message);
+                break;
+            case 'warn':
+                console.warn(prefix, message);
+                break;
+            default:
+                console.log(prefix, message);
+        }
+    }
+}
+
+// Exportar instância global
+export const networkManager = new NetworkManager();
+
+// Disponibilizar globalmente  
+window.networkManager = networkManager;

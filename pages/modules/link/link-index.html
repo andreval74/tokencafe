@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 
+<!-- ============================================================================
+     TOKENCAFE LINK GENERATOR - HTML HEAD UNIFICADO
+     ========================================================================== -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,187 +11,823 @@
     <meta name="description" content="Gerador de links de tokens personalizados para MetaMask e TrustWallet">
     <meta name="keywords" content="token, wallet, MetaMask, TrustWallet, blockchain, crypto">
 
-    <!-- Favicons -->
+    <!-- Favicons TokenCafe -->
     <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png">
+    <link rel="apple-touch-icon" href="../../../imgs/tkncafe192x192.png">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-    <!-- TokenCafe Global CSS -->
+    <!-- TokenCafe CSS Unificado -->
     <link href="../../../css/styles.css" rel="stylesheet">
 
-    <!-- Ethers.js -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <!-- PWA & SEO Tags -->
+    <meta name="theme-color" content="#212529">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg link-navbar">
+<body class="bg-dark text-white">
+    <!-- ============================================================================
+         NAVBAR TOKENCAFE PADRÃO
+         ========================================================================== -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
         <div class="container-fluid">
-            <div class="link-navbar-brand">
-                <h3 class="link-navbar-title">
-                    <i class="fas fa-link link-navbar-icon"></i>
-                    Gerador de Links de Tokens
-                </h3>
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center" href="../../../index.html">
+                <img src="../../../imgs/tkncafe32x32.png" alt="TokenCafe" width="32" height="32" class="me-2">
+                <span class="fw-bold text-tokencafe">TokenCafe</span>
+            </a>
+            
+            <!-- Page Title -->
+            <div class="navbar-text d-flex align-items-center ms-3">
+                <i class="bi bi-link-45deg me-2 text-tokencafe"></i>
+                <span class="fw-semibold">Gerador de Links</span>
+            </div>
+            
+            <!-- Wallet Status -->
+            <div class="d-flex align-items-center ms-auto">
+                <!-- Wallet connection status -->
+                <div id="header-wallet-status" class="d-none me-3">
+                    <span class="text-success me-2">
+                        <i class="bi bi-check-circle"></i>
+                    </span>
+                    <span id="header-wallet-address" class="small font-monospace"></span>
+                </div>
+                
+                <!-- Connect wallet button -->
+                <button id="header-connect-btn" class="btn btn-outline-tokencafe btn-sm">
+                    <i class="bi bi-wallet2 me-2"></i>
+                    Conectar Carteira
+                </button>
             </div>
         </div>
     </nav>
     
-    <!--corpo do html-->
-    <div class="container-fluid py-3">
-        <div class="row justify-content-start">
-            <div class="col-lg-6 col-xl-5">
+    <!-- ============================================================================
+         CONTAINER PRINCIPAL - GERADOR DE LINKS
+         ========================================================================== -->
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-6">
+                
+                <!-- Hero Section -->
+                <div class="text-center mb-5">
+                    <h1 class="display-5 fw-bold text-white mb-3">
+                        <i class="bi bi-link-45deg text-tokencafe me-3"></i>
+                        Gerador de Links de Tokens
+                    </h1>
+                    <p class="lead text-muted-light">
+                        Crie links compartilháveis para seus tokens e facilite a adição às carteiras
+                    </p>
+                </div>
 
-                <!-- Seção 1: Seleção da Rede -->
-                <div class="mb-4" id="network-section">
-                    <div class="d-flex align-items-center mb-2">
+                <!-- ===== SEÇÃO 1: SELEÇÃO DA REDE ===== -->
+                <div class="link-section fade-in mb-4" id="network-section">
+                    <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             <i class="bi bi-globe section-icon"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="mb-0">1. Selecionar Rede Blockchain</h4>
-                            <p class="text-muted mb-0">Escolha a rede blockchain onde seu token está localizado</p>
+                            <h4 class="mb-0 text-white">1. Selecionar Rede Blockchain</h4>
+                            <p class="text-muted-light mb-0">Escolha a rede blockchain onde seu token está localizado</p>
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-12 position-relative">
-                            <label for="networkSearch" class="form-label">Rede Blockchain</label>
-                            <input id="networkSearch" class="form-control form-control-lg" autocomplete="off"
-                                placeholder="Digite o nome ou ChainID da Rede (Ex: Ethereum ou 1)">
-                            <div id="networkAutocomplete"
-                                class="list-group position-absolute w-100 network-autocomplete"></div>
-                        </div>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="rpcUrl" class="form-label">RPC URL</label>
-                            <input id="rpcUrl" class="form-control monospace-input"
-                                placeholder="https://bsc-dataseed.binance.org" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="blockExplorer" class="form-label">Block Explorer URL</label>
-                            <input id="explorerUrl" class="form-control monospace-input"
-                                placeholder="https://bscscan.com" readonly>
+                    <div class="card card-dark">
+                        <div class="card-body">
+                            <!-- Busca de rede -->
+                            <div class="mb-3 position-relative">
+                                <label for="networkSearch" class="form-label text-white fw-semibold">
+                                    <i class="bi bi-search me-2"></i>Rede Blockchain
+                                </label>
+                                <input id="networkSearch" class="form-control form-control-lg bg-dark-elevated text-white border-secondary" 
+                                       autocomplete="off" placeholder="Digite o nome ou Chain ID (Ex: Ethereum, BSC, Polygon)">
+                                
+                                <!-- Autocomplete dropdown -->
+                                <div id="networkAutocomplete" class="autocomplete-dropdown d-none"></div>
+                            </div>
+                            
+                            <!-- Informações da rede selecionada -->
+                            <div id="selected-network-info" class="d-none">
+                                <div class="alert alert-dark-elevated border-tokencafe mb-3">
+                                    <h6 class="text-tokencafe mb-2">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Rede Selecionada
+                                    </h6>
+                                    <div id="network-details" class="small"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Campos RPC e Explorer -->
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="rpcUrl" class="form-label text-muted-light small">RPC URL</label>
+                                    <input id="rpcUrl" class="form-control bg-dark-elevated text-white border-0 font-monospace small"
+                                           placeholder="https://..." readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="explorerUrl" class="form-label text-muted-light small">Block Explorer</label>
+                                    <input id="explorerUrl" class="form-control bg-dark-elevated text-white border-0 font-monospace small"
+                                           placeholder="https://..." readonly>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Seção 2: Dados do Token (inicialmente oculta) -->
-                <div class="mb-4 hidden-section" id="token-section">
-                    <div class="d-flex align-items-center mb-2">
+                <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->
+                <div class="link-section fade-in mb-4 d-none" id="token-section">
+                    <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             <i class="bi bi-coin section-icon"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="mb-0">2. Informações do Token</h4>
-                            <p class="text-muted mb-0">Insira o endereço do token para buscar suas informações</p>
+                            <h4 class="mb-0 text-white">2. Informações do Token</h4>
+                            <p class="text-muted-light mb-0">Insira o endereço do token para buscar suas informações</p>
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-3 align-items-end">
-                        <div class="col-md-9">
-                            <label for="tokenAddress" class="form-label">Endereço do Token</label>
-                            <input id="tokenAddress" class="form-control form-control-lg monospace-input"
-                                placeholder="Endereço do Token (0x...)">
-                        </div>
-                        <div class="col-md-3">
-                            <button type="button" class="btn btn-primary" id="btnTokenSearch">
-                                <i class="bi bi-search me-2"></i>Buscar Token
-                            </button>
-                        </div>
-                    </div>
+                    <div class="card card-dark">
+                        <div class="card-body">
+                            <!-- Input de endereço do token -->
+                            <div class="row g-3 mb-3 align-items-end">
+                                <div class="col-md-9">
+                                    <label for="tokenAddress" class="form-label text-white fw-semibold">
+                                        <i class="bi bi-wallet me-2"></i>Endereço do Token
+                                    </label>
+                                    <input id="tokenAddress" class="form-control form-control-lg bg-dark-elevated text-white border-secondary font-monospace"
+                                           placeholder="0x... (Endereço do contrato do token)">
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-tokencafe btn-lg w-100" id="btnTokenSearch">
+                                        <i class="bi bi-search me-2"></i>Buscar
+                                    </button>
+                                </div>
+                            </div>
 
-                    <div id="tokenLoading" class="text-center py-3 loading-container">
-                        <div class="spinner-border text-primary me-2" role="status">
-                            <span class="visually-hidden">Carregando...</span>
-                        </div>
-                        <span class="text-primary">Buscando dados do token...</span>
-                    </div>
+                            <!-- Loading indicator -->
+                            <div id="tokenLoading" class="text-center py-4 d-none">
+                                <div class="loading-spinner mx-auto mb-3"></div>
+                                <p class="text-tokencafe mb-0">Buscando dados do token...</p>
+                            </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <label for="tokenName" class="form-label">Nome do Token</label>
-                            <input id="tokenName" class="form-control" placeholder="Nome" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="tokenSymbol" class="form-label">Símbolo</label>
-                            <input id="tokenSymbol" class="form-control" placeholder="Símbolo" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="tokenDecimals" class="form-label">Decimais</label>
-                            <input id="tokenDecimals" class="form-control" placeholder="18" type="number" readonly>
-                        </div>
-                    </div>
+                            <!-- Informações do token -->
+                            <div id="token-info" class="d-none">
+                                <div class="alert alert-success border-0 mb-3">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <strong>Token encontrado com sucesso!</strong>
+                                </div>
+                                
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label for="tokenName" class="form-label text-muted-light small">Nome do Token</label>
+                                        <input id="tokenName" class="form-control bg-dark-elevated text-white border-0" readonly>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="tokenSymbol" class="form-label text-muted-light small">Símbolo</label>
+                                        <input id="tokenSymbol" class="form-control bg-dark-elevated text-white border-0" readonly>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="tokenDecimals" class="form-label text-muted-light small">Decimais</label>
+                                        <input id="tokenDecimals" class="form-control bg-dark-elevated text-white border-0" readonly>
+                                    </div>
+                                </div>
 
-                    <div class="mb-3">
-                        <label for="tokenImage" class="form-label">Imagem (opcional)</label>
-                        <input id="tokenImage" class="form-control monospace-input" placeholder="URL da Imagem"
-                            readonly>
+                                <div class="mb-3">
+                                    <label for="tokenImage" class="form-label text-muted-light small">Logo do Token (opcional)</label>
+                                    <input id="tokenImage" class="form-control bg-dark-elevated text-white border-0 font-monospace small"
+                                           placeholder="URL da imagem do token">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Seção 3: Links Gerados (inicialmente oculta) -->
-                <div class="mb-4 hidden-section" id="generate-section">
-                    <div class="d-flex align-items-center mb-2">
+                <!-- ===== SEÇÃO 3: LINKS GERADOS ===== -->
+                <div class="link-section fade-in mb-4 d-none" id="generate-section">
+                    <div class="d-flex align-items-center mb-3">
                         <div class="me-3">
                             <i class="bi bi-link-45deg section-icon"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h4 class="mb-0">3. Links Gerados</h4>
-                            <p class="text-muted mb-0">Seu link compartilhável foi gerado com sucesso</p>
+                            <h4 class="mb-0 text-white">3. Links Gerados</h4>
+                            <p class="text-muted-light mb-0">Seu link compartilhável foi gerado com sucesso</p>
                         </div>
                     </div>
 
-                    <div id="generatedLinkContainer" class="hidden-section">
-                        <div class="alert alert-success" role="alert">
-                            <i class="bi bi-check-circle me-2"></i>
-                            <strong>Link Gerado com Sucesso!</strong>
-                        </div>
+                    <div class="card card-dark">
+                        <div class="card-body">
+                            <div id="generatedLinkContainer">
+                                <!-- Sucesso -->
+                                <div class="alert alert-success border-0 mb-3">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    <strong>Link Gerado com Sucesso!</strong>
+                                </div>
 
-                        <label class="form-label">Link Compartilhável:</label>
-                        <div class="input-group">
-                            <input id="generatedLink" class="form-control monospace-input" readonly>
-                            <button class="btn btn-outline-success" id="btnCopyLink" type="button" title="Copiar Link">
-                                <i class="bi bi-clipboard"></i>
-                            </button>
-                            <button class="btn btn-outline-info" id="btnShareLink" type="button"
-                                title="Compartilhar Link">
-                                <i class="bi bi-share"></i>
-                            </button>
-                            <button class="btn btn-outline-primary" id="btnPreviewLink" type="button"
-                                title="Visualizar Link">
-                                <i class="bi bi-eye"></i>
-                            </button>
+                                <!-- Link compartilhável -->
+                                <div class="mb-3">
+                                    <label class="form-label text-white fw-semibold">
+                                        <i class="bi bi-share me-2"></i>Link Compartilhável
+                                    </label>
+                                    <div class="input-group">
+                                        <input id="generatedLink" class="form-control bg-dark-elevated text-white border-secondary font-monospace" readonly>
+                                        <button class="btn btn-outline-success" id="btnCopyLink" type="button" title="Copiar Link">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info" id="btnShareLink" type="button" title="Compartilhar Link">
+                                            <i class="bi bi-share"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary" id="btnPreviewLink" type="button" title="Visualizar Link">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Ações rápidas -->
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <button class="btn btn-tokencafe w-100" id="btnAddToMetaMask">
+                                            <i class="bi bi-plus-circle me-2"></i>
+                                            Adicionar ao MetaMask
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-outline-tokencafe w-100" id="btnOpenLink">
+                                            <i class="bi bi-box-arrow-up-right me-2"></i>
+                                            Abrir Link
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Botão Limpar -->
                 <div class="text-center mt-4" id="clear-section">
-                    <button id="btnClearAll" type="button" class="btn btn-primary btn-lg px-4">
+                    <button id="btnClearAll" type="button" class="btn btn-outline-secondary btn-lg px-4">
                         <i class="bi bi-arrow-counterclockwise me-2"></i>LIMPAR TUDO E RECOMEÇAR
                     </button>
                 </div>
+                
             </div>
         </div>
     </div>
 
-    <!-- scripts -->
+    <!-- ============================================================================
+         SCRIPTS UNIFICADOS - TOKENCAFE LINK GENERATOR
+         ========================================================================== -->
+    
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- JavaScript Modules -->
-    <script type="module" src="../../../js/core/shared_utilities_es6.js"></script>
-
-    <!-- Consolidated Core Modules -->
-    <script type="module" src="../../../js/modules/blockchain.js"></script>
-    <script type="module" src="../../../js/modules/token.js"></script>
-    <script type="module" src="../../../js/modules/link/link_index.js"></script>
+    
+    <!-- Ethers.js (para Web3) -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    
+    <!-- TokenCafe Base System Unificado -->
+    <script type="module">
+        import baseSystem from '../../../js/shared/base-system.js';
+        import { PageManager } from '../../../js/shared/page-manager.js';
+        
+        // Estado específico do Link Generator
+        const linkState = {
+            selectedNetwork: null,
+            tokenData: null,
+            generatedLink: null
+        };
+        
+        // Inicializar sistemas
+        window.initBaseSystem(linkState);
+        window.createPageManager('link');
+        
+        // Inicializar Link Generator quando DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Link Generator - Sistema Unificado Carregado');
+            
+            // Configurar debug em desenvolvimento
+            if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+                window.walletConnector.setDebug(true);
+                window.networkManager.setDebug(true);
+            }
+            
+            // Inicializar gerador de links
+            initLinkGenerator();
+        });
+    </script>
+        
+        /**
+         * Inicializar gerador de links com módulos unificados
+         */
+        async function initLinkGenerator() {
+            // Configurar event listeners
+            setupEventListeners();
+            
+            // Verificar conexão existente
+            checkExistingConnection();
+        }
+        
+        /**
+         * Configurar event listeners
+         */
+        function setupEventListeners() {
+            // Header - conectar carteira
+            document.getElementById('header-connect-btn')?.addEventListener('click', async () => {
+                await connectWallet();
+            });
+            
+            // Busca de rede
+            const networkSearch = document.getElementById('networkSearch');
+            if (networkSearch) {
+                let searchTimeout;
+                networkSearch.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        searchNetworks(e.target.value);
+                    }, 300);
+                });
+            }
+            
+            // Buscar token
+            document.getElementById('btnTokenSearch')?.addEventListener('click', async () => {
+                await searchToken();
+            });
+            
+            // Ações dos links
+            document.getElementById('btnCopyLink')?.addEventListener('click', copyLink);
+            document.getElementById('btnShareLink')?.addEventListener('click', shareLink);
+            document.getElementById('btnPreviewLink')?.addEventListener('click', previewLink);
+            document.getElementById('btnAddToMetaMask')?.addEventListener('click', addTokenToMetaMask);
+            document.getElementById('btnOpenLink')?.addEventListener('click', openGeneratedLink);
+            
+            // Limpar tudo
+            document.getElementById('btnClearAll')?.addEventListener('click', clearAll);
+            
+            // Listeners de eventos de carteira
+            document.addEventListener('wallet:connected', onWalletConnected);
+            document.addEventListener('wallet:disconnected', onWalletDisconnected);
+        }
+        
+        /**
+         * Conectar carteira
+         */
+        async function connectWallet() {
+            try {
+                showLoading('Conectando carteira...');
+                
+                const result = await walletConnector.connect('metamask');
+                
+                if (result.success) {
+                    showToast('Carteira conectada com sucesso!', 'success');
+                    updateWalletUI(result);
+                } else {
+                    throw new Error('Falha na conexão');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao conectar:', error);
+                showToast(`Erro ao conectar: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        /**
+         * Buscar redes
+         */
+        async function searchNetworks(query) {
+            try {
+                if (!query || query.length < 2) {
+                    hideAutocomplete();
+                    return;
+                }
+                
+                const results = networkManager.searchNetworks(query, 8);
+                showAutocompleteResults(results);
+                
+            } catch (error) {
+                console.error('Erro na busca:', error);
+                hideAutocomplete();
+            }
+        }
+        
+        /**
+         * Mostrar resultados do autocomplete
+         */
+        function showAutocompleteResults(networks) {
+            const autocomplete = document.getElementById('networkAutocomplete');
+            if (!autocomplete) return;
+            
+            if (networks.length === 0) {
+                hideAutocomplete();
+                return;
+            }
+            
+            autocomplete.innerHTML = networks.map(network => `
+                <div class="autocomplete-item" data-chainid="${network.chainId}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${network.name}</strong>
+                            <small class="d-block text-muted">Chain ID: ${network.chainId}</small>
+                        </div>
+                        <span class="badge bg-dark-elevated text-tokencafe">${network.nativeCurrency?.symbol || 'N/A'}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Adicionar listeners
+            autocomplete.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectNetwork(parseInt(item.dataset.chainid));
+                });
+            });
+            
+            autocomplete.classList.remove('d-none');
+        }
+        
+        /**
+         * Selecionar rede
+         */
+        function selectNetwork(chainId) {
+            const network = networkManager.getNetworkById(chainId);
+            if (!network) return;
+            
+            // Atualizar estado
+            appState.selectedNetwork = network;
+            
+            // Atualizar UI
+            document.getElementById('networkSearch').value = network.name;
+            hideAutocomplete();
+            
+            // Mostrar detalhes da rede
+            showNetworkDetails(network);
+            
+            // Preencher campos RPC
+            fillNetworkData(network);
+            
+            // Mostrar próxima seção
+            showNextSection('token-section');
+        }
+        
+        /**
+         * Mostrar detalhes da rede
+         */
+        function showNetworkDetails(network) {
+            const detailsContainer = document.getElementById('network-details');
+            if (!detailsContainer) return;
+            
+            detailsContainer.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <strong>Nome:</strong> ${network.name}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Chain ID:</strong> ${network.chainId}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Moeda:</strong> ${network.nativeCurrency?.name || 'N/A'}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Símbolo:</strong> ${network.nativeCurrency?.symbol || 'N/A'}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('selected-network-info').classList.remove('d-none');
+        }
+        
+        /**
+         * Preencher dados da rede
+         */
+        function fillNetworkData(network) {
+            // RPC URL (primeira disponível)
+            const rpcUrl = network.rpc && network.rpc.length > 0 ? network.rpc[0] : '';
+            document.getElementById('rpcUrl').value = rpcUrl;
+            
+            // Explorer URL
+            const explorerUrl = network.explorers && network.explorers.length > 0 ? 
+                (network.explorers[0].url || network.explorers[0]) : '';
+            document.getElementById('explorerUrl').value = explorerUrl;
+        }
+        
+        /**
+         * Buscar dados do token
+         */
+        async function searchToken() {
+            const tokenAddress = document.getElementById('tokenAddress').value.trim();
+            
+            if (!tokenAddress) {
+                showToast('Digite o endereço do token', 'error');
+                return;
+            }
+            
+            if (!appState.selectedNetwork) {
+                showToast('Selecione uma rede primeiro', 'error');
+                return;
+            }
+            
+            try {
+                // Mostrar loading
+                document.getElementById('tokenLoading').classList.remove('d-none');
+                document.getElementById('token-info').classList.add('d-none');
+                
+                // Buscar dados do token usando ethers
+                const provider = new ethers.providers.JsonRpcProvider(appState.selectedNetwork.rpc[0]);
+                const contract = new ethers.Contract(tokenAddress, [
+                    'function name() view returns (string)',
+                    'function symbol() view returns (string)',
+                    'function decimals() view returns (uint8)'
+                ], provider);
+                
+                const [name, symbol, decimals] = await Promise.all([
+                    contract.name(),
+                    contract.symbol(),
+                    contract.decimals()
+                ]);
+                
+                // Atualizar estado
+                appState.tokenData = {
+                    address: tokenAddress,
+                    name,
+                    symbol,
+                    decimals: decimals.toString(),
+                    chainId: appState.selectedNetwork.chainId
+                };
+                
+                // Atualizar UI
+                document.getElementById('tokenName').value = name;
+                document.getElementById('tokenSymbol').value = symbol;
+                document.getElementById('tokenDecimals').value = decimals.toString();
+                
+                // Mostrar seção de informações
+                document.getElementById('token-info').classList.remove('d-none');
+                
+                // Gerar link automaticamente
+                generateTokenLink();
+                
+                showToast('Token encontrado com sucesso!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao buscar token:', error);
+                showToast('Erro ao buscar token. Verifique o endereço e a rede.', 'error');
+            } finally {
+                document.getElementById('tokenLoading').classList.add('d-none');
+            }
+        }
+        
+        /**
+         * Gerar link do token
+         */
+        function generateTokenLink() {
+            if (!appState.tokenData || !appState.selectedNetwork) return;
+            
+            const tokenImage = document.getElementById('tokenImage').value.trim();
+            
+            // Gerar link baseado no tipo de carteira
+            const metamaskLink = `https://metamask.app.link/send/pay-${appState.tokenData.address}@${appState.selectedNetwork.chainId}/transfer`;
+            
+            // Link customizado do TokenCafe
+            const customLink = `${window.location.origin}/link-token.html?` + 
+                `chain=${appState.selectedNetwork.chainId}&` +
+                `address=${appState.tokenData.address}&` +
+                `name=${encodeURIComponent(appState.tokenData.name)}&` +
+                `symbol=${encodeURIComponent(appState.tokenData.symbol)}&` +
+                `decimals=${appState.tokenData.decimals}` +
+                (tokenImage ? `&image=${encodeURIComponent(tokenImage)}` : '');
+            
+            // Atualizar estado
+            appState.generatedLink = customLink;
+            
+            // Atualizar UI
+            document.getElementById('generatedLink').value = customLink;
+            
+            // Mostrar seção de links
+            showNextSection('generate-section');
+        }
+        
+        /**
+         * Copiar link
+         */
+        async function copyLink() {
+            try {
+                await navigator.clipboard.writeText(appState.generatedLink);
+                showToast('Link copiado para a área de transferência!', 'success');
+            } catch (error) {
+                console.error('Erro ao copiar:', error);
+                showToast('Erro ao copiar link', 'error');
+            }
+        }
+        
+        /**
+         * Compartilhar link
+         */
+        async function shareLink() {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `Token ${appState.tokenData.name} (${appState.tokenData.symbol})`,
+                        text: `Adicione o token ${appState.tokenData.name} à sua carteira!`,
+                        url: appState.generatedLink
+                    });
+                } catch (error) {
+                    console.error('Erro ao compartilhar:', error);
+                    await copyLink(); // Fallback para copiar
+                }
+            } else {
+                await copyLink(); // Fallback para copiar
+            }
+        }
+        
+        /**
+         * Visualizar link
+         */
+        function previewLink() {
+            window.open(appState.generatedLink, '_blank');
+        }
+        
+        /**
+         * Adicionar token ao MetaMask
+         */
+        async function addTokenToMetaMask() {
+            try {
+                await walletConnector.addToken({
+                    address: appState.tokenData.address,
+                    symbol: appState.tokenData.symbol,
+                    decimals: parseInt(appState.tokenData.decimals),
+                    image: document.getElementById('tokenImage').value.trim() || undefined
+                });
+                
+                showToast('Token adicionado ao MetaMask!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao adicionar token:', error);
+                showToast('Erro ao adicionar token ao MetaMask', 'error');
+            }
+        }
+        
+        /**
+         * Abrir link gerado
+         */
+        function openGeneratedLink() {
+            window.open(appState.generatedLink, '_blank');
+        }
+        
+        /**
+         * Limpar tudo
+         */
+        function clearAll() {
+            // Resetar estado
+            appState = {
+                selectedNetwork: null,
+                tokenData: null,
+                generatedLink: null
+            };
+            
+            // Limpar campos
+            document.getElementById('networkSearch').value = '';
+            document.getElementById('tokenAddress').value = '';
+            document.getElementById('tokenName').value = '';
+            document.getElementById('tokenSymbol').value = '';
+            document.getElementById('tokenDecimals').value = '';
+            document.getElementById('tokenImage').value = '';
+            document.getElementById('generatedLink').value = '';
+            document.getElementById('rpcUrl').value = '';
+            document.getElementById('explorerUrl').value = '';
+            
+            // Ocultar seções
+            document.getElementById('selected-network-info').classList.add('d-none');
+            document.getElementById('token-section').classList.add('d-none');
+            document.getElementById('generate-section').classList.add('d-none');
+            document.getElementById('token-info').classList.add('d-none');
+            
+            hideAutocomplete();
+            
+            showToast('Formulário limpo!', 'info');
+        }
+        
+        /**
+         * Event handlers de carteira
+         */
+        function onWalletConnected(event) {
+            const { account, wallet, network } = event.detail;
+            updateWalletUI({ account, wallet, network });
+        }
+        
+        function onWalletDisconnected() {
+            resetWalletUI();
+        }
+        
+        /**
+         * Atualizar UI da carteira
+         */
+        function updateWalletUI(result) {
+            const { account } = result;
+            const shortAddress = formatAddress(account);
+            
+            // Atualizar status no header
+            document.getElementById('header-wallet-address').textContent = shortAddress;
+            document.getElementById('header-wallet-status').classList.remove('d-none');
+            document.getElementById('header-connect-btn').classList.add('d-none');
+        }
+        
+        /**
+         * Resetar UI da carteira
+         */
+        function resetWalletUI() {
+            document.getElementById('header-wallet-status').classList.add('d-none');
+            document.getElementById('header-connect-btn').classList.remove('d-none');
+        }
+        
+        /**
+         * Verificar conexão existente
+         */
+        function checkExistingConnection() {
+            if (walletConnector.isConnected) {
+                const status = walletConnector.getStatus();
+                updateWalletUI(status);
+            }
+        }
+        
+        /**
+         * Mostrar próxima seção
+         */
+        function showNextSection(sectionId) {
+            document.getElementById(sectionId)?.classList.remove('d-none');
+        }
+        
+        /**
+         * Ocultar autocomplete
+         */
+        function hideAutocomplete() {
+            document.getElementById('networkAutocomplete')?.classList.add('d-none');
+        }
+    </script>
+    
+    <!-- Utilitários globais -->
+    <script>
+        // Shorthand para querySelector
+        window.$ = (selector) => document.querySelector(selector);
+        window.$$ = (selector) => document.querySelectorAll(selector);
+        
+        // Mostrar notificação toast
+        window.showToast = function(message, type = 'info') {
+            const toastHTML = `
+                <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            let container = $('#toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '9999';
+                document.body.appendChild(container);
+            }
+            
+            container.insertAdjacentHTML('beforeend', toastHTML);
+            const toastElement = container.lastElementChild;
+            
+            const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        };
+        
+        // Mostrar loading spinner
+        window.showLoading = function(message = 'Carregando...') {
+            const loadingHTML = `
+                <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.8); z-index: 9999;">
+                    <div class="text-center text-white">
+                        <div class="loading-spinner mx-auto mb-3"></div>
+                        <p>${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loadingHTML);
+        };
+        
+        // Esconder loading
+        window.hideLoading = function() {
+            const overlay = $('#loading-overlay');
+            if (overlay) overlay.remove();
+        };
+        
+        // Formatar endereço de carteira
+        window.formatAddress = function(address, chars = 4) {
+            if (!address) return '';
+            return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`;
+        };
+    </script>
 
 </body>
-
 </html>
