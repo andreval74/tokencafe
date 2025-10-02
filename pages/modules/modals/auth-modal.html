@@ -29,12 +29,28 @@ Combina funcionalidades do TokenCafe e Widget
                 <!-- Estado: Seleção de Carteira -->
                 <div id="wallet-selection" class="auth-step">
                     <div class="row g-2">
+                        <!-- Trust Wallet -->
+                        <div class="col-12">
+                            <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="trust">
+                                <div class="d-flex align-items-center">
+                                    <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#fff;">
+                                        <img src="../../../imgs/trustwallet.svg" alt="Trust Wallet" style="width:24px;height:24px;" />
+                                    </div>
+                                    <div class="text-start flex-grow-1">
+                                        <h6 class="mb-0">Trust Wallet</h6>
+                                        <small class="text-muted">Conectar usando Trust Wallet</small>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted"></i>
+                                </div>
+                            </button>
+                        </div>
                         <!-- MetaMask -->
                         <div class="col-12">
                             <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="metamask">
                                 <div class="d-flex align-items-center">
-                                    <img src="https://cdn.jsdelivr.net/gh/MetaMask/brand-resources@master/SVG/metamask-fox.svg" 
-                                         alt="MetaMask" class="wallet-icon me-3" width="32" height="32">
+                                    <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#fff;">
+                                        <img src="../../../imgs/metamask.svg" alt="MetaMask" style="width:24px;height:24px;" />
+                                    </div>
                                     <div class="text-start flex-grow-1">
                                         <h6 class="mb-0">MetaMask</h6>
                                         <small class="text-muted">Conectar usando MetaMask</small>
@@ -48,8 +64,8 @@ Combina funcionalidades do TokenCafe e Widget
                         <div class="col-12">
                             <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="walletconnect">
                                 <div class="d-flex align-items-center">
-                                    <div class="wallet-icon me-3 bg-primary rounded d-flex align-items-center justify-content-center size-32">
-                                        <i class="fas fa-qrcode text-white"></i>
+                                    <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#fff;">
+                                        <img src="../../../imgs/walletconnect.svg" alt="WalletConnect" style="width:24px;height:24px;" />
                                     </div>
                                     <div class="text-start flex-grow-1">
                                         <h6 class="mb-0">WalletConnect</h6>
@@ -64,8 +80,8 @@ Combina funcionalidades do TokenCafe e Widget
                         <div class="col-12">
                             <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="coinbase">
                                 <div class="d-flex align-items-center">
-                                    <div class="wallet-icon me-3 bg-info rounded d-flex align-items-center justify-content-center size-32">
-                                        <i class="fas fa-coins text-white"></i>
+                                    <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#fff;">
+                                        <img src="../../../imgs/coinbase.svg" alt="Coinbase" style="width:24px;height:24px;" />
                                     </div>
                                     <div class="text-start flex-grow-1">
                                         <h6 class="mb-0">Coinbase Wallet</h6>
@@ -200,7 +216,7 @@ Combina funcionalidades do TokenCafe e Widget
                             Rede: <span></span>
                         </p>
                         <button type="button" class="btn btn-coffee" data-bs-dismiss="modal">
-                            Acessar Dashboard
+                            Ir para Ferramentas
                         </button>
                     </div>
                 </div>
@@ -288,34 +304,37 @@ async function handleWalletSelection(e) {
     updateConnectingMessage(`Conectando com ${getWalletName(walletType)}...`);
     
     try {
-        // Use the new WalletIntegration system
         let connected = false;
-        
-        if (window.walletIntegration) {
-            // Try Web3-Onboard first, then fallback systems
-            const result = await window.walletIntegration.connect();
-            connected = result.success || result === true;
+
+        // Preferir conexão nativa quando o usuário escolhe explicitamente
+        if (walletType === 'metamask') {
+            connected = await connectMetaMask();
+        } else if (walletType === 'trust') {
+            connected = await connectTrustWallet();
+        } else if (window.walletIntegration) {
+            // Tentar integração, se disponível, para outros provedores
+            const result = await window.walletIntegration.connect(walletType);
+            connected = result?.success || result === true;
         } else {
-            // Fallback to legacy connection method
+            // Fallback para método legado
             connected = await connectWallet(walletType);
         }
         
         if (connected) {
-            // Get current account and chain info from the integration system
+            // Obter dados atuais de conta e rede
             let chainId, account;
-            
-            if (window.walletIntegration) {
-                account = window.walletIntegration.getCurrentAccount();
-                chainId = await window.walletIntegration.getChainId();
-            } else if (window.ethereum) {
+            if (window.ethereum) {
                 chainId = await window.ethereum.request({ method: 'eth_chainId' });
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                account = accounts[0];
+                account = accounts?.[0];
+            } else if (window.walletIntegration) {
+                account = window.walletIntegration.getCurrentAccount();
+                chainId = await window.walletIntegration.getChainId();
             }
             
             const supportedChains = ['0x1', '0x38', '0x89', '0xa4b1'];
-            
-            if (supportedChains.includes(chainId)) {
+            // Permitir redirecionamento mesmo quando chainId estiver ausente ou não mapeado
+            if (!chainId || supportedChains.includes(chainId)) {
                 await handleConnectionSuccess(account, chainId);
             } else {
                 showStep('network-selection');
@@ -344,6 +363,8 @@ async function connectWallet(walletType) {
     switch (walletType) {
         case 'metamask':
             return await connectMetaMask();
+        case 'trust':
+            return await connectTrustWallet();
         case 'walletconnect':
             return await connectWalletConnect();
         case 'coinbase':
@@ -362,6 +383,14 @@ async function connectMetaMask() {
         method: 'eth_requestAccounts'
     });
     
+    return accounts.length > 0;
+}
+
+async function connectTrustWallet() {
+    if (!window.ethereum || !window.ethereum.isTrust) {
+        throw new Error('Trust Wallet não encontrada. Verifique se está instalada.');
+    }
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     return accounts.length > 0;
 }
 
@@ -446,11 +475,21 @@ async function handleConnectionSuccess(account, chainId) {
     showStep('connection-success');
     
     // Notify other components about successful connection
-    if (typeof window.EventBus !== 'undefined') {
-        window.EventBus.emit('wallet:connected', {
-            address: account,
-            chainId: chainId
-        });
+    if (typeof window.EventBus !== 'undefined' && typeof window.EventBus.emit === 'function') {
+        window.EventBus.emit('wallet:connected', { address: account, chainId });
+    }
+    // Emitir também como CustomEvent para integração unificada
+    document.dispatchEvent(new CustomEvent('wallet:connected', { detail: { account, chainId } }));
+    
+    // Sincronizar estado com WalletConnector unificado, quando disponível
+    try {
+        if (window.walletConnector) {
+            // Detectar tipo de carteira pelo provider
+            const walletType = (window.ethereum?.isTrust) ? 'trust' : (window.ethereum?.isMetaMask ? 'metamask' : 'metamask');
+            await window.walletConnector.connect(walletType);
+        }
+    } catch (e) {
+        console.warn('Falha ao sincronizar WalletConnector:', e.message);
     }
     
     // Emit global wallet events for compatibility
@@ -459,11 +498,19 @@ async function handleConnectionSuccess(account, chainId) {
         console.log('✅ Wallet connected via Web3-Onboard integration');
     }
     
-    // Close modal after 2 seconds
+    // Fechar modal e redirecionar para Tools
     setTimeout(() => {
         const modalInstance = bootstrap.Modal.getInstance(document.getElementById('authModal'));
         modalInstance?.hide();
-    }, 2000);
+        // Redirecionar diretamente como fallback, além dos listeners do PageManager
+        try {
+            const currentPath = window.location.pathname;
+            const target = currentPath.includes('/pages/') ? 'tools.html' : 'pages/tools.html';
+            setTimeout(() => { window.location.href = target; }, 400);
+        } catch (e) {
+            console.warn('Falha ao redirecionar após conexão:', e.message);
+        }
+    }, 800);
 }
 
 function handleConnectionError(error) {
@@ -500,6 +547,7 @@ function updateConnectingMessage(message) {
 function getWalletName(walletType) {
     const names = {
         'metamask': 'MetaMask',
+        'trust': 'Trust Wallet',
         'walletconnect': 'WalletConnect',
         'coinbase': 'Coinbase Wallet'
     };

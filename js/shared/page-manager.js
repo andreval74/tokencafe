@@ -108,12 +108,10 @@ class PageManager {
      * Configurar recursos de carteira
      */
     async setupWalletFeatures() {
-        if (!this.connectBtn) return;
-        
-        // Configurar eventos de carteira
+        // Sempre configurar eventos de carteira, mesmo sem botão presente
         this.setupWalletEvents();
         
-        // Verificação inicial de conexão
+        // Verificação inicial de conexão (se houver UI, atualiza estados)
         await this.checkInitialConnection();
     }
 
@@ -121,9 +119,28 @@ class PageManager {
      * Configurar eventos de carteira
      */
     setupWalletEvents() {
-        // Função global para conectar carteira
+        // Funções globais para conectar carteira (compatíveis com HTML existente)
         window.connectWalletFromHeader = () => this.connectWallet();
-        
+        window.connectWallet = () => this.connectWallet();
+
+        // Ouvir eventos globais de conexão para atualizar UI e redirecionar
+        document.addEventListener('wallet:connected', (ev) => {
+            try {
+                const account = ev.detail?.account || walletConnector?.getStatus()?.account;
+                this.showSuccessState(account);
+                const config = this.pageConfigs[this.pageType] || {};
+                if (config.redirectTarget) {
+                    setTimeout(() => this.redirectTo(config.redirectTarget), 800);
+                }
+            } catch (e) {
+                console.warn('Falha ao processar wallet:connected no PageManager:', e.message);
+            }
+        });
+
+        document.addEventListener('wallet:disconnected', () => {
+            this.showConnectButton();
+        });
+
         // Event listeners adicionais
         window.addEventListener('beforeunload', () => {
             // Cleanup se necessário
@@ -155,26 +172,23 @@ class PageManager {
      */
     async connectWallet() {
         try {
-            console.log('🔗 Conectando carteira...');
-            this.showConnectingState();
-            
-            // Usar wallet-connector unificado
-            const result = await walletConnector.connect('metamask');
-            
-            if (result.success) {
-                console.log('✅ Carteira conectada:', result.address);
-                this.showSuccessState();
-                
-                // Redirecionar baseado na configuração da página
-                const config = this.pageConfigs[this.pageType];
-                if (config.redirectTarget) {
-                    setTimeout(() => {
-                        this.redirectTo(config.redirectTarget);
-                    }, 1500);
-                }
-                
+            console.log('🔗 Abrindo seleção de carteira...');
+            // Preferir modal de autenticação para escolha do provedor
+            if (window.authModal && typeof window.authModal.show === 'function') {
+                window.authModal.show();
             } else {
-                throw new Error(result.error || 'Falha na conexão');
+                // Fallback para conexão padrão via WalletConnector
+                this.showConnectingState();
+                const result = await walletConnector.connect('metamask');
+                if (result?.success) {
+                    this.showSuccessState();
+                    const config = this.pageConfigs[this.pageType];
+                    if (config.redirectTarget) {
+                        setTimeout(() => this.redirectTo(config.redirectTarget), 1200);
+                    }
+                } else {
+                    throw new Error(result?.error || 'Falha na conexão');
+                }
             }
             
         } catch (error) {
@@ -189,7 +203,7 @@ class PageManager {
     showConnectButton() {
         if (!this.connectBtn) return;
         
-        this.connectBtn.innerHTML = '<i class="fas fa-sign-in-alt me-1"></i>Conectar ao MetaMask';
+        this.connectBtn.innerHTML = '<i class="fas fa-sign-in-alt me-1"></i>Conectar Carteira';
         this.connectBtn.className = 'btn btn-primary btn-lg';
         this.connectBtn.onclick = () => this.connectWallet();
         this.connectBtn.disabled = false;

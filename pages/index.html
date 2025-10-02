@@ -42,6 +42,8 @@
 <body>
     <!-- Header Dinâmico -->
     <div data-component="header.html"></div>
+    <!-- Modal de Autenticação de Carteira -->
+    <div data-component="modules/modals/auth-modal.html"></div>
 
     <!-- Wrappers unificados -->
     <div class="TokenCafe-container">
@@ -823,5 +825,8 @@
       // Ajuste: tipagem 'main' para refletir a página principal com wallet
       seo.init('main', { name: 'TokenCafe', url: window.location.href });
     </script>
+
+    <!-- Modal de Autenticação (inclusão via sistema de componentes) -->
+    <div data-component="modules/modals/auth-modal.html"></div>
 </body>
 </html>

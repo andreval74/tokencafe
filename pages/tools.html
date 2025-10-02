@@ -51,6 +51,10 @@
                     <i class="fas fa-plug me-1"></i>
                     Conectar Carteira
                 </button>
+                <button id="btn-logout" class="btn btn-outline-danger btn-sm ms-2">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Sair
+                </button>
             </div>
         </div>
     </nav>
@@ -63,9 +67,9 @@
                     <!-- RPC Manager -->
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-4">
+                            <div class="card-body text-center p-3">
                                 <div class="feature-icon mb-3">
-                                    <i class="fas fa-network-wired fa-3x text-primary"></i>
+                                    <i class="fas fa-network-wired fa-2x text-primary"></i>
                                 </div>
                                 <h5 class="text-white mb-3">RPC Manager</h5>
                                 <p class="text-light mb-4">
@@ -86,9 +90,9 @@
                     <!-- Link Generator -->
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-4">
+                            <div class="card-body text-center p-3">
                                 <div class="feature-icon mb-3">
-                                    <i class="fas fa-link fa-3x text-success"></i>
+                                    <i class="fas fa-link fa-2x text-success"></i>
                                 </div>
                                 <h5 class="text-white mb-3">Link Generator</h5>
                                 <p class="text-light mb-4">
@@ -109,9 +113,9 @@
                     <!-- Wallet Manager -->
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-4">
+                            <div class="card-body text-center p-3">
                                 <div class="feature-icon mb-3">
-                                    <i class="fas fa-wallet fa-3x text-info"></i>
+                                    <i class="fas fa-wallet fa-2x text-info"></i>
                                 </div>
                                 <h5 class="text-white mb-3">Wallet Manager</h5>
                                 <p class="text-light mb-4">
@@ -132,9 +136,9 @@
                     <!-- Token Manager -->
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-4">
+                            <div class="card-body text-center p-3">
                                 <div class="feature-icon mb-3">
-                                    <i class="fas fa-coins fa-3x text-warning"></i>
+                                    <i class="fas fa-coins fa-2x text-warning"></i>
                                 </div>
                                 <h5 class="text-white mb-3">Token Manager</h5>
                                 <p class="text-light mb-4">
@@ -155,9 +159,9 @@
                     <!-- Analytics -->
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-4">
+                            <div class="card-body text-center p-3">
                                 <div class="feature-icon mb-3">
-                                    <i class="fas fa-chart-line fa-3x text-danger"></i>
+                                    <i class="fas fa-chart-line fa-2x text-danger"></i>
                                 </div>
                                 <h5 class="text-white mb-3">Analytics</h5>
                                 <p class="text-light mb-4">
@@ -178,9 +182,9 @@
                     <!-- Dashboard Completo -->
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 border-0 shadow-lg" style="background: linear-gradient(135deg, rgba(248,93,35,0.1), rgba(245,158,11,0.1)); backdrop-filter: blur(10px); border: 1px solid var(--tokencafe-primary) !important;">
-                            <div class="card-body text-center p-4">
+                            <div class="card-body text-center p-3">
                                 <div class="feature-icon mb-3">
-                                    <i class="fas fa-tachometer-alt fa-3x" style="color: var(--tokencafe-primary);"></i>
+                                    <i class="fas fa-tachometer-alt fa-2x" style="color: var(--tokencafe-primary);"></i>
                                 </div>
                                 <h5 class="text-white mb-3">Dashboard Completo</h5>
                                 <p class="text-light mb-4">
@@ -298,7 +302,32 @@
             // Configurar links de ferramentas
             setupToolLinks();
             
-            // Status da carteira gerenciado pelo PageManager via .btn-connect-wallet
+            // Incluir modal de autenticação
+            const modalContainer = document.createElement('div');
+            modalContainer.setAttribute('data-component', 'modules/modals/auth-modal.html');
+            document.body.appendChild(modalContainer);
+            
+            // Listeners de status da carteira
+            function updateStatus(account) {
+                const el = document.getElementById('wallet-status-text');
+                if (!el) return;
+                el.textContent = account ? `${account.slice(0,6)}...${account.slice(-4)}` : 'Desconectado';
+            }
+            document.addEventListener('wallet:connected', (ev) => {
+                const account = ev.detail?.account || window.walletConnector?.getStatus().account;
+                updateStatus(account);
+            });
+            document.addEventListener('wallet:disconnected', () => updateStatus(null));
+            
+            // Botão de sair
+            const btnLogout = document.getElementById('btn-logout');
+            if (btnLogout) {
+                btnLogout.addEventListener('click', async () => {
+                    try { await window.walletConnector?.disconnect(); } catch (e) {}
+                    updateStatus(null);
+                    window.location.href = 'index.html';
+                });
+            }
         });
         
         function setupToolLinks() {
