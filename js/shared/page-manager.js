@@ -97,10 +97,11 @@ class PageManager {
      * Configurar elementos base da página
      */
     setupBaseElements() {
-        // Encontrar botão de conexão se existir
-        this.connectBtn = document.getElementById('connect-text') || 
+        // Encontrar botão de conexão priorizando o elemento BUTTON
+        this.connectBtn = document.getElementById('connect-wallet-btn') ||
+                          document.querySelector('.btn-connect-wallet') ||
                           document.querySelector('[onclick*="connectWallet"]') ||
-                          document.querySelector('.btn-connect-wallet');
+                          document.getElementById('connect-text');
     }
 
     /**
@@ -214,7 +215,8 @@ class PageManager {
         if (!this.connectBtn) return;
         
         const config = this.pageConfigs[this.pageType];
-        const buttonText = config.redirectTarget ? 'Ir para Dashboard' : 'Dashboard';
+        const target = config.redirectTarget || '';
+        const buttonText = target.includes('tools') ? 'Ir para Ferramentas' : (config.redirectTarget ? 'Ir para Dashboard' : 'Dashboard');
         
         this.connectBtn.innerHTML = `<i class="fas fa-tachometer-alt me-1"></i>${buttonText}`;
         this.connectBtn.className = 'btn btn-success btn-lg';

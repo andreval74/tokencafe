@@ -34,16 +34,23 @@
     <!-- Dashboard Container -->
     <div class="dashboard-container" id="dashboard-container">
         <!-- Sidebar Component -->
-        <aside data-component="dashboard-sidebar.html" class="dashboard-sidebar"></aside>
+        <aside data-component="dashboard/dash-sidebar.html" class="dashboard-sidebar"></aside>
         
         <!-- Main Content Area -->
-        <main data-component="dashboard-content.html" class="dashboard-main"></main>
+        <main data-component="dashboard/dash-content.html" class="dashboard-main"></main>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- TokenCafe Modular System -->
-    <script src="../../../js/tokencafe-loader.js"></script>
+    <!-- BaseSystem: Carregamento automático de componentes -->
+    <script type="module">
+      import { BaseSystem } from '../../../js/shared/base-system.js';
+      document.addEventListener('DOMContentLoaded', async () => {
+        const baseSystem = new BaseSystem();
+        await baseSystem.init();
+        console.log('🚀 BaseSystem iniciado (dashboard)');
+      });
+    </script>
     
     <!-- Wallet UI Updater for Web3-Onboard Integration -->
     <script src="../../../js/modules/wallet/script.js"></script>
