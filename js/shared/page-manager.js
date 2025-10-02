@@ -26,7 +26,7 @@ class PageManager {
             'main': {
                 hasWalletConnect: true,
                 hasAnimations: false,
-                redirectTarget: 'modules/dashboard/dash-index.html'
+                redirectTarget: 'tools.html'
             },
             'tools': {
                 hasWalletConnect: true,

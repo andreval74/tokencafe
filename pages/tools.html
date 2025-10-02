@@ -47,7 +47,7 @@
                         <span id="wallet-status-text">Desconectado</span>
                     </span>
                 </div>
-                <button id="connect-wallet-btn" class="btn btn-light btn-sm">
+                <button class="btn btn-connect-wallet btn-light btn-sm">
                     <i class="fas fa-plug me-1"></i>
                     Conectar Carteira
                 </button>
@@ -186,11 +186,10 @@
                                 <p class="text-light mb-4">
                                     Sistema integrado com todas as funcionalidades
                                 </p>
-                                <a href="modules/dashboard/dash-index.html" 
-                                   class="btn btn-sm tool-link" style="background: var(--tokencafe-primary); color: white; border: none;">
-                                    <i class="fas fa-external-link-alt me-1"></i>
-                                    Acessar Dashboard
-                                </a>
+                                <button class="btn btn-sm" style="background: var(--tokencafe-primary); color: white; border: none;" disabled>
+                                    <i class="fas fa-ban me-1"></i>
+                                    Dashboard Descontinuado
+                                </button>
                                 <div class="mt-2">
                                     <span class="badge" style="background: var(--tokencafe-primary); color: white;">Premium</span>
                                 </div>
@@ -299,8 +298,7 @@
             // Configurar links de ferramentas
             setupToolLinks();
             
-            // Configurar status da carteira
-            setupWalletStatus();
+            // Status da carteira gerenciado pelo PageManager via .btn-connect-wallet
         });
         
         function setupToolLinks() {
@@ -314,41 +312,21 @@
             });
         }
         
-        async function setupWalletStatus() {
-            const statusText = document.getElementById('wallet-status-text');
-            const connectBtn = document.getElementById('connect-wallet-btn');
-            
-            // Verificar se já está conectado
-            try {
-                if (window.walletConnector) {
-                    const isConnected = await window.walletConnector.isConnected();
-                    
-                    if (isConnected) {
-                        statusText.textContent = 'Conectado';
-                        statusText.parentElement.className = 'badge bg-success';
-                        connectBtn.innerHTML = '<i class="fas fa-check me-1"></i>Conectado';
-                        connectBtn.classList.remove('btn-light');
-                        connectBtn.classList.add('btn-success');
-                    }
-                }
-            } catch (error) {
-                console.log('ℹ️ Sistema de carteira será carregado quando necessário');
-            }
-            
-            // Configurar botão de conexão
-            connectBtn.addEventListener('click', async function() {
-                if (window.walletConnector) {
-                    try {
-                        await window.walletConnector.connect('metamask');
-                        location.reload(); // Reload para atualizar status
-                    } catch (error) {
-                        console.error('Erro ao conectar:', error);
-                    }
-                } else {
-                    window.showToast('Sistema de carteira carregando...', 'info');
-                }
-            });
-        }
+        // Removido setupWalletStatus: PageManager cuida da conexão e estados
+    </script>
+
+    <!-- SEO e Sistema Base Unificado -->
+    <script type="module">
+        import '../js/shared/base-system.js';
+        import { SEOManager } from '../js/shared/seo-manager.js';
+
+        const seo = new SEOManager();
+        seo.init('tools', {
+            title: 'TokenCafe Tools - Hub de Ferramentas',
+            description: 'Hub central de ferramentas TokenCafe - Acesse todas as funcionalidades Web3',
+            url: window.location.href,
+            image: '../imgs/tkncafe-semfundo.png'
+        });
     </script>
 </body>
 

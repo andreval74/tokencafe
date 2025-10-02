@@ -153,23 +153,34 @@ class BaseSystem {
     async loadComponent(element) {
         const componentName = element.getAttribute('data-component');
         if (!componentName) return;
-        
+
         try {
             // Determinar caminho baseado na localização atual
-            let basePath = this.getBasePath();
-            let componentPath = `${basePath}pages/shared/${componentName}`;
-            
-            // Se não encontrar em shared, tentar em modules
-            const response = await fetch(componentPath);
-            if (!response.ok) {
-                componentPath = `${basePath}pages/modules/${componentName}`;
+            const basePath = this.getBasePath();
+
+            // Tentar em múltiplos locais: shared, modules e raiz de pages
+            const candidatePaths = [
+                `${basePath}pages/shared/${componentName}`,
+                `${basePath}pages/modules/${componentName}`,
+                `${basePath}pages/${componentName}`
+            ];
+
+            let finalResponse = null;
+            let resolvedPath = null;
+
+            for (const path of candidatePaths) {
+                const response = await fetch(path);
+                if (response.ok) {
+                    finalResponse = response;
+                    resolvedPath = path;
+                    break;
+                }
             }
-            
-            const finalResponse = await fetch(componentPath);
-            if (finalResponse.ok) {
+
+            if (finalResponse && finalResponse.ok) {
                 const content = await finalResponse.text();
                 element.innerHTML = content;
-                
+
                 // Executar scripts do componente carregado
                 const scripts = element.querySelectorAll('script');
                 scripts.forEach(script => {
@@ -181,6 +192,10 @@ class BaseSystem {
                         eval(script.textContent);
                     }
                 });
+
+                console.log(`🔗 Componente '${componentName}' carregado de: ${resolvedPath}`);
+            } else {
+                console.warn(`⚠️ Componente '${componentName}' não encontrado nos caminhos:`, candidatePaths);
             }
         } catch (error) {
             console.warn(`⚠️ Erro ao carregar componente ${componentName}:`, error);

@@ -26,7 +26,7 @@ js/
 ├── shared/         # 🆕 MÓDULOS UNIFICADOS (wallet-connector, network-manager, page-manager)
 ├── middleware/     # Middlewares Express (auth, error-handler)
 ├── routes/         # Endpoints da API (auth, analytics, users, widgets)
-├── systems/        # Lógica de negócio central (tokencafe-core, dashboard, templates)
+├── systems/        # Lógica de negócio central (tokencafe-core, templates)
 └── modules/        # Módulos de funcionalidades + adapters de compatibilidade
 ```
 
@@ -65,8 +65,8 @@ python server_flask.py  # Servidor Flask na porta :5000
 - **Dados**: JSON estruturados em `shared/data/`
 
 ### Sistema de Templates UNIFICADO
-- **Componentes Obrigatórios**: `pages/shared/html-head.html`, `navbar-standard.html`, `card-templates.html`
-- **Template Loader**: Sempre use `template-loader.js` para carregamento dinâmico
+- **Componentes e Layouts**: Use `pages/shared/components/` e `pages/shared/layouts/` para blocos reutilizáveis
+- **Template System**: Sempre use `js/systems/template-system.js` para carregamento dinâmico
 - **Auto-detecção**: Templates detectados via `data-component`
 - **SEO**: Dados estruturados em `shared/data/structured-data.json`
 
@@ -115,10 +115,17 @@ seoManager.init('pageType', customMetadata);
 - **Event Listeners**: Use `document.addEventListener('DOMContentLoaded')`
 - **Import ES6**: Use `import { } from '../shared/module.js'`
 
+### Convenções de Nomenclatura
+- **Arquivos**: `kebab-case` (ex.: `token-manager.js`, `dash-header.html`)
+- **Classes**: `PascalCase` (ex.: `WalletConnector`, `SEOManager`)
+- **Variáveis e Funções**: `camelCase` (ex.: `userState`, `initPage`)
+- **Constantes**: `SCREAMING_SNAKE_CASE` (ex.: `DEFAULT_CHAIN_ID`)
+- **Eventos**: `contexto:acao` no `eventBus` (ex.: `wallet:connected`)
 ## 🎨 UI Exclusivamente Bootstrap
 
 ### Regras CSS OBRIGATÓRIAS
-- **Sem Classes CSS Customizadas**: Use APENAS classes utilitárias Bootstrap
+- **Bootstrap Primeiro**: Priorize classes utilitárias do Bootstrap5 para layout e estilo
+- **Classes Unificadas Permitidas**: Quando necessário, use classes com prefixo `tokencafe-` definidas SOMENTE em `css/styles.css`
 - **Variáveis CSS**: Use `var(--tokencafe-primary)`, `var(--text-primary)` etc.
 - **Sistema de Grid**: `row`, `col-lg-4`, `col-md-6` para layouts responsivos
 - **Cards**: Prefira `card h-100` para alturas uniformes
@@ -130,8 +137,14 @@ seoManager.init('pageType', customMetadata);
 
 ### Navegação
 - Use `window.navigateToSection(sectionName)` para roteamento SPA
-- Definições de páginas no objeto `DashboardCore.pages`
+- Página Hub: `pages/tools.html` é o ponto central que reúne os módulos
 - Carregamento de componentes via auto-detecção `data-component`
+
+### Criando Nova Página ou Módulo
+- Crie HTML em `pages/modules/<feature>/` usando componentes de `pages/shared/`
+- Importe e use `PageManager` para registrar e gerenciar a página
+- Registre o módulo no `DependencyInjector` e integre via `eventBus`
+- Atualize rotas/menus quando aplicável usando templates compartilhados
 
 ### Autenticação
 - Tokens JWT gerenciados por middleware auth
@@ -189,6 +202,17 @@ seoManager.init('pageType', customMetadata);
 - `shared/data/chains.json` - Definições de redes blockchain (80k+ linhas)
 - `shared/data/structured-data.json` - Dados estruturados para SEO
 - `start.ps1` - Setup do ambiente de desenvolvimento
+## 🤝 Contribuição e Fluxo de Trabalho
+- **Branching**: `feature/<nome-curto>`, `fix/<issue>`, `docs/<topico>`
+- **Commits**: Mensagens claras no imperativo (ex.: "Adiciona carregamento dinâmico de templates")
+- **Pull Requests**: Descreva mudanças, arquivos afetados e riscos. Relacione issues quando houver.
+- **Revisão**: Respeitar padrões unificados e manter consistência de nomes e estrutura
+## 🚢 Checklist de Deploy
+- Atualizar `README.md` e este guia quando houver mudanças de padrão
+- Verificar SEO (`SEOManager`) e dados estruturados (`structured-data.json`)
+- Validar navegação SPA e carregamento de templates
+- Conferir `.env`/configs sensíveis fora do código
+- Testar conexões de carteira e redes principais via `wallet-connector` e `network-manager`
 
 ## ✅ Status do Sistema Unificado
 
@@ -202,6 +226,7 @@ seoManager.init('pageType', customMetadata);
 ### Páginas Migradas
 - ✅ `pages/modules/rpc/rpc-index.html` - RPC Manager
 - ✅ `pages/modules/link/link-index.html` - Link Generator
+- ✅ `pages/tools.html` - Hub de módulos (substitui dashboard)
 - ✅ `index.html` - Landing page com SEO otimizado
 
 ## 🎯 Princípios Fundamentais
@@ -218,3 +243,55 @@ seoManager.init('pageType', customMetadata);
 ---
 
 **Este é o guia definitivo para desenvolvimento do TokenCafe. Consulte sempre que precisar de orientação sobre padrões, estruturas ou convenções do projeto.**
+
+---
+
+## 🧭 Diretrizes de Layout e Classes Unificadas (Nova)
+
+### Estrutura de Página
+- Use wrappers `TokenCafe-container` e `TokenCafe-content` para o bloco principal.
+- Utilize animações utilitárias unificadas: `TokenCafe-fade-in`, `TokenCafe-fade-in-up`, `TokenCafe-bounce-in` conforme necessário.
+- Inclua componentes dinâmicos via `data-component`: `header.html` e `footer.html` como padrão universal.
+
+### Ícones
+- Preferir `bootstrap-icons` (`bi ...`) como padrão global para leveza e consistência.
+- `font-awesome` só quando um ícone específico não existir em `bootstrap-icons`.
+
+### Botões e Eventos
+- Botão de conexão de carteira SEMPRE usa `.btn-connect-wallet` sem `onclick` inline.
+- O `PageManager` faz o binding automático para `.btn-connect-wallet` e gerencia fluxo de conexão.
+- Qualquer botão que dispare conexão deve herdar `.btn-connect-wallet`.
+
+### Scripts e Inicialização
+- Ordem de scripts: `bootstrap.bundle` → `BaseSystem` → `PageManager` → `SEOManager`.
+- Inicialização padrão:
+  - `window.createPageManager('<tipo>')` para registrar a página.
+  - `new SEOManager().init('<tipo>')` para metadados dinâmicos.
+- Tipos recomendados:
+  - `landing` para páginas principais (home).
+  - `tools` para hub de módulos (`pages/tools.html`).
+
+### CSS Unificado
+- Apenas `css/styles.css` (não crie novos arquivos CSS). Use utilitários do Bootstrap primeiro.
+- Classes utilitárias próprias devem seguir o padrão `TokenCafe-...` e morar em `styles.css`.
+- Evite estilos inline; use variáveis CSS e utilitários do Bootstrap.
+
+### Reuso e Modularidade
+- Não replique lógica de carteira: use `PageManager`/`wallet-connector` para conexão, estado e UI.
+- Não replique status de carteira em páginas; o `header` centraliza o estado e ações.
+- Carregamento de componentes sempre via `BaseSystem` (auto-detecção `data-component`).
+
+### Navegação e Paths
+- Dashboard descontinuado; usar `pages/tools.html` como HUB principal.
+- Em `pages/*`, referencie assets com `../css`, `../imgs` etc.; no raiz, use caminhos diretos (`css`, `imgs`).
+- Links consistentes para ferramentas devem apontar para `pages/tools.html`.
+
+### SEO
+- Use `SEOManager` em todas as páginas com tipo correto (`landing`, `tools` ou específico) e dados mínimos `{ name, url }`.
+
+### Checklist de Conformidade (por página)
+- Wrappers e includes aplicados (`TokenCafe-container`, `TokenCafe-content`, `header.html`, `footer.html`).
+- `.btn-connect-wallet` presente e sem JS inline.
+- Scripts na ordem e inicialização com tipos corretos.
+- Ícones preferencialmente `bi`; uso de `fa` justificado.
+- Sem CSS duplicado ou estilos inline; apenas `styles.css`.
