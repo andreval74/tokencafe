@@ -358,48 +358,69 @@ class RPCSimple {
     }
 
     /**
-     * Carrega dados das redes do arquivo chains.json
-     * @returns {Promise<Array>} Lista de redes do chains.json
+     * Carrega dados das redes do arquivo rpcs.json ou backend
+     * @returns {Promise<Array>} Lista de entradas de RPCs
      */
-    async loadChainsData() {
+    async loadRpcsData() {
         try {
-            const response = await fetch('/shared/data/chains.json');
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const endpoints = [
+                '/api/rpcs',
+                `${location.protocol}//${location.hostname}:3001/api/rpcs`,
+                '/shared/data/rpcs.json'
+            ];
+            let data = null;
+            for (const url of endpoints) {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) { data = await res.json(); break; }
+                } catch {}
             }
-            const data = await response.json();
-            
-            // Remove o primeiro item que é apenas metadados
-            return data.slice(1);
+            const entries = Array.isArray(data?.rpcs) ? data.rpcs : (Array.isArray(data) ? data : []);
+            return entries;
         } catch (error) {
-            console.error('Erro ao carregar chains.json:', error);
+            console.error('Erro ao carregar rpcs.json:', error);
             return [];
         }
     }
 
     /**
-     * Busca uma rede específica no chains.json pelo chainId
+     * Busca uma rede específica no rpcs.json pelo chainId
      * @param {number} chainId - Chain ID da rede (decimal)
      * @returns {Promise<Object|null>} Dados da rede ou null se não encontrada
      */
-    async findNetworkInChains(chainId) {
+    async findNetworkInRpcs(chainId) {
         try {
-            const chains = await this.loadChainsData();
-            return chains.find(chain => chain.chainId === chainId) || null;
+            const entries = await this.loadRpcsData();
+            // Normalizar e buscar por chainId
+            const getId = (e) => Number(e?.chainId ?? e?.id);
+            const match = entries.find(e => getId(e) === Number(chainId));
+            if (!match) return null;
+            // Adaptar estrutura mínima
+            const rpc = Array.isArray(match?.rpcs)
+                ? match.rpcs.map(r => typeof r === 'string' ? r : (r?.url || r?.rpc || r?.endpoint || ''))
+                : Array.isArray(match?.rpc)
+                ? match.rpc.map(r => typeof r === 'string' ? r : (r?.url || ''))
+                : (typeof match?.url === 'string' ? [match.url] : []);
+            return {
+                chainId: Number(chainId),
+                name: match?.name || match?.chainName || `Chain ${chainId}`,
+                nativeCurrency: match?.nativeCurrency || { name: 'Unknown', symbol: match?.symbol || 'UNKNOWN', decimals: 18 },
+                rpc
+            };
         } catch (error) {
-            console.error('Erro ao buscar rede no chains.json:', error);
+            console.error('Erro ao buscar rede no rpcs.json:', error);
             return null;
         }
     }
 
     /**
-     * Obtém RPCs de uma rede do chains.json
+     * Obtém RPCs de uma rede do rpcs.json
      * @param {number} chainId - Chain ID da rede (decimal)
      * @returns {Promise<Array>} Lista de RPCs da rede
      */
-    async getRpcsFromChains(chainId) {
+    async getRpcsFromRpcs(chainId) {
         try {
-            const networkData = await this.findNetworkInChains(chainId);
+            const networkData = await this.findNetworkInRpcs(chainId);
             if (!networkData || !networkData.rpc) {
                 return [];
             }
@@ -428,14 +449,14 @@ class RPCSimple {
                 return null;
             }).filter(rpc => rpc !== null);
         } catch (error) {
-            console.error('Erro ao obter RPCs do chains.json:', error);
+            console.error('Erro ao obter RPCs do rpcs.json:', error);
             return [];
         }
     }
 
     /**
      * Obtém lista de RPCs para uma rede específica
-     * Agora integrado com chains.json como fonte principal
+     * Agora integrado com rpcs.json como fonte principal
      * @param {string|number} chainId - Chain ID da rede
      * @returns {Promise<Array>} Lista de RPCs disponíveis
      */
@@ -446,15 +467,15 @@ class RPCSimple {
             : parseInt(chainId);
 
         try {
-            // Primeiro tenta obter do chains.json (fonte principal)
-            const chainsRpcs = await this.getRpcsFromChains(chainIdDecimal);
+            // Primeiro tenta obter do rpcs.json (fonte principal)
+            const chainsRpcs = await this.getRpcsFromRpcs(chainIdDecimal);
             
             if (chainsRpcs.length > 0) {
-                console.log(`Encontrados ${chainsRpcs.length} RPCs no chains.json para chainId ${chainIdDecimal}`);
+                console.log(`Encontrados ${chainsRpcs.length} RPCs no rpcs.json para chainId ${chainIdDecimal}`);
                 return chainsRpcs;
             }
 
-            // Se não encontrou no chains.json, usa lista hardcoded como fallback
+            // Se não encontrou no rpcs.json, usa lista hardcoded como fallback
             console.log(`Usando RPCs hardcoded para chainId ${chainIdDecimal}`);
             return this.getHardcodedNetworkRpcs(chainId);
 
@@ -555,7 +576,7 @@ class RPCSimple {
 
         console.log('Chain ID validado:', chainId);
 
-        // Obtém dados completos da rede do chains.json
+        // Obtém dados completos da rede do rpcs.json
         let networkData = null;
         let chainName = rpcName;
         let nativeCurrency = null;
@@ -563,22 +584,22 @@ class RPCSimple {
         try {
             const chainIdDecimal = parseInt(chainId, 16);
             console.log('Chain ID decimal:', chainIdDecimal);
-            networkData = await this.findNetworkInChains(chainIdDecimal);
-            console.log('Dados do chains.json:', networkData);
+            networkData = await this.findNetworkInRpcs(chainIdDecimal);
+            console.log('Dados do rpcs.json:', networkData);
             
             if (networkData) {
                 chainName = networkData.name || chainName;
                 nativeCurrency = networkData.nativeCurrency;
-                console.log('Dados extraídos do chains.json:', {
+                console.log('Dados extraídos do rpcs.json:', {
                     name: chainName,
                     nativeCurrency: nativeCurrency
                 });
             }
         } catch (error) {
-            console.warn('Erro ao obter dados da rede do chains.json:', error);
+            console.warn('Erro ao obter dados da rede do rpcs.json:', error);
         }
 
-        // Se não encontrou no chains.json, procura nas redes populares
+        // Se não encontrou no rpcs.json, procura nas redes populares
         if (!networkData || !nativeCurrency) {
             console.log('Buscando nas redes populares...');
             const popularNetworks = this.getPopularNetworks();

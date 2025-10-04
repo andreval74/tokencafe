@@ -62,142 +62,57 @@
     <div class="container-fluid py-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh;">
         <div class="row">
             <div class="col-12">
-                <!-- Cards de Ferramentas -->
-                <div class="row g-4">
+                <!-- Grid de Ferramentas - Tiles minimalistas -->
+                <div class="tool-tiles">
+                    <!-- Wallet Manager -->
+                    <a href="modules/wallet/wallet-index.html" class="tool-tile tool-link" aria-label="Abrir Wallet Manager">
+                        <span class="tool-tile-status badge bg-success">Finalizado</span>
+                        <div class="tool-tile-icon"><i class="fas fa-wallet"></i></div>
+                        <div class="tool-tile-title">Wallet Manager</div>
+                        <div class="tool-tile-desc">Gerenciador de Carteiras Web3</div>
+                    </a>
+
                     <!-- RPC Manager -->
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-3">
-                                <div class="feature-icon mb-3">
-                                    <i class="fas fa-network-wired fa-2x text-primary"></i>
-                                </div>
-                                <h5 class="text-white mb-3">RPC Manager</h5>
-                                <p class="text-light mb-4">
-                                    Gerencie conexões RPC e teste redes blockchain
-                                </p>
-                                <a href="modules/rpc/rpc-index.html" 
-                                   class="btn btn-primary btn-sm tool-link">
-                                    <i class="fas fa-external-link-alt me-1"></i>
-                                    Acessar Ferramenta
-                                </a>
-                                <div class="mt-2">
-                                    <span class="badge bg-success">Migrado</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <a href="modules/rpc/rpc-index.html" class="tool-tile tool-link" aria-label="Abrir RPC Manager">
+                        <span class="tool-tile-status badge bg-success">Finalizado</span>
+                        <div class="tool-tile-icon"><i class="fas fa-network-wired"></i></div>
+                        <div class="tool-tile-title">RPC Manager</div>
+                        <div class="tool-tile-desc">Conexões RPC e redes</div>
+                    </a>
 
                     <!-- Link Generator -->
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-3">
-                                <div class="feature-icon mb-3">
-                                    <i class="fas fa-link fa-2x text-success"></i>
-                                </div>
-                                <h5 class="text-white mb-3">Link Generator</h5>
-                                <p class="text-light mb-4">
-                                    Crie links personalizados para adicionar tokens
-                                </p>
-                                <a href="modules/link/link-index.html" 
-                                   class="btn btn-success btn-sm tool-link">
-                                    <i class="fas fa-external-link-alt me-1"></i>
-                                    Acessar Ferramenta
-                                </a>
-                                <div class="mt-2">
-                                    <span class="badge bg-success">Migrado</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wallet Manager -->
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-3">
-                                <div class="feature-icon mb-3">
-                                    <i class="fas fa-wallet fa-2x text-info"></i>
-                                </div>
-                                <h5 class="text-white mb-3">Wallet Manager</h5>
-                                <p class="text-light mb-4">
-                                    Gerenciamento avançado de carteiras Web3
-                                </p>
-                                <a href="modules/wallet/wallet-index.html" 
-                                   class="btn btn-info btn-sm tool-link">
-                                    <i class="fas fa-external-link-alt me-1"></i>
-                                    Acessar Ferramenta
-                                </a>
-                                <div class="mt-2">
-                                    <span class="badge bg-warning">A Migrar</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <a href="modules/link/link-index.html" class="tool-tile tool-link" aria-label="Abrir Link Generator">
+                        <span class="tool-tile-status badge bg-success">Finalizado</span>
+                        <div class="tool-tile-icon"><i class="fas fa-link"></i></div>
+                        <div class="tool-tile-title">Link Generator</div>
+                        <div class="tool-tile-desc">Links para adicionar tokens</div>
+                    </a>
 
                     <!-- Token Manager -->
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-3">
-                                <div class="feature-icon mb-3">
-                                    <i class="fas fa-coins fa-2x text-warning"></i>
-                                </div>
-                                <h5 class="text-white mb-3">Token Manager</h5>
-                                <p class="text-light mb-4">
-                                    Criação e gerenciamento de tokens
-                                </p>
-                                <a href="modules/tokens/token-manager.html" 
-                                   class="btn btn-warning btn-sm tool-link">
-                                    <i class="fas fa-external-link-alt me-1"></i>
-                                    Acessar Ferramenta
-                                </a>
-                                <div class="mt-2">
-                                    <span class="badge bg-warning">A Migrar</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <a href="modules/tokens/token-manager.html" class="tool-tile tool-link" aria-label="Abrir Token Manager">
+                        <span class="tool-tile-status badge bg-warning">Em Breve</span>
+                        <div class="tool-tile-icon"><i class="fas fa-coins"></i></div>
+                        <div class="tool-tile-title">Token Manager</div>
+                        <div class="tool-tile-desc">Criação e gestão de tokens</div>
+                    </a>
 
                     <!-- Analytics -->
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
-                            <div class="card-body text-center p-3">
-                                <div class="feature-icon mb-3">
-                                    <i class="fas fa-chart-line fa-2x text-danger"></i>
-                                </div>
-                                <h5 class="text-white mb-3">Analytics</h5>
-                                <p class="text-light mb-4">
-                                    Relatórios e métricas avançadas
-                                </p>
-                                <a href="modules/analytics/analytics-reports.html" 
-                                   class="btn btn-danger btn-sm tool-link">
-                                    <i class="fas fa-external-link-alt me-1"></i>
-                                    Acessar Ferramenta
-                                </a>
-                                <div class="mt-2">
-                                    <span class="badge bg-warning">A Migrar</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <a href="modules/analytics/analytics-reports.html" class="tool-tile tool-link" aria-label="Abrir Analytics">
+                        <span class="tool-tile-status badge bg-warning">Em Breve</span>
+                        <div class="tool-tile-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="tool-tile-title">Analytics</div>
+                        <div class="tool-tile-desc">Relatórios e métricas</div>
+                    </a>
 
-                    <!-- Dashboard Completo -->
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border-0 shadow-lg" style="background: linear-gradient(135deg, rgba(248,93,35,0.1), rgba(245,158,11,0.1)); backdrop-filter: blur(10px); border: 1px solid var(--tokencafe-primary) !important;">
-                            <div class="card-body text-center p-3">
-                                <div class="feature-icon mb-3">
-                                    <i class="fas fa-tachometer-alt fa-2x" style="color: var(--tokencafe-primary);"></i>
-                                </div>
-                                <h5 class="text-white mb-3">Dashboard Completo</h5>
-                                <p class="text-light mb-4">
-                                    Sistema integrado com todas as funcionalidades
-                                </p>
-                                <button class="btn btn-sm" style="background: var(--tokencafe-primary); color: white; border: none;" disabled>
-                                    <i class="fas fa-ban me-1"></i>
-                                    Dashboard Descontinuado
-                                </button>
-                                <div class="mt-2">
-                                    <span class="badge" style="background: var(--tokencafe-primary); color: white;">Premium</span>
-                                </div>
-                            </div>
+                    <!-- Dashboard Completo (descontinuado) -->
+                    <div class="tool-tile" aria-label="Dashboard Descontinuado" role="button" tabindex="0">
+                        <span class="tool-tile-status badge" style="background: var(--tokencafe-primary); color: #0a0a0a;">Premium</span>
+                        <div class="tool-tile-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        <div class="tool-tile-title">Dashboard</div>
+                        <div class="tool-tile-desc">Sistema integrado</div>
+                        <div class="tool-tile-footer text-danger small d-flex align-items-center gap-1 mt-2">
+                            <i class="fas fa-ban"></i>
+                            <span>Descontinuado</span>
                         </div>
                     </div>
                 </div>
@@ -216,16 +131,16 @@
                                     <div class="col-md-6">
                                         <h6 class="text-success mb-3">
                                             <i class="fas fa-check-circle me-2"></i>
-                                            Módulos Migrados (Sistema Unificado)
+                                            Módulos Finalizados (Sistema Unificado)
                                         </h6>
                                         <ul class="list-unstyled text-light">
                                             <li class="mb-2">
                                                 <i class="fas fa-check text-success me-2"></i>
-                                                RPC Manager - 100% migrado
+                                                RPC Manager - 100% Finalizado
                                             </li>
                                             <li class="mb-2">
                                                 <i class="fas fa-check text-success me-2"></i>
-                                                Link Generator - 100% migrado
+                                                Link Generator - 100% Finalizado
                                             </li>
                                             <li class="mb-2">
                                                 <i class="fas fa-check text-success me-2"></i>
@@ -272,7 +187,7 @@
                                     <ul class="mb-0 text-light">
                                         <li>🔗 <strong>Conecte sua carteira</strong> usando o botão no cabeçalho</li>
                                         <li>🎯 <strong>Ferramentas Migradas</strong> usam o sistema unificado (sem bugs)</li>
-                                        <li>⚠️ <strong>Ferramentas "A Migrar"</strong> podem ter inconsistências</li>
+                                        <li>⚠️ <strong>Ferramentas "Em Breve"</strong> podem ter inconsistências</li>
                                         <li>🎮 <strong>Teste cada ferramenta</strong> individualmente para validar funcionalidades</li>
                                         <li>🔄 <strong>Sistema Independente</strong> - cada ferramenta funciona sozinha</li>
                                     </ul>
@@ -302,10 +217,7 @@
             // Configurar links de ferramentas
             setupToolLinks();
             
-            // Incluir modal de autenticação
-            const modalContainer = document.createElement('div');
-            modalContainer.setAttribute('data-component', 'modules/modals/auth-modal.html');
-            document.body.appendChild(modalContainer);
+            // Removido: modal de autenticação (não utilizar no momento)
             
             // Listeners de status da carteira
             function updateStatus(account) {
@@ -357,6 +269,9 @@
             image: '../imgs/tkncafe-semfundo.png'
         });
     </script>
+
+    <!-- Lógica centralizada de conexão de carteira -->
+    <script src="../js/modules/wallet/wallet.js"></script>
 </body>
 
 </html>

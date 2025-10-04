@@ -17,8 +17,8 @@ class RPCManager {
     async init() {
         console.log('🚀 Inicializando RPC Manager...');
         
-        // Carregar catálogo de chains
-        await this.loadChains();
+        // Carregar catálogo de RPCs
+        await this.loadRpcs();
         
         // Configurar event listeners
         this.setupEventListeners();
@@ -29,14 +29,32 @@ class RPCManager {
         console.log('✅ RPC Manager inicializado com sucesso');
     }
 
-    async loadChains() {
+    async loadRpcs() {
         try {
-            const response = await fetch('/shared/data/chains.json');
-            this.chains = await response.json();
-            console.log(`📋 Carregadas ${this.chains.length} chains do catálogo`);
+            // Tenta backend primeiro, depois fallback para arquivo local
+            const endpoints = [
+                '/api/rpcs',
+                `${location.protocol}//${location.hostname}:3001/api/rpcs`,
+                '/shared/data/rpcs.json'
+            ];
+            let data = null;
+            for (const url of endpoints) {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        data = await res.json();
+                        break;
+                    }
+                } catch (e) {
+                    // tenta próximo endpoint
+                }
+            }
+            const entries = Array.isArray(data?.rpcs) ? data.rpcs : (Array.isArray(data) ? data : []);
+            this.chains = entries;
+            console.log(`📋 Carregadas ${entries.length} entradas de RPCs`);
         } catch (error) {
-            console.error('❌ Erro ao carregar chains:', error);
-            this.showError('Erro ao carregar catálogo de blockchains');
+            console.error('❌ Erro ao carregar rpcs:', error);
+            this.showError('Erro ao carregar catálogo de RPCs');
         }
     }
 

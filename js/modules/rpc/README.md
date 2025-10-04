@@ -13,7 +13,7 @@ Este módulo fornece funcionalidades para o gerador de links RPC usado pelo rpc-
 - **`network-icons.js`** - Gerenciador de ícones das redes
 
 ### Dados Centralizados
-- **`shared/data/chains.json`** - Dados das redes (fonte centralizada)
+- **`shared/data/rpcs.json`** - Dados de RPCs das redes (fonte centralizada)
 
 ## Funcionalidades Principais
 

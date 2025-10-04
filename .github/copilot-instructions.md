@@ -6,7 +6,11 @@ Você é um arquiteto de software sênior especializado em Web3. Seu papel é re
 ## 🏗️ Visão Geral do Projeto
 TokenCafe é um **ecossistema vivo de tokenização Web3** que democratiza a criação de tokens sem conhecimento técnico. Plataforma modular com arquitetura hierárquica focada em criação no-code, marketplace social, integração de carteiras e analytics. Construída com JavaScript ES6 vanilla, Bootstrap puro e suporte duplo de backend (Node.js/Flask).
 
-## 📋 Regras Fixas OBRIGATÓRIAS
+## 📋 Regras Fixas OBRIGATÓRIAS para o sistema e geração dos textos
+- **Sempre escreva em português do Brasil.
+- **Antes de qualquer alteração, descreva claramente em português o que será modificado.
+- **Nunca escreva resumos ou explicações em inglês.
+- **Use linguagem simples, objetiva e técnica quando necessário.
 - **Sempre leia o README.md** para entender o sistema antes de qualquer alteração
 - **OBRIGATÓRIO: Use módulos unificados** (`js/shared/wallet-connector.js`, `js/shared/network-manager.js`)
 - **Só altere o que for solicitado** - não crie, renomeie ou duplique sem autorização
@@ -40,7 +44,7 @@ js/
 - **DependencyInjector** (`js/core/dependency-injector.js`) - Container IoC para dependências
 
 ### Camada de Dados UNIFICADA
-- **Config Centralizada**: `shared/data/chains.json` (80k+ redes blockchain) + `structured-data.json` (SEO)
+- **Config Centralizada**: `shared/data/rpcs.json` (RPCs das redes blockchain) + `structured-data.json` (SEO)
 - **Templates Compartilhados**: `pages/shared/` contém componentes HTML reutilizáveis
 - **CSS Unificado**: `css/styles.css` único arquivo consolidado com variáveis CSS
 - **Gerenciamento de Estado**: Objetos proxy com emissão automática de eventos
@@ -153,7 +157,7 @@ seoManager.init('pageType', customMetadata);
 
 ### Integração de Carteiras
 - Suporte a múltiplos provedores (MetaMask, WalletConnect, Trust, Coinbase)
-- Troca de redes via lookup `shared/data/chains.json`
+- Troca de redes via lookup `shared/data/rpcs.json`
 - Estado de conexão gerenciado através do wallet-connector unificado
 
 ## 📝 Resposta Esperada
@@ -199,7 +203,7 @@ seoManager.init('pageType', customMetadata);
 ### Core e Dados
 - `js/core/TokenCafe-app.js` - Coordenador principal
 - `js/systems/tokencafe-core.js` - Lógica de negócio central
-- `shared/data/chains.json` - Definições de redes blockchain (80k+ linhas)
+- `shared/data/rpcs.json` - Dados de RPCs das redes blockchain
 - `shared/data/structured-data.json` - Dados estruturados para SEO
 - `start.ps1` - Setup do ambiente de desenvolvimento
 ## 🤝 Contribuição e Fluxo de Trabalho

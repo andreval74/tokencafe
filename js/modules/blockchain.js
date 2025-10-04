@@ -207,12 +207,12 @@ class BlockchainCore {
 
             console.log('Buscando redes disponiveis...');
 
-            // Tentar buscar do chains.json local primeiro
-            let networks = await this.loadLocalChains();
+            // Tentar buscar de rpcs.json local/backend primeiro
+            let networks = await this.loadLocalRpcs();
             
-            // Se nao encontrou localmente, buscar da API
+            // Se nao encontrou localmente, buscar do backend
             if (!networks || networks.length === 0) {
-                networks = await this.fetchNetworksFromAPI();
+                networks = await this.fetchNetworksFromRpcsAPI();
             }
 
             // Atualizar cache
@@ -235,38 +235,63 @@ class BlockchainCore {
     }
 
     /**
-     * Carregar chains.json local
+     * Carregar rpcs.json local
      */
-    async loadLocalChains() {
+    async loadLocalRpcs() {
         try {
-            const response = await fetch('/shared/data/chains.json');
+            const response = await fetch('/shared/data/rpcs.json');
             if (response.ok) {
                 return await response.json();
             }
             return null;
         } catch (error) {
-            console.log('Chains.json local nao encontrado, tentando API...');
+            console.log('rpcs.json local nao encontrado, tentando backend...');
             return null;
         }
     }
 
     /**
-     * Buscar redes da API externa
+     * Buscar redes da API de RPCs (backend)
      */
-    async fetchNetworksFromAPI() {
+    async fetchNetworksFromRpcsAPI() {
         try {
-            const response = await fetch('https://chainid.network/chains.json');
+            const endpoints = [
+                '/api/rpcs',
+                `${location.protocol}//${location.hostname}:3001/api/rpcs`
+            ];
+            let response;
+            for (const url of endpoints) {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) { response = res; break; }
+                } catch {}
+            }
+            if (!response) return null;
             if (response.ok) {
-                const networks = await response.json();
-                return networks.filter(network => 
-                    network.rpc && 
-                    network.rpc.length > 0 && 
-                    network.rpc.some(rpc => rpc.startsWith('http'))
-                );
+                const data = await response.json();
+                const entries = Array.isArray(data?.rpcs) ? data.rpcs : (Array.isArray(data) ? data : []);
+                // Normalizar para estrutura comum utilizada pelo módulo
+                const networks = entries
+                    .map(entry => {
+                        const chainId = Number(entry?.chainId ?? entry?.id);
+                        const name = entry?.name || entry?.chainName || `Chain ${chainId}`;
+                        let rpc = [];
+                        if (Array.isArray(entry?.rpcs)) {
+                            rpc = entry.rpcs.map(r => typeof r === 'string' ? r : (r?.url || r?.rpc || r?.endpoint || ''));
+                        } else if (Array.isArray(entry?.rpc)) {
+                            rpc = entry.rpc.map(r => typeof r === 'string' ? r : (r?.url || ''));
+                        } else if (typeof entry?.url === 'string') {
+                            rpc = [entry.url];
+                        }
+                        rpc = rpc.filter(url => url && url.startsWith('http'));
+                        return { chainId, name, rpc };
+                    })
+                    .filter(n => n.chainId && n.rpc && n.rpc.length > 0);
+                return networks;
             }
             return null;
         } catch (error) {
-            console.error('Erro ao buscar da API:', error);
+            console.error('Erro ao buscar da API de RPCs:', error);
             return null;
         }
     }

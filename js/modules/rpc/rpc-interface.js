@@ -515,6 +515,15 @@ class RPCInterface {
             
             // Adiciona o RPC ao MetaMask
             await this.addRpcToMetaMask(this.selectedNetwork.chainId, rpcUrl, rpcName);
+
+            // Dispara evento para capturar RPC na sessão (sem persistência)
+            try {
+                document.dispatchEvent(new CustomEvent('dapp:addRpcUrl', {
+                    detail: { chainId: this.selectedNetwork.chainId, url: rpcUrl, rpcUrl, rpcName }
+                }));
+            } catch (evtErr) {
+                console.warn('Falha ao disparar evento de sessão para RPC personalizado:', evtErr);
+            }
             
             // Limpa os campos
             customRpcInput.value = '';
@@ -548,6 +557,15 @@ class RPCInterface {
             this.updateRpcButton(rpcUrl, true, rpcName);
             
             this.showMessage('success', `RPC "${rpcName}" adicionado com sucesso!`);
+
+            // Dispara evento para capturar RPC na sessão
+            try {
+                document.dispatchEvent(new CustomEvent('dapp:addRpcUrl', {
+                    detail: { chainId, url: rpcUrl, rpcUrl, rpcName }
+                }));
+            } catch (evtErr) {
+                console.warn('Falha ao disparar evento de sessão ao adicionar RPC:', evtErr);
+            }
             
         } catch (error) {
             console.error('Erro ao adicionar RPC:', error);
@@ -656,13 +674,14 @@ class RPCInterface {
             
             // Adiciona RPCs personalizadas se fornecidas
             const customRpcUrl = document.getElementById('customRpcUrl');
+            let customRpcs = [];
             if (customRpcUrl && customRpcUrl.value.trim()) {
-                const customRpcs = customRpcUrl.value.trim().split('\n')
+                customRpcs = customRpcUrl.value.trim().split('\n')
                     .map(url => url.trim())
-                    .filter(url => url && url.startsWith('http'));
+                    .filter(url => url && (url.startsWith('http://') || url.startsWith('https://')));
                 
                 if (customRpcs.length > 0) {
-                    networkData.rpcUrls = [...customRpcs, ...networkData.rpcUrls];
+                    networkData.rpcUrls = [...customRpcs, ...(networkData.rpcUrls || [])];
                 }
             }
 
@@ -670,6 +689,23 @@ class RPCInterface {
             await this.rpcSimple.addNetwork(networkData);
             
             this.showMessage('success', `Rede ${this.selectedNetwork.name} adicionada com sucesso!`);
+            
+            // Dispara eventos para capturar RPCs personalizados adicionados em lote (sessão)
+            if (Array.isArray(customRpcs) && customRpcs.length > 0) {
+                try {
+                    customRpcs.forEach((rpcUrl) => {
+                        try {
+                            document.dispatchEvent(new CustomEvent('dapp:addRpcUrl', {
+                                detail: { chainId: this.selectedNetwork.chainId, url: rpcUrl, rpcUrl, rpcName: 'RPC Personalizado' }
+                            }));
+                        } catch (evtErr) {
+                            console.warn('Falha ao disparar evento de sessão para RPC personalizado (lote):', evtErr);
+                        }
+                    });
+                } catch (batchErr) {
+                    console.warn('Falha ao processar lote de RPCs personalizados para sessão:', batchErr);
+                }
+            }
             
             // Após adicionar a rede, vai para etapa 2
             setTimeout(() => {
@@ -809,6 +845,15 @@ class RPCInterface {
         try {
             await this.rpcSimple.addRpcToExistingNetwork(chainId, rpcUrl, rpcName);
             this.showMessage('success', `RPC "${rpcName}" adicionado com sucesso!`);
+
+            // Dispara evento para capturar RPC na sessão
+            try {
+                document.dispatchEvent(new CustomEvent('dapp:addRpcUrl', {
+                    detail: { chainId, url: rpcUrl, rpcUrl, rpcName }
+                }));
+            } catch (evtErr) {
+                console.warn('Falha ao disparar evento de sessão ao adicionar RPC individual:', evtErr);
+            }
         } catch (error) {
             console.error('Erro ao adicionar RPC:', error);
             

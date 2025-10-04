@@ -6,7 +6,7 @@
  * Substitui código duplicado em: múltiplos arquivos com NETWORK_CONFIGS
  * 
  * FUNCIONALIDADES:
- * - Carregamento otimizado de chains.json (80k+ linhas)
+ * - Carregamento otimizado de rpcs.json
  * - Cache inteligente de dados de rede
  * - Fallback para redes populares
  * - Busca e filtro de redes
@@ -33,7 +33,7 @@ export class NetworkManager {
         
         // Configurações
         this.debug = false;
-        this.useChainListAPI = true;
+        this.useRpcsSource = true;
         
         // Redes populares hardcoded para fallback RÁPIDO
         this.popularNetworks = [
@@ -161,16 +161,16 @@ export class NetworkManager {
         try {
             this.log('📡 Carregando todas as redes...');
             
-            // Tentar ChainList API primeiro
-            if (this.useChainListAPI) {
+            // Tentar fonte RPCs primeiro (backend), com fallback ao arquivo local
+            if (this.useRpcsSource) {
                 try {
-                    await this.loadFromChainListAPI();
+                    await this.loadFromRpcsAPI();
                 } catch (apiError) {
-                    this.log(`⚠️ ChainList API falhou: ${apiError.message}`, 'warn');
-                    await this.loadFromLocalFile();
+                    this.log(`⚠️ RPCs API falhou: ${apiError.message}`, 'warn');
+                    await this.loadFromLocalRpcs();
                 }
             } else {
-                await this.loadFromLocalFile();
+                await this.loadFromLocalRpcs();
             }
             
             this.isLoaded = true;
@@ -189,47 +189,49 @@ export class NetworkManager {
     }
 
     /**
-     * Carregar redes do ChainList API
+     * Carregar redes a partir do backend de RPCs
      */
-    async loadFromChainListAPI() {
-        const response = await fetch('https://chainid.network/chains.json', {
-            timeout: 10000
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API response: ${response.status}`);
+    async loadFromRpcsAPI() {
+        const endpoints = [
+            '/api/rpcs',
+            `${location.protocol}//${location.hostname}:3001/api/rpcs`
+        ];
+        let lastErr;
+        for (const url of endpoints) {
+            try {
+                const response = await fetch(url, { timeout: 10000 });
+                if (!response.ok) throw new Error(`API response: ${response.status}`);
+                const data = await response.json();
+                const entries = Array.isArray(data?.rpcs) ? data.rpcs : (Array.isArray(data) ? data : []);
+                this.processRpcsData(entries);
+                this.log(`🌐 Redes carregadas do backend RPCs (${entries.length})`);
+                return;
+            } catch (e) {
+                lastErr = e;
+            }
         }
-        
-        const chains = await response.json();
-        this.processNetworkData(chains);
-        
-        this.log(`🌐 Redes carregadas do ChainList API`);
+        throw lastErr || new Error('Falha ao obter RPCs do backend');
     }
 
     /**
-     * Carregar redes do arquivo local
+     * Carregar redes do arquivo local rpcs.json
      */
-    async loadFromLocalFile() {
-        const response = await fetch('/shared/data/chains.json');
-        
+    async loadFromLocalRpcs() {
+        const response = await fetch('/shared/data/rpcs.json');
         if (!response.ok) {
-            throw new Error(`Arquivo local não encontrado: ${response.status}`);
+            throw new Error(`Arquivo local rpcs.json não encontrado: ${response.status}`);
         }
-        
         const data = await response.json();
-        // O arquivo pode ter formato diferente, extrair apenas as redes
-        const chains = Array.isArray(data) ? data : data.chains || [];
-        
-        this.processNetworkData(chains);
-        
-        this.log(`📁 Redes carregadas do arquivo local`);
+        const entries = Array.isArray(data?.rpcs) ? data.rpcs : (Array.isArray(data) ? data : []);
+        this.processRpcsData(entries);
+        this.log(`📁 Redes carregadas do arquivo local rpcs.json`);
     }
 
     /**
-     * Processar dados de rede vindos de diferentes fontes
-     * @param {Array} chains - Array de redes
+     * Processar dados de RPCs vindos de diferentes fontes
+     * @param {Array} entries - Array de entradas de RPCs
      */
-    processNetworkData(chains) {
+    processRpcsData(entries) {
         const networksSet = new Map();
         
         // Manter redes populares com prioridade
@@ -237,32 +239,41 @@ export class NetworkManager {
             networksSet.set(network.chainId, network);
         });
         
-        // Processar redes da API
-        chains.forEach(chain => {
-            // Pular se não tem chainId válido
-            if (!chain.chainId || chain.chainId <= 0) return;
-            
-            // Filtrar redes teste/obsoletas para performance
-            if (this.shouldSkipNetwork(chain)) return;
-            
-            const processedNetwork = {
-                chainId: chain.chainId,
-                name: chain.name || `Chain ${chain.chainId}`,
-                shortName: chain.shortName || chain.chain || `chain${chain.chainId}`,
-                nativeCurrency: chain.nativeCurrency || {
-                    name: 'Unknown',
-                    symbol: 'UNKNOWN',
-                    decimals: 18
-                },
-                rpc: this.processRPCUrls(chain.rpc || []),
-                explorers: chain.explorers || [],
-                infoURL: chain.infoURL,
-                icon: chain.icon,
-                features: chain.features,
-                faucets: chain.faucets
+        // Processar entradas de RPCs
+        entries.forEach(entry => {
+            const chainId = Number(entry?.chainId ?? entry?.id);
+            if (!chainId || chainId <= 0) return;
+            const name = entry?.name || entry?.chainName || `Chain ${chainId}`;
+            const shortName = entry?.shortName || entry?.short_name || entry?.chain || `chain${chainId}`;
+            const nativeCurrency = entry?.nativeCurrency || {
+                name: entry?.currencyName || 'Unknown',
+                symbol: (entry?.currencySymbol || entry?.symbol || 'UNKNOWN'),
+                decimals: entry?.currencyDecimals || 18
             };
-            
-            networksSet.set(chain.chainId, processedNetwork);
+            // extrair RPCs em diferentes formatos
+            let rpcCandidates = [];
+            if (Array.isArray(entry?.rpcs)) {
+                rpcCandidates = entry.rpcs.map(r => typeof r === 'string' ? r : (r?.url || r?.rpc || r?.endpoint || ''));
+            } else if (Array.isArray(entry?.rpc)) {
+                rpcCandidates = entry.rpc.map(r => typeof r === 'string' ? r : (r?.url || ''));
+            } else if (typeof entry?.url === 'string') {
+                rpcCandidates = [entry.url];
+            }
+            const rpc = this.processRPCUrls(rpcCandidates);
+
+            const processedNetwork = {
+                chainId,
+                name,
+                shortName,
+                nativeCurrency,
+                rpc,
+                explorers: entry?.explorers || [],
+                infoURL: entry?.infoURL,
+                icon: entry?.icon,
+                features: entry?.features,
+                faucets: entry?.faucets
+            };
+            networksSet.set(chainId, processedNetwork);
         });
         
         // Converter para arrays

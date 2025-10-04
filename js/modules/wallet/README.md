@@ -13,7 +13,7 @@ Este módulo é responsável pela gestão de carteiras e conexões blockchain no
   - Integração com diferentes redes blockchain
   - Cache de dados para melhor performance
 
-### `chains.json` (movido para shared/data/)
+### `rpcs.json` (movido para shared/data/)
 - **Função**: Configuração de redes blockchain suportadas
 - **Conteúdo**: Dados das chains incluindo Chain ID, RPC URLs, exploradores de bloco, moedas nativas
 
@@ -37,7 +37,7 @@ Este módulo é responsável pela gestão de carteiras e conexões blockchain no
 
 3. **Troca de Redes**
    - Suporte a múltiplas redes
-   - Configuração dinâmica via shared/data/chains.json
+- Configuração dinâmica via shared/data/rpcs.json
    - Validação de redes suportadas
 
 ## Dependências

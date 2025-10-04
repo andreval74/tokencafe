@@ -8,6 +8,8 @@ from flask_cors import CORS
 import os
 import json
 from datetime import datetime, timedelta
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 import jwt
 from functools import wraps
 
@@ -19,6 +21,15 @@ app.config['SECRET_KEY'] = 'tokencafe-secret-2024'
 # Configuração do diretório de templates
 TEMPLATE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '')
 app.template_folder = TEMPLATE_FOLDER
+
+# Caminhos úteis
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RPCS_LOCAL_PATH = os.path.join(BASE_DIR, 'shared', 'data', 'rpcs.json')
+
+def _ensure_dirs():
+    os.makedirs(os.path.join(BASE_DIR, 'shared', 'data'), exist_ok=True)
+
+_ensure_dirs()
 
 # ============================================================================
 # DADOS SIMULADOS (Mock Data)
@@ -174,6 +185,88 @@ def serve_dashboard_files(filename):
 def serve_shared(filename):
     """Servir recursos compartilhados"""
     return send_from_directory('shared', filename)
+
+# ============================================================================
+# API - Atualização automática de RPCs (ChainList)
+# ============================================================================
+
+def get_file_last_modified(path):
+    if not os.path.exists(path):
+        return None
+    try:
+        ts = os.path.getmtime(path)
+        return datetime.fromtimestamp(ts)
+    except Exception:
+        return None
+
+def is_older_than_days(dt, days=3):
+    if dt is None:
+        return True
+    return (datetime.utcnow() - dt) > timedelta(days=days)
+
+def fetch_chainlist_rpcs():
+    url = 'https://chainlist.org/rpcs.json'
+    try:
+        with urlopen(url, timeout=15) as resp:
+            if resp.status != 200:
+                raise HTTPError(url, resp.status, 'Bad status', resp.headers, None)
+            data = resp.read().decode('utf-8')
+            parsed = json.loads(data)
+            return parsed
+    except (URLError, HTTPError) as e:
+        raise Exception(f'Falha ao obter RPCs do ChainList: {e}')
+    except Exception as e:
+        raise Exception(f'Erro inesperado: {e}')
+
+def save_rpcs_json(data):
+    try:
+        with open(RPCS_LOCAL_PATH, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        raise Exception(f'Falha ao salvar rpcs.json: {e}')
+
+@app.route('/api/rpcs/update', methods=['GET'])
+def update_rpcs():
+    """Verifica o rpcs.json local e atualiza se última modificação > 3 dias."""
+    try:
+        last_mod = get_file_last_modified(RPCS_LOCAL_PATH)
+        should_update = is_older_than_days(last_mod, 3)
+        updated = False
+
+        if should_update:
+            chainlist_data = fetch_chainlist_rpcs()
+            if not isinstance(chainlist_data, list):
+                # Normalizar para lista caso venha em outro formato
+                chainlist_data = chainlist_data.get('rpcs') or chainlist_data.get('data') or []
+            save_rpcs_json(chainlist_data)
+            updated = True
+            last_mod = get_file_last_modified(RPCS_LOCAL_PATH)
+
+        return jsonify({
+            'success': True,
+            'updated': updated,
+            'last_update': last_mod.isoformat() + 'Z' if last_mod else None,
+            'path': '/shared/data/rpcs.json'
+        }), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/rpcs', methods=['GET'])
+def get_rpcs():
+    """Retorna o conteúdo do rpcs.json local; tenta criar se não existir."""
+    try:
+        if not os.path.exists(RPCS_LOCAL_PATH):
+            data = fetch_chainlist_rpcs()
+            if not isinstance(data, list):
+                data = data.get('rpcs') or data.get('data') or []
+            save_rpcs_json(data)
+
+        with open(RPCS_LOCAL_PATH, 'r', encoding='utf-8') as f:
+            content = json.load(f)
+        return jsonify({'success': True, 'rpcs': content, 'count': len(content)}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============================================================================
 # API - AUTENTICAÇÃO

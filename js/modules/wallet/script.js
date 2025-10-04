@@ -215,6 +215,9 @@ class TokenCafeWalletManager {
         
         // Integração com ChainList
         this.chainList = new ChainListIntegration();
+
+        // Armazenamento em memória dos RPCs inseridos durante a sessão (por chainId hex)
+        this.sessionRpcs = {};
         
         // Inicializar
         this.init();
@@ -599,6 +602,8 @@ class TokenCafeWalletManager {
 
             // Limpar sessão
             this.clearSession();
+            // Limpar RPCs de sessão (sem persistência)
+            this.sessionRpcs = {};
             
             // Atualizar UI
             this.updateUI();
@@ -1635,6 +1640,22 @@ class TokenCafeWalletManager {
         if (clearNetworkBtn) {
             clearNetworkBtn.addEventListener('click', () => this.handleClearNetwork());
         }
+
+        // Capturar alterações no textarea de RPCs personalizados durante a sessão
+        const customUrlsTextarea = document.getElementById('customRpcUrls');
+        if (customUrlsTextarea) {
+            customUrlsTextarea.addEventListener('input', () => {
+                const urls = customUrlsTextarea.value.split('\n').map(u => u.trim()).filter(Boolean);
+                const normalizedUrls = urls.map(u => this.normalizeRpcUrl(u)).filter(Boolean);
+                if (this.networkInfo && this.networkInfo.chainId) {
+                    const cid = this.normalizeChainIdHex(this.networkInfo.chainId);
+                    if (cid) {
+                        this.sessionRpcs[cid] = Array.from(new Set(normalizedUrls));
+                    }
+                }
+                this.updateCustomRpcsDisplay();
+            });
+        }
     }
     
     /**
@@ -1996,9 +2017,27 @@ class TokenCafeWalletManager {
     /**
      * Obter RPCs funcionais para uma rede
      */
-    async getWorkingRpcs(chainId) {
+    async getWorkingRpcs(chainIdInput) {
         try {
-            return await this.chainList.getWorkingRpcs(chainId);
+            // Aceita chainId em hex ("0x...") ou decimal e normaliza para decimal
+            let chainIdNormalized = null;
+            if (typeof chainIdInput === 'string') {
+                const s = chainIdInput.trim();
+                if (/^0x[0-9a-fA-F]+$/.test(s)) {
+                    chainIdNormalized = parseInt(s, 16);
+                } else if (/^\d+$/.test(s)) {
+                    chainIdNormalized = parseInt(s, 10);
+                }
+            } else if (typeof chainIdInput === 'number') {
+                chainIdNormalized = chainIdInput;
+            }
+
+            if (chainIdNormalized === null || Number.isNaN(chainIdNormalized)) {
+                console.warn('getWorkingRpcs: chainId inválido', chainIdInput);
+                return [];
+            }
+
+            return await this.chainList.getWorkingRpcs(chainIdNormalized);
         } catch (error) {
             console.error('❌ Erro ao obter RPCs:', error);
             return [];
@@ -2195,8 +2234,169 @@ class TokenCafeWalletManager {
                 }
             }
 
+            // RPCs Personalizados: exibir somente o RPC ativo detectável via provider
+            const customRpcsElement = document.getElementById('customRpcs');
+            if (customRpcsElement) {
+                try {
+                    const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+                    // Atualizar contexto de rede e obter RPC ativo
+                    this.networkInfo = this.networkInfo || {};
+                    this.networkInfo.chainId = chainIdHex;
+                    // Atualiza exibição com base nos RPCs capturados em sessão
+                    this.updateCustomRpcsDisplay();
+                } catch (rpcError) {
+                    console.error('Erro ao carregar RPCs personalizados:', rpcError);
+                    customRpcsElement.value = 'Erro ao carregar RPCs';
+                }
+            }
+
         } catch (error) {
             console.error('❌ Erro ao atualizar detalhes da carteira:', error);
+        }
+    }
+
+    // ===== RPCs da Sessão (memória) =====
+    normalizeRpcUrl(url) {
+        if (!url || typeof url !== 'string') return null;
+        const trimmed = url.trim();
+        // Aceitar HTTP e HTTPS, mas filtrar placeholders/templates
+        if (!/^https?:\/\//i.test(trimmed)) return null;
+        if(/\{.*\}/.test(trimmed)) return null; // ignorar templates com placeholders
+        return trimmed;
+    }
+
+    // Normaliza chainId para string hexadecimal com prefixo 0x (minúsculo)
+    normalizeChainIdHex(chainId) {
+        if (!chainId && chainId !== 0) return null;
+        // Se já é string hex (com 0x), padroniza para minúsculo
+        if (typeof chainId === 'string') {
+            const s = chainId.trim();
+            if (/^0x[0-9a-fA-F]+$/.test(s)) return s.toLowerCase();
+            // Se é string numérica decimal
+            if (/^\d+$/.test(s)) {
+                const n = parseInt(s, 10);
+                if (!isNaN(n)) return '0x' + n.toString(16);
+            }
+            return null;
+        }
+        // Se é número
+        if (typeof chainId === 'number') {
+            return '0x' + chainId.toString(16);
+        }
+        return null;
+    }
+
+    addSessionRpc(url, chainIdHex = null) {
+        const normalized = this.normalizeRpcUrl(url);
+        if (!normalized) return;
+        const cidRaw = chainIdHex || (this.networkInfo && this.networkInfo.chainId);
+        const cid = this.normalizeChainIdHex(cidRaw);
+        if (!cid) return;
+        const list = this.sessionRpcs[cid] || [];
+        if (!list.includes(normalized)) {
+            this.sessionRpcs[cid] = [...list, normalized];
+            this.updateCustomRpcsDisplay();
+        }
+    }
+
+    getSessionRpcList(chainIdHex = null) {
+        const cidRaw = chainIdHex || (this.networkInfo && this.networkInfo.chainId);
+        const cid = this.normalizeChainIdHex(cidRaw);
+        return cid ? (this.sessionRpcs[cid] || []) : [];
+    }
+
+    // Tenta capturar RPC(s) diretamente do provider da carteira conectada (MetaMask e similares)
+    async getMetaMaskRpcUrls(chainIdHex = null) {
+        const urls = [];
+        try {
+            const provider = window.ethereum;
+            if (!provider) return urls;
+
+            // Evita chamadas a métodos não suportados no MetaMask que geram erros no console
+            const isMetaMask = !!provider.isMetaMask;
+            if (!isMetaMask) {
+                // Tenta APIs de estado do provider (não padrão, pode não existir)
+                try {
+                    const state = await provider.request({ method: 'wallet_getProviderState' });
+                    const rpc = state?.providerConfig?.rpcUrl || state?.rpcUrl;
+                    if (typeof rpc === 'string') urls.push(rpc);
+                } catch (_) {}
+
+                try {
+                    const mmState = await provider.request({ method: 'metamask_getProviderState' });
+                    const rpc = mmState?.providerConfig?.rpcUrl || mmState?.rpcUrl;
+                    if (typeof rpc === 'string') urls.push(rpc);
+                } catch (_) {}
+            }
+
+            // Alguns providers expõem internamente o rpcUrl
+            const internalRpc = provider._rpcUrl || provider.rpcUrl || provider.providerConfig?.rpcUrl;
+            if (typeof internalRpc === 'string') urls.push(internalRpc);
+
+            // Filtra e normaliza
+            const filtered = urls
+                .filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u))
+                .filter((u) => !u.includes('${') && !u.includes('API_KEY'));
+
+            // Remove duplicados
+            return Array.from(new Set(filtered));
+        } catch (err) {
+            console.warn('getMetaMaskRpcUrls: não foi possível capturar RPC do provider', err);
+            return [];
+        }
+    }
+
+    async updateCustomRpcsDisplay() {
+        const el = document.getElementById('customRpcs');
+        if (!el) return;
+        const sessionList = this.getSessionRpcList();
+        const chainIdHex = this.networkInfo && this.networkInfo.chainId ? this.normalizeChainIdHex(this.networkInfo.chainId) : null;
+
+        const set = new Set();
+        // Adiciona RPCs da sessão
+        sessionList.forEach((u) => {
+            const n = this.normalizeRpcUrl(u);
+            if (n) set.add(n);
+        });
+
+        try {
+            // Converte para decimal ao obter RPCs conhecidos da rede
+            let knownList = [];
+            if (chainIdHex && typeof this.getWorkingRpcs === 'function') {
+                knownList = await this.getWorkingRpcs(chainIdHex);
+            }
+            if (Array.isArray(knownList)) {
+                knownList.forEach((u) => {
+                    const n = this.normalizeRpcUrl(u);
+                    if (n) set.add(n);
+                });
+            }
+
+            // Tenta capturar RPC ativo diretamente do provider da carteira
+            let providerRpcs = [];
+            if (chainIdHex && typeof this.getMetaMaskRpcUrls === 'function') {
+                providerRpcs = await this.getMetaMaskRpcUrls(chainIdHex);
+            }
+            if (Array.isArray(providerRpcs)) {
+                providerRpcs.forEach((u) => {
+                    const n = this.normalizeRpcUrl(u);
+                    if (n) set.add(n);
+                });
+            }
+        } catch (e) {
+            console.warn('updateCustomRpcsDisplay: erro ao unir RPCs', e);
+        }
+
+        const combined = Array.from(set);
+        if (combined.length > 0) {
+            el.value = combined.join('\n');
+        } else {
+            const currentRpc = this.getRpcUrl();
+            if (currentRpc && /^https?:\/\//i.test(currentRpc)) {
+                el.value = currentRpc;
+            } else {
+                el.value = 'Nenhum RPC capturado nesta sessão';
+            }
         }
     }
 }
@@ -2248,6 +2448,33 @@ function initializeWalletManager() {
     window.TokenCafe.wallet.searchNetworks = (searchTerm) => walletManager.searchNetworks(searchTerm);
     window.TokenCafe.wallet.getWorkingRpcs = (chainId) => walletManager.getWorkingRpcs(chainId);
     
+    // ===== UI: Importar RPCs da MetaMask via colagem =====
+    try {
+        const pasteBtn = document.getElementById('pasteMetaMaskRpcsBtn');
+        const customRpcsEl = document.getElementById('customRpcs');
+        if (pasteBtn && customRpcsEl) {
+            pasteBtn.addEventListener('click', () => {
+                // Permitir edição e orientar o usuário
+                customRpcsEl.removeAttribute('readonly');
+                customRpcsEl.placeholder = 'Cole aqui seus RPCs do MetaMask, um por linha';
+                customRpcsEl.focus();
+            });
+
+            // Ao sair do campo, persistir RPCs na sessão
+            customRpcsEl.addEventListener('blur', () => {
+                const raw = customRpcsEl.value || '';
+                const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+                lines.forEach(url => {
+                    if (window.walletManager && typeof window.walletManager.addSessionRpc === 'function') {
+                        window.walletManager.addSessionRpc(url);
+                    }
+                });
+            });
+        }
+    } catch (uiErr) {
+        console.warn('Falha ao inicializar UI de importação de RPCs:', uiErr);
+    }
+
     console.log('✅ TokenCafe Wallet Manager inicializado com sucesso');
 }
 
@@ -2261,14 +2488,55 @@ if (document.readyState === 'loading') {
 // Event listeners globais para debugging
 document.addEventListener('wallet:connected', function(event) {
     console.log('🎉 Evento wallet:connected recebido:', event.detail);
+    const btn = document.getElementById('connect-wallet-btn') || document.querySelector('.btn-connect-wallet');
+    if (btn) {
+        const addr = (event && event.detail && event.detail.address) || (walletManager && walletManager.currentAccount) || '';
+        btn.title = addr || 'Conectado';
+    }
+    // Atualizar detalhes, incluindo RPCs personalizados
+    if (walletManager && typeof walletManager.updateWalletDetails === 'function') {
+        walletManager.updateWalletDetails();
+    }
 });
 
 document.addEventListener('wallet:accountChanged', function(event) {
     console.log('🔄 Evento wallet:accountChanged recebido:', event.detail);
+    const btn = document.getElementById('connect-wallet-btn') || document.querySelector('.btn-connect-wallet');
+    if (btn) {
+        const addr = (event && event.detail && event.detail.address) || (walletManager && walletManager.currentAccount) || '';
+        btn.title = addr || 'Conta alterada';
+    }
+    // Atualizar detalhes, incluindo RPCs personalizados
+    if (walletManager && typeof walletManager.updateWalletDetails === 'function') {
+        walletManager.updateWalletDetails();
+    }
 });
 
 document.addEventListener('wallet:disconnected', function(event) {
     console.log('👋 Evento wallet:disconnected recebido:', event.detail);
+    const btn = document.getElementById('connect-wallet-btn') || document.querySelector('.btn-connect-wallet');
+    if (btn) {
+        btn.title = 'Não conectado';
+    }
+    // Limpar RPCs personalizados ao desconectar
+    const customRpcsElement = document.getElementById('customRpcs');
+    if (customRpcsElement) {
+        customRpcsElement.value = 'Não conectado';
+    }
+});
+
+// Capturar RPCs adicionados via dapp (evento customizado) e refletir no textarea
+document.addEventListener('dapp:addRpcUrl', function(event) {
+    try {
+        const detail = (event && event.detail) || {};
+        const url = detail.rpcUrl || detail.url;
+        const chainId = detail.chainId;
+        if (walletManager && typeof walletManager.addSessionRpc === 'function' && url) {
+            walletManager.addSessionRpc(url, chainId);
+        }
+    } catch (e) {
+        console.warn('Falha ao processar evento dapp:addRpcUrl:', e);
+    }
 });
 
 // Verificar conexão periodicamente com debounce inteligente
