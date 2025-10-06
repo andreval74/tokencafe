@@ -180,11 +180,11 @@ class BaseSystem {
             // Determinar caminho baseado na localização atual
             const basePath = this.getBasePath();
 
-            // Tentar em múltiplos locais: shared, modules e raiz de pages
+            // Tentar em múltiplos locais priorizando a raiz de pages para evitar 404s
             const candidatePaths = [
+                `${basePath}pages/${componentName}`,
                 `${basePath}pages/shared/${componentName}`,
-                `${basePath}pages/modules/${componentName}`,
-                `${basePath}pages/${componentName}`
+                `${basePath}pages/modules/${componentName}`
             ];
 
             let finalResponse = null;
