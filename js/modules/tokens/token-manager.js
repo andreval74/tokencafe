@@ -2,489 +2,377 @@
  * ================================================================================
  * TOKEN MANAGER MODULE - TOKENCAFE
  * ================================================================================
- * Mdulo para gerencamento completo de tokens crados pelo usuro
+ * Módulo para gerenciamento completo de tokens criados pelo usuário
  * ================================================================================
  */
 
 class TokenManager {
     constructor() {
         this.tokens = [];
-        this.flteredTokens = [];
-        this.currentFlter = 'all';
+        this.filteredTokens = [];
+        this.currentFilter = 'all';
         this.searchTerm = '';
-        this.sLoadng = false;
-        
+        this.isLoading = false;
         this.init();
     }
 
-    /**
-     * ncalzao do mdulo
-     */
     async init() {
-        console.log(' inicializando Token Manager...');
-        
-        this.setupEventLsteners();
+        this.setupEventListeners();
         await this.loadTokens();
         this.renderTokens();
-        
-        console.log(' Token Manager inicializado');
     }
 
-    /**
-     * Confgurar event lsteners
-     */
-    setupEventLsteners() {
-        // Busca
-const searchnput = document.getElementById('token-search');
-        if (searchnput) {
-            searchnput.addEventListener('nput', (e) => {
+    setupEventListeners() {
+        const searchInput = document.getElementById('token-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
                 this.searchTerm = e.target.value.toLowerCase();
-                this.flterAndRenderTokens();
+                this.filterAndRenderTokens();
             });
         }
 
-        // Fltros
-        const flterButtons = document.querySelectorAll('.flter-btn');
-        flterButtons.forEach(btn => {
-            btn.addEventListener('clck', (e) => {
-                // Remover actve de todos
-                flterButtons.forEach(b => b.classLst.remove('actve'));
-                // Adconar actve ao clcado
-                e.target.classLst.add('actve');
-                
-                this.currentFlter = e.target.dataset.flter;
-                this.flterAndRenderTokens();
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                filterButtons.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilter = e.target.dataset.filter;
+                this.filterAndRenderTokens();
             });
         });
 
-        // Form de edo
-const edtForm = document.getElementById('edt-token-form');
-        if (edtForm) {
-            edtForm.addEventListener('submt', (e) => {
+        const editForm = document.getElementById('edit-token-form');
+        if (editForm) {
+            editForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.saveTokenChanges();
             });
         }
     }
 
-    /**
-     * Carregar tokens do usuro
-     */
     async loadTokens() {
-        this.setLoadngState(true);
-        
         try {
-            // Smular carregamento de tokens (substtur por AP real)
-            await new Promise(resolve => setTmeout(resolve, 1000));
-            
-            // Mock data - substtur por dados reas da AP
-            this.tokens = [
+            this.setLoadingState(true);
+            await new Promise(resolve => setTimeout(resolve, 400));
+
+            // Tentativas de integração com dados reais (quando disponíveis)
+            const candidates = [
+                '/api/tokens',
+                (typeof location !== 'undefined') ? `${location.protocol}//${location.hostname}:3001/api/tokens` : null,
+                '/shared/data/tokens.json'
+            ].filter(Boolean);
+
+            let loaded = false;
+            for (const url of candidates) {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const entries = Array.isArray(data?.tokens) ? data.tokens : (Array.isArray(data) ? data : []);
+                        if (entries.length > 0) {
+                            this.tokens = entries.map((t, i) => ({
+                                id: String(t.id ?? i + 1),
+                                name: t.name ?? 'Token',
+                                symbol: t.symbol ?? 'TKN',
+                                type: (t.type ?? 'erc20').toLowerCase(),
+                                totalSupply: Number(t.totalSupply ?? 0),
+                                decimals: Number(t.decimals ?? 18),
+                                status: (t.status ?? 'active').toLowerCase(),
+                                contractAddress: t.contractAddress ?? '-',
+                                network: t.network ?? 'Desconhecida',
+                                createdAt: t.createdAt ?? new Date().toISOString().slice(0, 10),
+                                description: t.description ?? '',
+                                website: t.website ?? '',
+                                holders: Number(t.holders ?? 0),
+                                transactions: Number(t.transactions ?? 0)
+                            }));
+                            loaded = true;
+                            break;
+                        }
+                    }
+                } catch (_) {
+                    // Ignorar erros e tentar próximo candidato
+                }
+            }
+
+            // Fallback para dados mock locais
+            if (!loaded) {
+                this.tokens = [
                 {
-                    d: '1',
-                    name: 'CafeToken',
-                    symbol: 'CAFE',
+                    id: '1',
+                    name: 'MeuToken',
+                    symbol: 'MTK',
                     type: 'erc20',
-                    totalSupply: '1000000',
-                    decmals: 18,
-                    status: 'actve',
-                    contractAddress: '0x1234...5678',
+                    totalSupply: 1000000,
+                    decimals: 18,
+                    status: 'active',
+                    contractAddress: '0x1234...abcd',
                     network: 'Ethereum',
-                    createdAt: '2024-01-15',
-                    descrpton: 'Token ofcal da TokenCafe',
-                    webste: 'https://tokencafe.o',
-                    holders: 150,
-                    transactons: 1250
+                    createdAt: '2024-02-01',
+                    description: 'Token utilitário da minha comunidade',
+                    website: 'https://meutoken.com',
+                    holders: 102,
+                    transactions: 250
                 },
                 {
-                    d: '2',
-                    name: 'MyNFT Collecton',
-                    symbol: 'MYNFT',
+                    id: '2',
+                    name: 'MyNFT',
+                    symbol: 'MNFT',
                     type: 'erc721',
-                    totalSupply: '100',
-                    status: 'actve',
-                    contractAddress: '0xabcd...efgh',
+                    totalSupply: 1000,
+                    decimals: 0,
+                    status: 'active',
+                    contractAddress: '0xabcd...ef01',
                     network: 'Polygon',
-                    createdAt: '2024-01-20',
-                    descrpton: 'Mnha prmera coleo NFT',
-                    webste: 'https://mynft.com',
+                    createdAt: '2024-03-15',
+                    description: 'Coleção NFT exclusiva',
+                    website: 'https://mynft.com',
                     holders: 45,
-                    transactons: 89
+                    transactions: 89
                 },
                 {
-                    d: '3',
+                    id: '3',
                     name: 'TestToken',
                     symbol: 'TEST',
                     type: 'erc20',
-                    totalSupply: '500000',
-                    decmals: 18,
+                    totalSupply: 500000,
+                    decimals: 18,
                     status: 'paused',
                     contractAddress: '0x9876...5432',
                     network: 'BSC',
                     createdAt: '2024-01-10',
-                    descrpton: 'Token de teste',
+                    description: 'Token de teste',
                     holders: 12,
-                    transactons: 34
+                    transactions: 34
                 }
             ];
-            
-            this.flteredTokens = [...this.tokens];
-            
+            }
+            this.filteredTokens = [...this.tokens];
         } catch (error) {
-            console.error(' Erro ao carregar tokens:', error);
             this.showError('Erro ao carregar tokens');
         } finally {
-            this.setLoadngState(false);
+            this.setLoadingState(false);
         }
     }
 
-    /**
-     * Fltrar e renderzar tokens
-     */
-    flterAndRenderTokens() {
-        let fltered = [...this.tokens];
-
-        // Aplcar fltro por tpo/status
-        if (this.currentFlter !== 'all') {
-            fltered = fltered.flter(token => {
-                switch (this.currentFlter) {
-                    case 'erc20':
-                        return token.type === 'erc20';
-                    case 'erc721':
-                        return token.type === 'erc721';
-                    case 'actve':
-                        return token.status === 'actve';
-                    case 'paused':
-                        return token.status === 'paused';
-                    default:
-                        return true;
+    filterAndRenderTokens() {
+        let filtered = [...this.tokens];
+        if (this.currentFilter !== 'all') {
+            filtered = filtered.filter(token => {
+                switch (this.currentFilter) {
+                    case 'erc20': return token.type === 'erc20';
+                    case 'erc721': return token.type === 'erc721';
+                    case 'active': return token.status === 'active';
+                    case 'paused': return token.status === 'paused';
+                    default: return true;
                 }
             });
         }
-
-        // Aplcar busca por texto
         if (this.searchTerm) {
-            fltered = fltered.flter(token => 
-                token.name.toLowerCase().ncludes(this.searchTerm) ||
-                token.symbol.toLowerCase().ncludes(this.searchTerm) ||
-                token.descrpton.toLowerCase().ncludes(this.searchTerm)
+            filtered = filtered.filter(token =>
+                token.name.toLowerCase().includes(this.searchTerm) ||
+                token.symbol.toLowerCase().includes(this.searchTerm) ||
+                (token.description || '').toLowerCase().includes(this.searchTerm)
             );
         }
-
-        this.flteredTokens = fltered;
+        this.filteredTokens = filtered;
         this.renderTokens();
     }
 
-    /**
-     * Renderzar lsta de tokens
-     */
     renderTokens() {
-const grd = document.getElementById('tokens-grd');
-const emptyState = document.getElementById('empty-tokens-state');
-        
-        if (!grd) return;
-
-        if (this.flteredTokens.length === 0) {
-            grd.style.dsplay = 'none';
-            if (emptyState) emptyState.style.dsplay = 'block';
+        const grid = document.getElementById('tokens-grid');
+        const emptyState = document.getElementById('empty-tokens-state');
+        if (!grid) return;
+        if (this.filteredTokens.length === 0) {
+            grid.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'block';
             return;
         }
-
-        if (emptyState) emptyState.style.dsplay = 'none';
-        grd.style.dsplay = 'grd';
-
-        grd.nnerHTML = this.flteredTokens.map(token => this.createTokenCard(token)).jon('');
+        if (emptyState) emptyState.style.display = 'none';
+        grid.style.display = 'grid';
+        grid.innerHTML = this.filteredTokens.map(token => this.createTokenCard(token)).join('');
     }
 
-    /**
-     * Crar card de token
-     */
     createTokenCard(token) {
-        const statuscon = token.status === 'actve' ? '' : '';
-        const typecon = token.type === 'erc20' ? '' : '';
-        
+        const tokenId = token.id;
+        const statusText = token.status === 'active' ? 'Ativo' : 'Pausado';
+        const typeText = token.type.toUpperCase();
         return `
-            <dv class="token-card" data-token-d="${token.d}">
-                <dv class="token-header">
-                    <dv class="token-con">${typecon}</dv>
-                    <dv class="token-status">${statuscon}</dv>
-                </dv>
-                
-                <dv class="token-nfo">
+            <div class="token-card" data-token-id="${tokenId}">
+                <div class="token-header">
+                    <div class="token-type">${typeText}</div>
+                    <div class="token-status">${statusText}</div>
+                </div>
+                <div class="token-info">
                     <h3 class="token-name">${token.name}</h3>
                     <p class="token-symbol">${token.symbol}</p>
-                    <p class="token-type">${token.type.toUpperCase()}</p>
-                </dv>
-                
-                <dv class="token-stats">
-                    <dv class="stat">
-                        <span class="stat-label">Supply:</span>
-                        <span class="stat-value">${this.formatNumber(token.totalSupply)}</span>
-                    </dv>
-                    <dv class="stat">
-                        <span class="stat-label">Holders:</span>
-                        <span class="stat-value">${token.holders}</span>
-                    </dv>
-                    <dv class="stat">
-                        <span class="stat-label">Network:</span>
-                        <span class="stat-value">${token.network}</span>
-                    </dv>
-                </dv>
-                
-                <dv class="token-actons">
-                    <button class="btn btn-sm btn-prmary" onclck="tokenManager.vewDetals('${token.d}')">
-                        < class="fas fa-eye"></> Ver Detalhes
-                    </button>
-                    <button class="btn btn-sm btn-secondary" onclck="tokenManager.edtToken('${token.d}')">
-                        < class="fas fa-edt"></> Edtar
-                    </button>
-                    <button class="btn btn-sm btn-outlne" onclck="tokenManager.copyAddress('${token.contractAddress}')">
-                        < class="fas fa-copy"></> Copar
-                    </button>
-                </dv>
-            </dv>
+                    <p class="token-type">${typeText}</p>
+                </div>
+                <div class="token-stats">
+                    <div class="stat"><span class="stat-label">Supply:</span><span class="stat-value">${this.formatNumber(token.totalSupply)}</span></div>
+                    <div class="stat"><span class="stat-label">Holders:</span><span class="stat-value">${token.holders}</span></div>
+                    <div class="stat"><span class="stat-label">Network:</span><span class="stat-value">${token.network}</span></div>
+                </div>
+                <div class="token-actions">
+                    <button class="btn btn-sm btn-primary" onclick="tokenManager.viewDetails('${tokenId}')">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-secondary" onclick="tokenManager.editToken('${tokenId}')">Editar</button>
+                    <button class="btn btn-sm btn-outline" onclick="tokenManager.copyAddress('${token.contractAddress}')">Copiar</button>
+                </div>
+            </div>
         `;
     }
 
-    /**
-     * Ver detalhes do token
-     */
-    vewDetals(tokend) {
-        const token = this.tokens.fnd(t => t.d === tokend);
+    viewDetails(tokenId) {
+        const token = this.tokens.find(t => t.id === tokenId);
         if (!token) return;
-
-const modal = document.getElementById('token-detals-modal');
-const content = document.getElementById('token-detals-content');
-        
-        if (!modal || !content) return;
-
-        content.nnerHTML = `
-            <dv class="token-detals">
-                <dv class="detal-secton">
-                    <h4>nformaes Bscas</h4>
-                    <dv class="detal-grd">
-                        <dv class="detal-tem">
-                            <label>Nome:</label>
-                            <span>${token.name}</span>
-                        </dv>
-                        <dv class="detal-tem">
-                            <label>Smbolo:</label>
-                            <span>${token.symbol}</span>
-                        </dv>
-                        <dv class="detal-tem">
-                            <label>Tpo:</label>
-                            <span>${token.type.toUpperCase()}</span>
-                        </dv>
-                        <dv class="detal-tem">
-                            <label>Status:</label>
-                            <span class="status-${token.status}">${token.status}</span>
-                        </dv>
-                    </dv>
-                </dv>
-                
-                <dv class="detal-secton">
+        const content = document.getElementById('token-details-content');
+        if (!content) return;
+        content.innerHTML = `
+            <div class="token-details">
+                <div class="detail-section">
+                    <h4>Informações Básicas</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item"><label>Nome:</label><span>${token.name}</span></div>
+                        <div class="detail-item"><label>Símbolo:</label><span>${token.symbol}</span></div>
+                        <div class="detail-item"><label>Tipo:</label><span>${token.type.toUpperCase()}</span></div>
+                        <div class="detail-item"><label>Status:</label><span class="status-${token.status}">${token.status}</span></div>
+                    </div>
+                </div>
+                <div class="detail-section">
                     <h4>Contrato</h4>
-                    <dv class="detal-grd">
-                        <dv class="detal-tem">
-                            <label>Endereo:</label>
-                            <span class="contract-address">${token.contractAddress}</span>
-                        </dv>
-                        <dv class="detal-tem">
-                            <label>Rede:</label>
-                            <span>${token.network}</span>
-                        </dv>
-                        <dv class="detal-tem">
-                            <label>Supply Total:</label>
-                            <span>${this.formatNumber(token.totalSupply)}</span>
-                        </dv>
-                        ${token.decmals ? `
-                        <dv class="detal-tem">
-                            <label>Decmas:</label>
-                            <span>${token.decmals}</span>
-                        </dv>
-                        ` : ''}
-                    </dv>
-                </dv>
-                
-                <dv class="detal-secton">
-                    <h4>Estatstcas</h4>
-                    <dv class="detal-grd">
-                        <dv class="detal-tem">
-                            <label>Holders:</label>
-                            <span>${token.holders}</span>
-                        </dv>
-                        <dv class="detal-tem">
-                            <label>Transaes:</label>
-                            <span>${token.transactons}</span>
-                        </dv>
-                        <dv class="detal-tem">
-                            <label>Crado em:</label>
-                            <span>${this.formatDate(token.createdAt)}</span>
-                        </dv>
-                    </dv>
-                </dv>
-                
-                ${token.descrpton ? `
-                <dv class="detal-secton">
-                    <h4>Descro</h4>
-                    <p>${token.descrpton}</p>
-                </dv>
-                ` : ''}
-                
-                <dv class="detal-actons">
-                    <button class="btn btn-prmary" onclck="window.open('https://etherscan.o/address/${token.contractAddress}', '_blank')">
-                        < class="fas fa-external-lnk-alt"></> Ver no Explorer
-                    </button>
-                    ${token.webste ? `
-                    <button class="btn btn-secondary" onclck="window.open('${token.webste}', '_blank')">
-                        < class="fas fa-globe"></> Webste
-                    </button>
-                    ` : ''}
-                </dv>
-            </dv>
+                    <div class="detail-grid">
+                        <div class="detail-item"><label>Endereço:</label><span>${token.contractAddress}</span></div>
+                        <div class="detail-item"><label>Rede:</label><span>${token.network}</span></div>
+                        <div class="detail-item"><label>Decimais:</label><span>${token.decimals || '-'}</span></div>
+                        <div class="detail-item"><label>Holders:</label><span>${token.holders}</span></div>
+                        <div class="detail-item"><label>Transações:</label><span>${token.transactions}</span></div>
+                        <div class="detail-item"><label>Criado em:</label><span>${this.formatDate(token.createdAt)}</span></div>
+                    </div>
+                </div>
+                ${token.description ? `
+                <div class="detail-section">
+                    <h4>Descrição</h4>
+                    <p>${token.description}</p>
+                </div>` : ''}
+                <div class="detail-actions">
+                    <button class="btn btn-primary" onclick="window.open('https://etherscan.io/address/${token.contractAddress}', '_blank')">Ver no Explorer</button>
+                    ${token.website ? `<button class="btn btn-secondary" onclick="window.open('${token.website}', '_blank')">Website</button>` : ''}
+                </div>
+            </div>
         `;
-
-        modal.style.dsplay = 'flex';
+        this.showModal('token-details-modal');
     }
 
-    /**
-     * Edtar token
-     */
-    edtToken(tokend) {
-        const token = this.tokens.fnd(t => t.d === tokend);
+    editToken(tokenId) {
+        const token = this.tokens.find(t => t.id === tokenId);
         if (!token) return;
-
-        // Preencher formulro
-document.getElementById('edt-token-name').value = token.name;
-document.getElementById('edt-token-descrpton').value = token.descrpton || '';
-document.getElementById('edt-token-webste').value = token.webste || '';
-
-        // Armazenar D para salvar
-document.getElementById('edt-token-form').dataset.tokend = tokend;
-
-        // Mostrar modal
-document.getElementById('edt-token-modal').style.dsplay = 'flex';
+        document.getElementById('edit-token-name').value = token.name;
+        document.getElementById('edit-token-description').value = token.description || '';
+        document.getElementById('edit-token-website').value = token.website || '';
+        document.getElementById('edit-token-form').dataset.tokenId = tokenId;
+        this.showModal('edit-token-modal');
     }
 
-    /**
-     * Salvar alteraes do token
-     */
     async saveTokenChanges() {
-const form = document.getElementById('edt-token-form');
-        const tokend = form.dataset.tokend;
-        
+        const form = document.getElementById('edit-token-form');
+        const tokenId = form.dataset.tokenId;
         const updatedData = {
-name: document.getElementById('edt-token-name').value,
-descrpton: document.getElementById('edt-token-descrpton').value,
-webste: document.getElementById('edt-token-webste').value
+            name: document.getElementById('edit-token-name').value,
+            description: document.getElementById('edit-token-description').value,
+            website: document.getElementById('edit-token-website').value
         };
-
         try {
-            // Smular salvamento (substtur por AP real)
-            await new Promise(resolve => setTmeout(resolve, 500));
-            
-            // Atualzar token local
-            const tokenndex = this.tokens.fndndex(t => t.d === tokend);
-            if (tokenndex !== -1) {
-                this.tokens[tokenndex] = { ...this.tokens[tokenndex], ...updatedData };
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const tokenIndex = this.tokens.findIndex(t => t.id === tokenId);
+            if (tokenIndex !== -1) {
+                this.tokens[tokenIndex] = { ...this.tokens[tokenIndex], ...updatedData };
             }
-
-            this.flterAndRenderTokens();
-            this.closeModal('edt-token-modal');
-            this.showSuccess('Token atualzado com sucesso!');
-            
+            this.filterAndRenderTokens();
+            this.closeModal('edit-token-modal');
+            this.showSuccess('Token atualizado com sucesso!');
         } catch (error) {
-            console.error(' Erro ao salvar token:', error);
-            this.showError('Erro ao salvar alteraes');
+            this.showError('Erro ao salvar alterações');
         }
     }
 
-    /**
-     * Copar endereo do contrato
-     */
     async copyAddress(address) {
         try {
-            await navgator.clpboard.wrteText(address);
-            this.showSuccess('Endereo copado!');
+            await navigator.clipboard.writeText(address);
+            this.showSuccess('Endereço copiado!');
         } catch (error) {
-            console.error(' Erro ao copar:', error);
-            this.showError('Erro ao copar endereo');
+            this.showError('Erro ao copiar endereço');
         }
     }
 
-    /**
-     * Atualzar lsta de tokens
-     */
     async refreshTokens() {
         await this.loadTokens();
-        this.flterAndRenderTokens();
-        this.showSuccess('Tokens atualzados!');
+        this.filterAndRenderTokens();
+        this.showSuccess('Tokens atualizados!');
     }
 
-    /**
-     * Defnr estado de loadng
-     */
-    setLoadngState(loadng) {
-        this.sLoadng = loadng;
-const loadngEl = document.getElementById('tokens-loadng');
-const grdEl = document.getElementById('tokens-grd');
-        
-        if (loadngEl) {
-            loadngEl.style.dsplay = loadng ? 'block' : 'none';
-        }
-        if (grdEl) {
-            grdEl.style.dsplay = loadng ? 'none' : 'grd';
-        }
+    setLoadingState(loading) {
+        this.isLoading = loading;
+        const loadingEl = document.getElementById('tokens-loading');
+        const gridEl = document.getElementById('tokens-grid');
+        if (loadingEl) loadingEl.style.display = loading ? 'block' : 'none';
+        if (gridEl) gridEl.style.display = loading ? 'none' : 'grid';
     }
 
-    /**
-     * Fechar modal
-     */
-    closeModal(modald) {
-const modal = document.getElementById(modald);
-        if (modal) {
-            modal.style.dsplay = 'none';
+    showModal(modalId) {
+        const el = document.getElementById(modalId);
+        if (!el) return;
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            let instance = bootstrap.Modal.getInstance(el);
+            if (!instance) instance = new bootstrap.Modal(el, { backdrop: 'static' });
+            instance.show();
+        } else {
+            el.style.display = 'flex';
         }
     }
 
-    /**
-     * Utltros
-     */
+    closeModal(modalId) {
+        const el = document.getElementById(modalId);
+        if (!el) return;
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const instance = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+            instance.hide();
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
     formatNumber(num) {
-        return new ntl.NumberFormat('pt-BR').format(num);
+        return new Intl.NumberFormat('pt-BR').format(num);
     }
 
-    formatDate(dateStrng) {
-        return new Date(dateStrng).toLocaleDateStrng('pt-BR');
+    formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('pt-BR');
     }
 
     showSuccess(message) {
-        // mplementar notfcao de sucesso
-        console.log('', message);
+        console.log('Sucesso:', message);
     }
 
     showError(message) {
-        // mplementar notfcao de erro
-        console.error('', message);
+        console.error('Erro:', message);
     }
 }
 
-// Funes globas para compatbldade
 window.refreshTokens = () => {
     if (window.tokenManager) {
         window.tokenManager.refreshTokens();
     }
 };
 
-window.closeModal = (modald) => {
+window.closeModal = (modalId) => {
     if (window.tokenManager) {
-        window.tokenManager.closeModal(modald);
+        window.tokenManager.closeModal(modalId);
     }
 };
 
-// ncalzar quando DOM estver pronto
 document.addEventListener('DOMContentLoaded', () => {
     window.tokenManager = new TokenManager();
 });
 
-console.log(' Token Manager Module carregado');
+console.log('Token Manager Module carregado');
 

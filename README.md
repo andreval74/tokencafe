@@ -6,6 +6,13 @@
 
 TokenCafe é uma plataforma Web3 completa que democratiza a criação, gestão e negociação de tokens sem conhecimento técnico. Nossa missão é tornar a tokenização acessível para todos os brasileiros através de uma interface simples, segura e em português.
 
+## 🧭 Diretrizes para IA/Copilot
+
+- Consulte sempre `agents.json` e `.github/copilot-instructions.md` ao contribuir ou gerar código.
+- Todas as mensagens e commits devem ser em **português do Brasil**.
+- Use exclusivamente módulos unificados em `js/shared/` e evite scripts inline.
+- CSS deve ficar somente em `css/styles.css` (sem arquivos extras).
+
 ## ✨ Funcionalidades Principais
 
 ### 🚀 Criação No-Code de Tokens

@@ -34,6 +34,16 @@ export class NetworkManager {
         // Configurações
         this.debug = false;
         this.useRpcsSource = true;
+        // Desativar chamada ao backend em ambiente estático local (ex.: http.server:3000)
+        try {
+            const isLocalhost = typeof location !== 'undefined' && location.hostname === 'localhost';
+            const isStaticPort = typeof location !== 'undefined' && location.port && location.port !== '3001';
+            if (isLocalhost && isStaticPort) {
+                this.useRpcsSource = false;
+            }
+        } catch (e) {
+            // Ignorar detecção de ambiente se location não estiver disponível
+        }
         
         // Redes populares hardcoded para fallback RÁPIDO
         this.popularNetworks = [

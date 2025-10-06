@@ -4,10 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Analytics Reports - TokenCafe</title>
+    <meta name="description" content="Acompanhe o desempenho dos seus tokens e widgets com gráficos e tabelas.">
+    <meta name="keywords" content="analytics, tokens, gráficos, dashboards, Web3">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- TokenCafe Global CSS -->
     <link rel="stylesheet" href="../../../css/styles.css" />
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="bg-page-black">
     <!-- Header padrão com status de carteira (componente) -->
     <div data-component="tools-header.html"
          data-icon="fa-chart-line"
@@ -15,8 +31,11 @@
          data-title="Analytics Reports"
          data-subtitle="Acompanhe o desempenho dos seus tokens">
     </div>
-    <!-- Módulo: Analytics e Relatórios -->
-    <div class="module-container" id="analytics-module">
+    <!-- Módulo: Analytics e Relatórios (Layout padrão) -->
+    <div class="container-fluid py-3 md-1">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div id="analytics-module">
         
         <!-- Header do Módulo -->
         <div class="module-header">
@@ -173,11 +192,14 @@
         </div>
 
         <!-- Loading State -->
-        <div class="loading-state" id="analytics-loading" style="display: none;">
-            <div class="spinner"></div>
-            <p>Carregando analytics...</p>
+        <div class="loading-state text-center py-4" id="analytics-loading" style="display: none;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-secondary mt-2">Carregando analytics...</p>
         </div>
 
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal: Detalhes Avançados -->
@@ -195,6 +217,9 @@
 
     <!-- Base System para carregamento de componentes -->
     <script type="module" src="../../../js/shared/base-system.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Módulo de Analytics -->
     <script type="module" src="../../../js/modules/analytics/analytics-reports.js?v=2"></script>
 </body>
 </html>
