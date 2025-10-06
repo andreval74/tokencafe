@@ -1,0 +1,150 @@
+<!--
+================================================================================
+TOOLS HEADER - COMPONENTE PADRÃO PARA PÁGINAS DE FERRAMENTAS
+================================================================================
+Componente simples de brand (ícone, título, subtítulo) sem script na página receptora.
+Uso: <div data-component="tools-header.html" data-icon="..." data-title="..." data-subtitle="..."></div>
+As variáveis são declaradas via atributos data- no elemento onde o componente é incluído.
+================================================================================
+-->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-page-black">
+  <div class="container">
+    <div class="tc-tools-header navbar-brand d-flex align-items-center">
+      <a href="/pages/tools.html" class="d-flex align-items-center text-decoration-none">
+        <!-- Logo fixa do TokenCafe -->
+        <img id="tools-header-logo" src="/imgs/tkncafe-semfundo.png" alt="TokenCafe" class="logo-small me-3" />
+      </a>
+      <div>
+        <h3 class="mb-0 text-white">
+          <!-- Ícone dinâmico por página -->
+          <i id="tools-system-icon" class="fas me-2" aria-label=""></i>
+          <span id="tools-header-title">TokenCafe Tools</span>
+        </h3>
+        <p class="text-white-50 mb-0 small" id="tools-header-subtitle">Hub Central de Ferramentas Web3</p>
+      </div>
+    </div>
+
+    <!-- Status da Carteira (padrão minimalista) -->
+    <div class="d-flex align-items-center">
+      <!-- Mostra somente o número da carteira em verde quando conectado -->
+      <span id="wallet-address" class="badge bg-success me-2 d-none">
+        <i class="fas fa-check me-1"></i>
+        <span id="wallet-address-text"></span>
+      </span>
+
+      <!-- Quando desconectado, mostra "Conectar" no lugar -->
+      <button id="btn-connect" class="badge bg-warning me-2">
+        <i class="fas fa-wallet me-1"></i>
+        Conectar
+      </button>
+
+      <!-- botão de sair -->
+      <button id="btn-logout" class="badge bg-danger me-2">
+        <i class="fas fa-sign-out-alt me-1"></i>
+        Sair
+      </button>
+    </div>
+  </div>
+</nav>
+    <div class="section-divider"></div>
+
+<script>
+  // Preenche ícone (dinâmico), título e subtítulo lendo os atributos data- do container do componente
+  (function () {
+    try {
+      const containers = document.querySelectorAll('[data-component="tools-header.html"]');
+      containers.forEach(el => {
+        const iconClass = el.dataset.icon; // ex: 'fa-wallet'
+        const iconAlt = el.dataset.iconAlt || '';
+        const title = el.dataset.title;
+        const subtitle = el.dataset.subtitle;
+
+        // Logo fixa
+        const logoEl = el.querySelector('#tools-header-logo');
+        // Ícone dinâmico
+        const sysIconEl = el.querySelector('#tools-system-icon');
+        const titleEl = el.querySelector('#tools-header-title');
+        const subtitleEl = el.querySelector('#tools-header-subtitle');
+        
+        // Logo: permanece fixa, não depende de data-attributes
+        if (logoEl && !logoEl.src) {
+          logoEl.src = '../imgs/tkncafe-semfundo.png';
+        }
+        if (logoEl && !logoEl.alt) {
+          logoEl.alt = 'TokenCafe';
+        }
+
+        // Ícone dinâmico (FontAwesome)
+        if (sysIconEl && iconClass) {
+          sysIconEl.className = `fas ${iconClass} me-2`;
+          if (iconAlt) sysIconEl.setAttribute('aria-label', iconAlt);
+        }
+
+        if (titleEl && title) titleEl.textContent = title;
+        if (subtitleEl && subtitle) subtitleEl.textContent = subtitle;
+
+        // ----- Integração de carteira no header -----
+        const addrEl = el.querySelector('#wallet-address');
+        const addrText = el.querySelector('#wallet-address-text');
+        const btnConnect = el.querySelector('#btn-connect');
+        const btnLogout = el.querySelector('#btn-logout');
+
+        function updateStatus(account) {
+          if (!addrEl || !btnConnect) return;
+          if (account) {
+            if (addrText) addrText.textContent = `${account.slice(0, 6)}...${account.slice(-4)}`;
+            addrEl.classList.remove('d-none');
+            btnConnect.classList.add('d-none');
+          } else {
+            addrEl.classList.add('d-none');
+            if (addrText) addrText.textContent = '';
+            btnConnect.classList.remove('d-none');
+          }
+        }
+
+        // Estado inicial
+        try {
+          const initialAccount = window.walletConnector?.getStatus?.()?.account;
+          if (initialAccount) updateStatus(initialAccount);
+        } catch (e) {
+          /* ignore */
+        }
+
+        // Eventos globais de carteira
+        document.addEventListener('wallet:connected', (ev) => {
+          const account = ev.detail?.account || window.walletConnector?.getStatus?.()?.account;
+          updateStatus(account);
+        });
+        document.addEventListener('wallet:disconnected', () => updateStatus(null));
+
+        // Clique de conectar
+        if (btnConnect) {
+          btnConnect.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+              if (typeof window.connectWallet === 'function') {
+                await window.connectWallet();
+              } else {
+                await window.walletConnector?.connect?.('metamask');
+              }
+            } catch (err) {
+              console.warn('tools-header: falha ao conectar carteira', err);
+            }
+          });
+        }
+
+        // Clique de sair e volta para index.html principal
+        if (btnLogout) {
+          btnLogout.addEventListener('click', async () => {
+            try { await window.walletConnector?.disconnect?.(); } catch (e) { /* ignore */ }
+            updateStatus(null);
+            try { window.location.href = '/pages/index.html'; } catch (e) { /* ignore */ }
+          });
+        }
+      });
+    } catch (e) {
+      console.warn('tools-header: falha ao popular variáveis', e);
+    }
+  })();
+</script>

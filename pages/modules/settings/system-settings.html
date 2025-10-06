@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="../../../css/styles.css" />
 </head>
 <body>
+    <!-- Header padrão com status de carteira (componente) -->
+    <div data-component="tools-header.html"
+         data-icon="fa-cog"
+         data-icon-alt="Configurações"
+         data-title="Configurações do Sistema"
+         data-subtitle="Gerencie suas preferências do TokenCafe">
+    </div>
+    <!-- Base System para carregamento de componentes -->
+    <script type="module" src="../../../js/shared/base-system.js"></script>
+
     <div class="settings-container">
         <!-- Header das Configurações -->
         <div class="settings-header">
@@ -516,6 +526,6 @@
         </div>
     </div>
 
-    <script src="../../../js/modules/settings/system-settings.js"></script>
+    <script src="../../../js/modules/settings/system-settings.js?v=2"></script>
 </body>
 </html>

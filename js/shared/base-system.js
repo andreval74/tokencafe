@@ -72,6 +72,28 @@ class BaseSystem {
                 loader.style.display = show ? 'flex' : 'none';
             }
         };
+
+        // Compatibilidade: esconder loading (alias para showLoading(false))
+        window.hideLoading = () => {
+            try {
+                // Suporte a overlay usado em alguns layouts
+                const overlay = window.$ ? $("#loading-overlay") : document.getElementById('loading-overlay');
+                if (overlay && overlay.remove) overlay.remove();
+            } catch {}
+            window.showLoading(false);
+        };
+
+        // Compatibilidade: formatar endereço de carteira
+        const utilsInstance = new SharedUtilities();
+        window.formatAddress = (address, startChars = 6, endChars = 4) => {
+            try {
+                return utilsInstance.formatAddress(address, startChars, endChars);
+            } catch {
+                if (!address) return '';
+                if (String(address).length <= startChars + endChars) return address;
+                return `${String(address).slice(0, startChars)}...${String(address).slice(-endChars)}`;
+            }
+        };
         
         // Função para scroll to top
         window.scrollToTop = () => {

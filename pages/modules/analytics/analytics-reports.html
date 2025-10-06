@@ -8,6 +8,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Header padrão com status de carteira (componente) -->
+    <div data-component="tools-header.html"
+         data-icon="fa-chart-line"
+         data-icon-alt="Analytics"
+         data-title="Analytics Reports"
+         data-subtitle="Acompanhe o desempenho dos seus tokens">
+    </div>
     <!-- Módulo: Analytics e Relatórios -->
     <div class="module-container" id="analytics-module">
         
@@ -186,6 +193,8 @@
         </div>
     </div>
 
+    <!-- Base System para carregamento de componentes -->
+    <script type="module" src="../../../js/shared/base-system.js"></script>
     <script src="../../../js/modules/analytics/analytics-reports.js"></script>
 </body>
 </html>

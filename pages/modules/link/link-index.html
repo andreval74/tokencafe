@@ -30,47 +30,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 
-<body class="bg-dark text-white">
-    <!-- ============================================================================
-         NAVBAR TOKENCAFE PADRÃO
-         ========================================================================== -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary">
-        <div class="container-fluid">
-            <!-- Brand -->
-            <a class="navbar-brand d-flex align-items-center" href="../../../index.html">
-                <img src="../../../imgs/tkncafe32x32.png" alt="TokenCafe" width="32" height="32" class="me-2">
-                <span class="fw-bold text-tokencafe">TokenCafe</span>
-            </a>
-            
-            <!-- Page Title -->
-            <div class="navbar-text d-flex align-items-center ms-3">
-                <i class="bi bi-link-45deg me-2 text-tokencafe"></i>
-                <span class="fw-semibold">Gerador de Links</span>
-            </div>
-            
-            <!-- Wallet Status -->
-            <div class="d-flex align-items-center ms-auto">
-                <!-- Wallet connection status -->
-                <div id="header-wallet-status" class="d-none me-3">
-                    <span class="text-success me-2">
-                        <i class="bi bi-check-circle"></i>
-                    </span>
-                    <span id="header-wallet-address" class="small font-monospace"></span>
-                </div>
-                
-                <!-- Connect wallet button -->
-                <button id="header-connect-btn" class="btn btn-outline-tokencafe btn-sm">
-                    <i class="bi bi-wallet2 me-2"></i>
-                    Conectar Carteira
-                </button>
-            </div>
-        </div>
-    </nav>
-    
+<body class="bg-page-black">
+    <!-- Header padrão com status de carteira (componente) -->
+    <div data-component="tools-header.html"
+         data-icon="fa-link"
+         data-icon-alt="Gerador de Links"
+         data-title="Gerador de Links Web3"
+         data-subtitle="Crie e compartilhe links compatíveis">
+    </div>
+       
     <!-- ============================================================================
          CONTAINER PRINCIPAL - GERADOR DE LINKS
          ========================================================================== -->
-    <div class="container-fluid py-4">
+    <div class="container py-4 bg-page-black min-vh-100">
         <div class="row justify-content-center">
             <div class="col-lg-8 col-xl-6">
                 
@@ -314,8 +286,12 @@
                 window.networkManager.setDebug(true);
             }
             
-            // Inicializar gerador de links
-            initLinkGenerator();
+            // Inicializar gerador de links (acessar via window em módulo)
+            if (window.initLinkGenerator) {
+              window.initLinkGenerator();
+            } else {
+              console.warn('initLinkGenerator indisponível no momento');
+            }
         });
     </script>
         
@@ -334,10 +310,7 @@
          * Configurar event listeners
          */
         function setupEventListeners() {
-            // Header - conectar carteira
-            document.getElementById('header-connect-btn')?.addEventListener('click', async () => {
-                await connectWallet();
-            });
+            // Conexão de carteira: centralizada no componente tools-header
             
             // Busca de rede
             const networkSearch = document.getElementById('networkSearch');
@@ -366,9 +339,7 @@
             // Limpar tudo
             document.getElementById('btnClearAll')?.addEventListener('click', clearAll);
             
-            // Listeners de eventos de carteira
-            document.addEventListener('wallet:connected', onWalletConnected);
-            document.addEventListener('wallet:disconnected', onWalletDisconnected);
+            // Eventos de carteira: tratados globalmente por PageManager e tools-header
         }
         
         /**
@@ -708,48 +679,7 @@
             showToast('Formulário limpo!', 'info');
         }
         
-        /**
-         * Event handlers de carteira
-         */
-        function onWalletConnected(event) {
-            const { account, wallet, network } = event.detail;
-            updateWalletUI({ account, wallet, network });
-        }
-        
-        function onWalletDisconnected() {
-            resetWalletUI();
-        }
-        
-        /**
-         * Atualizar UI da carteira
-         */
-        function updateWalletUI(result) {
-            const { account } = result;
-            const shortAddress = formatAddress(account);
-            
-            // Atualizar status no header
-            document.getElementById('header-wallet-address').textContent = shortAddress;
-            document.getElementById('header-wallet-status').classList.remove('d-none');
-            document.getElementById('header-connect-btn').classList.add('d-none');
-        }
-        
-        /**
-         * Resetar UI da carteira
-         */
-        function resetWalletUI() {
-            document.getElementById('header-wallet-status').classList.add('d-none');
-            document.getElementById('header-connect-btn').classList.remove('d-none');
-        }
-        
-        /**
-         * Verificar conexão existente
-         */
-        function checkExistingConnection() {
-            if (walletConnector.isConnected) {
-                const status = walletConnector.getStatus();
-                updateWalletUI(status);
-            }
-        }
+        // Handlers de carteira: centralizados no componente tools-header
         
         /**
          * Mostrar próxima seção
@@ -831,3 +761,5 @@
 
 </body>
 </html>
+<!-- Base System para carregamento de componentes -->
+<script type="module" src="../../../js/shared/base-system.js"></script>

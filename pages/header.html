@@ -7,18 +7,14 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 ================================================================================
 -->
 <header>
-  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-page-black">
     <div class="container">
       <!-- Brand TokenCafe -->
       <a class="navbar-brand d-flex align-items-center" href="index.html">
-        <img src="../../../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 tokencafe-logo" style="
-            width: 48px;
-            height: 48px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-          " />
+        <img src="../../../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 tokencafe-logo logo-standard" />
         <div>
           <span class="fw-bold fs-4 text-white">Token<span class="text-warning">Cafe</span></span>
-          <small class="d-block text-white-50" style="line-height: 1; margin-top: -2px; font-size: 0.75rem">
+          <small class="d-block text-white-50 text-small">
             Plataforma Web3
           </small>
         </div>
@@ -68,23 +64,11 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 
         <!-- Controls -->
         <div class="d-flex align-items-center gap-2">
-          <button id="theme-toggle-btn" class="btn btn-sm" type="button" title="Alternar Tema" style="
-              background: transparent;
-              border: none;
-              color: var(--bs-warning);
-              transition: all 0.3s ease;
-            " onmouseover="this.style.transform='scale(1.1)'; this.style.color='#fbbf24'"
-            onmouseout="this.style.transform='scale(1)'; this.style.color='var(--bs-warning)'">
+          <button id="theme-toggle-btn" class="btn btn-sm btn-transparent-warning" type="button" title="Alternar Tema">
             <i class="fas fa-sun" id="theme-icon"></i>
           </button>
 
-          <button id="language-toggle-btn" class="btn btn-sm" type="button" title="Mudar Idioma" style="
-              background: transparent;
-              border: none;
-              color: var(--bs-info);
-              transition: all 0.3s ease;
-            " onmouseover="this.style.transform='scale(1.1)'; this.style.color='#60a5fa'"
-            onmouseout="this.style.transform='scale(1)'; this.style.color='var(--bs-info)'">
+          <button id="language-toggle-btn" class="btn btn-sm btn-transparent-info" type="button" title="Mudar Idioma">
             <i class="fas fa-globe" id="language-icon"></i>
           </button>
         </div>

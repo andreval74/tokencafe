@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ================================================================================
  * TEMPLATE SYSTEM - TOKENCAFE
  * ================================================================================
@@ -216,11 +216,11 @@ class TemplateSystem {
      */
     async checkDependences(dependences) {
         for (const dep of dependences) {
-            if (!wndow[dep] && !wndow.tokencafeLoader?.sSystemLoaded(dep)) {
+            if (!window[dep] && !window.tokencafeLoader?.sSystemLoaded(dep)) {
                 console.warn(` Dependnca ${dep} no encontrada, tentando carregar...`);
                 
-                if (wndow.tokencafeLoader) {
-                    await wndow.tokencafeLoader.loadAddtonalSystem(dep);
+                if (window.tokencafeLoader) {
+                    await window.tokencafeLoader.loadAddtonalSystem(dep);
                 } else {
                     throw new Error(`Dependnca ${dep} no dsponvel`);
                 }
@@ -235,7 +235,7 @@ class TemplateSystem {
         const styled = `component-styles-${stylesPath.replace(/[^a-zA-Z0-9]/g, '-')}`;
         
         // Verfcar se j fo carregado
-        if (document.getElementByd(styled)) {
+        if (document.getElementById(styled)) {
             return;
         }
         
@@ -306,7 +306,7 @@ class TemplateSystem {
         // Templates do dashboard esto na pasta pages/modules/dashboard
         if (templateFle.ncludes('dashboard-')) {
             // Verfcar se estamos acessando de dentro da pasta dashboard
-            const currentPath = wndow.locaton.pathname;
+            const currentPath = window.location.pathname;
             if (currentPath.ncludes('/pages/modules/dashboard/')) {
                 const dashboardPath = `${templateFle}`;
                 console.log(` Usando camnho local do dashboard: ${dashboardPath}`);
@@ -322,7 +322,7 @@ class TemplateSystem {
         if (templateFle.endsWth('.html')) {
             // Verfcar se exste na pasta pages prmero
             if (templateFle.ncludes('dash-') || templateFle.ncludes('dashboard-')) {
-                const currentPath = wndow.locaton.pathname;
+                const currentPath = window.location.pathname;
                 if (currentPath.ncludes('/pages/modules/dashboard/')) {
                     const dashboardPath = `${templateFle}`;
                     console.log(` Usando camnho local do dashboard: ${dashboardPath}`);
@@ -663,16 +663,16 @@ function getTemplateCategory(templateName) {
 // ================================================================================
 
 // Expor globalmente
-wndow.TemplateSystem = TemplateSystem;
-wndow.extractTemplateMetadata = extractTemplateMetadata;
-wndow.getTemplateType = getTemplateType;
-wndow.getTemplateCategory = getTemplateCategory;
+window.TemplateSystem = TemplateSystem;
+window.extractTemplateMetadata = extractTemplateMetadata;
+window.getTemplateType = getTemplateType;
+window.getTemplateCategory = getTemplateCategory;
 
 // Crar nstnca global quando DOM estver pronto
 function ntalzeTemplateSystem() {
-    if (!wndow.tokencafeTemplates) {
+    if (!window.tokencafeTemplates) {
         console.log(' inicializando Template System...');
-        wndow.tokencafeTemplates = new TemplateSystem();
+        window.tokencafeTemplates = new TemplateSystem();
         console.log(' Template System inicializado');
     }
 }

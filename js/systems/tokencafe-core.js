@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ===================================            // Detectar ambente
             this.detectEnvironment();
             
@@ -93,14 +93,14 @@ class TokenCafeCore {
      */
     detectEnvironment() {
         this.envronment = {
-            sDevelopment: wndow.locaton.hostname === 'localhost' || wndow.locaton.hostname === '127.0.0.1',
+            sDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
             sProducton: !this.sDevelopment,
-            sHTTPS: wndow.locaton.protocol === 'https:',
-            userAgent: navgator.userAgent,
+            sHTTPS: window.location.protocol === 'https:',
+            userAgent: navigator.userAgent,
             screen: {
-                wdth: screen.wdth,
-                heght: screen.heght,
-                sMoble: wndow.nnerWdth < 768
+                wdth: screen.width,
+                heght: screen.height,
+                sMoble: window.innerWidth < 768
             }
         };
         
@@ -130,31 +130,31 @@ class TokenCafeCore {
      * Confgurar Event Bus global
      */
     setupEventBus() {
-        if (!wndow.TokenCafeEvents) {
-            wndow.TokenCafeEvents = new EventTarget();
+        if (!window.TokenCafeEvents) {
+            window.TokenCafeEvents = new EventTarget();
         }
-        this.eventBus = wndow.TokenCafeEvents;
+        this.eventBus = window.TokenCafeEvents;
     }    /**
      * Confgurar lsteners globas
      */
     setupGlobalLsteners() {
         // Erros no capturados
-        wndow.addEventListener('error', (error) => {
+        window.addEventListener('error', (error) => {
             this.handleGlobalError(error);
         });
         
         // Mudanas de vsbldade da pgna
-        document.addEventListener('vsbltychange', () => {
+        document.addEventListener('visibilitychange', () => {
             this.handleVsbltyChange();
         });
         
         // Mudanas de tamanho da janela
-        wndow.addEventListener('resze', this.debounce(() => {
+        window.addEventListener('resize', this.debounce(() => {
             this.handleWndowResze();
         }, 250));
         
         // Antes de sar da pgna
-        wndow.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', () => {
             this.handleBeforeUnload();
         });
     }
@@ -164,14 +164,14 @@ class TokenCafeCore {
      */
     dspatchEvent(eventName, data = null) {
         const event = new CustomEvent(eventName, { 
-            detal: data 
+            detail: data 
         });
         
         // Dsparar no event bus nterno
-        this.eventBus.dspatchEvent(event);
+        this.eventBus.dispatchEvent(event);
         
-        // Dsparar no wndow para compatbldade
-        wndow.dspatchEvent(event);
+        // Dsparar no window para compatbldade
+        window.dispatchEvent(event);
         
         console.log(` Evento dsparado: ${eventName}`, data);
     }
@@ -237,15 +237,15 @@ class TokenCafeCore {
         
         const element = document.createElement('dv');
         element.className = `alert alert-${this.mapNotfcatonType(notfcaton.type)} alert-dsmssble fade show`;
-        element.nnerHTML = `
+        element.innerHTML = `
             ${notfcaton.message}
-            <button type="button" class="btn-close" data-bs-dsmss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
         
-        contaner.appendChld(element);
+        contaner.appendChild(element);
         
         // Auto-remover aps durao
-        setTmeout(() => {
+        setTimeout(() => {
             if (element.parentNode) {
                 element.remove();
             }
@@ -256,14 +256,14 @@ class TokenCafeCore {
      * Obter ou crar contaner de notfcaes
      */
     getOrCreateNotfcatonContaner() {
-        let contaner = document.getElementByd('tokencafe-notfcatons');
+        let contaner = document.getElementById('tokencafe-notfcatons');
         
         if (!contaner) {
-            contaner = document.createElement('dv');
-            contaner.d = 'tokencafe-notfcatons';
-            contaner.className = 'poston-fxed top-0 end-0 p-3';
-            contaner.style.zndex = '9999';
-            document.body.appendChld(contaner);
+            contaner = document.createElement('div');
+            contaner.id = 'tokencafe-notfcatons';
+            contaner.className = 'position-fixed top-0 end-0 p-3';
+            contaner.style.zIndex = '9999';
+            document.body.appendChild(contaner);
         }
         
         return contaner;
@@ -276,10 +276,10 @@ class TokenCafeCore {
         const mappng = {
             'success': 'success',
             'error': 'danger',
-            'warnng': 'warnng',
-            'nfo': 'nfo'
+            'warnng': 'warning',
+            'nfo': 'info'
         };
-        return mappng[type] || 'nfo';
+        return mappng[type] || 'info';
     }
 
     /**
@@ -288,7 +288,7 @@ class TokenCafeCore {
     saveLocal(key, data) {
         try {
             const storageKey = `tokencafe_${key}`;
-            localStorage.settem(storageKey, JSON.strngfy({
+            localStorage.setItem(storageKey, JSON.stringify({
                 data,
                 tmestamp: Date.now(),
                 version: this.version
@@ -306,7 +306,7 @@ class TokenCafeCore {
     loadLocal(key) {
         try {
             const storageKey = `tokencafe_${key}`;
-            const stored = localStorage.gettem(storageKey);
+            const stored = localStorage.getItem(storageKey);
             
             if (!stored) return null;
             
@@ -314,7 +314,7 @@ class TokenCafeCore {
             
             // Verfcar se no exprou
             if (Date.now() - parsed.tmestamp > this.confg.cacheTmeout) {
-                localStorage.removetem(storageKey);
+                localStorage.removeItem(storageKey);
                 return null;
             }
             

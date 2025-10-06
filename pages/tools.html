@@ -6,66 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TokenCafe Tools - Hub de Ferramentas</title>
     <meta name="description" content="Hub central de ferramentas TokenCafe - Acesse todas as funcionalidades Web3" />
-    
+
     <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="32x32" href="../imgs/tkncafe32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="../imgs/tkncafe16x16.png" />
-    
+
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-    
+
     <!-- Custom CSS -->
-    <link href="../css/styles.css" rel="stylesheet" />
+    <link href="/css/styles.css?v=5" rel="stylesheet" />
+    <link href="/css/utility-classes.css?v=5" rel="stylesheet" />
 </head>
 
-<body>
+<body class="bg-page-black">
     <!-- Header Unificado -->
-    <nav class="navbar navbar-expand-lg navbar-dark" 
-         style="background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b); border-bottom: 2px solid var(--tokencafe-primary-light);">
-        <div class="container-fluid">
-            <!-- Logo e Título -->
-            <div class="navbar-brand d-flex align-items-center">
-                <img src="../imgs/tkncafe-semfundo.png" alt="TokenCafe" style="width: 40px; height: 40px; margin-right: 15px;" />
-                <div>
-                    <h3 class="mb-0 text-white">
-                        <i class="fas fa-tools me-2"></i>
-                        TokenCafe Tools
-                    </h3>
-                    <p class="text-white-50 mb-0 small">
-                        Hub Central de Ferramentas Web3
-                    </p>
-                </div>
-            </div>
+     <div data-component="tools-header.html" 
+          data-icon="fa-tools"
+          data-icon-alt="TokenCafe"
+          data-title="TokenCafe Tools"
+          data-subtitle="Hub Central de Ferramentas Web3">
+     </div>
 
-            <!-- Status da Carteira -->
-            <div class="d-flex align-items-center">
-                <div id="wallet-status" class="me-3">
-                    <span class="badge bg-secondary">
-                        <i class="fas fa-wallet me-1"></i>
-                        <span id="wallet-status-text">Desconectado</span>
-                    </span>
-                </div>
-                <button class="btn btn-connect-wallet btn-light btn-sm">
-                    <i class="fas fa-plug me-1"></i>
-                    Conectar Carteira
-                </button>
-                <button id="btn-logout" class="btn btn-outline-danger btn-sm ms-2">
-                    <i class="fas fa-sign-out-alt me-1"></i>
-                    Sair
-                </button>
-            </div>
-        </div>
-    </nav>
-    <!-- Main Content -->
-    <div class="container-fluid py-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh;">
+     <!-- Main Content -->
+    <div class="container py-4 bg-page-black min-vh-100">
         <div class="row">
             <div class="col-12">
                 <!-- Grid de Ferramentas - Tiles minimalistas -->
                 <div class="tool-tiles">
                     <!-- Wallet Manager -->
-                    <a href="modules/wallet/wallet-index.html" class="tool-tile tool-link" aria-label="Abrir Wallet Manager">
+                    <a href="modules/wallet/wallet-index.html" class="tool-tile tool-link"
+                        aria-label="Abrir Wallet Manager">
                         <span class="tool-tile-status badge bg-success">Finalizado</span>
                         <div class="tool-tile-icon"><i class="fas fa-wallet"></i></div>
                         <div class="tool-tile-title">Wallet Manager</div>
@@ -81,7 +54,8 @@
                     </a>
 
                     <!-- Link Generator -->
-                    <a href="modules/link/link-index.html" class="tool-tile tool-link" aria-label="Abrir Link Generator">
+                    <a href="modules/link/link-index.html" class="tool-tile tool-link"
+                        aria-label="Abrir Link Generator">
                         <span class="tool-tile-status badge bg-success">Finalizado</span>
                         <div class="tool-tile-icon"><i class="fas fa-link"></i></div>
                         <div class="tool-tile-title">Link Generator</div>
@@ -89,7 +63,8 @@
                     </a>
 
                     <!-- Token Manager -->
-                    <a href="modules/tokens/token-manager.html" class="tool-tile tool-link" aria-label="Abrir Token Manager">
+                    <a href="modules/tokens/token-manager.html" class="tool-tile tool-link"
+                        aria-label="Abrir Token Manager">
                         <span class="tool-tile-status badge bg-warning">Em Breve</span>
                         <div class="tool-tile-icon"><i class="fas fa-coins"></i></div>
                         <div class="tool-tile-title">Token Manager</div>
@@ -97,16 +72,35 @@
                     </a>
 
                     <!-- Analytics -->
-                    <a href="modules/analytics/analytics-reports.html" class="tool-tile tool-link" aria-label="Abrir Analytics">
+                    <a href="modules/analytics/analytics-reports.html" class="tool-tile tool-link"
+                        aria-label="Abrir Analytics">
                         <span class="tool-tile-status badge bg-warning">Em Breve</span>
                         <div class="tool-tile-icon"><i class="fas fa-chart-line"></i></div>
                         <div class="tool-tile-title">Analytics</div>
                         <div class="tool-tile-desc">Relatórios e métricas</div>
                     </a>
 
+                    <!-- Template Gallery -->
+                    <a href="modules/templates/template-gallery.html" class="tool-tile tool-link"
+                        aria-label="Abrir Template Gallery">
+                        <span class="tool-tile-status badge bg-warning">Em Breve</span>
+                        <div class="tool-tile-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="tool-tile-title">Template Gallery</div>
+                        <div class="tool-tile-desc">Explore e gerencie templates</div>
+                    </a>
+
+                    <!-- System Settings -->
+                    <a href="modules/settings/system-settings.html" class="tool-tile tool-link"
+                        aria-label="Abrir System Settings">
+                        <span class="tool-tile-status badge bg-success">Finalizado</span>
+                        <div class="tool-tile-icon"><i class="fas fa-cog"></i></div>
+                        <div class="tool-tile-title">System Settings</div>
+                        <div class="tool-tile-desc">Preferências e configurações do sistema</div>
+                    </a>
+
                     <!-- Dashboard Completo (descontinuado) -->
                     <div class="tool-tile" aria-label="Dashboard Descontinuado" role="button" tabindex="0">
-                        <span class="tool-tile-status badge" style="background: var(--tokencafe-primary); color: #0a0a0a;">Premium</span>
+                        <span class="tool-tile-status badge badge-brand">Premium</span>
                         <div class="tool-tile-icon"><i class="fas fa-tachometer-alt"></i></div>
                         <div class="tool-tile-title">Dashboard</div>
                         <div class="tool-tile-desc">Sistema integrado</div>
@@ -120,13 +114,13 @@
                 <!-- Instruções e Status -->
                 <div class="row mt-5">
                     <div class="col-12">
-                        <div class="card border-0 shadow-lg" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+                        <div class="card border-0 shadow-lg card-glass">
                             <div class="card-body">
                                 <h5 class="text-white mb-4">
                                     <i class="fas fa-info-circle me-2 text-primary"></i>
                                     Status do Sistema Unificado
                                 </h5>
-                                
+
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <h6 class="text-success mb-3">
@@ -152,7 +146,7 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    
+
                                     <div class="col-md-6">
                                         <h6 class="text-warning mb-3">
                                             <i class="fas fa-clock me-2"></i>
@@ -178,18 +172,21 @@
                                         </ul>
                                     </div>
                                 </div>
-                                
-                                <div class="alert alert-primary mt-4 mb-0" style="background: rgba(13, 110, 253, 0.1); border: 1px solid rgba(13, 110, 253, 0.3);">
+
+                                <div class="alert alert-primary mt-4 mb-0 alert-soft-primary">
                                     <h6 class="text-primary mb-3">
                                         <i class="fas fa-rocket me-2"></i>
                                         Como Usar as Ferramentas
                                     </h6>
                                     <ul class="mb-0 text-light">
                                         <li>🔗 <strong>Conecte sua carteira</strong> usando o botão no cabeçalho</li>
-                                        <li>🎯 <strong>Ferramentas Migradas</strong> usam o sistema unificado (sem bugs)</li>
+                                        <li>🎯 <strong>Ferramentas Migradas</strong> usam o sistema unificado (sem bugs)
+                                        </li>
                                         <li>⚠️ <strong>Ferramentas "Em Breve"</strong> podem ter inconsistências</li>
-                                        <li>🎮 <strong>Teste cada ferramenta</strong> individualmente para validar funcionalidades</li>
-                                        <li>🔄 <strong>Sistema Independente</strong> - cada ferramenta funciona sozinha</li>
+                                        <li>🎮 <strong>Teste cada ferramenta</strong> individualmente para validar
+                                            funcionalidades</li>
+                                        <li>🔄 <strong>Sistema Independente</strong> - cada ferramenta funciona sozinha
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -202,57 +199,35 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- TokenCafe Unified System - Tools Hub -->
     <script type="module">
         import { PageManager } from '../js/shared/page-manager.js';
-        
+
         // Configurar como página de ferramentas
         window.createPageManager('tools');
-        
+
         // Sistema específico para tools
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('🛠️ TokenCafe Tools Hub - Sistema Unificado Carregado');
-            
+
             // Configurar links de ferramentas
             setupToolLinks();
-            
-            // Removido: modal de autenticação (não utilizar no momento)
-            
-            // Listeners de status da carteira
-            function updateStatus(account) {
-                const el = document.getElementById('wallet-status-text');
-                if (!el) return;
-                el.textContent = account ? `${account.slice(0,6)}...${account.slice(-4)}` : 'Desconectado';
-            }
-            document.addEventListener('wallet:connected', (ev) => {
-                const account = ev.detail?.account || window.walletConnector?.getStatus().account;
-                updateStatus(account);
-            });
-            document.addEventListener('wallet:disconnected', () => updateStatus(null));
-            
-            // Botão de sair
-            const btnLogout = document.getElementById('btn-logout');
-            if (btnLogout) {
-                btnLogout.addEventListener('click', async () => {
-                    try { await window.walletConnector?.disconnect(); } catch (e) {}
-                    updateStatus(null);
-                    window.location.href = 'index.html';
-                });
-            }
+
+            // Observação: handlers de carteira estão dentro do componente tools-header
         });
-        
+
         function setupToolLinks() {
             const toolLinks = document.querySelectorAll('.tool-link');
-            
+
             toolLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
+                link.addEventListener('click', function (e) {
                     console.log(`🔗 Navegando para: ${this.href}`);
                     // Link normal - deixar navegação padrão acontecer
                 });
             });
         }
-        
+
         // Removido setupWalletStatus: PageManager cuida da conexão e estados
     </script>
 

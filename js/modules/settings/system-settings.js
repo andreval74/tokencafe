@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Sstema de Confguraes do TokenCafe
  * Gerenca todas as confguraes e preferncas do sstema
  */
@@ -36,7 +36,7 @@ class SystemSettngs {
             showTooltps: true,
 
             // Aparnca
-            theme: 'lght',
+            theme: 'light',
             sdebarWdth: 280,
             compactMode: false,
             sdebarCollapse: false,
@@ -83,13 +83,13 @@ class SystemSettngs {
      */
     setupEventLsteners() {
         // Tabs de navegao
-        document.querySelectorAll('.settngs-tab').forEach(tab => {
-            tab.addEventListener('clck', (e) => this.swtchTab(e.target.dataset.tab));
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => this.swtchTab(e.target.dataset.tab));
         });
 
         // Botes prncpas
-        document.getElementByd('saveAllSettngsBtn')?.addEventListener('clck', () => this.saveAllSettngs());
-        document.getElementByd('resetSettngsBtn')?.addEventListener('clck', () => this.resetToDefaults());
+        document.getElementById('saveAllSettingsBtn')?.addEventListener('click', () => this.saveAllSettngs());
+        document.getElementById('resetSettingsBtn')?.addEventListener('click', () => this.resetToDefaults());
 
         // Confguraes geras
         this.setupGeneralLsteners();
@@ -120,7 +120,7 @@ class SystemSettngs {
         const generalnputs = ['language', 'tmezone', 'currency', 'autoSave', 'confrmActons', 'showTooltps'];
         
         generalnputs.forEach(d => {
-            const element = document.getElementByd(d);
+            const element = document.getElementById(d);
             if (element) {
                 element.addEventListener('change', () => this.updateSettng(d, this.getElementValue(element)));
             }
@@ -132,23 +132,28 @@ class SystemSettngs {
      */
     setupAppearanceLsteners() {
         // Seletor de tema
-        document.querySelectorAll('.theme-opton').forEach(opton => {
-            opton.addEventListener('clck', () => this.selectTheme(opton.dataset.theme));
+        document.querySelectorAll('.theme-option').forEach(opton => {
+            opton.addEventListener('click', () => this.selectTheme(opton.dataset.theme));
         });
 
         // Largura da sdebar
-        const sdebarWdth = document.getElementByd('sdebarWdth');
+        const sdebarWdth = document.getElementById('sidebarWidth');
+        sdebarWdth?.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value, 10);
+            document.querySelector('.range-value').textContent = `${value}px`;
+            this.updateSettng('sdebarWdth', value);
+        });
         if (sdebarWdth) {
-            sdebarWdth.addEventListener('nput', (e) => {
+            sdebarWdth.addEventListener('input', (e) => {
                 const value = e.target.value;
                 document.querySelector('.range-value').textContent = `${value}px`;
-                this.updateSettng('sdebarWdth', parsent(value));
+                this.updateSettng('sdebarWdth', parseInt(value, 10));
             });
         }
 
         // Checkboxes de layout
         ['compactMode', 'sdebarCollapse'].forEach(d => {
-            const element = document.getElementByd(d);
+            const element = document.getElementById(d);
             if (element) {
                 element.addEventListener('change', () => this.updateSettng(d, element.checked));
             }
@@ -156,7 +161,7 @@ class SystemSettngs {
 
         // Color pckers
         ['prmaryColor', 'secondaryColor', 'successColor', 'errorColor'].forEach(d => {
-            const element = document.getElementByd(d);
+            const element = document.getElementById(d);
             if (element) {
                 element.addEventListener('change', () => this.updateSettng(d, element.value));
             }
@@ -174,7 +179,7 @@ class SystemSettngs {
         ];
 
         notfcatonSettngs.forEach(d => {
-            const element = document.getElementByd(d);
+            const element = document.getElementById(d);
             if (element) {
                 element.addEventListener('change', () => this.updateSettng(d, this.getElementValue(element)));
             }
@@ -191,15 +196,15 @@ class SystemSettngs {
         ];
 
         securtySettngs.forEach(d => {
-            const element = document.getElementByd(d);
+            const element = document.getElementById(d);
             if (element) {
                 element.addEventListener('change', () => this.updateSettng(d, this.getElementValue(element)));
             }
         });
 
         // Botes de backup
-        document.getElementByd('createBackupBtn')?.addEventListener('clck', () => this.createBackup());
-        document.getElementByd('restoreBackupBtn')?.addEventListener('clck', () => this.restoreBackup());
+        document.getElementById('createBackupBtn')?.addEventListener('click', () => this.createBackup());
+        document.getElementById('restoreBackupBtn')?.addEventListener('click', () => this.restoreBackup());
     }
 
     /**
@@ -209,13 +214,13 @@ class SystemSettngs {
         const blockchanSettngs = ['gasPrce', 'gasLmt', 'autoGasEstmate'];
 
         blockchanSettngs.forEach(d => {
-            const element = document.getElementByd(d);
+            const element = document.getElementById(d);
             if (element) {
                 element.addEventListener('change', () => this.updateSettng(d, this.getElementValue(element)));
             }
         });
 
-        document.getElementByd('addNetworkBtn')?.addEventListener('clck', () => this.addNetwork());
+        document.getElementById('addNetworkBtn')?.addEventListener('click', () => this.addNetwork());
     }
 
     /**
@@ -228,32 +233,32 @@ class SystemSettngs {
         ];
 
         advancedSettngs.forEach(d => {
-            const element = document.getElementByd(d);
+            const element = document.getElementById(d);
             if (element) {
                 element.addEventListener('change', () => this.updateSettng(d, this.getElementValue(element)));
             }
         });
 
         // Botes de aes avanadas
-        document.getElementByd('clearCacheBtn')?.addEventListener('clck', () => this.clearCache());
-        document.getElementByd('exportSettngsBtn')?.addEventListener('clck', () => this.exportSettngs());
-        document.getElementByd('mportSettngsBtn')?.addEventListener('clck', () => this.mportSettngs());
+        document.getElementById('clearCacheBtn')?.addEventListener('click', () => this.clearCache());
+        document.getElementById('exportSettingsBtn')?.addEventListener('click', () => this.exportSettngs());
+        document.getElementById('importSettingsBtn')?.addEventListener('click', () => this.mportSettngs());
     }
 
     /**
      * Confgura o modal de confrmao
      */
     setupConfrmModal() {
-        const modal = document.getElementByd('confrmModal');
-        const closeBtn = document.getElementByd('closeConfrmModal');
-        const cancelBtn = document.getElementByd('cancelConfrmBtn');
-        const confrmBtn = document.getElementByd('confrmActonBtn');
+        const modal = document.getElementById('confirmModal');
+        const closeBtn = document.getElementById('closeConfirmModal');
+        const cancelBtn = document.getElementById('cancelConfirmBtn');
+        const confrmBtn = document.getElementById('confirmActionBtn');
 
         [closeBtn, cancelBtn].forEach(btn => {
-            btn?.addEventListener('clck', () => this.closeConfrmModal());
+            btn?.addEventListener('click', () => this.closeConfrmModal());
         });
 
-        confrmBtn?.addEventListener('clck', () => this.executeConfrmedActon());
+        confrmBtn?.addEventListener('click', () => this.executeConfrmedActon());
     }
 
     /**
@@ -269,16 +274,16 @@ class SystemSettngs {
      */
     swtchTab(tabName) {
         // Remove classe atva de todas as tabs
-        document.querySelectorAll('.settngs-tab').forEach(tab => {
-            tab.classLst.remove('actve');
+        document.querySelectorAll('.settings-tab').forEach(tab => {
+            tab.classList.remove('active');
         });
-        document.querySelectorAll('.settngs-secton').forEach(secton => {
-            secton.classLst.remove('actve');
+        document.querySelectorAll('.settings-section').forEach(secton => {
+            secton.classList.remove('active');
         });
 
         // Atva a tab seleconada
-        document.querySelector(`[data-tab="${tabName}"]`)?.classLst.add('actve');
-        document.getElementByd(tabName)?.classLst.add('actve');
+        document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active');
+        document.getElementById(tabName)?.classList.add('active');
     }
 
     /**
@@ -286,7 +291,7 @@ class SystemSettngs {
      */
     loadSettngs() {
         try {
-            const saved = localStorage.gettem('tokencafe_settngs');
+            const saved = localStorage.getItem('tokencafe_settngs');
             this.settngs = saved ? { ...this.defaultSettngs, ...JSON.parse(saved) } : { ...this.defaultSettngs };
         } catch (error) {
             console.error('Erro ao carregar confguraes:', error);
@@ -298,8 +303,21 @@ class SystemSettngs {
      * Aplca as confguraes atuas na nterface
      */
     applyCurrentSettngs() {
+        const idMap = {
+            sdebarWdth: 'sidebarWidth',
+            prmaryColor: 'primaryColor',
+            tmezone: 'timezone',
+            confrmActons: 'confirmActions',
+            showTooltps: 'showTooltips',
+            secondaryColor: 'secondaryColor',
+            successColor: 'successColor',
+            errorColor: 'errorColor',
+            systemNotfcatons: 'systemNotifications'
+        };
+
         Object.keys(this.settngs).forEach(key => {
-            const element = document.getElementByd(key);
+            const elementId = idMap[key] || key;
+            const element = document.getElementById(elementId);
             if (element) {
                 this.setElementValue(element, this.settngs[key]);
             }
@@ -309,14 +327,14 @@ class SystemSettngs {
         this.applyTheme(this.settngs.theme);
         
         // Aplca largura da sdebar
-        const sdebarWdth = document.getElementByd('sdebarWdth');
+        const sdebarWdth = document.getElementById('sidebarWidth');
         if (sdebarWdth) {
             document.querySelector('.range-value').textContent = `${this.settngs.sdebarWdth}px`;
         }
 
         // Aplca seleo de tema vsual
-        document.querySelectorAll('.theme-opton').forEach(opton => {
-            opton.classLst.toggle('actve', opton.dataset.theme === this.settngs.theme);
+        document.querySelectorAll('.theme-option').forEach(opton => {
+            opton.classList.toggle('active', opton.dataset.theme === this.settngs.theme);
         });
     }
 
@@ -361,11 +379,11 @@ class SystemSettngs {
      */
     applyTheme(theme) {
         document.body.className = document.body.className.replace(/theme-\w+/g, '');
-        document.body.classLst.add(`theme-${theme}`);
+        document.body.classList.add(`theme-${theme}`);
         
         if (theme === 'auto') {
-            const prefersDark = wndow.matchMeda('(prefers-color-scheme: dark)').matches;
-            document.body.classLst.add(prefersDark ? 'theme-dark' : 'theme-lght');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.body.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
         }
     }
 
@@ -380,7 +398,7 @@ class SystemSettngs {
      * Aplca modo compacto
      */
     applyCompactMode(compact) {
-        document.body.classLst.toggle('compact-mode', compact);
+        document.body.classList.toggle('compact-mode', compact);
     }
 
     /**
@@ -395,10 +413,10 @@ class SystemSettngs {
      * Selecona um tema
      */
     selectTheme(theme) {
-        document.querySelectorAll('.theme-opton').forEach(opton => {
-            opton.classLst.remove('actve');
+        document.querySelectorAll('.theme-option').forEach(opton => {
+            opton.classList.remove('active');
         });
-        document.querySelector(`[data-theme="${theme}"]`).classLst.add('actve');
+        document.querySelector(`[data-theme="${theme}"]`).classList.add('active');
         this.updateSettng('theme', theme);
     }
 
@@ -416,7 +434,7 @@ class SystemSettngs {
      */
     saveSettngs() {
         try {
-            localStorage.settem('tokencafe_settngs', JSON.strngfy(this.settngs));
+            localStorage.setItem('tokencafe_settngs', JSON.stringify(this.settngs));
         } catch (error) {
             console.error('Erro ao salvar confguraes:', error);
             this.showNotfcaton('Erro ao salvar confguraes', 'error');
@@ -444,7 +462,7 @@ class SystemSettngs {
      * Carrega redes blockchan
      */
     loadNetworks() {
-        const networkLst = document.getElementByd('networkLst');
+        const networkLst = document.getElementById('networkLst');
         if (!networkLst) return;
 
         const networks = [
@@ -454,34 +472,34 @@ class SystemSettngs {
             { d: 'avalanche', name: 'Avalanche', rpc: 'https://ap.avax.network/ext/bc/C/rpc', actve: false }
         ];
 
-        networkLst.nnerHTML = networks.map(network => `
-            <dv class="network-tem">
-                <dv class="network-nfo">
-                    <dv class="network-name">${network.name}</dv>
-                    <dv class="network-rpc">${network.rpc}</dv>
-                </dv>
-                <dv class="network-actons">
+        networkLst.innerHTML = networks.map(network => `
+            <div class="network-item">
+                <div class="network-info">
+                    <div class="network-name">${network.name}</div>
+                    <div class="network-rpc">${network.rpc}</div>
+                </div>
+                <div class="network-actions">
                     <label class="switch">
-                        <nput type="checkbox" ${network.actve ? 'checked' : ''} 
+                        <input type="checkbox" ${network.actve ? 'checked' : ''} 
                                onchange="systemSettngs.toggleNetwork('${network.d}', this.checked)">
-                        <span class="slder"></span>
+                        <span class="slider"></span>
                     </label>
-                    <button class="btn-con" onclck="systemSettngs.edtNetwork('${network.d}')">
-                        < class="fas fa-edt"></>
+                    <button class="btn-icon" onclick="systemSettngs.edtNetwork('${network.d}')">
+                        <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-con" onclck="systemSettngs.removeNetwork('${network.d}')">
-                        < class="fas fa-trash"></>
+                    <button class="btn-icon" onclick="systemSettngs.removeNetwork('${network.d}')">
+                        <i class="fas fa-trash"></i>
                     </button>
-                </dv>
-            </dv>
-        `).jon('');
+                </div>
+            </div>
+        `).join('');
     }
 
     /**
      * Carrega provedores RPC
      */
     loadRPCProvders() {
-        const rpcProvders = document.getElementByd('rpcProvders');
+        const rpcProvders = document.getElementById('rpcProvders');
         if (!rpcProvders) return;
 
         const provders = [
@@ -490,18 +508,18 @@ class SystemSettngs {
             { name: 'QuckNode', status: 'dsconnected', latency: '--' }
         ];
 
-        rpcProvders.nnerHTML = provders.map(provder => `
-            <dv class="rpc-provder">
-                <dv class="provder-nfo">
-                    <dv class="provder-name">${provder.name}</dv>
-                    <dv class="provder-status ${provder.status}">${provder.status}</dv>
-                </dv>
-                <dv class="provder-latency">${provder.latency}</dv>
-                <button class="btn-con" onclck="systemSettngs.testRPCProvder('${provder.name}')">
-                    < class="fas fa-sync"></>
+        rpcProvders.innerHTML = provders.map(provder => `
+            <div class="rpc-provider">
+                <div class="provider-info">
+                    <div class="provider-name">${provder.name}</div>
+                    <div class="provider-status ${provder.status}">${provder.status}</div>
+                </div>
+                <div class="provider-latency">${provder.latency}</div>
+                <button class="btn-icon" onclick="systemSettngs.testRPCProvder('${provder.name}')">
+                    <i class="fas fa-sync"></i>
                 </button>
-            </dv>
-        `).jon('');
+            </div>
+        `).join('');
     }
 
     /**
@@ -510,16 +528,16 @@ class SystemSettngs {
     createBackup() {
         const backup = {
             settngs: this.settngs,
-            tmestamp: new Date().toSOStrng(),
+            tmestamp: new Date().toISOString(),
             version: '1.0.0'
         };
 
-        const blob = new Blob([JSON.strngfy(backup, null, 2)], { type: 'applcaton/json' });
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `tokencafe-backup-${new Date().toSOStrng().splt('T')[0]}.json`;
-        a.clck();
+        a.download = `tokencafe-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
         URL.revokeObjectURL(url);
 
         this.showNotfcaton('Backup crado com sucesso!', 'success');
@@ -529,13 +547,13 @@ class SystemSettngs {
      * Restaura backup das confguraes
      */
     restoreBackup() {
-        const nput = document.createElement('nput');
-        nput.type = 'fle';
+        const nput = document.createElement('input');
+        nput.type = 'file';
         nput.accept = '.json';
         nput.onchange = (e) => {
-            const fle = e.target.fles[0];
+            const fle = e.target.files[0];
             if (fle) {
-                const reader = new FleReader();
+                const reader = new FileReader();
                 reader.onload = (e) => {
                     try {
                         const backup = JSON.parse(e.target.result);
@@ -554,7 +572,7 @@ class SystemSettngs {
                 reader.readAsText(fle);
             }
         };
-        nput.clck();
+        nput.click();
     }
 
     /**
@@ -566,7 +584,7 @@ class SystemSettngs {
             'Tem certeza que deseja lmpar todo o cache? sso pode afetar a performance temporaramente.',
             () => {
                 // Smula lmpeza de cache
-                setTmeout(() => {
+                setTimeout(() => {
                     this.showNotfcaton('Cache lmpo com sucesso!', 'success');
                 }, 1000);
             }
@@ -577,12 +595,12 @@ class SystemSettngs {
      * Exporta confguraes
      */
     exportSettngs() {
-        const blob = new Blob([JSON.strngfy(this.settngs, null, 2)], { type: 'applcaton/json' });
+        const blob = new Blob([JSON.stringify(this.settngs, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = 'tokencafe-settngs.json';
-        a.clck();
+        a.click();
         URL.revokeObjectURL(url);
     }
 
@@ -590,13 +608,13 @@ class SystemSettngs {
      * mporta confguraes
      */
     mportSettngs() {
-        const nput = document.createElement('nput');
-        nput.type = 'fle';
+        const nput = document.createElement('input');
+        nput.type = 'file';
         nput.accept = '.json';
         nput.onchange = (e) => {
-            const fle = e.target.fles[0];
+            const fle = e.target.files[0];
             if (fle) {
-                const reader = new FleReader();
+                const reader = new FileReader();
                 reader.onload = (e) => {
                     try {
                         const mported = JSON.parse(e.target.result);
@@ -611,7 +629,7 @@ class SystemSettngs {
                 reader.readAsText(fle);
             }
         };
-        nput.clck();
+        nput.click();
     }
 
     /**
@@ -621,7 +639,7 @@ class SystemSettngs {
         if (element.type === 'checkbox') {
             return element.checked;
         } else if (element.type === 'number' || element.type === 'range') {
-            return parsent(element.value);
+            return parseInt(element.value);
         } else {
             return element.value;
         }
@@ -642,9 +660,9 @@ class SystemSettngs {
      * Mostra modal de confrmao
      */
     showConfrmModal(ttle, message, callback) {
-        document.getElementByd('confrmTtle').textContent = ttle;
-        document.getElementByd('confrmMessage').textContent = message;
-        document.getElementByd('confrmModal').classLst.add('actve');
+        document.getElementById('confirmTitle').textContent = ttle;
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmModal').classList.add('active');
         this.confrmCallback = callback;
     }
 
@@ -652,7 +670,7 @@ class SystemSettngs {
      * Fecha modal de confrmao
      */
     closeConfrmModal() {
-        document.getElementByd('confrmModal').classLst.remove('actve');
+        document.getElementById('confirmModal').classList.remove('active');
         this.confrmCallback = null;
     }
 
@@ -671,23 +689,23 @@ class SystemSettngs {
      */
     showNotfcaton(message, type = 'nfo') {
         // mplementao bsca de notfcao
-        const notfcaton = document.createElement('dv');
+        const notfcaton = document.createElement('div');
         notfcaton.className = `notfcaton ${type}`;
-        notfcaton.nnerHTML = `
-            < class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamaton-trangle' : 'nfo'}"></>
+        notfcaton.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}"></i>
             <span>${message}</span>
         `;
         
-        document.body.appendChld(notfcaton);
+        document.body.appendChild(notfcaton);
         
-        setTmeout(() => {
-            notfcaton.classLst.add('show');
+        setTimeout(() => {
+            notfcaton.classList.add('show');
         }, 100);
         
-        setTmeout(() => {
-            notfcaton.classLst.remove('show');
-            setTmeout(() => {
-                document.body.removeChld(notfcaton);
+        setTimeout(() => {
+            notfcaton.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(notfcaton);
             }, 300);
         }, 3000);
     }
@@ -721,5 +739,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Exporta para uso global
-wndow.SystemSettngs = SystemSettngs;
+window.SystemSettngs = SystemSettngs;
 

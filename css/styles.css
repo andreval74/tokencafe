@@ -3629,10 +3629,29 @@ Classes reutilizáveis para efeitos neon padronizados
     z-index: 1050;
     max-height: 300px;
     overflow-y: auto;
-    display: none;
     border: 1px solid #dee2e6;
     border-radius: 0.375rem;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    background: transparent;
+}
+
+/* Itens do autocomplete (escopo do dropdown padrão) */
+.network-autocomplete .autocomplete-item {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.network-autocomplete .autocomplete-item:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-bottom-color: rgba(255, 255, 255, 0.20);
+}
+
+.network-autocomplete .autocomplete-item:last-child {
+    margin-bottom: 0;
 }
 
 /* Imagens de token */

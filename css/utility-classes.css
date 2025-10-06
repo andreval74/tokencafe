@@ -140,8 +140,39 @@
   background: transparent !important;
 }
 
+.bg-page-black {
+  background: #0b0f14 !important;
+}
+
 .bg-coffee-light {
   background-color: var(--tokencafe-primary-light);
+}
+/* Gradientes padronizados */
+.navbar-gradient-primary {
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
+  border-bottom: 2px solid var(--tokencafe-primary-light);
+}
+
+.bg-gradient-dark-135 {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Efeito glass para cards */
+.card-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+/* Alert suave na cor primária */
+.alert-soft-primary {
+  background: rgba(13, 110, 253, 0.1);
+  border: 1px solid rgba(13, 110, 253, 0.3);
+}
+
+/* Badge com cor de marca */
+.badge-brand {
+  background: var(--tokencafe-primary);
+  color: #0a0a0a;
 }
 
 /* ============================================================================
@@ -173,11 +204,21 @@
   transition: all 0.3s ease;
 }
 
+.btn-transparent-warning:hover {
+  transform: scale(1.1);
+  color: #fbbf24;
+}
+
 .btn-transparent-info {
   background: transparent;
   border: none;
   color: var(--bs-info);
   transition: all 0.3s ease;
+}
+
+.btn-transparent-info:hover {
+  transform: scale(1.1);
+  color: #60a5fa;
 }
 
 /* ============================================================================
