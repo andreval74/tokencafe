@@ -1,4 +1,4 @@
-﻿class TemplateGallery {
+class TemplateGallery {
     constructor() {
         this.templates = [];
         this.flteredTemplates = [];
@@ -13,70 +13,70 @@
 
     setupEventLsteners() {
         // Busca
-        document.getElementByd('templateSearch').addEventListener('nput', (e) => {
+        document.getElementById('templateSearch').addEventListener('input', (e) => {
             this.flterTemplates();
         });
 
         // Fltros
-        document.getElementByd('categoryFlter').addEventListener('change', () => {
+        document.getElementById('categoryFilter').addEventListener('change', () => {
             this.flterTemplates();
         });
 
-        document.getElementByd('typeFlter').addEventListener('change', () => {
+        document.getElementById('typeFilter').addEventListener('change', () => {
             this.flterTemplates();
         });
 
-        document.getElementByd('sortFlter').addEventListener('change', () => {
+        document.getElementById('sortFilter').addEventListener('change', () => {
             this.flterTemplates();
         });
 
         // Botes prncpas
-        document.getElementByd('createTemplateBtn').addEventListener('clck', () => {
+        document.getElementById('createTemplateBtn').addEventListener('click', () => {
             this.openCreateModal();
         });
 
-        document.getElementByd('mportTemplateBtn').addEventListener('clck', () => {
+        document.getElementById('importTemplateBtn').addEventListener('click', () => {
             this.mportTemplate();
         });
 
-        document.getElementByd('clearFltersBtn').addEventListener('clck', () => {
+        document.getElementById('clearFiltersBtn').addEventListener('click', () => {
             this.clearFlters();
         });
 
         // Modal de detalhes
-        document.getElementByd('closeTemplateModal').addEventListener('clck', () => {
+        document.getElementById('closeTemplateModal').addEventListener('click', () => {
             this.closeTemplateModal();
         });
 
-        document.getElementByd('useTemplateBtn').addEventListener('clck', () => {
+        document.getElementById('useTemplateBtn').addEventListener('click', () => {
             this.useTemplate();
         });
 
-        document.getElementByd('duplcateTemplateBtn').addEventListener('clck', () => {
+        document.getElementById('duplicateTemplateBtn').addEventListener('click', () => {
             this.duplcateTemplate();
         });
 
-        document.getElementByd('downloadTemplateBtn').addEventListener('clck', () => {
+        document.getElementById('downloadTemplateBtn').addEventListener('click', () => {
             this.downloadTemplate();
         });
 
         // Modal de crao
-        document.getElementByd('closeCreateModal').addEventListener('clck', () => {
+        document.getElementById('closeCreateModal').addEventListener('click', () => {
             this.closeCreateModal();
         });
 
-        document.getElementByd('cancelCreateBtn').addEventListener('clck', () => {
+        document.getElementById('cancelCreateBtn').addEventListener('click', () => {
             this.closeCreateModal();
         });
 
-        document.getElementByd('createTemplateForm').addEventListener('submt', (e) => {
+        document.getElementById('createTemplateForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.createTemplate();
         });
 
         // Fechar modas clcando fora
-        document.addEventListener('clck', (e) => {
-            if (e.target.classLst.contans('modal')) {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList && e.target.classList.contains('modal')) {
                 this.closeAllModals();
             }
         });
@@ -274,25 +274,25 @@ contract YeldToken s ERC20 {
     }
 
     renderTemplates() {
-        const grd = document.getElementByd('templatesGrd');
-        const emptyState = document.getElementByd('emptyState');
+        const grid = document.getElementById('templatesGrid');
+        const emptyState = document.getElementById('emptyState');
 
         if (this.flteredTemplates.length === 0) {
-            grd.style.dsplay = 'none';
-            emptyState.style.dsplay = 'flex';
+            grid.style.display = 'none';
+            emptyState.style.display = 'flex';
             return;
         }
 
-        grd.style.dsplay = 'grd';
-        emptyState.style.dsplay = 'none';
+        grid.style.display = 'grid';
+        emptyState.style.display = 'none';
 
-        grd.nnerHTML = this.flteredTemplates.map(template => this.createTemplateCard(template)).jon('');
+        grid.innerHTML = this.flteredTemplates.map(template => this.createTemplateCard(template)).join('');
 
-        // Adconar event lsteners para os cards
-        grd.querySelectorAll('.template-card').forEach(card => {
-            card.addEventListener('clck', () => {
-                const templated = parsent(card.dataset.templated);
-                this.vewTemplateDetals(templated);
+        // Adicionar event listeners para os cards
+        grid.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const templateId = parseInt(card.dataset.templateD || card.dataset.templateId, 10);
+                this.vewTemplateDetals(templateId);
             });
         });
     }
@@ -369,41 +369,41 @@ contract YeldToken s ERC20 {
         const hasHalfStar = ratng % 1 !== 0;
         let stars = '';
 
-        for (let  = 0;  < fullStars; ++) {
-            stars += '< class="fas fa-star"></>';
+        for (let i = 0; i < fullStars; i++) {
+            stars += '<i class="fas fa-star"></i>';
         }
 
         if (hasHalfStar) {
-            stars += '< class="fas fa-star-half-alt"></>';
+            stars += '<i class="fas fa-star-half-alt"></i>';
         }
 
-        const emptyStars = 5 - Math.cel(ratng);
-        for (let  = 0;  < emptyStars; ++) {
-            stars += '< class="far fa-star"></>';
+        const emptyStars = 5 - Math.ceil(ratng);
+        for (let i = 0; i < emptyStars; i++) {
+            stars += '<i class="far fa-star"></i>';
         }
 
         return stars;
     }
 
     flterTemplates() {
-        const searchTerm = document.getElementByd('templateSearch').value.toLowerCase();
-        const categoryFlter = document.getElementByd('categoryFlter').value;
-        const typeFlter = document.getElementByd('typeFlter').value;
-        const sortFlter = document.getElementByd('sortFlter').value;
+        const searchTerm = document.getElementById('templateSearch').value.toLowerCase();
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const typeFilter = document.getElementById('typeFilter').value;
+        const sortFilter = document.getElementById('sortFilter').value;
 
-        this.flteredTemplates = this.templates.flter(template => {
-            const matchesSearch = template.name.toLowerCase().ncludes(searchTerm) ||
-                                template.descrpton.toLowerCase().ncludes(searchTerm) ||
-                                template.features.some(feature => feature.toLowerCase().ncludes(searchTerm));
+        this.flteredTemplates = this.templates.filter(template => {
+            const matchesSearch = template.name.toLowerCase().includes(searchTerm) ||
+                                template.descrpton.toLowerCase().includes(searchTerm) ||
+                                template.features.some(feature => feature.toLowerCase().includes(searchTerm));
             
-            const matchesCategory = !categoryFlter || template.category === categoryFlter;
-            const matchesType = !typeFlter || template.type === typeFlter;
+            const matchesCategory = !categoryFilter || template.category === categoryFilter;
+            const matchesType = !typeFilter || template.type === typeFilter;
 
             return matchesSearch && matchesCategory && matchesType;
         });
 
-        // Aplcar ordenao
-        this.sortTemplates(sortFlter);
+        // Aplicar ordenação
+        this.sortTemplates(sortFilter);
         this.renderTemplates();
     }
 
@@ -425,43 +425,43 @@ contract YeldToken s ERC20 {
     }
 
     clearFlters() {
-        document.getElementByd('templateSearch').value = '';
-        document.getElementByd('categoryFlter').value = '';
-        document.getElementByd('typeFlter').value = '';
-        document.getElementByd('sortFlter').value = 'newest';
+        document.getElementById('templateSearch').value = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('typeFilter').value = '';
+        document.getElementById('sortFilter').value = 'newest';
         this.flterTemplates();
     }
 
     vewTemplateDetals(templated) {
-        const template = this.templates.fnd(t => t.d === templated);
+        const template = this.templates.find(t => t.d === templated);
         if (!template) return;
 
         this.currentTemplate = template;
 
         // Preencher modal com dados do template
-        document.getElementByd('templateModalTtle').textContent = template.name;
-        document.getElementByd('templateName').textContent = template.name;
-        document.getElementByd('templateCategory').textContent = template.category.toUpperCase();
-        document.getElementByd('templateType').textContent = template.type.toUpperCase();
-        document.getElementByd('templateRatng').nnerHTML = this.generateStars(template.ratng);
-        document.getElementByd('templateUses').textContent = this.formatNumber(template.uses);
-        document.getElementByd('templateCreated').textContent = this.formatDate(template.created);
-        document.getElementByd('templateDescrpton').textContent = template.descrpton;
-        document.getElementByd('templateCode').textContent = template.code;
+        document.getElementById('templateModalTitle').textContent = template.name;
+        document.getElementById('templateName').textContent = template.name;
+        document.getElementById('templateCategory').textContent = template.category.toUpperCase();
+        document.getElementById('templateType').textContent = template.type.toUpperCase();
+        document.getElementById('templateRating').innerHTML = this.generateStars(template.ratng);
+        document.getElementById('templateUses').textContent = this.formatNumber(template.uses);
+        document.getElementById('templateCreated').textContent = this.formatDate(template.created);
+        document.getElementById('templateDescription').textContent = template.descrpton;
+        document.getElementById('templateCode').textContent = template.code;
 
         // Prevew da magem
-        document.getElementByd('templatePrevew').nnerHTML = `
-            <mg src="${template.mage}" alt="${template.name}" />
+        document.getElementById('templatePreview').innerHTML = `
+            <img src="${template.mage}" alt="${template.name}" />
         `;
 
         // Features
-        const featuresContaner = document.getElementByd('templateFeatures');
-        featuresContaner.nnerHTML = template.features.map(feature => 
+        const featuresContainer = document.getElementById('templateFeatures');
+        featuresContainer.innerHTML = template.features.map(feature => 
             `<span class="feature-badge">${feature}</span>`
-        ).jon('');
+        ).join('');
 
         // Mostrar modal
-        document.getElementByd('templateDetalsModal').style.dsplay = 'flex';
+        document.getElementById('templateDetailsModal').style.display = 'flex';
     }
 
     useTemplate() {
@@ -503,30 +503,30 @@ contract YeldToken s ERC20 {
             category: this.currentTemplate.category
         };
 
-        const blob = new Blob([JSON.strngfy(templateData, null, 2)], { type: 'applcaton/json' });
+        const blob = new Blob([JSON.stringify(templateData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `${this.currentTemplate.name.replace(/\s+/g, '_')}.json`;
-        document.body.appendChld(a);
-        a.clck();
-        document.body.removeChld(a);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        this.showNotfcaton('Template baxado com sucesso!', 'success');
+        this.showNotfcaton('Template baixado com sucesso!', 'success');
     }
 
     openCreateModal() {
-        document.getElementByd('createTemplateModal').style.dsplay = 'flex';
+        document.getElementById('createTemplateModal').style.display = 'flex';
     }
 
     closeCreateModal() {
-        document.getElementByd('createTemplateModal').style.dsplay = 'none';
-        document.getElementByd('createTemplateForm').reset();
+        document.getElementById('createTemplateModal').style.display = 'none';
+        document.getElementById('createTemplateForm').reset();
     }
 
     closeTemplateModal() {
-        document.getElementByd('templateDetalsModal').style.dsplay = 'none';
+        document.getElementById('templateDetailsModal').style.display = 'none';
         this.currentTemplate = null;
     }
 
@@ -536,19 +536,19 @@ contract YeldToken s ERC20 {
     }
 
     async createTemplate() {
-        const formData = new FormData(document.getElementByd('createTemplateForm'));
+        const formData = new FormData(document.getElementById('createTemplateForm'));
         
         const templateData = {
             d: Date.now(),
-            name: document.getElementByd('newTemplateName').value,
-            category: document.getElementByd('newTemplateCategory').value,
-            type: document.getElementByd('newTemplateType').value,
-            descrpton: document.getElementByd('newTemplateDescrpton').value,
-            features: document.getElementByd('newTemplateFeatures').value.splt('\n').flter(f => f.trm()),
-            code: document.getElementByd('newTemplateCode').value,
+            name: document.getElementById('newTemplateName').value,
+            category: document.getElementById('newTemplateCategory').value,
+            type: document.getElementById('newTemplateType').value,
+            descrpton: document.getElementById('newTemplateDescription').value,
+            features: document.getElementById('newTemplateFeatures').value.split('\n').filter(f => f.trim()),
+            code: document.getElementById('newTemplateCode').value,
             ratng: 0,
             uses: 0,
-            created: new Date().toSOStrng().splt('T')[0],
+            created: new Date().toISOString().split('T')[0],
             mage: 'https://va.placeholder.com/300x200/6366f1/ffffff?text=new'
         };
 
@@ -556,107 +556,110 @@ contract YeldToken s ERC20 {
             // Smular salvamento
             await this.delay(1000);
             
-            this.templates.unshft(templateData);
+            this.templates.unshift(templateData);
             this.flterTemplates();
             this.closeCreateModal();
-            this.showNotfcaton('Template crado com sucesso!', 'success');
+            this.showNotfcaton('Template criado com sucesso!', 'success');
         } catch (error) {
-            console.error('Erro ao crar template:', error);
-            this.showNotfcaton('Erro ao crar template', 'error');
+            console.error('Erro ao criar template:', error);
+            this.showNotfcaton('Erro ao criar template', 'error');
         }
     }
 
     mportTemplate() {
-        const nput = document.createElement('nput');
-        nput.type = 'fle';
-        nput.accept = '.json';
-        nput.onchange = (e) => {
-            const fle = e.target.fles[0];
-            if (fle) {
-                const reader = new FleReader();
-                reader.onload = (e) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
                     try {
-                        const templateData = JSON.parse(e.target.result);
+                        const templateData = JSON.parse(ev.target.result);
                         templateData.d = Date.now();
                         templateData.uses = 0;
                         templateData.ratng = 0;
-                        templateData.created = new Date().toSOStrng().splt('T')[0];
+                        templateData.created = new Date().toISOString().split('T')[0];
                         templateData.mage = 'https://va.placeholder.com/300x200/6366f1/ffffff?text=import';
                         
-                        this.templates.unshft(templateData);
+                        this.templates.unshift(templateData);
                         this.flterTemplates();
-                        this.showNotfcaton('Template mportado com sucesso!', 'success');
+                        this.showNotfcaton('Template importado com sucesso!', 'success');
                     } catch (error) {
-                        this.showNotfcaton('Erro ao mportar template', 'error');
+                        this.showNotfcaton('Erro ao importar template', 'error');
                     }
                 };
-                reader.readAsText(fle);
+                reader.readAsText(file);
             }
         };
-        nput.clck();
+        input.click();
     }
 
     showLoadng(show) {
-        const loadngState = document.getElementByd('loadngState');
-        const templatesGrd = document.getElementByd('templatesGrd');
+        const loadingState = document.getElementById('loadingState');
+        const templatesGrid = document.getElementById('templatesGrid');
         
         if (show) {
-            loadngState.style.dsplay = 'flex';
-            templatesGrd.style.dsplay = 'none';
+            loadingState.style.display = 'flex';
+            templatesGrid.style.display = 'none';
         } else {
-            loadngState.style.dsplay = 'none';
-            templatesGrd.style.dsplay = 'grd';
+            loadingState.style.display = 'none';
+            templatesGrid.style.display = 'grid';
         }
     }
 
     showNotfcaton(message, type = 'nfo') {
-        // Crar elemento de notfcao
-        const notfcaton = document.createElement('dv');
-        notfcaton.className = `notfcaton notfcaton-${type}`;
-        notfcaton.nnerHTML = `
-            <dv class="notfcaton-content">
-                < class="fas fa-${type === 'success' ? 'check-crcle' : type === 'error' ? 'exclamaton-crcle' : 'nfo-crcle'}"></>
+        // Criar elemento de notificação
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
                 <span>${message}</span>
-            </dv>
-            <button class="notfcaton-close">
-                < class="fas fa-tmes"></>
+            </div>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
             </button>
         `;
 
-        // Adconar ao DOM
-        document.body.appendChld(notfcaton);
+        // Adicionar ao DOM
+        document.body.appendChild(notification);
 
-        // Remover aps 5 segundos
-        setTmeout(() => {
-            if (notfcaton.parentNode) {
-                notfcaton.parentNode.removeChld(notfcaton);
+        // Remover após 5 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
             }
         }, 5000);
 
-        // Permtr fechar manualmente
-        notfcaton.querySelector('.notfcaton-close').addEventListener('clck', () => {
-            if (notfcaton.parentNode) {
-                notfcaton.parentNode.removeChld(notfcaton);
-            }
-        });
+        // Permitir fechar manualmente
+        const closeBtn = notification.querySelector('.notification-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            });
+        }
     }
 
     formatNumber(num) {
         if (num >= 1000000) {
-            return (num / 1000000).toFxed(1) + 'M';
+            return (num / 1000000).toFixed(1) + 'M';
         } else if (num >= 1000) {
-            return (num / 1000).toFxed(1) + 'K';
+            return (num / 1000).toFixed(1) + 'K';
         }
-        return num.toStrng();
+        return String(num);
     }
 
     formatDate(dateStrng) {
         const date = new Date(dateStrng);
-        return date.toLocaleDateStrng('pt-BR');
+        return date.toLocaleDateString('pt-BR');
     }
 
     delay(ms) {
-        return new Promise(resolve => setTmeout(resolve, ms));
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 

@@ -211,7 +211,14 @@ class BaseSystem {
                         newScript.src = script.src;
                         document.head.appendChild(newScript);
                     } else {
-                        eval(script.textContent);
+                        try {
+                            eval(script.textContent);
+                        } catch (err) {
+                            console.error('Erro ao executar script do componente:', err);
+                            const newScript = document.createElement('script');
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
+                        }
                     }
                 });
 

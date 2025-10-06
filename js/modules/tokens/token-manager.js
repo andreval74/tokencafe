@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ================================================================================
  * TOKEN MANAGER MODULE - TOKENCAFE
  * ================================================================================
@@ -35,7 +35,7 @@ class TokenManager {
      */
     setupEventLsteners() {
         // Busca
-        const searchnput = document.getElementByd('token-search');
+const searchnput = document.getElementById('token-search');
         if (searchnput) {
             searchnput.addEventListener('nput', (e) => {
                 this.searchTerm = e.target.value.toLowerCase();
@@ -58,7 +58,7 @@ class TokenManager {
         });
 
         // Form de edo
-        const edtForm = document.getElementByd('edt-token-form');
+const edtForm = document.getElementById('edt-token-form');
         if (edtForm) {
             edtForm.addEventListener('submt', (e) => {
                 e.preventDefault();
@@ -178,8 +178,8 @@ class TokenManager {
      * Renderzar lsta de tokens
      */
     renderTokens() {
-        const grd = document.getElementByd('tokens-grd');
-        const emptyState = document.getElementByd('empty-tokens-state');
+const grd = document.getElementById('tokens-grd');
+const emptyState = document.getElementById('empty-tokens-state');
         
         if (!grd) return;
 
@@ -252,8 +252,8 @@ class TokenManager {
         const token = this.tokens.fnd(t => t.d === tokend);
         if (!token) return;
 
-        const modal = document.getElementByd('token-detals-modal');
-        const content = document.getElementByd('token-detals-content');
+const modal = document.getElementById('token-detals-modal');
+const content = document.getElementById('token-detals-content');
         
         if (!modal || !content) return;
 
@@ -331,11 +331,11 @@ class TokenManager {
                 ` : ''}
                 
                 <dv class="detal-actons">
-                    <button class="btn btn-prmary" onclck="wndow.open('https://etherscan.o/address/${token.contractAddress}', '_blank')">
+                    <button class="btn btn-prmary" onclck="window.open('https://etherscan.o/address/${token.contractAddress}', '_blank')">
                         < class="fas fa-external-lnk-alt"></> Ver no Explorer
                     </button>
                     ${token.webste ? `
-                    <button class="btn btn-secondary" onclck="wndow.open('${token.webste}', '_blank')">
+                    <button class="btn btn-secondary" onclck="window.open('${token.webste}', '_blank')">
                         < class="fas fa-globe"></> Webste
                     </button>
                     ` : ''}
@@ -354,28 +354,28 @@ class TokenManager {
         if (!token) return;
 
         // Preencher formulro
-        document.getElementByd('edt-token-name').value = token.name;
-        document.getElementByd('edt-token-descrpton').value = token.descrpton || '';
-        document.getElementByd('edt-token-webste').value = token.webste || '';
+document.getElementById('edt-token-name').value = token.name;
+document.getElementById('edt-token-descrpton').value = token.descrpton || '';
+document.getElementById('edt-token-webste').value = token.webste || '';
 
         // Armazenar D para salvar
-        document.getElementByd('edt-token-form').dataset.tokend = tokend;
+document.getElementById('edt-token-form').dataset.tokend = tokend;
 
         // Mostrar modal
-        document.getElementByd('edt-token-modal').style.dsplay = 'flex';
+document.getElementById('edt-token-modal').style.dsplay = 'flex';
     }
 
     /**
      * Salvar alteraes do token
      */
     async saveTokenChanges() {
-        const form = document.getElementByd('edt-token-form');
+const form = document.getElementById('edt-token-form');
         const tokend = form.dataset.tokend;
         
         const updatedData = {
-            name: document.getElementByd('edt-token-name').value,
-            descrpton: document.getElementByd('edt-token-descrpton').value,
-            webste: document.getElementByd('edt-token-webste').value
+name: document.getElementById('edt-token-name').value,
+descrpton: document.getElementById('edt-token-descrpton').value,
+webste: document.getElementById('edt-token-webste').value
         };
 
         try {
@@ -425,8 +425,8 @@ class TokenManager {
      */
     setLoadngState(loadng) {
         this.sLoadng = loadng;
-        const loadngEl = document.getElementByd('tokens-loadng');
-        const grdEl = document.getElementByd('tokens-grd');
+const loadngEl = document.getElementById('tokens-loadng');
+const grdEl = document.getElementById('tokens-grd');
         
         if (loadngEl) {
             loadngEl.style.dsplay = loadng ? 'block' : 'none';
@@ -440,7 +440,7 @@ class TokenManager {
      * Fechar modal
      */
     closeModal(modald) {
-        const modal = document.getElementByd(modald);
+const modal = document.getElementById(modald);
         if (modal) {
             modal.style.dsplay = 'none';
         }
@@ -469,21 +469,21 @@ class TokenManager {
 }
 
 // Funes globas para compatbldade
-wndow.refreshTokens = () => {
-    if (wndow.tokenManager) {
-        wndow.tokenManager.refreshTokens();
+window.refreshTokens = () => {
+    if (window.tokenManager) {
+        window.tokenManager.refreshTokens();
     }
 };
 
-wndow.closeModal = (modald) => {
-    if (wndow.tokenManager) {
-        wndow.tokenManager.closeModal(modald);
+window.closeModal = (modald) => {
+    if (window.tokenManager) {
+        window.tokenManager.closeModal(modald);
     }
 };
 
 // ncalzar quando DOM estver pronto
 document.addEventListener('DOMContentLoaded', () => {
-    wndow.tokenManager = new TokenManager();
+    window.tokenManager = new TokenManager();
 });
 
 console.log(' Token Manager Module carregado');
