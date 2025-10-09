@@ -17,6 +17,7 @@ class SystemSettngs {
         this.loadSettngs();
         this.setupEventLsteners();
         this.setupTabs();
+        this.setupSubTabs();
         this.loadNetworks();
         this.loadRPCProvders();
         this.applyCurrentSettngs();
@@ -284,6 +285,33 @@ class SystemSettngs {
         // Atva a tab seleconada
         document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active');
         document.getElementById(tabName)?.classList.add('active');
+    }
+
+    /**
+     * Confgura alternncia das sub-abas internas (nav-pills)
+     */
+    setupSubTabs() {
+        document.querySelectorAll('.substep-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const target = e.currentTarget;
+                const subtab = target.getAttribute('data-subtab');
+                const section = target.closest('.settings-section');
+                if (!section || !subtab) return;
+
+                // Alterna estado visual das sub-abas
+                section.querySelectorAll('.substep-tab').forEach(t => t.classList.remove('active'));
+                target.classList.add('active');
+
+                // Exibe o painel correspondente
+                section.querySelectorAll('.substep-pane').forEach(pane => {
+                    if (pane.getAttribute('data-subtab') === subtab) {
+                        pane.classList.add('active');
+                    } else {
+                        pane.classList.remove('active');
+                    }
+                });
+            });
+        });
     }
 
     /**

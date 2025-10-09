@@ -515,3 +515,27 @@
     height: 28px;
   }
 }
+
+/* ============================================================================
+ * ADMIN MODULE DISABLED OVERLAY
+ * ============================================================================ */
+.admin-disabled {
+  position: relative;
+}
+
+.admin-disabled::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(128, 128, 128, 0.35);
+  pointer-events: none;
+}
+
+.admin-disabled .btn,
+.admin-disabled a {
+  pointer-events: none !important;
+}
+
+.admin-disabled .tool-tile-status {
+  filter: grayscale(100%);
+}

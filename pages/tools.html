@@ -91,25 +91,6 @@
                         </div>
                     </div>
 
-                    <!-- System Status -->
-                    <a href="#" class="tool-tile tool-link" 
-                        aria-label="Verificar Status do Sistema"
-                        id="systemStatusTile">
-                        <span class="tool-tile-status badge bg-info">Admin</span>
-                        <div class="tool-tile-icon"><i class="fas fa-heartbeat"></i></div>
-                        <div class="tool-tile-title">System Status</div>
-                        <div class="tool-tile-desc">Verificar saúde do sistema</div>
-                    </a>
-
-                    <!-- Tests Runner -->
-                    <a href="modules/link/link-tests.html" class="tool-tile tool-link"
-                        aria-label="Executar Testes do Sistema">
-                        <span class="tool-tile-status badge bg-warning">Dev</span>
-                        <div class="tool-tile-icon"><i class="fas fa-vial"></i></div>
-                        <div class="tool-tile-title">Tests Runner</div>
-                        <div class="tool-tile-desc">Validar redes e contratos</div>
-                    </a>
-
                     <!-- Token Manager -->
                     <div class="tool-tile" aria-label="Token Manager">
                         <span class="tool-tile-status badge bg-warning">Em Breve</span>
@@ -163,32 +144,42 @@
                             </span>
                         </div>
                     </div>
+                                       
+                    <!-- System Status -->
+                    <a href="#" class="tool-tile tool-link" 
+                        aria-label="Verificar Status do Sistema"
+                        id="systemStatusTile">
+                        <span class="tool-tile-status badge bg-info">Admin</span>
+                        <div class="tool-tile-icon"><i class="fas fa-heartbeat"></i></div>
+                        <div class="tool-tile-title">System Status</div>
+                        <div class="tool-tile-desc">Verificar saúde do sistema</div>
+                    </a>
 
                     <!-- System Settings -->
-                    <div class="tool-tile" aria-label="System Settings">
-                        <span class="tool-tile-status badge bg-success">Finalizado</span>
+                    <div class="tool-tile admin-disabled" aria-label="System Settings" aria-disabled="true">
+                        <span class="tool-tile-status badge bg-info">Admin</span>
                         <div class="tool-tile-icon"><i class="fas fa-cog"></i></div>
                         <div class="tool-tile-title">System Settings</div>
                         <div class="tool-tile-desc">Preferências e configurações do sistema</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="modules/settings/system-settings.html" class="btn btn-sm btn-primary rounded-3 w-100" aria-label="Abrir System Settings">
+                            <a href="javascript:void(0)" class="btn btn-sm btn-primary rounded-3 w-100 disabled" role="button" aria-disabled="true" aria-label="Abrir System Settings">
                                 <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
-<a href="modules/settings/settings-tests.html" class="btn btn-sm btn-outline-secondary rounded-3 w-100" aria-label="Abrir Testes de Configurações">
+                            <a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary rounded-3 w-100 disabled" role="button" aria-disabled="true" aria-label="Abrir Testes de Configurações">
                                 <i class="fas fa-vial me-1"></i> Abrir Teste
                             </a>
                         </div>
                     </div>
 
-                    <!-- Dashboard Completo (descontinuado) -->
-                    <div class="tool-tile" aria-label="Dashboard Descontinuado" role="button" tabindex="0">
-                        <span class="tool-tile-status badge badge-brand">Premium</span>
+                    <!-- Dashboard (Admin - desativado temporariamente) -->
+                    <div class="tool-tile admin-disabled" aria-label="Dashboard (Admin)" aria-disabled="true">
+                        <span class="tool-tile-status badge bg-secondary">Admin</span>
                         <div class="tool-tile-icon"><i class="fas fa-tachometer-alt"></i></div>
                         <div class="tool-tile-title">Dashboard</div>
                         <div class="tool-tile-desc">Sistema integrado</div>
-                        <div class="tool-tile-footer text-danger small d-flex align-items-center gap-1 mt-2">
-                            <i class="fas fa-ban"></i>
-                            <span>Descontinuado</span>
+                        <div class="tool-tile-footer small d-flex align-items-center gap-2 mt-2 text-secondary">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Somente Admin (temporariamente desativado)</span>
                         </div>
                     </div>
                 </div>
