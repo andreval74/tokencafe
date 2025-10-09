@@ -450,7 +450,7 @@ class RPCInterface {
                 mmRpc.url && rpc.url && mmRpc.url.toLowerCase() === rpc.url.toLowerCase()
             );
 
-            const buttonClass = isInMetaMask ? 'btn-danger' : 'btn-success';
+            const buttonClass = isInMetaMask ? 'btn-danger' : 'btn-primary';
             const buttonIcon = isInMetaMask ? 'bi-trash' : 'bi-plus';
             const buttonText = isInMetaMask ? 'Remover' : 'Adicionar';
             const buttonAction = isInMetaMask ? 
@@ -620,7 +620,7 @@ class RPCInterface {
         }
 
         // Atualiza o botão
-        const buttonClass = isInMetaMask ? 'btn-danger' : 'btn-success';
+        const buttonClass = isInMetaMask ? 'btn-danger' : 'btn-primary';
         const buttonIcon = isInMetaMask ? 'bi-trash' : 'bi-plus';
         const buttonText = isInMetaMask ? 'Remover' : 'Adicionar';
         const chainId = this.selectedNetwork ? this.selectedNetwork.chainId : '';

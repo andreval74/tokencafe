@@ -1,4 +1,4 @@
-﻿class UserProfle {
+class UserProfle {
     constructor() {
         this.currentTab = 'overvew';
         this.userData = {
@@ -370,7 +370,7 @@
                 </dv>
                 <dv class="token-actons">
                     <button class="btn btn-sm btn-prmary">Gerencar</button>
-                    <button class="btn btn-sm btn-secondary">Analytcs</button>
+        <button class="btn btn-sm btn-outline-secondary">Analytcs</button>
                 </dv>
             </dv>
         `;

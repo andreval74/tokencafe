@@ -33,8 +33,9 @@ export class NetworkManager {
         
         // Configurações
         this.debug = false;
-        this.useRpcsSource = true;
-        // Desativar chamada ao backend em ambiente estático local (ex.: http.server:3000)
+        // Preferir fonte local por padrão (mais simples e ágil). Backend só quando explicitamente habilitado.
+        this.useRpcsSource = !!(typeof window !== 'undefined' && window.RPC_BACKEND_ENABLED);
+        // Desativar chamada ao backend automaticamente em ambiente estático local
         try {
             const isLocalhost = typeof location !== 'undefined' && location.hostname === 'localhost';
             const isStaticPort = typeof location !== 'undefined' && location.port && location.port !== '3001';
@@ -171,16 +172,18 @@ export class NetworkManager {
         try {
             this.log('📡 Carregando todas as redes...');
             
-            // Tentar fonte RPCs primeiro (backend), com fallback ao arquivo local
+            // Preferir arquivo local primeiro; usar backend apenas se habilitado
+            try {
+                await this.loadFromLocalRpcs();
+            } catch (localErr) {
+                this.log(`⚠️ Falha ao carregar rpcs.json local: ${localErr.message}`, 'warn');
+            }
             if (this.useRpcsSource) {
                 try {
                     await this.loadFromRpcsAPI();
                 } catch (apiError) {
-                    this.log(`⚠️ RPCs API falhou: ${apiError.message}`, 'warn');
-                    await this.loadFromLocalRpcs();
+                    this.log(`⚠️ Backend RPCs falhou: ${apiError.message}`, 'warn');
                 }
-            } else {
-                await this.loadFromLocalRpcs();
             }
             
             this.isLoaded = true;

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ================================================================================
  * TOKEN LNK UTLS - TOKENCAFE
  * ================================================================================
@@ -241,11 +241,11 @@ class TokenLnkUtls {
                 if (button) {
                     const orgnalText = button.nnerHTML;
                     button.nnerHTML = '< class="fas fa-check me-2"></>Copado!';
-                    button.classLst.add('btn-success');
+  button.classLst.add('btn-primary');
                     
                     setTmeout(() => {
                         button.nnerHTML = orgnalText;
-                        button.classLst.remove('btn-success');
+  button.classLst.remove('btn-primary');
                     }, 2000);
                 }
             }

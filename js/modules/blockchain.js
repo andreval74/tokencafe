@@ -255,10 +255,35 @@ class BlockchainCore {
      */
     async fetchNetworksFromRpcsAPI() {
         try {
-            const endpoints = [
-                '/api/rpcs',
-                `${location.protocol}//${location.hostname}:3001/api/rpcs`
-            ];
+            // Preferir rpcs.json local; backend opcional
+            const endpoints = [];
+            try {
+                // Primeiro, tentar arquivo local estático
+                const resLocal = await fetch('/shared/data/rpcs.json');
+                if (resLocal && resLocal.ok) {
+                    const dataLocal = await resLocal.json();
+                    const entries = Array.isArray(dataLocal?.rpcs) ? dataLocal.rpcs : (Array.isArray(dataLocal) ? dataLocal : []);
+                    // Normalizar para estrutura comum utilizada pelo módulo
+                    const networks = entries
+                        .map(entry => {
+                            const chainId = Number(entry?.chainId ?? entry?.id);
+                            const name = entry?.name || entry?.chainName || `Chain ${chainId}`;
+                            let rpc = [];
+                            if (Array.isArray(entry?.rpcs)) {
+                                rpc = entry.rpcs.map(r => typeof r === 'string' ? r : (r?.url || r?.rpc || r?.endpoint || ''));
+                            } else if (Array.isArray(entry?.rpc)) {
+                                rpc = entry.rpc.map(r => typeof r === 'string' ? r : (r?.url || ''));
+                            }
+                            return { chainId, name, rpc };
+                        });
+                    return networks;
+                }
+            } catch {}
+            // Se backend estiver habilitado, tentar endpoints de API
+            if (typeof window !== 'undefined' && window.RPC_BACKEND_ENABLED) {
+                endpoints.push('/api/rpcs');
+                endpoints.push(`${location.protocol}//${location.hostname}:3001/api/rpcs`);
+            }
             let response;
             for (const url of endpoints) {
                 try {

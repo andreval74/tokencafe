@@ -258,49 +258,7 @@ section[style*="gradient"], div[style*="gradient"] {
   color: var(--bs-body-color) !important;
 }
 
-/* Bootstrap Buttons - MantÃ©m padrÃ£o mas ajusta cores */
-.btn-primary {
-  --bs-btn-bg: var(--bs-primary);
-  --bs-btn-border-color: var(--bs-primary);
-  --bs-btn-hover-bg: var(--tokencafe-primary-dark);
-  --bs-btn-hover-border-color: var(--tokencafe-primary-dark);
-  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
-  --bs-btn-active-bg: var(--tokencafe-primary-dark);
-  --bs-btn-active-border-color: var(--tokencafe-primary-dark);
-  color: var(--tokencafe-text-inverse) !important; /* Texto preto no botÃ£o laranja */
-}
-
-.btn-outline-primary {
-  --bs-btn-color: var(--bs-primary);
-  --bs-btn-border-color: var(--bs-primary);
-  --bs-btn-hover-bg: var(--bs-primary);
-  --bs-btn-hover-border-color: var(--bs-primary);
-  --bs-btn-hover-color: var(--tokencafe-text-inverse);
-  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
-  --bs-btn-active-bg: var(--bs-primary);
-  --bs-btn-active-border-color: var(--bs-primary);
-  --bs-btn-active-color: var(--tokencafe-text-inverse);
-}
-
-.btn-outline-warning {
-  background: transparent;
-  border: 2px solid var(--bs-warning);
-  color: var(--bs-warning);
-  --bs-btn-color: var(--bs-warning);
-  --bs-btn-border-color: var(--bs-warning);
-  --bs-btn-hover-bg: var(--bs-warning);
-  --bs-btn-hover-border-color: var(--bs-warning);
-  --bs-btn-hover-color: var(--tokencafe-text-inverse);
-  --bs-btn-focus-shadow-rgb: var(--bs-warning-rgb);
-  --bs-btn-active-bg: var(--bs-warning);
-  --bs-btn-active-border-color: var(--bs-warning);
-  --bs-btn-active-color: var(--tokencafe-text-inverse);
-}
-
-.btn-outline-warning:hover:not(:disabled) {
-  background: var(--bs-warning);
-  color: var(--tokencafe-text-inverse);
-}
+/* Botões — definições legadas removidas. Variantes consolidadas ao final do arquivo. */
 
 .btn:disabled {
   opacity: 0.6;
@@ -2061,33 +2019,7 @@ body {
 }
 
 /* Custom Bootstrap Button Overrides */
-.btn-primary {
-  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
-  border: none;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #e74c3c, var(--tokencafe-primary));
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(248, 93, 35, 0.4);
-}
-
-.btn-outline-primary {
-  border: 2px solid var(--tokencafe-primary);
-  color: var(--tokencafe-primary);
-  background: transparent;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.btn-outline-primary:hover {
-  background: var(--tokencafe-primary);
-  color: var(--tokencafe-text-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(248, 93, 35, 0.4);
-}
+/* (removido) Overrides antigos de botões duplicados — consolidado abaixo */
 
 /* Card Enhancements */
 .card {
@@ -3735,6 +3667,7 @@ Classes reutilizáveis para efeitos neon padronizados
   border: 1px solid var(--tokencafe-border-light);
   backdrop-filter: blur(10px);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  min-height: 280px; /* assegura altura uniforme para alinhar botões */
 }
 
 .tool-tile:hover {
@@ -3764,11 +3697,17 @@ Classes reutilizáveis para efeitos neon padronizados
   font-size: 0.8rem;
   color: var(--tokencafe-text-secondary);
   line-height: 1.35;
+  min-height: 44px; /* altura mínima para descrição, evitando variação entre tiles */
 }
 
 .tool-tile-footer {
   margin-top: auto;
   font-size: 0.75rem;
+}
+
+/* Botões do rodapé dos tiles com cantos arredondados */
+.tool-tile-footer .btn {
+  border-radius: 12px;
 }
 
 .tool-tile-status {
@@ -3793,4 +3732,133 @@ Classes reutilizáveis para efeitos neon padronizados
 /* Dark theme adjustments */
 [data-bs-theme="dark"] .tool-tile {
   background: rgba(26, 26, 26, 0.85);
+}
+/* ==============================
+   Botões — Padrão Global (Bootstrap 5)
+   ============================== */
+
+/* Principal: laranja em degradê (padrão mais escuro, inspirado no header) */
+.btn-primary {
+  color: #fff;
+  background-image: linear-gradient(135deg, var(--tokencafe-primary-dark) 0%, var(--tokencafe-primary) 50%, var(--tokencafe-primary-dark) 100%);
+  border: none;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  color: #fff;
+  background-image: linear-gradient(135deg, var(--tokencafe-primary) 0%, var(--tokencafe-primary-dark) 50%, var(--tokencafe-primary) 100%);
+}
+.btn-primary:disabled {
+  opacity: 0.85;
+  background-image: linear-gradient(135deg, #b65b1f 0%, #cc6a2a 50%, #d77c3a 100%);
+}
+
+/* Limpar/Cancelar: cinza escuro padronizado */
+.btn-dark {
+  color: #fff;
+  background-color: #2b2b2b;
+  border-color: #2b2b2b;
+}
+.btn-dark:hover,
+.btn-dark:focus {
+  color: #fff;
+  background-color: #222;
+  border-color: #222;
+}
+
+/* Secundário clássico */
+.btn-secondary {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Outline secundário (não destrutivo) */
+.btn-outline-secondary {
+  color: #6c757d;
+  border-color: #6c757d;
+}
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Outline principal (não destrutivo, destaca ação) */
+.btn-outline-primary {
+  color: var(--tokencafe-primary);
+  border-color: var(--tokencafe-primary);
+  background: transparent;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  color: #fff;
+  background-color: var(--tokencafe-primary);
+  border-color: var(--tokencafe-primary);
+}
+
+/* Outline aviso (não destrutivo) */
+.btn-outline-warning {
+  color: var(--tokencafe-warning);
+  border-color: var(--tokencafe-warning);
+  background: transparent;
+}
+.btn-outline-warning:hover,
+.btn-outline-warning:focus {
+  color: #fff;
+  background-color: var(--tokencafe-warning);
+  border-color: var(--tokencafe-warning);
+}
+
+/* Sucesso: verde consistente com o tema */
+.btn-success {
+  color: #fff;
+  background-color: var(--tokencafe-success);
+  border-color: var(--tokencafe-success);
+}
+.btn-success:hover,
+.btn-success:focus {
+  color: #fff;
+  background-color: #0fa97a; /* leve escurecimento no hover */
+  border-color: #0fa97a;
+}
+
+/* Aviso: amarelo/laranja com alto contraste */
+.btn-warning {
+  color: #1a1a1a;
+  background-color: var(--tokencafe-warning);
+  border-color: var(--tokencafe-warning);
+}
+.btn-warning:hover,
+.btn-warning:focus {
+  color: #1a1a1a;
+  background-color: #d48a0a; /* leve escurecimento no hover */
+  border-color: #d48a0a;
+}
+
+/* Informação: azul */
+.btn-info {
+  color: #fff;
+  background-color: var(--tokencafe-info);
+  border-color: var(--tokencafe-info);
+}
+.btn-info:hover,
+.btn-info:focus {
+  color: #fff;
+  background-color: #2f6fd6; /* leve escurecimento no hover */
+  border-color: #2f6fd6;
+}
+
+/* Erro/Destrutivo: vermelho */
+.btn-danger {
+  color: #fff;
+  background-color: var(--tokencafe-danger);
+  border-color: var(--tokencafe-danger);
+}
+.btn-danger:hover,
+.btn-danger:focus {
+  color: #fff;
+  background-color: #d53a3a; /* leve escurecimento no hover */
+  border-color: #d53a3a;
 }

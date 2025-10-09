@@ -167,7 +167,7 @@ export function setupLinkGenerator({
             
             <!-- QR Code para escanear do celular -->
             <div class="mb-3">
-              <button class="btn btn-success w-100" onclick="generateTokenQR('${tokenAddress}', '${tokenSymbol}', '${tokenDecimals}', '${tokenName}', ${selectedNetwork.chainId})" type="button">
+              <button class="btn btn-primary w-100" onclick="generateTokenQR('${tokenAddress}', '${tokenSymbol}', '${tokenDecimals}', '${tokenName}', ${selectedNetwork.chainId})" type="button">
                 <i class="bi bi-qr-code"></i> Gerar QR Code para Escanear
               </button>
               <div id="qrCodeContainer" class="text-center mt-2" style="display:none;">
@@ -227,7 +227,7 @@ export function setupLinkGenerator({
               <button class="btn btn-outline-secondary" onclick="copyToClipboard('explorerLink')" type="button">
                 <i class="bi bi-clipboard"></i>
               </button>
-              <button class="btn btn-outline-warning" onclick="window.open('${explorerLink}', '_blank')" type="button">
+              <button class="btn btn-outline-primary" onclick="window.open('${explorerLink}', '_blank')" type="button">
                 <i class="bi bi-box-arrow-up-right"></i>
               </button>
             </div>
@@ -370,12 +370,12 @@ window.copyToClipboard = function(elementId) {
       if (button) {
         const originalHTML = button.innerHTML;
         button.innerHTML = '<i class="bi bi-check"></i>';
-        button.classList.add('btn-success');
+        button.classList.add('btn-primary');
         button.classList.remove('btn-outline-secondary');
         
         setTimeout(() => {
           button.innerHTML = originalHTML;
-          button.classList.remove('btn-success');
+          button.classList.remove('btn-primary');
           button.classList.add('btn-outline-secondary');
         }, 1500);
       }
@@ -947,10 +947,10 @@ function addQRInfo(qrDiv, qrText, tokenSymbol, tokenName, chainId) {
         <strong>📱 ${tokenSymbol} (${tokenName})</strong><br>
         <strong>🔗 Chain ID:</strong> ${chainId}<br>
         <div class="mt-2">
-          <button class="btn btn-sm btn-outline-primary me-2" onclick="copyToClipboard('qrDataTextarea')" type="button">
+          <button class="btn btn-sm btn-outline-secondary me-2" onclick="copyToClipboard('qrDataTextarea')" type="button">
             <i class="bi bi-clipboard"></i> Copiar JSON
           </button>
-          <button class="btn btn-sm btn-outline-success" onclick="downloadQRCode('${tokenSymbol}_token_qr')" type="button">
+          <button class="btn btn-sm btn-outline-primary" onclick="downloadQRCode('${tokenSymbol}_token_qr')" type="button">
             <i class="bi bi-download"></i> Baixar PNG
           </button>
         </div>
@@ -982,10 +982,10 @@ window.downloadQRCode = function(filename) {
     if (button) {
       const originalText = button.innerHTML;
       button.innerHTML = '<i class="bi bi-check-circle"></i> Baixado!';
-      button.className = 'btn btn-sm btn-success';
+      button.className = 'btn btn-sm btn-primary';
       setTimeout(() => {
         button.innerHTML = originalText;
-        button.className = 'btn btn-sm btn-outline-success';
+        button.className = 'btn btn-sm btn-outline-primary';
       }, 2000);
     }
     
@@ -1095,7 +1095,7 @@ function generateMultiWalletQRCodes(qrDiv, tokenAddress, tokenSymbol, tokenDecim
       <!-- BOTÕES GRANDES PARA MOBILE -->
       <div class="mobile-wallet-buttons d-grid gap-3 mb-4">
         ${mobileFormats.filter(f => f.priority === 1).map(format => `
-          <button class="btn btn-success btn-lg mobile-wallet-btn" onclick="handleMobileWalletAction('${format.type}', '${format.data.replace(/'/g, "\\'")}', '${format.name}')">
+          <button class="btn btn-primary btn-lg mobile-wallet-btn" onclick="handleMobileWalletAction('${format.type}', '${format.data.replace(/'/g, "\\'")}', '${format.name}')">
             <div class="d-flex align-items-center justify-content-between">
               <div class="text-start">
                 <div class="mobile-wallet-icon">${format.icon}</div>
@@ -1210,10 +1210,10 @@ async function generateMobileOptimizedQR(format, tokenSymbol, tokenName) {
             </div>
           </div>
           <div class="mt-3">
-            <button class="btn btn-success btn-sm" onclick="downloadMobileQR('${img.src}', '${tokenSymbol}_mobile_qr')">
+            <button class="btn btn-outline-primary btn-sm" onclick="downloadMobileQR('${img.src}', '${tokenSymbol}_mobile_qr')">
               <i class="bi bi-download"></i> Baixar QR Code
             </button>
-            <button class="btn btn-outline-success btn-sm ms-2" onclick="shareMobileQR('${format.data}')">
+            <button class="btn btn-outline-info btn-sm ms-2" onclick="shareMobileQR('${format.data}')">
               <i class="bi bi-share"></i> Compartilhar
             </button>
           </div>
@@ -1278,7 +1278,7 @@ window.handleMobileWalletAction = function(type, data, walletName) {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(data).then(() => {
           button.innerHTML = '<i class="bi bi-check"></i> Copiado!';
-          button.className = 'btn btn-success btn-lg mobile-wallet-btn';
+          button.className = 'btn btn-primary btn-lg mobile-wallet-btn';
         }).catch(() => {
           prompt('Copie o endereço do contrato:', data);
         });
@@ -1348,10 +1348,10 @@ function generateWalletLinks(qrFormats, tokenSymbol, tokenName, chainId) {
         <small class="text-muted">${format.description}</small>
       </div>
       <div class="btn-group btn-group-sm">
-        <button class="btn btn-success" onclick="openWalletLink('${format.data.replace(/'/g, "\\'")}')">
+        <button class="btn btn-primary" onclick="openWalletLink('${format.data.replace(/'/g, "\\'")}')">
           <i class="bi bi-box-arrow-up-right"></i> Abrir
         </button>
-        <button class="btn btn-outline-success" onclick="copyWalletLink('${format.data.replace(/'/g, "\\'")}')">
+        <button class="btn btn-outline-secondary" onclick="copyWalletLink('${format.data.replace(/'/g, "\\'")}')">
           <i class="bi bi-clipboard"></i>
         </button>
       </div>
@@ -1412,7 +1412,7 @@ async function generateSingleQR(containerId, qrData, size = 200, title = '') {
         <div class="qr-result">
           <canvas width="${size}" height="${size}" style="max-width: 100%; border: 2px solid #28a745; border-radius: 10px;"></canvas>
           <div class="mt-2">
-            <button class="btn btn-sm btn-success" onclick="downloadQR(this.parentNode.parentNode.querySelector('canvas'), '${title || 'qrcode'}_xcafe')">
+            <button class="btn btn-sm btn-outline-primary" onclick="downloadQR(this.parentNode.parentNode.querySelector('canvas'), '${title || 'qrcode'}_xcafe')">
               <i class="bi bi-download"></i> Download
             </button>
           </div>
@@ -1495,13 +1495,13 @@ window.copyWalletLink = function(url) {
     const button = event.target.closest('button');
     const originalHtml = button.innerHTML;
     button.innerHTML = '<i class="bi bi-check"></i>';
-    button.classList.add('btn-success');
-    button.classList.remove('btn-outline-success');
+    button.classList.add('btn-primary');
+    button.classList.remove('btn-outline-secondary');
     
     setTimeout(() => {
       button.innerHTML = originalHtml;
-      button.classList.remove('btn-success');
-      button.classList.add('btn-outline-success');
+      button.classList.remove('btn-primary');
+      button.classList.add('btn-outline-secondary');
     }, 1500);
   }).catch(err => {
     console.error('Erro ao copiar:', err);
@@ -1546,7 +1546,7 @@ function generateSimpleMobileQR(contractAddress, container) {
           <div class="mt-2">
             <strong>Endereço do Contrato:</strong><br>
             <code style="word-break: break-all;">${contractAddress}</code>
-            <button class="btn btn-sm btn-primary mt-2" onclick="navigator.clipboard.writeText('${contractAddress}').then(() => alert('Endereço copiado!'))">
+            <button class="btn btn-sm btn-outline-secondary mt-2" onclick="navigator.clipboard.writeText('${contractAddress}').then(() => alert('Endereço copiado!'))">
               <i class="bi bi-clipboard"></i> Copiar Endereço
             </button>
           </div>
@@ -1576,10 +1576,10 @@ function generateSimpleMobileQR(contractAddress, container) {
               <strong>Para usar:</strong> Escaneie com sua wallet e adicione manualmente.
             </p>
             <div class="mt-2">
-              <button class="btn btn-success btn-sm" onclick="downloadMobileQR('${img.src}', 'contract_address_qr')">
+              <button class="btn btn-outline-primary btn-sm" onclick="downloadMobileQR('${img.src}', 'contract_address_qr')">
                 <i class="bi bi-download"></i> Baixar
               </button>
-              <button class="btn btn-outline-primary btn-sm ms-2" onclick="navigator.clipboard.writeText('${contractAddress}').then(() => alert('✅ Endereço copiado!'))">
+              <button class="btn btn-outline-secondary btn-sm ms-2" onclick="navigator.clipboard.writeText('${contractAddress}').then(() => alert('✅ Endereço copiado!'))">
                 <i class="bi bi-clipboard"></i> Copiar Endereço
               </button>
             </div>

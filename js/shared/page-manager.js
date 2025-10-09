@@ -221,7 +221,7 @@ class PageManager {
         if (!this.connectBtn) return;
         
         this.connectBtn.innerHTML = '<i class="fas fa-check me-1"></i>Conectado';
-        this.connectBtn.className = 'btn btn-success btn-lg';
+        this.connectBtn.className = 'btn btn-primary btn-lg';
         this.connectBtn.disabled = true;
     }
 
@@ -233,7 +233,7 @@ class PageManager {
         const buttonText = target.includes('tools') ? 'Ir para Ferramentas' : (config.redirectTarget ? 'Ir para Dashboard' : 'Dashboard');
         
         this.connectBtn.innerHTML = `<i class="fas fa-tachometer-alt me-1"></i>${buttonText}`;
-        this.connectBtn.className = 'btn btn-success btn-lg';
+        this.connectBtn.className = 'btn btn-primary btn-lg';
         this.connectBtn.onclick = () => this.redirectTo(config.redirectTarget || '#');
         this.connectBtn.disabled = false;
     }

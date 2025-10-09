@@ -1,419 +1,550 @@
-﻿/**
- * ================================================================================
- * LNK NDEX - TOKENCAFE
- * ================================================================================
- * nterface para geracao de lnks de tokens usando o sstema consolidado
- * ================================================================================
- */
+// Link Generator - TokenCafe (limpo e funcional)
+// Responsável por buscar rede, ler token e gerar link compartilhável
 
-// importar modulos consolidados
-import BlockchainCoreClass from '../blockchain.js';
-import TokenCore from '../token.js';
-import { SharedUtilities } from '../../core/shared_utilities_es6.js';
+import { NetworkManager } from '../../shared/network-manager.js';
+import { blockchainUnified } from '../blockchain-unified.js';
 
-// inicializar modulos consolidados
-const BlockchainCore = new BlockchainCoreClass();
-const tokenCore = new TokenCore();
-const utils = new SharedUtilities();
+const networkManager = new NetworkManager();
 
-// inicializar chains (usando blockchain core)
-// BlockchainCore.autoUpdateChansJson(); // Método não existe na classe atual
+const ids = {
+  networkSearch: 'networkSearch',
+  networkAutocomplete: 'networkAutocomplete',
+  rpcUrl: 'rpcUrl',
+  explorerUrl: 'explorerUrl',
+  tokenAddress: 'tokenAddress',
+  tokenName: 'tokenName',
+  tokenSymbol: 'tokenSymbol',
+  tokenDecimals: 'tokenDecimals',
+  tokenImage: 'tokenImage',
+  btnTokenSearch: 'btnTokenSearch',
+  btnClearToken: 'btnClearToken',
+  btnCopyLink: 'btnCopyLink',
+  btnShareLink: 'btnShareLink',
+  btnPreviewLink: 'btnPreviewLink',
+  btnAddToMetaMask: 'btnAddToMetaMask',
+  btnOpenLink: 'btnOpenLink',
+  btnClearAll: 'btnClearAll',
+  generatedLink: 'generatedLink'
+};
 
-// Variaveis globais
-let allNetworks = [];
 let selectedNetwork = null;
+let tokenFetched = false;
 
-// IDs dos elementos
-const networkSearchId = 'networkSearch';
-const networkAutocompleteId = 'networkAutocomplete';
-const rpcUrlId = 'rpcUrl';
-const blockExplorerId = 'explorerUrl'; // Corrigido: o ID no HTML é 'explorerUrl', não 'blockExplorer'
-const tokenAddressId = 'tokenAddress';
-const tokenNameId = 'tokenName';
-const tokenSymbolId = 'tokenSymbol';
-const tokenDecimalsId = 'tokenDecimals';
-const tokenImageId = 'tokenImage';
-const btnTokenSearchId = 'btnTokenSearch';
-const btnCopyLinkId = 'btnCopyLink';
-const btnShareLinkId = 'btnShareLink';
-const generatedLinkId = 'generatedLink';
-const tokenLoadingId = 'tokenLoading';
-const generatedLinkContainerId = 'generatedLinkContainer';
+function toast(msg, type = 'info') {
+  if (typeof window.showToast === 'function') {
+    window.showToast(msg, type);
+  } else {
+    console.log(`[${type}] ${msg}`);
+  }
+}
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value ?? '';
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text ?? '';
+}
+
+function show(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('d-none');
+}
+
+function hide(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('d-none');
+}
+
+function isValidAddress(addr) {
+  return typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr);
+}
+
+// Helpers de timeout e pré-validação de RPC para respostas mais rápidas
+function timeoutRace(promise, ms, errMsg = 'timeout') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(errMsg)), ms))
+  ]);
+}
+
+async function rpcPreflight(rpcUrl, expectedChainId, timeoutMs = 1500) {
+  if (!rpcUrl) throw new Error('RPC vazio');
+  const body = {
+    jsonrpc: '2.0',
+    id: Date.now(),
+    method: 'eth_chainId',
+    params: []
+  };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    const json = await res.json().catch(() => ({}));
+    const hexId = json?.result;
+    const chain = typeof hexId === 'string' ? parseInt(hexId, 16) : NaN;
+    return String(chain) === String(expectedChainId);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Fallbacks mínimos para redes populares quando rpcs.json não fornece URLs
+function getFallbackRpc(chainId) {
+  switch (Number(chainId)) {
+    case 56: // BNB Smart Chain Mainnet
+      return 'https://bsc-dataseed.binance.org';
+    case 97: // BNB Smart Chain Testnet
+      return 'https://bsc-testnet.publicnode.com';
+    case 1: // Ethereum Mainnet
+      return 'https://eth.llamarpc.com';
+    case 137: // Polygon Mainnet
+      return 'https://polygon-rpc.com';
+    default:
+      return '';
+  }
+}
+
+function getFallbackExplorer(chainId) {
+  switch (Number(chainId)) {
+    case 56:
+      return 'https://bscscan.com';
+    case 97:
+      return 'https://testnet.bscscan.com';
+    case 1:
+      return 'https://etherscan.io';
+    case 137:
+      return 'https://polygonscan.com';
+    default:
+      return '';
+  }
+}
+
+function renderAutocomplete(list) {
+  // Compatível com o comportamento do rpc-logic.js
+  const box = document.getElementById(ids.networkAutocomplete);
+  if (!box) return;
+  if (!list || list.length === 0) {
+    box.classList.add('d-none');
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = list.map(network => `
+    <div class="autocomplete-item" data-chainid="${network.chainId}">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong>${network.name}</strong>
+          <small class="d-block text-muted">Chain ID: ${network.chainId}</small>
+        </div>
+        <span class="badge bg-dark-elevated text-tokencafe">${network.nativeCurrency?.symbol || 'N/A'}</span>
+      </div>
+    </div>
+  `).join('');
+  // Adicionar listeners de clique por item
+  box.querySelectorAll('.autocomplete-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const id = parseInt(item.dataset.chainid, 10);
+      const net = networkManager.getNetworkById(id);
+      if (net) selectNetwork(net);
+    });
+  });
+  box.classList.remove('d-none');
+}
 
 function selectNetwork(network) {
-	selectedNetwork = network;
-	document.getElementById(rpcUrlId).value = network.rpc[0];
-	document.getElementById(blockExplorerId).value = network.explorers ? network.explorers[0].url : '';
-	document.getElementById(networkSearchId).value = `${network.name} (${network.chainId})`;
-	document.getElementById(networkAutocompleteId).style.display = 'none';
-	
-	// Mostrar status da rede seleconada
-	const networkStatus = document.getElementById('network-status');
-	const selectedNetworkName = document.getElementById('selected-network-name');
-	if (networkStatus && selectedNetworkName) {
-		selectedNetworkName.textContent = `${network.name} (Chan id: ${network.chainId})`;
-		networkStatus.style.display = 'block';
-	}
-	
-	// Lberar proxma etapa (secao do token)
-	showNextSecton('token-secton');
+  selectedNetwork = network;
+  const input = document.getElementById(ids.networkSearch);
+  if (input) {
+    input.value = `${network.name} (${network.chainId})`;
+    input.dataset.chainId = String(network.chainId);
+  }
+  const box = document.getElementById(ids.networkAutocomplete);
+  if (box) box.classList.add('d-none');
+  // Preencher elementos do layout padrão (rpc-index)
+  const nameEl = document.getElementById('networkNameCode');
+  const idEl = document.getElementById('chainIdCode');
+  const curNameEl = document.getElementById('nativeCurrencyNameCode');
+  const curSymEl = document.getElementById('nativeCurrencySymbolCode');
+  const rpcText = document.getElementById('rpcUrlCode');
+  const rpcLink = document.getElementById('rpcUrlText');
+  const expText = document.getElementById('explorerUrlCode');
+  const expLink = document.getElementById('explorerUrlText');
+  if (nameEl) nameEl.textContent = network.name || '';
+  if (idEl) idEl.textContent = String(network.chainId || '');
+  if (curNameEl) curNameEl.textContent = network.nativeCurrency?.name || '';
+  if (curSymEl) curSymEl.textContent = network.nativeCurrency?.symbol || '';
+  let rpc = (Array.isArray(network.rpc) && network.rpc.length ? network.rpc[0] : '') || '';
+  let explorer = (network.explorers?.[0]?.url || '') || '';
+  // Aplicar fallback quando ausente
+  if (!rpc) rpc = getFallbackRpc(network.chainId);
+  if (!explorer) explorer = getFallbackExplorer(network.chainId);
+  // Persistir fallback na rede selecionada para uso posterior
+  if (!Array.isArray(network.rpc) || network.rpc.length === 0) {
+    network.rpc = rpc ? [rpc] : [];
+  }
+  if (!Array.isArray(network.explorers) || network.explorers.length === 0) {
+    network.explorers = explorer ? [{ url: explorer }] : [];
+  }
+  if (rpcText) rpcText.textContent = rpc;
+  if (rpcLink && rpc) rpcLink.href = rpc;
+  if (expText) expText.textContent = explorer;
+  if (expLink && explorer) expLink.href = explorer;
+  show('selected-network-info');
+  show('token-section');
 }
 
-async function fetchTokenDataAndFll() {
-	const tokenAddress = document.getElementById(tokenAddressId).value.trim();
-	const rpcUrl = document.getElementById(rpcUrlId).value.trim();
-	
-	// Valdacoes mas especfcas com mensagens claras
-	if (!selectedNetwork) {
-		utils.showToast('Prmero selecone uma rede blockchan na secao acma', 'warnng');
-		// Destacar a secao de rede
-		const networkSecton = document.querySelector('#network-secton');
-		if (networkSecton) {
-			networkSecton.scrollntoVew({ behavor: 'smooth', block: 'center' });
-		}
-		return;
-	}
-	
-	if (!tokenAddress) {
-		utils.showToast('nsra o endereco do token para buscar', 'warnng');
-		// Focar no campo de endereco
-		document.getElementById(tokenAddressId).focus();
-		return;
-	}
-	
-	if (!tokenCore.valdateTokenAddress(tokenAddress)) {
-		utils.showToast('Endereco de token nvaldo. Use o formato 0x...', 'error');
-		document.getElementById(tokenAddressId).focus();
-		return;
-	}
-	
-	const loadngElement = document.getElementById(tokenLoadingId);
-	const btnSearch = document.getElementById(btnTokenSearchId);
-	
-	try {
-		// Log para debug
-		console.log('ncando busca do token:', {
-			tokenAddress,
-			chainId: selectedNetwork.chainId,
-			rpcUrl,
-			network: selectedNetwork.name
-		});
-		
-		// Mostrar loadng
-		if (loadngElement) loadngElement.style.display = 'block';
-		if (btnSearch) {
-			btnSearch.dsabled = true;
-			btnSearch.nnerHTML = '< class="b b-hourglass-splt me-2"></>Buscando...';
-		}
-		
-		// Buscar dados do token usando o token core consolidado
-		const tokenData = await tokenCore.fetchTokenData(tokenAddress, selectedNetwork.chainId, rpcUrl);
-		
-		if (tokenData) {
-			// Preencher campos
-			document.getElementById(tokenNameId).value = tokenData.name || '';
-			document.getElementById(tokenSymbolId).value = tokenData.symbol || '';
-			document.getElementById(tokenDecimalsId).value = tokenData.decmals || '18';
-			document.getElementById(tokenImageId).value = tokenData.mage || '';
-			
-			utils.showToast('Dados do token carregados com sucesso!', 'success');
-			
-			// Gerar lnk automatcamente apos carregar dados
-			try {
-				const lnk = await tokenCore.generateTokenLnk({
-					address: tokenAddress,
-					name: tokenData.name || '',
-					symbol: tokenData.symbol || '',
-					decmals: tokenData.decmals || '18',
-					mage: tokenData.mage || ''
-				}, selectedNetwork.chainId); // chainId como segundo parametro
-				
-				// Exbr o lnk gerado
-				const lnkOutput = document.getElementById('generatedLnk');
-				if (lnkOutput) {
-					lnkOutput.value = lnk;
-				}
-				
-				// Exbr as secoes de lnks gerados
-				const generateSecton = document.getElementById('generate-secton');
-				const generatedLnkContaner = document.getElementById('generatedLnkContaner');
-				
-				if (generateSecton) {
-					generateSecton.style.display = 'block';
-				}
-				
-				if (generatedLnkContaner) {
-					generatedLnkContaner.style.display = 'block';
-				}
-				
-				utils.showToast('Lnk gerado automatcamente!', 'success');
-			} catch (lnkError) {
-				console.error('Erro ao gerar lnk automatcamente:', lnkError);
-				utils.showToast(`Erro ao gerar lnk: ${lnkError.message}`, 'error');
-			}
-			
-			showNextSecton('generate-secton');
-		} else {
-			utils.showToast('Token nao encontrado ou dados ndsponves', 'error');
-		}
-		
-	} catch (error) {
-		console.error('Erro ao buscar dados do token:', error);
-		utils.showToast(`Erro ao buscar token: ${error.message}`, 'error');
-	} finally {
-		// Ocultar loadng e restaurar botao
-		if (loadngElement) loadngElement.style.display = 'none';
-		if (btnSearch) {
-			btnSearch.dsabled = false;
-			btnSearch.nnerHTML = '< class="b b-search me-2"></>Buscar Token';
-		}
-	}
+function buildLink() {
+  const address = document.getElementById(ids.tokenAddress)?.value.trim();
+  const name = document.getElementById(ids.tokenName)?.value.trim();
+  const symbol = document.getElementById(ids.tokenSymbol)?.value.trim();
+  const decimals = document.getElementById(ids.tokenDecimals)?.value.trim();
+  const image = document.getElementById(ids.tokenImage)?.value.trim();
+  if (!address || !selectedNetwork) return '';
+  const params = new URLSearchParams({
+    address,
+    chainId: String(selectedNetwork.chainId),
+    name: name || '',
+    symbol: symbol || '',
+    decimals: decimals || '18',
+    image: image || '',
+    rpc: selectedNetwork.rpc?.[0] || '',
+    explorer: selectedNetwork.explorers?.[0]?.url || ''
+  });
+  return `${location.origin}/pages/modules/link/link-token.html?${params.toString()}`;
 }
 
-async function generateLnk() {
-	const tokenAddress = document.getElementById(tokenAddressId).value.trim();
-	const tokenName = document.getElementById(tokenNameId).value.trim();
-	const tokenSymbol = document.getElementById(tokenSymbolId).value.trim();
-	const tokenDecmals = document.getElementById(tokenDecimalsId).value.trim();
-	const tokenmage = document.getElementById(tokenImageId).value.trim();
-	
-	if (!tokenAddress || !selectedNetwork) {
-		utils.showToast('Preencha todos os campos obrgatoros', 'warnng');
-		return;
-	}
-	
-	try {
-		const lnk = await tokenCore.generateTokenLnk({
-			address: tokenAddress,
-			name: tokenName,
-			symbol: tokenSymbol,
-			decmals: tokenDecmals,
-			mage: tokenmage
-		}, selectedNetwork.chainId); // chainId como segundo parametro
-		
-		// Exbr o lnk gerado
-		const lnkOutput = document.getElementById('generatedLnk');
-		if (lnkOutput) {
-			lnkOutput.value = lnk;
-		}
-		
-		// Exbr as secoes de lnks gerados
-		const generateSecton = document.getElementById('generate-secton');
-		const generatedLnkContaner = document.getElementById('generatedLnkContaner');
-		
-		if (generateSecton) {
-			generateSecton.style.display = 'block';
-		}
-		
-		if (generatedLnkContaner) {
-			generatedLnkContaner.style.display = 'block';
-		}
-		
-		utils.showToast('Lnk gerado com sucesso!', 'success');
-		
-	} catch (error) {
-		console.error('Erro ao gerar lnk:', error);
-		utils.showToast(`Erro ao gerar lnk: ${error.message}`, 'error');
-	}
+function updateGeneratedLink() {
+  const url = buildLink();
+  setValue(ids.generatedLink, url);
+  if (url && tokenFetched) show('generate-section');
 }
 
-function copyLnk() {
-	const lnkFeld = document.getElementById('generatedLnk');
-	if (lnkFeld && lnkFeld.value) {
-		navgator.clpboard.wrteText(lnkFeld.value).then(() => {
-			utils.showToast('Lnk copado para a area de transferenca!', 'success');
-		}).catch(() => {
-			utils.showToast('Erro ao copar lnk', 'error');
-		});
-	}
+async function fetchTokenData() {
+  const address = document.getElementById(ids.tokenAddress)?.value.trim();
+  if (!selectedNetwork) {
+    const loading = document.getElementById('tokenLoading');
+    if (loading) {
+      loading.textContent = 'Selecione uma rede antes de buscar o token.';
+      loading.classList.remove('d-none');
+      loading.classList.remove('alert-info');
+      loading.classList.add('alert-warning');
+    }
+    return;
+  }
+  if (!address || !isValidAddress(address)) {
+    const loading = document.getElementById('tokenLoading');
+    if (loading) {
+      loading.textContent = 'Endereço inválido. Informe um contrato ERC‑20 (0x...) válido.';
+      loading.classList.remove('d-none');
+      loading.classList.remove('alert-info');
+      loading.classList.add('alert-danger');
+    }
+    return;
+  }
+  const loading = document.getElementById('tokenLoading');
+  let hadError = false;
+  if (loading) {
+    loading.textContent = 'Validando RPC...';
+    loading.classList.remove('d-none');
+    loading.classList.remove('alert-danger', 'alert-warning');
+    loading.classList.add('alert-info');
+  }
+  try {
+    // Criar provider e validar Chain ID do RPC
+    let rpcUrl = (Array.isArray(selectedNetwork.rpc) && selectedNetwork.rpc.length ? selectedNetwork.rpc[0] : '') || '';
+    if (!rpcUrl) {
+      rpcUrl = getFallbackRpc(selectedNetwork.chainId);
+      if (rpcUrl) {
+        // Atualizar UI e selectedNetwork para refletir o fallback
+        selectedNetwork.rpc = [rpcUrl];
+        const rpcText = document.getElementById('rpcUrlCode');
+        const rpcLink = document.getElementById('rpcUrlText');
+        if (rpcText) rpcText.textContent = rpcUrl;
+        if (rpcLink) rpcLink.href = rpcUrl;
+      }
+    }
+    if (!rpcUrl || typeof ethers === 'undefined') {
+      if (loading) {
+        loading.textContent = 'RPC indisponível para a rede selecionada. Tente outra rede ou RPC.';
+        loading.classList.remove('alert-info');
+        loading.classList.add('alert-danger');
+      }
+      hadError = true;
+      tokenFetched = false;
+      hide('generate-section');
+      return;
+    }
+
+    // Pré-validação rápida do RPC para evitar esperas longas
+    let validRpc = false;
+    try {
+      validRpc = await rpcPreflight(rpcUrl, selectedNetwork.chainId, 1500);
+    } catch (e) {
+      validRpc = false;
+    }
+    if (!validRpc) {
+      // Tentar fallback rápido
+      const fb = getFallbackRpc(selectedNetwork.chainId);
+      if (fb && fb !== rpcUrl) {
+        try {
+          const fbOk = await rpcPreflight(fb, selectedNetwork.chainId, 1500);
+          if (fbOk) {
+            rpcUrl = fb;
+            selectedNetwork.rpc = [fb];
+            const rpcText = document.getElementById('rpcUrlCode');
+            const rpcLink = document.getElementById('rpcUrlText');
+            if (rpcText) rpcText.textContent = fb;
+            if (rpcLink) rpcLink.href = fb;
+          }
+        } catch {}
+      }
+    }
+
+    if (loading) loading.textContent = 'Carregando dados do token...';
+
+    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    let net;
+    try { net = await timeoutRace(provider.getNetwork(), 2000, 'timeout-network'); } catch {}
+    if (!net || String(net.chainId) !== String(selectedNetwork.chainId)) {
+      if (loading) {
+        loading.textContent = 'Rede inválida: o RPC não corresponde ao ChainId selecionado.';
+        loading.classList.remove('alert-info');
+        loading.classList.add('alert-danger');
+      }
+      hadError = true;
+      tokenFetched = false;
+      hide('generate-section');
+      return;
+    }
+
+    // Verificar existência do contrato antes de ler dados
+    let code = '0x';
+    try { code = await timeoutRace(provider.getCode(address), 2500, 'timeout-code'); } catch {}
+    if (!code || code === '0x') {
+      // Diferenciar carteira (EOA) de contrato ausente
+      let isEoa = false;
+      try {
+        const [balance, txCount] = await Promise.all([
+          timeoutRace(provider.getBalance(address), 2000, 'timeout-balance').catch(() => null),
+          timeoutRace(provider.getTransactionCount(address), 2000, 'timeout-txcount').catch(() => null)
+        ]);
+        if (balance !== null || txCount !== null) isEoa = true;
+      } catch {}
+      if (isEoa) {
+        if (loading) {
+          loading.textContent = 'O endereço informado parece ser de carteira (EOA), não um contrato.';
+          loading.classList.remove('alert-info');
+          loading.classList.add('alert-warning');
+        }
+      } else {
+        if (loading) {
+          loading.textContent = 'Contrato não encontrado nesta rede. Verifique o ChainId ou tente outro RPC.';
+          loading.classList.remove('alert-info');
+          loading.classList.add('alert-danger');
+        }
+      }
+      hadError = true;
+      tokenFetched = false;
+      hide('generate-section');
+      return;
+    }
+
+    // Ler dados diretamente do contrato ERC-20
+    const abi = [
+      'function name() view returns (string)',
+      'function symbol() view returns (string)',
+      'function decimals() view returns (uint8)'
+    ];
+    const contract = new ethers.Contract(address, abi, provider);
+    const [name, symbol, decimals] = await Promise.all([
+      timeoutRace(contract.name(), 2500, 'timeout-name').catch(() => ''),
+      timeoutRace(contract.symbol(), 2500, 'timeout-symbol').catch(() => ''),
+      timeoutRace(contract.decimals(), 2500, 'timeout-decimals').catch(() => 18)
+    ]);
+
+    setValue(ids.tokenName, name || '');
+    setValue(ids.tokenSymbol, symbol || '');
+    setValue(ids.tokenDecimals, String(decimals || '18'));
+    show('token-info');
+    toast('Dados do token carregados', 'success');
+    tokenFetched = true;
+    updateGeneratedLink();
+  } catch (e) {
+    if (loading) {
+      loading.textContent = `Erro ao buscar token: ${e.message ?? 'desconhecido'}`;
+      loading.classList.remove('alert-info');
+      loading.classList.add('alert-danger');
+    }
+    hadError = true;
+    tokenFetched = false;
+    hide('generate-section');
+  } finally {
+    if (loading && !hadError) loading.classList.add('d-none');
+  }
 }
 
-function shareLnk() {
-	const lnkFeld = document.getElementById('generatedLnk');
-	if (lnkFeld && lnkFeld.value) {
-		if (navgator.share) {
-			navgator.share({
-				ttle: 'Token Lnk - TokenCafe',
-				text: 'Confra este token:',
-				url: lnkFeld.value
-			}).catch(() => {
-				utils.showToast('Erro ao compartlhar lnk', 'error');
-			});
-		} else {
-			// Fallback: copar para clpboard
-			navgator.clpboard.wrteText(lnkFeld.value).then(() => {
-				utils.showToast('Lnk copado (compartlhamento nao suportado)', 'nfo');
-			}).catch(() => {
-				utils.showToast('Erro ao copar lnk', 'error');
-			});
-		}
-	}
+function copyLink() {
+  const val = document.getElementById(ids.generatedLink)?.value;
+  if (!val) return;
+  navigator.clipboard.writeText(val).then(() => toast('Link copiado', 'success'));
 }
 
-function clearForm() {
-	// Lmpar todos os campos do formularo usando token core
-	tokenCore.clearForm();
-	selectedNetwork = null;
-	
-	// Ocultar secoes
-	const sections = ['token-secton', 'generate-secton'];
-	sections.forEach(sectionId => {
-		const secton = document.getElementById(sectionId);
-		if (secton) secton.style.display = 'none';
-	});
+function shareLink() {
+  const url = document.getElementById(ids.generatedLink)?.value;
+  if (!url) return;
+  // Compartilhar sem bloquear a UI; fallback para copiar
+  (async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'TokenCafe Link', url });
+        toast('Link compartilhado com sucesso', 'success');
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast('Compartilhamento indisponível. Link copiado para compartilhar.', 'info');
+      }
+    } catch (e) {
+      await navigator.clipboard.writeText(url);
+      toast('Não foi possível compartilhar. Link copiado.', 'warning');
+    }
+  })();
 }
 
-// Funcoes para controlar etapas progressvas
-function showNextSecton(sectionId) {
-	const secton = document.getElementById(sectionId);
-	if (secton) {
-		secton.style.display = 'block';
-		// Scroll suave para a nova secao
-		setTmeout(() => {
-			secton.scrollntoVew({ behavor: 'smooth', block: 'start' });
-		}, 100);
-	}
+function previewLink() {
+  const url = document.getElementById(ids.generatedLink)?.value;
+  if (url) window.open(url, '_blank');
 }
 
-function hdeAllSectonsAfter(sectionId) {
-	const sections = ['token-secton', 'generate-secton'];
-	const currentIndex = sections.indexOf(sectionId);
-	
-	if (currentIndex !== -1) {
-		for (let i = currentIndex + 1; i < sections.length; i++) {
-			const section = document.getElementById(sections[i]);
-			if (section) {
-				section.style.display = 'none';
-			}
-		}
-	}
+function openGeneratedLink() {
+  // Abrir explorer com o endereço do contrato na rede selecionada
+  const address = document.getElementById(ids.tokenAddress)?.value?.trim();
+  if (!selectedNetwork || !isValidAddress(address)) {
+    toast('Para ver o contrato, selecione a rede e informe um endereço válido.', 'warning');
+    return;
+  }
+  const base = selectedNetwork.explorers?.[0]?.url || getFallbackExplorer(selectedNetwork.chainId);
+  if (!base) {
+    toast('Explorer indisponível para esta rede.', 'error');
+    return;
+  }
+  const url = `${base.replace(/\/$/, '')}/address/${address}`;
+  window.open(url, '_blank');
 }
 
-function clearAllSteps() {
-	// Lmpar formularo completamente
-	clearForm();
-	
-	// Ocultar secoes posterores a prmera
-	document.getElementById('token-secton').style.display = 'none';
-	document.getElementById('generate-secton').style.display = 'none';
-	
-	// Ocultar status
-	const networkStatus = document.getElementById('network-status');
-	const tokenStatus = document.getElementById('token-status');
-	const generatedLnkContaner = document.getElementById(generatedLinkContainerId);
-	const tokenLoadng = document.getElementById(tokenLoadingId);
-	const networkAutocomplete = document.getElementById(networkAutocompleteId);
-	
-	if (networkStatus) networkStatus.style.display = 'none';
-	if (tokenStatus) tokenStatus.style.display = 'none';
-	if (generatedLnkContaner) generatedLnkContaner.style.display = 'none';
-	if (tokenLoadng) tokenLoadng.style.display = 'none';
-	if (networkAutocomplete) networkAutocomplete.style.display = 'none';
-	
-	// Resetar completamente as Variaveis de estado
-	selectedNetwork = null;
-	
-	// Scroll para o topo
-	setTmeout(() => {
-		document.getElementById('network-secton').scrollntoVew({ behavor: 'smooth', block: 'start' });
-	}, 100);
+async function addTokenToMetaMask() {
+  try {
+    const address = document.getElementById(ids.tokenAddress)?.value.trim();
+    const symbol = document.getElementById(ids.tokenSymbol)?.value.trim() || 'TKN';
+    const decimals = parseInt(document.getElementById(ids.tokenDecimals)?.value.trim() || '18', 10);
+    const image = document.getElementById(ids.tokenImage)?.value.trim() || '';
+    if (!isValidAddress(address)) {
+      toast('Endereço inválido', 'error');
+      return;
+    }
+    if (!window.ethereum) {
+      toast('Carteira não detectada', 'warning');
+      return;
+    }
+    await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options: { address, symbol, decimals, image }
+      }
+    });
+    toast('Token enviado para a carteira', 'success');
+  } catch (e) {
+    toast(`Erro ao adicionar token: ${e.message}`, 'error');
+  }
 }
 
-// Funcoes para os novos botoes
-function prevewGeneratedLnk() {
-	const lnk = document.getElementById(generatedLinkId).value;
-	if (lnk) {
-		// Abrr na mesma aba para prevew
-		wndow.open(lnk, '_self');
-	}
+function clearTokenOnly() {
+  // Reiniciar tudo e voltar para a seleção de rede
+  clearAll();
+  show('network-section');
+  try { document.getElementById(ids.networkSearch)?.focus(); } catch {}
 }
 
-// Funcao para mostrar autocomplete
-function showAutocomplete(networks, contanerd) {
-	const contaner = document.getElementById(contanerd);
-	if (!contaner) return;
-	
-	contaner.nnerHTML = '';
-	
-	if (networks.length === 0) {
-		contaner.style.display = 'none';
-		return;
-	}
-	
-	networks.slce(0, 10).forEach(network => {
-		const tem = document.createElement('dv');
-		tem.className = 'autocomplete-tem';
-		tem.nnerHTML = `
-			<dv class="network-nfo">
-				<strong>${network.name}</strong>
-				<span class="chan-id">Chan id: ${network.chainId}</span>
-			</dv>
-		`;
-		tem.addEventListener('click', () => selectNetwork(network));
-		contaner.appendChld(tem);
-	});
-	
-	contaner.style.display = 'block';
+function clearAll() {
+  setValue(ids.tokenAddress, '');
+  setValue(ids.tokenName, '');
+  setValue(ids.tokenSymbol, '');
+  setValue(ids.tokenDecimals, '');
+  setValue(ids.tokenImage, '');
+  setValue(ids.generatedLink, '');
+  tokenFetched = false;
+  selectedNetwork = null;
+  hide('selected-network-info');
+  hide('token-section');
+  hide('generate-section');
+  hide('token-info');
+  // Limpar busca de rede e autocomplete
+  const search = document.getElementById(ids.networkSearch);
+  if (search) { search.value = ''; delete search.dataset.chainId; }
+  const box = document.getElementById(ids.networkAutocomplete);
+  if (box) { box.innerHTML = ''; box.classList.add('d-none'); }
+  // Limpar detalhes de rede exibidos
+  ['networkNameCode','chainIdCode','nativeCurrencyNameCode','nativeCurrencySymbolCode','rpcUrlCode','explorerUrlCode']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+  const rpcLink = document.getElementById('rpcUrlText');
+  // Não limpe textContent do anchor, pois remove o span interno (rpcUrlCode)
+  // Apenas remova o href e zere o texto do span específico
+  if (rpcLink) {
+    rpcLink.removeAttribute('href');
+    const rpcSpan = document.getElementById('rpcUrlCode');
+    if (rpcSpan) rpcSpan.textContent = '';
+  }
+  const expLink = document.getElementById('explorerUrlText');
+  if (expLink) {
+    expLink.removeAttribute('href');
+    const expSpan = document.getElementById('explorerUrlCode');
+    if (expSpan) expSpan.textContent = '';
+  }
 }
 
-// ncalzacao
 document.addEventListener('DOMContentLoaded', async () => {
-	console.log('inicializando Lnk ndex...');
-	
-	try {
-		allNetworks = await BlockchainCore.fetchAllNetworks();
-		console.log('Redes carregadas:', allNetworks.length);
-	} catch (error) {
-		console.error('Erro ao carregar redes:', error);
-		utils.showToast('Erro ao carregar lsta de redes', 'error');
-	}
-	
-	// Event lsteners
-	const networkSearch = document.getElementById(networkSearchId);
-	if (networkSearch) {
-		console.log('Campo de busca de rede encontrado');
-		networkSearch.addEventListener('input', async function() {
-			const query = this.value.trim();
-			if (query.length >= 2) {
-				// Fltrar redes baseado na query
-				const filteredNetworks = allNetworks.filter(network => {
-					const searchTerm = query.toLowerCase();
-					return network.name.toLowerCase().includes(searchTerm) ||
-						   network.chainId.toString().includes(searchTerm) ||
-						   (network.nativeCurrency && network.nativeCurrency.symbol && 
-							network.nativeCurrency.symbol.toLowerCase().includes(searchTerm));
-				});
-				
-				// Mostrar autocomplete com redes fltradas
-				showAutocomplete(filteredNetworks, networkAutocompleteId);
-			} else {
-				document.getElementById(networkAutocompleteId).style.display = 'none';
-			}
-		});
-	} else {
-		console.error('Campo de busca de rede nao encontrado');
-	}
-	
-	document.addEventListener('click', function(e) {
-		if (!e.target.closest('#' + networkAutocompleteId) && e.target.id !== networkSearchId) {
-			document.getElementById(networkAutocompleteId).style.display = 'none';
-		}
-	});
-	
-	const tokenSearchBtn = document.getElementById(btnTokenSearchId);
-	if (tokenSearchBtn) {
-		console.log('Botao de busca de token encontrado');
-		tokenSearchBtn.addEventListener('click', fetchTokenDataAndFll);
-	} else {
-		console.error('Botao de busca de token nao encontrado! id:', btnTokenSearchId);
-	}
-	
-	// Botoes prncpas
-	document.getElementById(btnCopyLinkId)?.addEventListener('click', copyLnk);
-	document.getElementById(btnShareLinkId)?.addEventListener('click', shareLnk);
-	document.getElementById('btnPrevewLnk')?.addEventListener('click', prevewGeneratedLnk);
-	document.getElementById('btnClearAll')?.addEventListener('click', clearAllSteps);
-	
-	console.log('Lnk ndex inicializado com sucesso');
+  try { await networkManager.init(); } catch {}
+  // Garantir que a seção de rede siga o padrão visual
+  const netSection = document.getElementById('network-section');
+  if (netSection) netSection.classList.remove('d-none');
+  const search = document.getElementById(ids.networkSearch);
+  const box = document.getElementById(ids.networkAutocomplete);
+  if (search && box) {
+    search.addEventListener('input', async (e) => {
+      const q = (e.target.value || '').toString().trim();
+      if (!q || q.length < 2) {
+        box.classList.add('d-none');
+        box.innerHTML = '';
+        return;
+      }
+      const list = networkManager.searchNetworks(q, 10);
+      renderAutocomplete(list);
+    });
+    document.addEventListener('click', (ev) => {
+      if (!ev.target.closest('#' + ids.networkAutocomplete) && ev.target.id !== ids.networkSearch) {
+        box.classList.add('d-none');
+      }
+    });
+  }
+  document.getElementById(ids.btnTokenSearch)?.addEventListener('click', fetchTokenData);
+  document.getElementById(ids.btnCopyLink)?.addEventListener('click', copyLink);
+  // Pequenos: copiar - adicionar à carteira - ver contrato
+  document.getElementById(ids.btnShareLink)?.addEventListener('click', addTokenToMetaMask);
+  document.getElementById(ids.btnOpenLink)?.addEventListener('click', openGeneratedLink);
+  // Grande: compartilhar link
+  document.getElementById(ids.btnAddToMetaMask)?.addEventListener('click', shareLink);
+  document.getElementById(ids.btnClearAll)?.addEventListener('click', clearAll);
+  document.getElementById(ids.btnClearToken)?.addEventListener('click', clearTokenOnly);
+  // Atualizar link em tempo real
+  document.getElementById(ids.tokenAddress)?.addEventListener('input', updateGeneratedLink);
+  document.getElementById(ids.tokenName)?.addEventListener('input', updateGeneratedLink);
+  document.getElementById(ids.tokenSymbol)?.addEventListener('input', updateGeneratedLink);
+  document.getElementById(ids.tokenDecimals)?.addEventListener('input', updateGeneratedLink);
+  document.getElementById(ids.tokenImage)?.addEventListener('input', updateGeneratedLink);
 });
-

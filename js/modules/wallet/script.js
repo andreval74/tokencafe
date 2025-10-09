@@ -2055,7 +2055,11 @@ class TokenCafeWalletManager {
             await this.disconnect(false);
             
             // Limpar localStorage
-            localStorage.removeItem('TokenCafeWalletSession');
+            // Sessões e caches do TokenCafe
+            localStorage.removeItem('TokenCafeWalletSession'); // compat (maiúsculas)
+            localStorage.removeItem('tokenCafeWalletSession'); // chave utilizada
+            localStorage.removeItem('tokencafe_wallet_cache'); // cache do WalletConnector
+            localStorage.removeItem('tokencafe_known_rpcs'); // RPCs já adicionadas por rede
             localStorage.removeItem('walletconnect');
             localStorage.removeItem('WEB3_CONNECT_CACHED_PROVIDER');
             
@@ -2063,6 +2067,15 @@ class TokenCafeWalletManager {
             if (window.TokenCafeWalletData) {
                 delete window.TokenCafeWalletData;
             }
+            // Limpar textarea de RPCs personalizados e elementos de UI imediatamente
+            const customRpcsEl = document.getElementById('customRpcs');
+            if (customRpcsEl) customRpcsEl.value = '';
+            const walletActions = document.getElementById('wallet-actions-section');
+            if (walletActions) walletActions.classList.add('d-none');
+            const walletDetails = document.getElementById('wallet-details-section');
+            if (walletDetails) walletDetails.classList.add('d-none');
+            const walletInfo = document.getElementById('wallet-info-section');
+            if (walletInfo) walletInfo.classList.add('d-none');
             
             // Recarregar a página para garantir estado limpo
             setTimeout(() => {
@@ -2349,54 +2362,36 @@ class TokenCafeWalletManager {
     async updateCustomRpcsDisplay() {
         const el = document.getElementById('customRpcs');
         if (!el) return;
-        const sessionList = this.getSessionRpcList();
         const chainIdHex = this.networkInfo && this.networkInfo.chainId ? this.normalizeChainIdHex(this.networkInfo.chainId) : null;
 
-        const set = new Set();
-        // Adiciona RPCs da sessão
-        sessionList.forEach((u) => {
-            const n = this.normalizeRpcUrl(u);
-            if (n) set.add(n);
-        });
-
         try {
-            // Converte para decimal ao obter RPCs conhecidos da rede
-            let knownList = [];
-            if (chainIdHex && typeof this.getWorkingRpcs === 'function') {
-                knownList = await this.getWorkingRpcs(chainIdHex);
-            }
-            if (Array.isArray(knownList)) {
-                knownList.forEach((u) => {
-                    const n = this.normalizeRpcUrl(u);
-                    if (n) set.add(n);
-                });
-            }
-
-            // Tenta capturar RPC ativo diretamente do provider da carteira
+            // Exibir SOMENTE os RPCs cadastrados/ativos na carteira (provider)
             let providerRpcs = [];
-            if (chainIdHex && typeof this.getMetaMaskRpcUrls === 'function') {
+            if (typeof this.getMetaMaskRpcUrls === 'function') {
                 providerRpcs = await this.getMetaMaskRpcUrls(chainIdHex);
             }
-            if (Array.isArray(providerRpcs)) {
-                providerRpcs.forEach((u) => {
-                    const n = this.normalizeRpcUrl(u);
-                    if (n) set.add(n);
-                });
-            }
-        } catch (e) {
-            console.warn('updateCustomRpcsDisplay: erro ao unir RPCs', e);
-        }
 
-        const combined = Array.from(set);
-        if (combined.length > 0) {
-            el.value = combined.join('\n');
-        } else {
+            const normalized = Array.isArray(providerRpcs)
+                ? Array.from(new Set(providerRpcs
+                    .map(u => this.normalizeRpcUrl(u))
+                    .filter(u => typeof u === 'string' && /^https?:\/\//i.test(u))))
+                : [];
+
+            if (normalized.length > 0) {
+                el.value = normalized.join('\n');
+                return;
+            }
+
+            // Fallback: RPC atual do provider
             const currentRpc = this.getRpcUrl();
             if (currentRpc && /^https?:\/\//i.test(currentRpc)) {
                 el.value = currentRpc;
             } else {
-                el.value = 'Nenhum RPC capturado nesta sessão';
+                el.value = 'Nenhum RPC cadastrado na carteira para esta rede';
             }
+        } catch (e) {
+            console.warn('updateCustomRpcsDisplay: erro ao capturar RPCs do provider', e);
+            el.value = 'Erro ao carregar RPCs da carteira';
         }
     }
 }
@@ -2567,6 +2562,38 @@ scheduleBalanceUpdate();
 // Expor configurações globalmente
 window.WALLET_CONFIG = WALLET_CONFIG;
 window.NETWORK_CONFIGS = NETWORK_CONFIGS;
+
+// Fallback global para acionar limpeza caso listeners não estejam ativos
+window.TokenCafe = window.TokenCafe || {};
+window.TokenCafe.clearAndRestart = function() {
+    try {
+        console.log('🧹 [Global] Acionando limpeza e reinício...');
+        if (window.walletManager && typeof window.walletManager.clearAndRestart === 'function') {
+            window.walletManager.clearAndRestart();
+        } else {
+            // Fallback mínimo: limpar chaves críticas e recarregar
+            localStorage.removeItem('TokenCafeWalletSession');
+            localStorage.removeItem('tokenCafeWalletSession');
+            localStorage.removeItem('tokencafe_wallet_cache');
+            localStorage.removeItem('tokencafe_known_rpcs');
+            localStorage.removeItem('walletconnect');
+            localStorage.removeItem('WEB3_CONNECT_CACHED_PROVIDER');
+            setTimeout(() => window.location.reload(), 300);
+        }
+    } catch (e) {
+        console.warn('Falha ao executar limpeza global:', e);
+        setTimeout(() => window.location.reload(), 300);
+    }
+};
+
+// Delegação de evento: garante funcionamento do botão mesmo com variações de carregamento
+document.addEventListener('click', function(e) {
+    const clearBtn = e.target && e.target.closest && e.target.closest('#clearDataBtn');
+    if (clearBtn) {
+        e.preventDefault();
+        window.TokenCafe.clearAndRestart();
+    }
+});
 
 console.log('✅ TokenCafe Wallet Script Consolidado carregado com funcionalidades RPC');
 

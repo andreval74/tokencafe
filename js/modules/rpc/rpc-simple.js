@@ -363,11 +363,16 @@ class RPCSimple {
      */
     async loadRpcsData() {
         try {
+            // Preferir fonte local; backend apenas se habilitado
             const endpoints = [
-                '/api/rpcs',
-                `${location.protocol}//${location.hostname}:3001/api/rpcs`,
                 '/shared/data/rpcs.json'
             ];
+            try {
+                if (typeof window !== 'undefined' && window.RPC_BACKEND_ENABLED) {
+                    endpoints.push('/api/rpcs');
+                    endpoints.push(`${location.protocol}//${location.hostname}:3001/api/rpcs`);
+                }
+            } catch {}
             let data = null;
             for (const url of endpoints) {
                 try {

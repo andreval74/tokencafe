@@ -68,6 +68,11 @@ function setupEventListeners() {
   document.getElementById('btn-clear')?.addEventListener('click', () => {
     clearNetworkForm();
   });
+  // Botão "Limpar Dados" principal da página RPC
+  document.getElementById('clear-network-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearNetworkForm();
+  });
 
   // Entrada de RPC manual
   document.getElementById('customRpcUrl')?.addEventListener('input', () => {
@@ -124,22 +129,44 @@ async function connectWallet() {
  * - Busca rpcs.json e guarda em window.externalRpcs
  */
 async function loadExternalRpcs() {
+  // Preferir carregar do arquivo local; backend apenas se habilitado
   try {
-    const base = window.RPC_BACKEND_BASE || `${location.protocol}//${location.hostname}:3001`;
-    // Atualização silenciosa
-    await fetch(`${base}/api/rpcs/update`).catch(() => null);
-    const res = await fetch(`${base}/api/rpcs`);
-    if (!res.ok) throw new Error(`Falha ao obter RPCs externas: ${res.status}`);
-    const data = await res.json();
-    if (data && Array.isArray(data.rpcs)) {
-      window.externalRpcs = data.rpcs;
-      console.log(`🔗 RPCs externas carregadas: ${data.count}`);
+    const resLocal = await fetch('/shared/data/rpcs.json');
+    if (resLocal.ok) {
+      const dataLocal = await resLocal.json();
+      if (Array.isArray(dataLocal)) {
+        window.externalRpcs = dataLocal;
+        console.log(`🔗 RPCs externas carregadas do arquivo local: ${dataLocal.length}`);
+      } else if (dataLocal && Array.isArray(dataLocal.rpcs)) {
+        window.externalRpcs = dataLocal.rpcs;
+        console.log(`🔗 RPCs externas carregadas do arquivo local (obj): ${dataLocal.rpcs.length}`);
+      } else {
+        window.externalRpcs = [];
+      }
     } else {
       window.externalRpcs = [];
     }
   } catch (e) {
-    console.warn('Não foi possível carregar RPCs externas do backend:', e);
+    console.warn('Falha ao carregar RPCs externas do arquivo local:', e);
     window.externalRpcs = [];
+  }
+
+  // Se backend estiver habilitado, tentar atualizar e substituir pelos dados do backend
+  try {
+    if (typeof window !== 'undefined' && window.RPC_BACKEND_ENABLED) {
+      const base = window.RPC_BACKEND_BASE || `${location.protocol}//${location.hostname}:3001`;
+      await fetch(`${base}/api/rpcs/update`).catch(() => null);
+      const res = await fetch(`${base}/api/rpcs`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.rpcs)) {
+          window.externalRpcs = data.rpcs;
+          console.log(`🔗 RPCs externas carregadas do backend: ${data.rpcs.length}`);
+        }
+      }
+    }
+  } catch (e2) {
+    console.warn('Backend RPCs desabilitado ou indisponível:', e2);
   }
 }
 
@@ -184,7 +211,8 @@ function getExternalRpcsForNetwork(network) {
       }
     }
   }
-  return Array.from(urls).slice(0, 20);
+  // Exibir mais opções para facilitar escolha; manter limite razoável
+  return Array.from(urls).slice(0, 100);
 }
 
 /**
@@ -717,7 +745,7 @@ async function renderRpcOptions(network) {
       const ok = await testRpcUrl(url, network?.chainId);
       rpcValidationCache[url] = !!ok;
       if (ok) {
-        btnEl.className = 'btn btn-sm btn-success';
+        btnEl.className = 'btn btn-sm btn-primary';
         btnEl.textContent = 'ONLINE';
         radioEl.disabled = false;
       } else {
@@ -794,7 +822,7 @@ document.getElementById('btn-test-custom-rpc')?.addEventListener('click', async 
   if (btn) { btn.className = 'btn btn-outline-warning'; btn.textContent = 'Testando...'; }
   const ok = await testRpcUrl(url, network?.chainId);
   if (btn) {
-    btn.className = ok ? 'btn btn-success' : 'btn btn-danger';
+    btn.className = ok ? 'btn btn-primary' : 'btn btn-danger';
     btn.textContent = ok ? 'ONLINE' : 'OFFLINE';
   }
   customRpcValidated = !!ok;

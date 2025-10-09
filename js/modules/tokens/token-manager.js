@@ -215,7 +215,7 @@ class TokenManager {
                 </div>
                 <div class="token-actions">
                     <button class="btn btn-sm btn-primary" onclick="tokenManager.viewDetails('${tokenId}')">Ver Detalhes</button>
-                    <button class="btn btn-sm btn-secondary" onclick="tokenManager.editToken('${tokenId}')">Editar</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="tokenManager.editToken('${tokenId}')">Editar</button>
                     <button class="btn btn-sm btn-outline" onclick="tokenManager.copyAddress('${token.contractAddress}')">Copiar</button>
                 </div>
             </div>
@@ -256,7 +256,7 @@ class TokenManager {
                 </div>` : ''}
                 <div class="detail-actions">
                     <button class="btn btn-primary" onclick="window.open('https://etherscan.io/address/${token.contractAddress}', '_blank')">Ver no Explorer</button>
-                    ${token.website ? `<button class="btn btn-secondary" onclick="window.open('${token.website}', '_blank')">Website</button>` : ''}
+            ${token.website ? `<button class="btn btn-outline-primary" onclick="window.open('${token.website}', '_blank')">Website</button>` : ''}
                 </div>
             </div>
         `;
