@@ -1,0 +1,128 @@
+/* Button Animations Simples - Sistema simplificado para botão Criar Token */
+
+/* ============================================================================ */
+/* SISTEMA GENÉRICO DE CORES PARA ETAPAS - REUTILIZÁVEL */
+/* ============================================================================ */
+
+/* Configuração das cores para as 5 etapas + inicial + final */
+:root {
+    --btn-default-color: #ED5A22;    /* Laranja - Estado inicial */
+    --btn-step1-color: #495057;      /* Cinza escuro - Etapa 1 */
+    --btn-step2-color: #6c757d;      /* Cinza médio - Etapa 2 */
+    --btn-step3-color: #adb5bd;      /* Cinza claro - Etapa 3 */
+    --btn-step4-color: #007bff;      /* Azul - Etapa 4 */
+    --btn-success-color: #28a745;    /* Verde - Estado final */
+    --btn-error-color: #dc3545;      /* Vermelho - Estado erro */
+}
+
+/* ============================================================================ */
+/* CLASSES DE BOTÃO PARA CADA ETAPA */
+/* ============================================================================ */
+
+/* Estado inicial - COR LARANJA */
+#create-token-btn,
+.btn-primary-custom {
+    background-color: var(--btn-default-color) !important;
+    border-color: var(--btn-default-color) !important;
+    color: white !important;
+    transition: all 0.3s ease;
+}
+
+#create-token-btn:hover,
+.btn-primary-custom:hover {
+    background-color: #d44a1a !important;
+    border-color: #d44a1a !important;
+}
+
+/* Etapa 1 - Cinza escuro */
+.btn-working-step1 {
+    background-color: var(--btn-step1-color) !important;
+    border-color: var(--btn-step1-color) !important;
+    color: white !important;
+    animation: pulse-simple 1.5s infinite;
+}
+
+/* Etapa 2 - Cinza médio */
+.btn-working-step2 {
+    background-color: var(--btn-step2-color) !important;
+    border-color: var(--btn-step2-color) !important;
+    color: white !important;
+    animation: pulse-simple 1.5s infinite;
+}
+
+/* Etapa 3 - Cinza claro */
+.btn-working-step3 {
+    background-color: var(--btn-step3-color) !important;
+    border-color: var(--btn-step3-color) !important;
+    color: white !important;
+    animation: pulse-simple 1.5s infinite;
+}
+
+/* Etapa 4 - Azul */
+.btn-working-step4 {
+    background-color: var(--btn-step4-color) !important;
+    border-color: var(--btn-step4-color) !important;
+    color: white !important;
+    animation: pulse-simple 1.5s infinite;
+}
+
+/* Estado trabalhando genérico - CINZA (mantido para compatibilidade) */
+.btn-working {
+    background-color: var(--btn-step2-color) !important;
+    border-color: var(--btn-step2-color) !important;
+    color: white !important;
+    animation: pulse-simple 1.5s infinite;
+}
+
+/* Estado sucesso FINAL - VERDE E DESABILITADO */
+.btn-success-final {
+    background-color: var(--btn-success-color) !important;
+    border-color: var(--btn-success-color) !important;
+    color: white !important;
+    animation: bounce-simple 0.6s ease;
+    cursor: not-allowed !important;
+    opacity: 1 !important; /* Manter opacidade mesmo desabilitado */
+}
+
+.btn-success-final:disabled {
+    background-color: var(--btn-success-color) !important;
+    border-color: var(--btn-success-color) !important;
+    color: white !important;
+    opacity: 1 !important;
+}
+
+/* Estado erro - VERMELHO */
+.btn-error-final {
+    background-color: var(--btn-error-color) !important;
+    border-color: var(--btn-error-color) !important;
+    color: white !important;
+    animation: shake-simple 0.5s ease;
+}
+
+/* Animações simples */
+@keyframes pulse-simple {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounce-simple {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes shake-simple {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+/* Ícones giratórios para estados específicos */
+.btn-working .bi-gear-fill,
+.btn-working .bi-sliders {
+    animation: spin-simple 2s linear infinite;
+}
+
+@keyframes spin-simple {
+    to { transform: rotate(360deg); }
+}
