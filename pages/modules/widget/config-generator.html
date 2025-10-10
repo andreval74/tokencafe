@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teste Rápido • TBNB (BSC Testnet 97)</title>
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        margin: 0; padding: 24px; line-height: 1.45; background: #f7f8fa;
+      }
+      .container { max-width: 900px; margin: 0 auto; padding: 0 8px; }
+      .header {
+        display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+      }
+      .title { font-size: 22px; font-weight: 700; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px;
+        background: #e8f3ff; color: #0a7cff; border: 1px solid #cfe6ff; font-weight: 600; font-size: 14px;
+      }
+      .card { border: 1px solid #d0d7de; border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; background: #fff; }
+      .card h2 { font-size: 16px; margin: 0 0 10px; }
+      label { display: block; font-weight: 600; margin-bottom: 6px; }
+      input[type="text"], input[type="number"] { width: 100%; padding: 10px; height: 40px; border: 1px solid #c3c3c3; border-radius: 8px; background: #fff; color: #111; }
+      select { width: 100%; padding: 10px; height: 40px; border: 1px solid #c3c3c3; border-radius: 8px; background: #fff; color: #111; }
+      .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-start; align-items: center; margin-top: 8px; }
+    .form-row { display: grid; grid-template-columns: 200px 1fr 200px; align-items: center; gap: 12px; margin-bottom: 10px; }
+      .form-row label { margin: 0; }
+      .form-row input { width: 100%; }
+    .row-extras { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; }
+    .icon-link { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #cbd5e1; border-radius: 8px; color: #0a7cff; background: #f8fafc; text-decoration: none; }
+    .icon-link:hover { background: #eaf3ff; }
+    .icon-link svg { width: 18px; height: 18px; }
+      .pct { width: 84px; padding: 10px; height: 40px; border: 1px solid #c3c3c3; border-radius: 8px; text-align: right; }
+      .row-extras a { white-space: nowrap; }
+      button { padding: 10px 14px; border: 1px solid #0b6bcb; background: #0a7cff; color: #fff; border-radius: 8px; cursor: pointer; }
+      button.secondary { border-color: #c3c3c3; background: #f3f4f6; color: #111; }
+      button:disabled { opacity: 0.6; cursor: not-allowed; }
+      .monospace { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .muted { color: #6b7280; }
+      .status { white-space: pre-wrap; font-size: 13px; }
+      .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .step { padding: 8px 12px; border: 1px solid #e6e6e6; border-radius: 8px; background: #fafafa; font-size: 13px; }
+      a { color: #0a7cff; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      @media (max-width: 640px) {
+        .form-row { grid-template-columns: 1fr; }
+      }
+      /* removido gerador: limpar estilos não usados */
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="title">Configuração para Mini Widget</div>
+      </div>
+
+      <div class="card">
+        <h2>Como funciona</h2>
+        <div class="steps">
+          <div class="step">1) Conectar a MetaMask</div>
+          <div class="step">2) Trocar para a rede Testnet 97</div>
+          <div class="step">3) Informar carteiras (oficial e comissão)</div>
+          <div class="step">4) Validar saldos e estimativa</div>
+          <div class="step">5) Enviar 0.0001 tBNB com divisão 95%/5%</div>
+          <div class="step">6) Ver os hashes no BscScan</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Dados para o teste</h2>
+        <div class="form-row">
+          <label for="chainIdDec">Rede (chainId decimal)</label>
+          <input id="chainIdDec" type="number" min="1" step="1" value="97" />
+          <div class="row-extras"></div>
+        </div>
+        <div class="form-row">
+          <label for="paymentMethod">Método de pagamento</label>
+          <select id="paymentMethod">
+            <option value="native" selected>BNB/tBNB nativo</option>
+            <option value="erc20">Token ERC-20 (USDT/BUSD)</option>
+          </select>
+          <div class="row-extras"></div>
+        </div>
+        <div class="form-row" id="paymentTokenRow" style="display:none;">
+          <label for="paymentToken">Token de pagamento (ERC-20)</label>
+          <input id="paymentToken" type="text" placeholder="0x…" />
+          <div class="row-extras"></div>
+        </div>
+        <div class="form-row">
+          <label for="minTokens">Quantidade mínima (tokens)</label>
+          <input id="minTokens" type="number" min="0" step="any" placeholder="ex.: 100" />
+          <div class="row-extras"></div>
+        </div>
+        <div class="form-row">
+          <label for="maxTokens">Quantidade máxima (tokens)</label>
+          <input id="maxTokens" type="number" min="0" step="any" placeholder="ex.: 1000" />
+          <div class="row-extras"></div>
+        </div>
+        <div class="form-row">
+          <label for="contractInput">Contrato de negociação</label>
+          <input id="contractInput" type="text" placeholder="0x…" />
+          <div class="row-extras"></div>
+        </div>
+        <div class="form-row">
+          <label for="officialInput">Carteira oficial</label>
+          <input id="officialInput" type="text" placeholder="0x…" value="0x0b81337F18767565D2eA40913799317A25DC4bc5" />
+          <div class="row-extras">
+            <input id="officialPct" class="pct" type="number" min="0" max="100" step="1" value="95" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="commissionInput">Carteira de comissão</label>
+          <input id="commissionInput" type="text" placeholder="0x…" value="0x2cf724171a998C3d470048AC2F1b187a48A5cafE" />
+          <div class="row-extras">
+            <input id="commissionPct" class="pct" type="number" min="0" max="100" step="1" value="5" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="connectBtn">Conectar MetaMask</button>
+          <button id="validateBtn" class="secondary">Validar rede, carteiras e contrato</button>
+          <button id="sendBtn" disabled>Enviar tBNB com divisão configurada</button>
+          <button id="generateCodeBtn" class="secondary">Gerar código da página</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Status</h2>
+        <div id="status" class="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Saldos</h2>
+        <div id="balances" class="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Resultado da transação</h2>
+        <div id="txResult" class="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Pré-visualização do Mini Widget</h2>
+        <div class="muted" style="margin-bottom:8px;">A prévia usa os dados atuais. Atualize para refletir mudanças.</div>
+        <div class="actions" style="margin-top:0;">
+          <button id="updatePreviewBtn" class="secondary">Atualizar prévia</button>
+        </div>
+        <iframe id="widgetPreview" title="Prévia do Mini Widget" style="width:100%; height:420px; border:1px solid #e6e6e6; border-radius:8px;" loading="lazy"></iframe>
+      </div>
+
+      
+ 
+      
+    </div>
+
+    <script>
+      const CHAIN_ID_DEC = 97;
+      const CHAIN_ID_HEX = '0x61'; // 97 em hex
+
+      const el = {
+        officialInput: document.getElementById('officialInput'),
+        commissionInput: document.getElementById('commissionInput'),
+        officialPct: document.getElementById('officialPct'),
+        commissionPct: document.getElementById('commissionPct'),
+        chainIdDec: document.getElementById('chainIdDec'),
+        paymentMethod: document.getElementById('paymentMethod'),
+        paymentToken: document.getElementById('paymentToken'),
+        minTokens: document.getElementById('minTokens'),
+        maxTokens: document.getElementById('maxTokens'),
+        contractInput: document.getElementById('contractInput'),
+        connectBtn: document.getElementById('connectBtn'),
+        validateBtn: document.getElementById('validateBtn'),
+        sendBtn: document.getElementById('sendBtn'),
+        status: document.getElementById('status'),
+        balances: document.getElementById('balances'),
+        txResult: document.getElementById('txResult'),
+        updatePreviewBtn: document.getElementById('updatePreviewBtn'),
+        widgetPreview: document.getElementById('widgetPreview'),
+      };
+
+      let currentAccount = null;
+      let currentChainIdHex = null;
+
+      function getExplorerBase() {
+        const dec = Number((el.chainIdDec.value || '').trim()) || CHAIN_ID_DEC;
+        if (dec === 97) return 'https://testnet.bscscan.com';
+        if (dec === 56) return 'https://bscscan.com';
+        return 'https://testnet.bscscan.com';
+      }
+
+      function updatePaymentVisibility() {
+        const row = document.getElementById('paymentTokenRow');
+        if (!row) return;
+        row.style.display = (el.paymentMethod && el.paymentMethod.value === 'erc20') ? 'grid' : 'none';
+      }
+
+      // Links removidos do formulário; nenhuma atualização necessária
+
+      function getPercentages() {
+        const off = Number((el.officialPct.value || '').trim());
+        const com = Number((el.commissionPct.value || '').trim());
+        if (!Number.isFinite(off) || !Number.isFinite(com)) return { ok: false, msg: 'Percentuais inválidos.' };
+        if (off < 0 || com < 0 || off > 100 || com > 100) return { ok: false, msg: 'Percentuais devem estar entre 0 e 100.' };
+        if (off + com !== 100) return { ok: false, msg: 'Percentuais devem somar 100.' };
+        return { ok: true, off, com };
+      }
+
+      function fmtWeiToTBNB(hexWei) {
+        const wei = BigInt(hexWei);
+        const base = BigInt(10) ** BigInt(18);
+        const whole = wei / base;
+        const remainder = wei % base;
+        const decimals = (remainder * BigInt(10000)) / base; // 4 casas
+        return `${whole}.${decimals.toString().padStart(4, '0')} tBNB`;
+      }
+
+      function setStatus(msg, type = 'info') {
+        const prefix = type === 'error' ? '❌ ' : type === 'success' ? '✅ ' : 'ℹ️ ';
+        el.status.textContent = prefix + msg;
+      }
+      function setBalances(msg) { el.balances.textContent = msg; }
+      function setTx(msgHtml) { el.txResult.innerHTML = msgHtml; }
+
+      async function connectWallet() {
+        if (!window.ethereum) { setStatus('MetaMask não detectada. Instale e recarregue a página.', 'error'); return; }
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          currentAccount = accounts[0];
+          currentChainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+          setStatus(`Carteira conectada: ${currentAccount}\nChain atual (hex): ${currentChainIdHex}`);
+        } catch (err) { setStatus(`Falha ao conectar: ${err.message}`, 'error'); }
+      }
+
+      function getChainHexFromInput() {
+        const dec = Number((el.chainIdDec.value || '').trim()) || CHAIN_ID_DEC;
+        return '0x' + dec.toString(16);
+      }
+
+      async function ensureChainFromInput() {
+        try {
+          const targetHex = getChainHexFromInput();
+          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: targetHex }] });
+          currentChainIdHex = targetHex;
+          setStatus(`Rede trocada com sucesso. chainId: ${targetHex}.`, 'success');
+        } catch (switchError) {
+          if (switchError && switchError.code === 4902) {
+            try {
+              const dec = Number((el.chainIdDec.value || '').trim()) || CHAIN_ID_DEC;
+              const paramsByDec = dec === 97 ? {
+                chainId: '0x61',
+                chainName: 'BNB Smart Chain Testnet',
+                nativeCurrency: { name: 'BNB', symbol: 'tBNB', decimals: 18 },
+                rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+                blockExplorerUrls: ['https://testnet.bscscan.com'],
+              } : dec === 56 ? {
+                chainId: '0x38',
+                chainName: 'BNB Smart Chain',
+                nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                blockExplorerUrls: ['https://bscscan.com'],
+              } : null;
+              if (!paramsByDec) { throw new Error('Rede desconhecida. Adicione manualmente nas configurações da MetaMask.'); }
+              await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [paramsByDec] });
+              setStatus('Rede adicionada. Trocando…');
+              await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: paramsByDec.chainId }] });
+              currentChainIdHex = paramsByDec.chainId;
+              setStatus('Rede trocada com sucesso.', 'success');
+            } catch (addError) { throw addError; }
+          } else { throw switchError; }
+        }
+      }
+
+      function buildWidgetConfig() {
+        const dec = Number((el.chainIdDec.value || '').trim()) || CHAIN_ID_DEC;
+        const chainHex = '0x' + dec.toString(16);
+        const net = dec === 97 ? {
+          chainName: 'BNB Smart Chain Testnet',
+          nativeCurrency: { name: 'BNB', symbol: 'tBNB', decimals: 18 },
+          rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+          blockExplorerUrls: ['https://testnet.bscscan.com']
+        } : dec === 56 ? {
+          chainName: 'BNB Smart Chain',
+          nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+          rpcUrls: ['https://bsc-dataseed.binance.org/'],
+          blockExplorerUrls: ['https://bscscan.com']
+        } : null;
+        const method = (el.paymentMethod ? el.paymentMethod.value : 'native');
+        const paymentToken = (el.paymentToken ? (el.paymentToken.value || '').trim() : '');
+        const minTokens = (el.minTokens ? (el.minTokens.value || '').trim() : '');
+        const maxTokens = (el.maxTokens ? (el.maxTokens.value || '').trim() : '');
+        const cfg = {
+          mount: '#mini-widget',
+          title: 'Oferta Especial',
+          ctaLabel: 'Comprar agora',
+          chainId: chainHex,
+          network: net || undefined,
+          saleContract: (el.contractInput.value || '').trim(),
+          purchaseUSDT: '10',
+          purchaseTokens: '10',
+          inputMode: 'usdt',
+          usdtAddress: method === 'erc20' && paymentToken ? paymentToken : '0x0000000000000000000000000000000000000000',
+          usdtDecimals: 6,
+          saleMethodSelector: '0x00000000',
+          saleTokenSymbol: 'TOK',
+          minPurchaseTokens: minTokens || undefined,
+          maxPurchaseTokens: maxTokens || undefined,
+          maxPerWalletUSDT: undefined,
+          maxPerWalletTokens: undefined,
+          saleId: undefined,
+          purchasedOfSelector: '0x00000000'
+        };
+        return cfg;
+      }
+
+      // Gerador de código removido
+
+      function renderWidgetPreview() {
+        const cfg = buildWidgetConfig();
+        // Descobrir dinamicamente o caminho do script a partir da localização desta página
+        const origin = window.location.origin;
+        const dir = window.location.pathname.replace(/[^/]+$/, ''); // diretório atual
+        const baseUrl = origin + dir;
+        const scriptSrc = baseUrl + 'widget.js';
+        const baseHtml = `<!doctype html>\n<html lang=\"pt-BR\">\n<head><meta charset=\"utf-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /><title>Prévia</title></head>\n<body style=\"margin:10px;font-family:system-ui\">\n<div id=\"mini-widget\"></div>\n<script>window.WidgetConfig=${JSON.stringify(cfg)};window.WidgetBasePath=\"${baseUrl}\";<\/script>\n<script src=\"${scriptSrc}\"><\/script>\n</body></html>`;
+        el.widgetPreview.srcdoc = baseHtml;
+      }
+
+      function isValidAddress(addr) { return /^0x[a-fA-F0-9]{40}$/.test(addr); }
+
+      async function fetchBalances(officialAddr, commissionAddr) {
+        try {
+          const acctBalHex = await window.ethereum.request({ method: 'eth_getBalance', params: [currentAccount, 'latest'] });
+          const offBalHex = await window.ethereum.request({ method: 'eth_getBalance', params: [officialAddr, 'latest'] });
+          const comBalHex = await window.ethereum.request({ method: 'eth_getBalance', params: [commissionAddr, 'latest'] });
+          const msg = [
+            `Saldo da conta: ${fmtWeiToTBNB(acctBalHex)}`,
+            `Saldo carteira oficial: ${fmtWeiToTBNB(offBalHex)}`,
+            `Saldo carteira comissão: ${fmtWeiToTBNB(comBalHex)}`,
+          ].join('\n');
+          setBalances(msg);
+        } catch (err) { setStatus(`Falha ao obter saldos: ${err.message}`, 'error'); }
+      }
+
+      async function validateNetworkAndWallets() {
+        if (!window.ethereum) { setStatus('MetaMask não detectada.', 'error'); return; }
+        if (!currentAccount) { await connectWallet(); if (!currentAccount) return; }
+        const officialAddr = (el.officialInput.value || '').trim();
+        const commissionAddr = (el.commissionInput.value || '').trim();
+        if (!isValidAddress(officialAddr) || !isValidAddress(commissionAddr)) { setStatus('Endereço de carteira inválido.', 'error'); return; }
+        const pct = getPercentages();
+        if (!pct.ok) { setStatus(pct.msg, 'error'); return; }
+        try {
+          await ensureChainFromInput();
+          await fetchBalances(officialAddr, commissionAddr);
+          const method = (el.paymentMethod ? el.paymentMethod.value : 'native');
+          let validationMsg = '';
+          if (method === 'native') {
+            const base = BigInt(100_000_000_000_000); // 0.0001 tBNB em wei
+            const offValue = '0x' + (base * BigInt(pct.off) / BigInt(100)).toString(16);
+            const comValue = '0x' + (base * BigInt(pct.com) / BigInt(100)).toString(16);
+            let gasOff, gasCom;
+            try {
+              gasOff = await window.ethereum.request({ method: 'eth_estimateGas', params: [{ from: currentAccount, to: officialAddr, value: offValue }] });
+            } catch (e) {
+              gasOff = 'erro: ' + (e && e.message ? e.message : String(e));
+            }
+            try {
+              gasCom = await window.ethereum.request({ method: 'eth_estimateGas', params: [{ from: currentAccount, to: commissionAddr, value: comValue }] });
+            } catch (e) {
+              gasCom = 'erro: ' + (e && e.message ? e.message : String(e));
+            }
+            // Checar contrato de negociação para recepção de tBNB
+            const contractAddr = (el.contractInput.value || '').trim();
+            let contractValidation = '';
+            if (contractAddr) {
+              if (!isValidAddress(contractAddr)) {
+                contractValidation = 'Contrato de negociação inválido.';
+              } else {
+                const code = await window.ethereum.request({ method: 'eth_getCode', params: [contractAddr, 'latest'] });
+                if (!code || code === '0x') {
+                  contractValidation = 'O endereço informado não é um contrato.';
+                } else {
+                  try {
+                    const gasCtr = await window.ethereum.request({ method: 'eth_estimateGas', params: [{ from: currentAccount, to: contractAddr, value: '0x' + base.toString(16) }] });
+                    contractValidation = `Contrato válido. Aceita receber tBNB (payable). Gas estimado: ${gasCtr}`;
+                  } catch (e) {
+                    contractValidation = 'Contrato encontrado, mas não aceita tBNB diretamente (sem função payable).';
+                  }
+                }
+              }
+            }
+            validationMsg = `Validação ok. Gas estimado:\nCarteira oficial (${pct.off}%): ${gasOff}\nCarteira comissão (${pct.com}%): ${gasCom}${contractValidation ? `\n${contractValidation}` : ''}`;
+            el.sendBtn.disabled = false; // envio de tBNB habilitado
+          } else {
+            // ERC-20: validar token, saldo e allowance
+            const paymentToken = (el.paymentToken ? (el.paymentToken.value || '').trim() : '');
+            if (!isValidAddress(paymentToken)) { setStatus('Token de pagamento inválido.', 'error'); return; }
+            const code = await window.ethereum.request({ method: 'eth_getCode', params: [paymentToken, 'latest'] });
+            if (!code || code === '0x') { setStatus('Token de pagamento não é contrato.', 'error'); return; }
+            const SEL = { symbol:'0x95d89b41', decimals:'0x313ce567', balanceOf:'0x70a08231', allowance:'0xdd62ed3e' };
+            const pad32 = (addr) => addr.toLowerCase().replace('0x','').padStart(64,'0');
+            let decHex;
+            let balHex;
+            try {
+              decHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: paymentToken, data: SEL.decimals }, 'latest'] });
+            } catch (e) {
+              setStatus(`Falha ao consultar decimals do token: ${e && e.message ? e.message : 'erro -32603'}`, 'error');
+              return;
+            }
+            try {
+              balHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: paymentToken, data: SEL.balanceOf + pad32(currentAccount) }, 'latest'] });
+            } catch (e) {
+              setStatus(`Falha ao consultar balanceOf: ${e && e.message ? e.message : 'erro -32603'}`, 'error');
+              return;
+            }
+            const decimals = Number(BigInt(decHex || '0x0'));
+            const balance = BigInt(balHex || '0x0');
+            const saleContract = (el.contractInput.value || '').trim();
+            let allowMsg = '';
+            if (isValidAddress(saleContract)) {
+              try {
+                const allowHex = await window.ethereum.request({ method: 'eth_call', params: [{ to: paymentToken, data: SEL.allowance + pad32(currentAccount) + pad32(saleContract) }, 'latest'] });
+                const allowance = BigInt(allowHex || '0x0');
+                allowMsg = `Allowance para contrato de venda: ${allowance.toString()}`;
+              } catch (e) {
+                allowMsg = `Falha ao consultar allowance: ${e && e.message ? e.message : 'erro -32603'} (tratado)`;
+              }
+            } else {
+              allowMsg = 'Contrato de venda não informado ou inválido para checar allowance.';
+            }
+            // Limites de compra (opcionais)
+            const rawMin = (el.minTokens && el.minTokens.value || '').trim();
+            const rawMax = (el.maxTokens && el.maxTokens.value || '').trim();
+            let limitsMsg = '';
+            if (rawMin || rawMax) {
+              const minTok = rawMin ? Number(rawMin) : NaN;
+              const maxTok = rawMax ? Number(rawMax) : NaN;
+              if (rawMin && (!Number.isFinite(minTok) || minTok <= 0)) { setStatus('Valor mínimo de tokens inválido (deve ser > 0).', 'error'); return; }
+              if (rawMax && rawMin && Number.isFinite(minTok) && Number.isFinite(maxTok) && maxTok < minTok) { setStatus('Valor máximo deve ser maior ou igual ao mínimo.', 'error'); return; }
+              const minTxt = rawMin ? `mín ${minTok}` : 'mín não definido';
+              const maxTxt = rawMax ? `máx ${maxTok}` : 'máx não definido';
+              limitsMsg = `\nLimites de compra: ${minTxt}; ${maxTxt}`;
+            }
+            validationMsg = `Token ERC-20 válido. Decimals: ${decimals}\nSaldo do usuário: ${balance.toString()}\n${allowMsg}${limitsMsg}\nObservação: modo de teste não envia ERC-20; use o contrato de venda.`;
+            el.sendBtn.disabled = true; // no modo ERC-20 não enviamos tBNB
+          }
+          setStatus(validationMsg, 'success');
+        } catch (err) { setStatus(`Validação falhou: ${err.message}`, 'error'); }
+      }
+
+      async function sendTestTransaction() {
+        if (!window.ethereum) { setStatus('MetaMask não detectada.', 'error'); return; }
+        if (!currentAccount) { await connectWallet(); if (!currentAccount) return; }
+        const method = (el.paymentMethod ? el.paymentMethod.value : 'native');
+        if (method === 'erc20') { setStatus('Modo ERC-20 selecionado. Este teste envia apenas tBNB. Realize a compra via contrato ERC-20.', 'info'); return; }
+        const officialAddr = (el.officialInput.value || '').trim();
+        const commissionAddr = (el.commissionInput.value || '').trim();
+        if (!isValidAddress(officialAddr) || !isValidAddress(commissionAddr)) { setStatus('Endereço de carteira inválido.', 'error'); return; }
+        const pct = getPercentages();
+        if (!pct.ok) { setStatus(pct.msg, 'error'); return; }
+        try {
+          await ensureChainFromInput();
+          const base = BigInt(100_000_000_000_000); // 0.0001 tBNB em wei
+          const offValue = '0x' + (base * BigInt(pct.off) / BigInt(100)).toString(16);
+          const comValue = '0x' + (base * BigInt(pct.com) / BigInt(100)).toString(16);
+          const explorer = getExplorerBase() + '/tx/';
+          const txHashOff = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: currentAccount, to: officialAddr, value: offValue }] });
+          const txHashCom = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: currentAccount, to: commissionAddr, value: comValue }] });
+          setTx(`Transações enviadas!
+Oficial (${pct.off}%): <a href="${explorer}${txHashOff}" target="_blank" class="monospace">${txHashOff}</a>
+Comissão (${pct.com}%): <a href="${explorer}${txHashCom}" target="_blank" class="monospace">${txHashCom}</a>`);
+          setStatus('Transações de teste enviadas com sucesso.', 'success');
+          await fetchBalances(officialAddr, commissionAddr);
+        } catch (err) { setStatus(`Envio falhou: ${err.message}`, 'error'); }
+      }
+
+      function clampPct(n) {
+        let v = Number(n);
+        if (!Number.isFinite(v)) v = 0;
+        if (v < 0) v = 0;
+        if (v > 100) v = 100;
+        return Math.round(v);
+      }
+      // Removidas ligações de atualização de links
+      ['input','change'].forEach(ev => {
+        el.officialPct.addEventListener(ev, () => { const v = clampPct(el.officialPct.value); el.officialPct.value = v; el.commissionPct.value = 100 - v; });
+        el.commissionPct.addEventListener(ev, () => { const v = clampPct(el.commissionPct.value); el.commissionPct.value = v; el.officialPct.value = 100 - v; });
+      });
+      el.paymentMethod && el.paymentMethod.addEventListener('change', updatePaymentVisibility);
+      el.connectBtn.addEventListener('click', connectWallet);
+      el.validateBtn.addEventListener('click', validateNetworkAndWallets);
+      el.sendBtn.addEventListener('click', sendTestTransaction);
+      el.updatePreviewBtn && el.updatePreviewBtn.addEventListener('click', renderWidgetPreview);
+      // Removido botão de copiar código
+      /*
+      el.copyCodeBtn && el.copyCodeBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(el.codeOutput.value || '');
+          setStatus('Código copiado para a área de transferência.', 'success');
+        } catch (e) { setStatus('Falha ao copiar código.', 'error'); }
+      });
+      */
+      // Sincroniza percentuais inicialmente
+      el.commissionPct.value = clampPct(100 - clampPct(el.officialPct.value));
+      updatePaymentVisibility();
+      renderWidgetPreview();
+      // gerador removido
+    </script>

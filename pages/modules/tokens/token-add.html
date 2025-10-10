@@ -136,6 +136,50 @@
                     </div>
                   </div>
 
+                  <!-- Configurações avançadas -->
+                  <div class="row g-4 mt-2">
+                    <div class="col-12">
+                      <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary">
+                          <h6 class="mb-0 text-white"><i class="bi bi-sliders me-2"></i>Configurações Avançadas</h6>
+                        </div>
+                        <div class="card-body">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label for="contractName" class="form-label text-white">
+                                <i class="bi bi-file-binary text-primary me-2"></i>Nome do Contrato
+                              </label>
+                              <input type="text" class="form-control bg-dark text-white border-secondary" id="contractName" placeholder="Ex: MyToken" />
+                              <div class="form-text text-muted">Se vazio, usa "[SÍMBOLO]Token"</div>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label text-white"><i class="bi bi-tools text-primary me-2"></i>Recursos do Token</label>
+                              <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check">
+                                  <input class="form-check-input" type="checkbox" id="featureMintable">
+                                  <label class="form-check-label text-white" for="featureMintable">Mintable</label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="checkbox" id="featureBurnable">
+                                  <label class="form-check-label text-white" for="featureBurnable">Burnable</label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="checkbox" id="featurePausable">
+                                  <label class="form-check-label text-white" for="featurePausable">Pausable</label>
+                                </div>
+                                <div class="form-check">
+                                  <input class="form-check-input" type="checkbox" id="featureOwnable" checked>
+                                  <label class="form-check-label text-white" for="featureOwnable">Ownable</label>
+                                </div>
+                              </div>
+                              <div class="form-text text-muted">Ative funções extras no contrato</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Botão Criar Token -->
                   <div class="mt-4">
                     <button id="create-token-btn" type="button" class="btn btn-lg shadow-lg btn-primary-custom"

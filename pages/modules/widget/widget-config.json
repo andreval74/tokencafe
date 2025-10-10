@@ -1,0 +1,31 @@
+{
+  "chainId": "0x61",
+  "network": {
+    "chainName": "BNB Smart Chain Testnet",
+    "nativeCurrency": { "name": "tBNB", "symbol": "tBNB", "decimals": 18 },
+    "rpcUrls": ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
+    "blockExplorerUrls": ["https://testnet.bscscan.com"]
+  },
+  "usdtAddress": "0x0000000000000000000000000000000000000000",
+  "usdtDecimals": 6,
+  "saleContract": "0x2cf724171a998C3d470048AC2F1b187a48A5cafE",
+  "saleMethodSelector": "0x00000000",
+  "saleTokenAddress": "0x0000000000000000000000000000000000000000",
+  "saleTokenDecimals": 18,
+  "saleTokenSymbol": "TOK",
+  "commissionRecipient": "0xB4a045aF12A74e5BEb8Ff763f474B943cc2Cfa0a",
+  "commissionBps": 1000,
+  "purchaseUSDT": "10",
+  "purchaseTokens": "10",
+  "inputMode": "tokens",
+  "minPurchaseTokens": 10,
+  "maxPurchaseTokens": 100,
+  "maxPerWalletUSDT": null,
+  "maxPerWalletTokens": null,
+  "saleId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "purchasedOfSelector": "0x00000000",
+  "title": "Oferta Especial",
+  "ctaLabel": "Comprar agora",
+  "successText": "Transação enviada!",
+  "errorText": "Falha na transação."
+}
