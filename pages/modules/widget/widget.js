@@ -33,9 +33,18 @@
     return intBig * base + fracBig;
   };
 
+  // Calcula o valor nativo (wei) a partir da quantidade de tokens e preço por token
+  // Usa escala de 18 casas para ambos e normaliza para 18 casas no resultado
+  const calcNativeFromTokens = (amountTokensStr, pricePerTokenStr) => {
+    const tok18 = parseUnits(String(amountTokensStr || '0'), 18);
+    const price18 = parseUnits(String(pricePerTokenStr || '0'), 18);
+    const base = BigInt(10) ** BigInt(18);
+    return (tok18 * price18) / base; // resultado em wei (18 dec)
+  };
+
   const ensureEthereum = () => {
     if (typeof window === 'undefined' || !window.ethereum) {
-      throw new Error('MetaMask não detectado.');
+      return null;
     }
     return window.ethereum;
   };
@@ -68,7 +77,7 @@
     const link = document.createElement('link');
     link.id = 'widget-sale-css';
     link.rel = 'stylesheet';
-    link.href = '/css/widget-sale.css';
+    link.href = 'widget-sale.css';
     document.head.appendChild(link);
   }
 
@@ -117,33 +126,81 @@
 
   function ui(cfg) {
     const inputMode = (cfg.inputMode || 'usdt');
-    const labelText = inputMode === 'tokens' ? 'Tokens a comprar' : 'USDT a comprar';
-    const unitText = inputMode === 'tokens' ? (cfg.saleTokenSymbol || 'TOK') : 'USDT';
+    const hasPrice = !!cfg.pricePerToken;
+    const priceCurrency = inputMode === 'bnb' ? 'tBNB' : 'USDT';
+    const priceDisplay = hasPrice ? `$${Number(cfg.pricePerToken).toFixed(2)} ${priceCurrency}` : '—';
+    const availableDisplay = cfg.availableTokensText || (cfg.availableTokens ? String(cfg.availableTokens) + ' Tokens' : '—');
+    const wantsTokensInput = (inputMode === 'tokens') || hasPrice;
+    const labelText = wantsTokensInput ? 'Quantidade de Tokens'
+      : (inputMode === 'bnb' ? 'Valor a pagar' : 'USDT a comprar');
+    const unitText = wantsTokensInput ? 'Tokens'
+      : (inputMode === 'bnb' ? 'tBNB' : 'USDT');
+    // Total inicial formatado
+    const initialAmountStr = (hasPrice ? (cfg.purchaseTokens || '10') : (cfg.purchaseUSDT || cfg.purchaseTokens || '10'));
+    let initialTotalText = `${initialAmountStr} ${unitText}`;
+    if (hasPrice) {
+      const t = Number(initialAmountStr) * Number(cfg.pricePerToken);
+      const cur = inputMode === 'bnb' ? 'tBNB' : 'USDT';
+      initialTotalText = `$${Number.isFinite(t) ? t.toFixed(2) : '0.00'} ${cur}`;
+    }
     return `
       <style>
+        .token-sale-widget{background:#fff;border:2px solid #2F6DF6;border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(43,107,243,.12)}
+        .widget-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e9ecef;padding-bottom:10px;margin-bottom:14px}
+        .header-left{display:flex;align-items:center;gap:10px}
+        .header-icon{font-size:18px}
+        .header-title{font-weight:700}
+        .badge{display:inline-block;border-radius:999px;padding:4px 10px;font-size:.75rem}
+        .badge-demo{background:#22c55e;color:#fff}
+        .badge-token{background:#2F6DF6;color:#fff}
+        .token-details{margin-bottom:12px}
+        .token-row{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px}
+        .token-dot{width:10px;height:10px;border-radius:50%;background:#2F6DF6;display:inline-block}
+        .token-name{font-weight:600}
+        .kv-row{display:flex;gap:12px;margin-top:10px}
+        .kv-item{flex:1}
+        .kv-value{font-weight:700}
         .btn{display:inline-block;padding:10px 14px;border:none;border-radius:8px;background:#111;color:#fff;cursor:pointer}
         .btn[disabled]{opacity:.5;cursor:not-allowed}
-        .btn-primary{background:#007bff}
-        .btn-success{background:#28a745}
+        .btn-primary{background:#2F6DF6}
+        .btn-success{background:#22c55e}
         .input-group{display:flex;gap:8px}
-        .form-control{flex:1;padding:8px;border:1px solid #ccc;border-radius:6px}
-        .input-group-text{padding:8px 10px;background:#f1f3f5;border:1px solid #ccc;border-radius:6px}
-        .alert{padding:8px 10px;border-radius:8px}
+        .form-control{flex:1;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+        .input-group-text{padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-weight:600}
+        .unit-pill{background:#2F6DF6;color:#fff}
+        .alert{padding:10px 12px;border-radius:8px}
         .alert-warning{background:#fff3cd;border:1px solid #ffe69c}
+        .alert-success{background:#e9f7ef;border:1px solid #c3e6cb;color:#155724}
         .total-display{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:8px;border:1px dashed #dee2e6;border-radius:8px}
+        .total-amount{color:#2F6DF6;font-weight:600}
+        .widget-footer{margin-top:10px;color:#64748b}
+        .brand-link{color:#2F6DF6;text-decoration:none}
+        .brand-link:hover{text-decoration:underline}
       </style>
       <div class="token-sale-widget">
         <div class="widget-header">
-          <h5 class="mb-0">
-            <span>Comprar Tokens</span>
-            <span class="badge">Demo</span>
-          </h5>
+          <div class="header-left">
+            <span class="header-icon">🪙</span>
+            <span class="header-title">Comprar Tokens</span>
+          </div>
+          <span class="badge badge-demo">DEMO</span>
         </div>
 
-        <div class="token-details mb-3">
-          <div class="text-center p-2 bg-light rounded border">
-            <strong>${cfg.title || 'Mini Widget'}</strong>
-            <span class="badge bg-primary ms-2">USDT</span>
+        <div class="token-details">
+          <div class="token-row">
+            <span class="token-dot"></span>
+            <span class="token-name">${cfg.title || 'XCafe Token'}</span>
+            <span class="badge badge-token">${(cfg.saleTokenSymbol || 'TOK')}</span>
+          </div>
+          <div class="kv-row">
+            <div class="kv-item">
+              <small>Preço</small>
+              <div class="kv-value">${priceDisplay}</div>
+            </div>
+            <div class="kv-item">
+              <small>Disponível</small>
+              <div class="kv-value">${availableDisplay}</div>
+            </div>
           </div>
         </div>
 
@@ -156,7 +213,7 @@
               </div>
               <div class="col-6">
                 <small>Moeda</small>
-                <div class="fw-bold">USDT</div>
+                <div class="fw-bold">${inputMode === 'bnb' ? 'tBNB' : 'USDT'}</div>
               </div>
             </div>
           </div>
@@ -165,14 +222,14 @@
             <div class="mb-3">
               <label class="form-label">${labelText}</label>
               <div class="input-group">
-                <input type="text" class="form-control" id="mw-amount" value="${(cfg.purchaseUSDT || cfg.purchaseTokens || '10')}" />
-                <span class="input-group-text">${unitText}</span>
+                <input type="text" class="form-control" id="mw-amount" value="${(hasPrice ? (cfg.purchaseTokens || '10') : (cfg.purchaseUSDT || cfg.purchaseTokens || '10'))}" />
+                <span class="input-group-text unit-pill">${unitText}</span>
               </div>
             </div>
 
             <div class="total-display">
               <span>Total:</span>
-              <span id="mw-total">${(cfg.purchaseUSDT || cfg.purchaseTokens || '10')} ${unitText}</span>
+              <span id="mw-total" class="total-amount">${initialTotalText}</span>
             </div>
 
             <div class="connection-status" id="mw-connection-status">
@@ -187,7 +244,7 @@
         </div>
 
         <div class="widget-footer">
-          <small>Transação segura via blockchain</small>
+          <small>⛓️ Transação segura via blockchain · <a href="https://xcafe.app" target="_blank" class="brand-link">Desenvolvido por xcafe.app</a></small>
         </div>
 
         <div id="mw-status" class="mw-status" style="margin-top:10px;color:#444"></div>
@@ -199,6 +256,12 @@
     const el = document.getElementById('mw-status');
     if (el) el.textContent = msg;
   }
+  const shortAddr = (addr) => addr ? (addr.slice(0, 6) + '...' + addr.slice(-4)) : '';
+  const fmt2 = (n) => {
+    const num = Number(n);
+    if (!Number.isFinite(num)) return '0.00';
+    return num.toFixed(2);
+  };
 
   async function main() {
     const cfg = await loadConfig();
@@ -210,6 +273,24 @@
 
     const ethereum = ensureEthereum();
     let account = null;
+
+    // Fallback amigável quando MetaMask não está disponível
+    if (!ethereum) {
+      setStatus('MetaMask não detectada. Instale a extensão para continuar.');
+      const btnConnect = document.getElementById('mw-connect');
+      const btnBuy = document.getElementById('mw-buy');
+      if (btnConnect) {
+        btnConnect.disabled = true;
+        btnConnect.classList.add('disabled');
+        btnConnect.title = 'MetaMask não detectada';
+      }
+      if (btnBuy) {
+        btnBuy.disabled = true;
+        btnBuy.classList.add('disabled');
+        btnBuy.title = 'MetaMask não detectada';
+      }
+      return; // interrompe apenas funcionalidades dependentes da carteira, mantendo UI visível
+    }
 
     const btnConnect = document.getElementById('mw-connect');
     const btnBuy = document.getElementById('mw-buy');
@@ -226,12 +307,22 @@
     }
 
     function validateAmountAndUI() {
+      const inputMode = (cfg.inputMode || 'usdt');
       const amountStr = (inputAmount && inputAmount.value) || (cfg.purchaseUSDT || cfg.purchaseTokens || '0');
       const amountNum = Number(amountStr);
       const { min, max } = getLimits();
+      const hasPrice = !!cfg.pricePerToken;
       // Atualiza total sempre
-      const unitText = (cfg.inputMode || 'usdt') === 'tokens' ? (cfg.saleTokenSymbol || 'TOK') : 'USDT';
-      if (totalEl) totalEl.textContent = amountStr + ' ' + unitText;
+      if (totalEl) {
+        if (hasPrice) {
+          const t = Number(amountStr) * Number(cfg.pricePerToken);
+          const cur = inputMode === 'bnb' ? 'tBNB' : 'USDT';
+          totalEl.textContent = `$${fmt2(t)} ${cur}`;
+        } else {
+          const unitText = inputMode === 'tokens' ? (cfg.saleTokenSymbol || 'TOK') : (inputMode === 'bnb' ? 'tBNB' : 'USDT');
+          totalEl.textContent = amountStr + ' ' + unitText;
+        }
+      }
       // Checagens de faixa
       if (Number.isFinite(amountNum)) {
         if (min !== null && Number.isFinite(min) && amountNum < min) {
@@ -281,6 +372,10 @@
         await switchToChain(ethereum, cfg);
         account = await connectWallet(ethereum);
         setStatus('Conectado: ' + account);
+        const cs = document.getElementById('mw-connection-status');
+        if (cs) {
+          cs.innerHTML = '<div class="alert alert-success" style="display:flex;align-items:center;gap:8px"><span>✅</span><span>Conectado: ' + shortAddr(account) + '</span></div>';
+        }
         // Revalida com limites ao conectar
         const ok = validateAmountAndUI();
         btnBuy.disabled = !ok;
@@ -297,15 +392,28 @@
         if (!okRange) throw new Error('Valor fora dos limites configurados.');
         // Unidade dinâmica para UI
         const inputMode = (cfg.inputMode || 'usdt');
-        const unitText = inputMode === 'tokens' ? (cfg.saleTokenSymbol || 'TOK') : 'USDT';
         const amountStr = inputAmount.value || (inputMode === 'tokens' ? (cfg.purchaseTokens || '0') : (cfg.purchaseUSDT || '0'));
-        if (totalEl) totalEl.textContent = amountStr + ' ' + unitText;
+        if (totalEl) {
+          if (cfg.pricePerToken) {
+            const t = Number(amountStr) * Number(cfg.pricePerToken);
+            const cur = inputMode === 'bnb' ? 'tBNB' : 'USDT';
+            totalEl.textContent = `$${fmt2(t)} ${cur}`;
+          } else {
+            const unitText = inputMode === 'tokens' ? (cfg.saleTokenSymbol || 'TOK') : (inputMode === 'bnb' ? 'tBNB' : 'USDT');
+            totalEl.textContent = amountStr + ' ' + unitText;
+          }
+        }
 
         // Quantidades conforme modo selecionado
         const saleTokDec = Number(cfg.saleTokenDecimals || 18);
         const amountTok = parseUnits(amountStr, saleTokDec);
         const usdtDec = Number(cfg.usdtDecimals || 6);
         const amountUSDTVal = parseUnits(amountStr, usdtDec);
+        // Valor nativo (BNB) em wei: se houver preço por token e modo bnb, calcula tokens * preço
+        let amountNativeVal = parseUnits(amountStr, 18);
+        if (inputMode === 'bnb' && cfg.pricePerToken) {
+          amountNativeVal = calcNativeFromTokens(amountStr, String(cfg.pricePerToken));
+        }
         const amountParam = (inputMode === 'tokens') ? amountTok : amountUSDTVal;
 
         // Validação cumulativa preferindo leitura on-chain de tokens, se disponível e modo tokens
@@ -343,6 +451,25 @@
         }
         // total já atualizado acima
 
+        // Fluxo simples: pagamento nativo BNB dividido entre carteiras
+        if (inputMode === 'bnb') {
+          if (!isValidAddress(cfg.officialWallet) || !isValidAddress(cfg.commissionWallet)) {
+            throw new Error('Carteiras de recebimento inválidas no widget-config.json');
+          }
+          const offPct = Number(cfg.officialPct || 0);
+          const comPct = Number(cfg.commissionPct || 0);
+          if (!Number.isFinite(offPct) || !Number.isFinite(comPct) || offPct + comPct !== 100) {
+            throw new Error('Percentuais inválidos: devem somar 100.');
+          }
+          const offWei = '0x' + (amountNativeVal * BigInt(offPct) / BigInt(100)).toString(16);
+          const comWei = '0x' + (amountNativeVal * BigInt(comPct) / BigInt(100)).toString(16);
+          setStatus('Enviando pagamento nativo...');
+          const offHash = await ethereum.request({ method: 'eth_sendTransaction', params: [{ from: account, to: cfg.officialWallet, value: offWei }] });
+          const comHash = await ethereum.request({ method: 'eth_sendTransaction', params: [{ from: account, to: cfg.commissionWallet, value: comWei }] });
+          setStatus((cfg.successText || 'Pagamentos enviados!') + ` Oficial: ${offHash} | Comissão: ${comHash}`);
+          return; // não segue para approve/contrato
+        }
+
         // 1) Approve USDT -> saleContract (apenas quando modo USDT e endereço válido)
         if (inputMode === 'usdt' && isValidAddress(cfg.usdtAddress)) {
           setStatus('Aprovando USDT...');
@@ -374,7 +501,7 @@
     });
 
     // Atualizações básicas de eventos
-    ethereum.on && ethereum.on('accountsChanged', (accs) => {
+    if (ethereum && ethereum.on) ethereum.on('accountsChanged', (accs) => {
       if (accs && accs.length) {
         account = accs[0];
         setStatus('Conta alterada: ' + account);
@@ -387,7 +514,7 @@
       }
     });
 
-    ethereum.on && ethereum.on('chainChanged', (chainId) => {
+    if (ethereum && ethereum.on) ethereum.on('chainChanged', (chainId) => {
       setStatus('Rede alterada: ' + chainId);
       // Em alterações de rede, mantém UI coerente
       validateAmountAndUI();

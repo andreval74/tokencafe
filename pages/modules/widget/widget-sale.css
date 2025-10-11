@@ -1,0 +1,623 @@
+/**
+ * ================================================================================
+ * WIDGET-SALE.CSS - Estilos Exclusivos do Widget de Venda
+ * ================================================================================
+ * Sistema CSS independente para o widget de venda de tokens
+ * Isolado do CSS principal para evitar conflitos
+ * Autor: XCafe Team
+ * Data: Setembro 2025
+ * ================================================================================
+ */
+
+/* RESET E BASE PARA O WIDGET */
+.token-sale-widget,
+.token-sale-widget * {
+    box-sizing: border-box;
+}
+
+/* ================================================================================
+   CONTAINER PRINCIPAL DO WIDGET - TEMA CLARO (PADRÃO)
+   ================================================================================ */
+
+/* Container principal com borda destacada - TEMA CLARO */
+.token-sale-widget {
+    background: #ffffff !important;
+    color: #333333 !important;
+    border: 3px solid #007bff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 
+        0 10px 30px rgba(0, 123, 255, 0.15),
+        0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    max-width: 400px;
+    margin: 0 auto;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* IMPORTANTE: Sobrescrever qualquer estilo que possa interferir */
+.token-sale-widget,
+.token-sale-widget:hover,
+.token-sale-widget:focus,
+.token-sale-widget:active,
+.token-sale-widget:visited {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ================================================================================
+   TEMA DARK
+   ================================================================================ */
+
+/* Container principal - TEMA DARK */
+.token-sale-widget.dark {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+    border: 3px solid #4facfe;
+    box-shadow: 
+        0 10px 30px rgba(79, 172, 254, 0.15),
+        0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.token-sale-widget.dark,
+.token-sale-widget.dark:hover,
+.token-sale-widget.dark:focus,
+.token-sale-widget.dark:active,
+.token-sale-widget.dark:visited {
+    background: #1a1a1a !important;
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ================================================================================
+   ANIMAÇÕES DE BORDA (SEM GRADIENTES)
+   ================================================================================ */
+
+/* Efeito de borda animada */
+.token-sale-widget::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px solid #007bff;
+    border-radius: 18px;
+    z-index: -1;
+    opacity: 0.6;
+    animation: border-pulse 3s ease infinite;
+}
+
+/* Efeito de borda simples - TEMA DARK */
+.token-sale-widget.dark::before {
+    border-color: #4facfe;
+    opacity: 0.8;
+}
+
+@keyframes border-pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ================================================================================
+   ESTRUTURA DO WIDGET - TEMAS
+   ================================================================================ */
+
+/* Widget Header - TEMA CLARO */
+.widget-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(0, 123, 255, 0.1);
+}
+
+.widget-header h5 {
+    color: #007bff !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Badge Demo */
+.widget-header .badge {
+    background: #28a745 !important;
+    color: #ffffff !important;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.widget-header small {
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+/* Widget Header - TEMA DARK */
+.token-sale-widget.dark .widget-header {
+    border-bottom: 2px solid rgba(79, 172, 254, 0.2);
+}
+
+.token-sale-widget.dark .widget-header h5 {
+    color: #4facfe !important;
+}
+
+.token-sale-widget.dark .widget-header small {
+    color: #adb5bd;
+}
+
+/* Badge Demo - TEMA DARK */
+.token-sale-widget.dark .widget-header .badge {
+    background: #28a745 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.4);
+}
+
+/* ================================================================================
+   DETALHES DO TOKEN
+   ================================================================================ */
+
+.token-details {
+    margin-bottom: 15px;
+}
+
+.token-details .bg-light {
+    background: #f8f9fa !important;
+    border: 1px solid rgba(0, 123, 255, 0.1) !important;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.token-details strong {
+    font-size: 1rem;
+    color: #333333;
+}
+
+.token-details .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Detalhes do Token - TEMA DARK */
+.token-sale-widget.dark .token-details .bg-light {
+    background: #2d2d2d !important;
+    border: 1px solid rgba(79, 172, 254, 0.2) !important;
+    color: #ffffff !important;
+}
+
+.token-sale-widget.dark .token-details strong {
+    color: #ffffff !important;
+}
+
+.token-sale-widget.dark .token-details .text-primary {
+    color: #4facfe !important;
+}
+
+/* ================================================================================
+   INFORMAÇÕES DO TOKEN
+   ================================================================================ */
+
+.token-info {
+    margin-bottom: 20px;
+}
+
+.token-info .row {
+    margin: 0;
+}
+
+.token-info .col-6 {
+    padding: 8px 0;
+}
+
+.token-info small {
+    color: #6c757d;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.token-info .fw-bold {
+    color: #007bff;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Token Info - TEMA DARK */
+.token-sale-widget.dark .token-info small {
+    color: #adb5bd;
+}
+
+.token-sale-widget.dark .token-info .fw-bold {
+    color: #4facfe;
+}
+
+/* ================================================================================
+   FORMULÁRIO DE COMPRA
+   ================================================================================ */
+
+.purchase-form .form-label {
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.purchase-form .input-group {
+    display: flex;
+    width: 100%;
+}
+
+.purchase-form .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px 0 0 8px;
+    padding: 10px 12px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    flex: 1;
+    outline: none;
+}
+
+.purchase-form .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.purchase-form .input-group-text {
+    background: #007bff;
+    color: white;
+    border: 2px solid #007bff;
+    border-left: none;
+    font-weight: 500;
+    padding: 10px 12px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+}
+
+/* Total Price Display */
+.purchase-form .total-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 0;
+}
+
+.purchase-form #total-price {
+    color: #007bff;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* ================================================================================
+   BOTÕES DO WIDGET
+   ================================================================================ */
+
+.token-sale-widget .btn {
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    width: 100%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    outline: none;
+}
+
+.token-sale-widget .btn-primary {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.token-sale-widget .btn-primary:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+}
+
+.token-sale-widget .btn-success {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.token-sale-widget .btn-success:hover {
+    background: #1e7e34;
+    border-color: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+}
+
+.token-sale-widget .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ================================================================================
+   STATUS DE CONEXÃO
+   ================================================================================ */
+
+.connection-status {
+    margin-bottom: 15px;
+}
+
+.connection-status .alert {
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 0;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.connection-status .alert-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+}
+
+.connection-status .alert-success {
+    background: rgba(40, 167, 69, 0.1);
+    color: #155724;
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+/* ================================================================================
+   FOOTER DO WIDGET
+   ================================================================================ */
+
+.widget-footer {
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 123, 255, 0.1);
+    text-align: center;
+}
+
+.widget-footer small {
+    color: #6c757d;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: -1px;
+}
+
+.widget-footer .powered-by {
+    color: #007bff;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.widget-footer .powered-by:hover {
+    color: #0056b3;
+    transform: translateY(-1px);
+}
+
+/* ================================================================================
+   ESTADOS ESPECIAIS
+   ================================================================================ */
+
+/* Loading state */
+.token-sale-widget.loading {
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.token-sale-widget .btn-loading {
+    position: relative;
+}
+
+.token-sale-widget .btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ================================================================================
+   RESPONSIVIDADE
+   ================================================================================ */
+
+@media (max-width: 768px) {
+    .token-sale-widget {
+        margin: 10px;
+        padding: 20px;
+        max-width: none;
+    }
+    
+    .token-sale-widget::before {
+        border-radius: 14px;
+    }
+    
+    .token-info .col-6 {
+        flex: 0 0 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* ================================================================================
+   UTILITIES
+   ================================================================================ */
+
+.token-sale-widget .d-flex {
+    display: flex;
+}
+
+.token-sale-widget .align-items-center {
+    align-items: center;
+}
+
+.token-sale-widget .justify-content-between {
+    justify-content: space-between;
+}
+
+.token-sale-widget .mb-0 {
+    margin-bottom: 0;
+}
+
+.token-sale-widget .mb-3 {
+    margin-bottom: 15px;
+}
+
+.token-sale-widget .w-100 {
+    width: 100%;
+}
+
+.token-sale-widget .d-none {
+    display: none;
+}
+
+.token-sale-widget .text-muted {
+    color: #6c757d !important;
+}
+
+/* ================================================================================
+   ESTILOS ESPECÍFICOS PARA TEXTOS E ELEMENTOS - TEMAS
+   ================================================================================ */
+
+/* Textos e elementos - TEMA CLARO */
+.token-sale-widget small {
+    color: #6c757d !important;
+}
+
+.token-sale-widget .fw-bold {
+    color: #007bff !important;
+}
+
+.token-sale-widget .form-label {
+    color: #495057 !important;
+}
+
+.token-sale-widget .total-display span:first-child {
+    color: #495057 !important;
+}
+
+.token-sale-widget .total-display span:last-child {
+    color: #007bff !important;
+}
+
+/* ================================================================================
+   TEMA DARK - ESTILOS ESPECÍFICOS
+   ================================================================================ */
+
+/* Container e elementos base - TEMA DARK */
+.token-sale-widget.dark small {
+    color: #adb5bd !important;
+}
+
+.token-sale-widget.dark .fw-bold {
+    color: #ffffff !important;
+}
+
+.token-sale-widget.dark .form-label {
+    color: #ffffff !important;
+}
+
+.token-sale-widget.dark .total-display span:first-child {
+    color: #ffffff !important;
+}
+
+.token-sale-widget.dark .total-display span:last-child {
+    color: #4facfe !important;
+}
+
+/* Inputs - TEMA DARK */
+.token-sale-widget.dark .form-control {
+    background: #2d3748 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+}
+
+.token-sale-widget.dark .form-control:focus {
+    border-color: #4facfe !important;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1) !important;
+}
+
+.token-sale-widget.dark .input-group-text {
+    background: #4facfe !important;
+    border-color: #4facfe !important;
+    color: #ffffff !important;
+}
+
+/* Alerts - TEMA DARK */
+.token-sale-widget.dark .alert-warning {
+    background: rgba(255, 193, 7, 0.15) !important;
+    border-color: rgba(255, 193, 7, 0.3) !important;
+    color: #ffc107 !important;
+}
+
+.token-sale-widget.dark .alert-success {
+    background: rgba(40, 167, 69, 0.15) !important;
+    border-color: rgba(40, 167, 69, 0.3) !important;
+    color: #28a745 !important;
+}
+
+/* Botões - TEMA DARK */
+.token-sale-widget.dark .btn-primary {
+    background: #0d6efd !important;
+    border-color: #0d6efd;
+    color: #ffffff;
+}
+
+.token-sale-widget.dark .btn-primary:hover {
+    background: #0b5ed7 !important;
+    border-color: #0b5ed7;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+}
+
+.token-sale-widget.dark .btn-success {
+    background: #198754 !important;
+    border-color: #198754;
+    color: #ffffff;
+}
+
+.token-sale-widget.dark .btn-success:hover {
+    background: #157347 !important;
+    border-color: #157347;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
+}
