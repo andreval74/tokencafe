@@ -8,19 +8,14 @@ O contrato de venda automatiza completamente o processo de compra e entrega de t
 
 ## Configuração do Widget
 
-Para configurar o widget para usar o contrato de venda, edite o arquivo `widget-demo-simple.html` e atualize as seguintes configurações:
+Para configurar o widget para usar o contrato de venda, edite o arquivo `pages/modules/widget/widget-teste.html` e atualize as seguintes configurações no objeto `CONFIG`:
 
 ```javascript
 const CONFIG = {
   // ... outras configurações ...
-  paymentTarget: 'contract', // Importante: deve ser 'contract' para usar o contrato de venda
-  saleContractAddress: '0xENDERECO_DO_CONTRATO_IMPLANTADO', // Endereço do contrato implantado
-  saleAbi: [
-    "function buy(uint256 quantity) payable",
-    "function buyWithUSDT(uint256 quantity)"
-  ],
-  saleMethod: 'buy', // Método para compra com BNB
-  saleParams: ['$quantity'], // Parâmetros do método (quantidade de tokens)
+  saleContractAddress: '0xENDERECO_DO_CONTRATO_IMPLANTADO', // Endereço do contrato TokenSale implantado
+  // O widget chama automaticamente 'buy(quantity)' (TBNB) ou 'buyWithUSDT(quantity)' (USDT)
+  // baseado na moeda selecionada, quando 'saleContractAddress' está definido corretamente.
   // ... outras configurações ...
 };
 ```

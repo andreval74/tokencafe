@@ -18,7 +18,7 @@ Configuração
 2. Crie a pasta `receipts/` para salvar recibos.
 
 Gerar Recibo
-1. No `pages/modules/widget/widget-demo-simple.html`, efetue uma compra.
+1. No `pages/modules/widget/widget-teste.html`, efetue uma compra.
 2. Clique em `Copiar recibo` e salve o conteúdo JSON em `receipts/compra.json`.
 
 Entrega de Tokens (individual)

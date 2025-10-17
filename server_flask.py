@@ -186,6 +186,21 @@ def serve_shared(filename):
     """Servir recursos compartilhados"""
     return send_from_directory('shared', filename)
 
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    """Servir arquivos CSS"""
+    return send_from_directory('css', filename)
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    """Servir arquivos JavaScript"""
+    return send_from_directory('js', filename)
+
+@app.route('/imgs/<path:filename>')
+def serve_imgs(filename):
+    """Servir imagens e favicons"""
+    return send_from_directory('imgs', filename)
+
 # ============================================================================
 # API - Atualização automática de RPCs (ChainList)
 # ============================================================================

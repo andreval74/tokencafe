@@ -253,12 +253,11 @@ Para que o contrato funcione, você precisa depositar tokens nele:
 
 ## Passo 8: Atualizar o Widget
 
-Após a implantação bem-sucedida, atualize o arquivo `widget-demo-simple.html` com o endereço do contrato implantado:
+Após a implantação bem-sucedida, atualize o arquivo `pages/modules/widget/widget-teste.html` com o endereço do contrato implantado:
 
 ```javascript
 const CONFIG = {
   // ... outras configurações ...
-  paymentTarget: 'contract',
   saleContractAddress: 'ENDEREÇO_DO_CONTRATO_IMPLANTADO', // Substitua pelo endereço real
   // ... outras configurações ...
 };

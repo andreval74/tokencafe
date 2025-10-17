@@ -20,6 +20,10 @@ contract TokenSale {
     
     uint256 public bnbPrice;          // Preço em BNB por token (em wei)
     uint256 public usdtPrice;         // Preço em USDT por token (considerando decimais do USDT)
+
+    // Limite por carteira (0 = sem limite) e rastreamento de compras por endereço
+    uint256 public perWalletCap;      // Quantidade máxima de tokens por carteira
+    mapping(address => uint256) public purchasedBy;
     
     event TokensPurchased(
         address indexed buyer,
@@ -44,6 +48,7 @@ contract TokenSale {
         saleToken = _saleToken;
         usdtToken = _usdtToken;
         destinationWallet = _destinationWallet;
+
         bnbPrice = _bnbPrice;
         usdtPrice = _usdtPrice;
     }
@@ -60,6 +65,11 @@ contract TokenSale {
         // Transferir tokens para o comprador
         IERC20 token = IERC20(saleToken);
         require(token.balanceOf(address(this)) >= quantity, "Saldo de tokens insuficiente no contrato");
+
+        // Limite por carteira (0 = sem limite)
+        if (perWalletCap > 0) {
+            require(purchasedBy[msg.sender] + quantity <= perWalletCap, "Limite por carteira excedido");
+        }
         
         // Transferir pagamento para a carteira de destino
         (bool sent, ) = destinationWallet.call{value: msg.value}("");
@@ -67,6 +77,9 @@ contract TokenSale {
         
         // Transferir tokens para o comprador
         require(token.transfer(msg.sender, quantity), "Falha na transferencia de tokens");
+        
+        // Atualiza a quantidade comprada pelo comprador
+        purchasedBy[msg.sender] += quantity;
         
         emit TokensPurchased(msg.sender, quantity, msg.value, "BNB");
         
@@ -88,17 +101,24 @@ contract TokenSale {
         IERC20 usdt = IERC20(usdtToken);
         IERC20 token = IERC20(saleToken);
         
-        // Removendo a linha que causa o erro, pois não estamos usando os decimais
         uint256 totalCost = usdtPrice * quantity;
         
         // Verificar se o contrato tem tokens suficientes
         require(token.balanceOf(address(this)) >= quantity, "Saldo de tokens insuficiente no contrato");
+        
+        // Limite por carteira (0 = sem limite)
+        if (perWalletCap > 0) {
+            require(purchasedBy[msg.sender] + quantity <= perWalletCap, "Limite por carteira excedido");
+        }
         
         // Transferir USDT do comprador para a carteira de destino
         require(usdt.transferFrom(msg.sender, destinationWallet, totalCost), "Falha na transferencia de USDT");
         
         // Transferir tokens para o comprador
         require(token.transfer(msg.sender, quantity), "Falha na transferencia de tokens");
+        
+        // Atualiza a quantidade comprada pelo comprador
+        purchasedBy[msg.sender] += quantity;
         
         emit TokensPurchased(msg.sender, quantity, totalCost, "USDT");
     }
@@ -153,5 +173,9 @@ contract TokenSale {
     function updateUsdtToken(address newUsdtToken) external onlyOwner {
         require(newUsdtToken != address(0), "Endereco invalido");
         usdtToken = newUsdtToken;
+    }
+    
+    function updatePerWalletCap(uint256 newCap) external onlyOwner {
+        perWalletCap = newCap;
     }
 }
