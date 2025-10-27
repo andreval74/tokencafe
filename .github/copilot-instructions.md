@@ -153,6 +153,30 @@ Exemplos:
 
 Aplicar este padrão em todo o site, especialmente em formulários e páginas de testes.
 
+## Padrão de RPC e Widgets (Reutilizável)
+
+Para manter consistência e evitar reimplementações, widgets devem seguir o padrão de exibição e sincronização de RPC:
+- Usar `input#rpcUrl` como campo oculto para valor de RPC.
+- Exibir RPC clicável com `a#rpcUrlText` contendo `span#rpcUrlCode` para o texto da URL.
+- Sincronizar automaticamente via função do módulo (`applyRpcFromSystem`), consumindo `walletConnector.getStatus()` e `networkManager.getNetworkById(chainId)`.
+- Atualizar `rpcUrl`, `rpcUrlCode`, `rpcUrlText` em `init`, `wallet:connected` e `wallet:chainChanged`.
+- Reaproveitar marcação do módulo Link (`link-index.html`) quando aplicável.
+- Proibido scripts inline; inicializar via `PageManager`.
+
+Exemplo de uso (JS módulo do widget):
+```js
+function applyRpcFromSystem() {
+  const status = window.walletConnector?.getStatus?.();
+  const rpcUrl = status?.network?.rpc?.[0]
+    || (status?.chainId ? window.networkManager?.getNetworkById(parseInt(status.chainId, 16))?.rpc?.[0] : '')
+    || (window.networkManager?.getPopularNetworks?.(1)?.[0]?.rpc?.[0])
+    || 'https://bsc-testnet.publicnode.com';
+  document.getElementById('rpcUrl')?.setAttribute('value', rpcUrl);
+  document.getElementById('rpcUrlCode')?.replaceChildren(document.createTextNode(rpcUrl));
+  const a = document.getElementById('rpcUrlText'); if (a) a.href = rpcUrl;
+}
+```
+
 ### Paleta TokenCafe aplicada às variantes (detalhes)
 
 - `btn-primary`: gradiente laranja baseado em `--tokencafe-primary`; hover/focus levemente mais escuro.
@@ -166,3 +190,31 @@ Aplicar este padrão em todo o site, especialmente em formulários e páginas de
 Observações:
 - Evitar classes customizadas em variantes de botão; usar sempre as variantes Bootstrap 5 acima.
 - Em páginas de testes, ao acionar “Limpar Resultados”, realizar `walletConnector.disconnect()` quando disponível.
+
+## Componente de Busca de Rede Blockchain (Unificado)
+
+Padrão único para busca de redes em todas as páginas (RPC, Link, Wallet, Widgets), evitando duplicação de markup e lógica.
+
+- Arquivo de componente: `pages/shared/components/network-search.html`.
+- Script unificado: `js/shared/network-search.js` (usa `js/shared/network-manager.js`).
+- Inserção via `data-component` no HTML:
+
+```html
+<div data-component="shared/components/network-search.html"
+     data-ns-placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, Polygon, 1, 137)"
+     data-ns-min-chars="2"
+     data-ns-show-popular="true"></div>
+```
+
+Diretrizes:
+- Sem scripts inline; inicializar via `base-system.js`.
+- IDs internos padronizados: `#networkSearch` (input) e `#networkAutocomplete` (lista).
+- Comentários claros em PT‑BR no componente e script.
+- Emissão de eventos: `network:search`, `network:selected`, `network:clear`.
+- Debounce padrão (250 ms) e fallback para redes populares via `NetworkManager.getPopularNetworks`.
+- Reutilizar estilos existentes (`.network-autocomplete`), sem CSS duplicado.
+
+Testes e validação:
+- Validar na página `pages/modules/rpc/rpc-index.html` com o servidor local.
+- Digitar “Ethereum”, “137” ou “Polygon” para verificar autocomplete e seleção.
+- Garantir que a integração com módulos existentes consuma os eventos corretamente.

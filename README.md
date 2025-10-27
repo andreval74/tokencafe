@@ -150,6 +150,26 @@ npm run lint
 - **Bootstrap Classes**: Interface consistente
 - **Sem Inline Styles**: Manutenção facilitada
 
+## 🧪 Mini Widget de Teste (RPC unificada)
+
+O `pages/modules/widget/widget-teste.html` usa a mesma marcação e lógica de RPC do módulo Link, evitando duplicações:
+- Exibe a RPC com `a#rpcUrlText > span#rpcUrlCode` e mantém `input#rpcUrl` oculto.
+- Sincroniza automaticamente via `wallet-connector` e `network-manager` usando a função `applyRpcFromSystem` no módulo `widget_teste.js`.
+- Atualiza a RPC em mudanças de rede e na inicialização via `PageManager`.
+
+Dependências principais:
+- `js/shared/wallet-connector.js`, `js/shared/network-manager.js`, `js/shared/page-manager.js`.
+- `ethers.js` via CDN (5.x).
+
+Como usar:
+- Abra `http://localhost:3001/pages/modules/widget/widget-teste.html`.
+- Conecte a carteira no cabeçalho.
+- A RPC é aplicada automaticamente; use os botões de teste conforme necessário.
+
+Boas práticas:
+- Sem scripts inline; toda lógica está em `js/modules/widget/widget_teste.js`.
+- Reutilizar sempre a marcação e utilitários dos módulos em `js/shared/`.
+
 ## 🤝 Contribuindo
 
 1. Fork o projeto

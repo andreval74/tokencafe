@@ -11,36 +11,16 @@
    */
   async function connectWalletAndRedirect(provider = 'metamask', redirectTarget) {
     try {
-      if (!window.ethereum || (provider === 'metamask' && !window.ethereum.isMetaMask)) {
-        alert('MetaMask não encontrado. Instale e habilite a extensão.');
+      // Delegar conexão ao WalletConnector centralizado
+      if (!window.walletConnector || typeof window.walletConnector.connect !== 'function') {
+        alert('Sistema de conexão indisponível. Atualize a página e tente novamente.');
         return;
       }
 
-      // Força prompt de permissões (experiência de "trocar carteira")
-      try {
-        await window.ethereum.request({
-          method: 'wallet_requestPermissions',
-          params: [{ eth_accounts: {} }]
-        });
-      } catch (permErr) {
-        // Alguns providers podem não suportar; seguimos com a solicitação de contas
-        console.debug('Permissão não solicitada ou já concedida:', permErr?.message || permErr);
-      }
-
-      // Solicita contas ao provider
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      if (!accounts || accounts.length === 0) {
-        alert('Nenhuma conta retornada pelo provider.');
+      const result = await window.walletConnector.connect(provider);
+      if (!result || !result.success) {
+        alert('Falha ao conectar a carteira.');
         return;
-      }
-
-      // Sincroniza com o conector unificado, se disponível
-      try {
-        if (window.walletConnector && typeof window.walletConnector.connect === 'function') {
-          await window.walletConnector.connect(provider);
-        }
-      } catch (syncErr) {
-        console.warn('Falha ao sincronizar WalletConnector:', syncErr?.message || syncErr);
       }
 
       // Calcula destino padrão se não for informado

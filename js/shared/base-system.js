@@ -94,6 +94,15 @@ class BaseSystem {
                 return `${String(address).slice(0, startChars)}...${String(address).slice(-endChars)}`;
             }
         };
+
+        // Helper: delega binding de status da carteira ao módulo wallet
+        window.bindWalletStatusUI = (config = {}) => {
+            try {
+                if (window.walletConnector && typeof window.walletConnector.bindStatusUI === 'function') {
+                    window.walletConnector.bindStatusUI(config);
+                }
+            } catch (_) {}
+        };
         
         // Função para scroll to top
         window.scrollToTop = () => {
@@ -203,19 +212,25 @@ class BaseSystem {
                 const content = await finalResponse.text();
                 element.innerHTML = content;
 
-                // Executar scripts do componente carregado
+                // Executar scripts do componente carregado (preserva atributos como type="module")
                 const scripts = element.querySelectorAll('script');
                 scripts.forEach(script => {
                     if (script.src) {
                         const newScript = document.createElement('script');
                         newScript.src = script.src;
+                        if (script.type) newScript.type = script.type; // preserva tipo
                         document.head.appendChild(newScript);
                     } else {
                         try {
-                            eval(script.textContent);
+                            // Caso não seja necessário executar inline, injeta preservando type
+                            const newScript = document.createElement('script');
+                            if (script.type) newScript.type = script.type; // preserva tipo
+                            newScript.textContent = script.textContent;
+                            document.head.appendChild(newScript);
                         } catch (err) {
                             console.error('Erro ao executar script do componente:', err);
                             const newScript = document.createElement('script');
+                            if (script.type) newScript.type = script.type; // preserva tipo
                             newScript.textContent = script.textContent;
                             document.head.appendChild(newScript);
                         }

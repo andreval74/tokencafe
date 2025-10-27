@@ -45,10 +45,13 @@
     <!-- BaseSystem: Carregamento automático de componentes -->
     <script type="module">
       import { BaseSystem } from '../../../js/shared/base-system.js';
+      import PageManager from '../../../js/shared/page-manager.js';
       document.addEventListener('DOMContentLoaded', async () => {
         const baseSystem = new BaseSystem();
         await baseSystem.init();
         console.log('🚀 BaseSystem iniciado (dashboard)');
+        // Força pedido de conexão ao entrar no dashboard e exige auth
+        window.createPageManager('dashboard');
       });
     </script>
     

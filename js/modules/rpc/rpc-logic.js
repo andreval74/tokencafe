@@ -25,21 +25,21 @@ async function initRPCManager() {
   // Configurar event listeners
   setupEventListeners();
 
-  // Verificar conexão existente e conectar automaticamente se necessário
+  // Verificar conexão existente sem forçar conexão
   const wcInit = getWalletConnector();
-  if (wcInit && wcInit.isConnected) {
-    const status = wcInit.getStatus();
-    updateWalletUI(status);
-    showNextSection('network-section');
-  } else {
-    // Silenciar tentativa automática quando não há provedor de carteira
-    if (window && window.ethereum && getWalletConnector()) {
-      await connectWallet();
+  if (wcInit && typeof wcInit.isConnected === 'function') {
+    const ok = await wcInit.isConnected();
+    if (ok) {
+      const status = wcInit.getStatus();
+      updateWalletUI(status);
     } else {
-      // Permitir uso sem carteira conectada
-      showNextSection('network-section');
+      resetWalletUI();
     }
+  } else {
+    resetWalletUI();
   }
+  // Sempre permitir uso da seção de rede sem exigir carteira
+  showNextSection('network-section');
 }
 // Expor inicialização no escopo global para consumo entre módulos
 window.initRPCManager = initRPCManager;
@@ -53,10 +53,36 @@ function setupEventListeners() {
     await connectWallet();
   });
 
-  // Busca de redes
-  document.getElementById('networkSearch')?.addEventListener('input', (e) => {
-    const q = e.target.value.trim();
-    searchNetworks(q);
+  // Busca e seleção de rede via componente compartilhado
+  document.addEventListener('network:selected', (e) => {
+    const net = e.detail?.network;
+    if (net) {
+      // Não mostrar detalhes automaticamente; apenas preparar configuração
+      showNextSection('rpc-config-section');
+      fillNetworkForm(net);
+    }
+  });
+  document.addEventListener('network:clear', () => {
+    clearNetworkForm();
+  });
+
+  // Toggle de informações a partir do botão I do componente
+  document.addEventListener('network:toggleInfo', (e) => {
+    const visible = !!e.detail?.visible;
+    const net = e.detail?.network || null;
+    if (visible) {
+      if (net) {
+        showNetworkDetails(net);
+      } else {
+        // Se não há rede explícita, tentar a do input
+        const chainIdRaw = document.getElementById('networkSearch')?.dataset?.chainId;
+        const nm = getNetworkManager();
+        const fallback = chainIdRaw ? nm?.getNetworkById?.(parseInt(chainIdRaw, 10)) : null;
+        if (fallback) showNetworkDetails(fallback);
+      }
+    } else {
+      hideNetworkDetails();
+    }
   });
 
   // Botão de adicionar rede
@@ -218,60 +244,6 @@ function getExternalRpcsForNetwork(network) {
 /**
  * Buscar redes usando network manager unificado
  */
-function searchNetworks(query) {
-  try {
-    if (!query || query.length < 2) {
-      hideAutocomplete();
-      return;
-    }
-    const nm = getNetworkManager();
-    if (!nm || typeof nm.searchNetworks !== 'function') {
-      console.warn('NetworkManager indisponível ou sem método searchNetworks.');
-      hideAutocomplete();
-      return;
-    }
-    const results = nm.searchNetworks(query, 10);
-    showAutocompleteResults(results);
-
-  } catch (error) {
-    console.error('Erro na busca:', error);
-    hideAutocomplete();
-  }
-}
-
-/**
- * Mostrar resultados do autocomplete
- */
-function showAutocompleteResults(networks) {
-  const autocomplete = document.getElementById('networkAutocomplete');
-  if (!autocomplete) return;
-
-  if (networks.length === 0) {
-    hideAutocomplete();
-    return;
-  }
-
-  autocomplete.innerHTML = networks.map(network => `
-                <div class="autocomplete-item" data-chainid="${network.chainId}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${network.name}</strong>
-                            <small class="d-block text-muted">Chain ID: ${network.chainId}</small>
-                        </div>
-                        <span class="badge bg-dark-elevated text-tokencafe">${network.nativeCurrency?.symbol || 'N/A'}</span>
-                    </div>
-                </div>
-            `).join('');
-
-  // Adicionar listeners
-  autocomplete.querySelectorAll('.autocomplete-item').forEach(item => {
-    item.addEventListener('click', () => {
-      selectNetwork(parseInt(item.dataset.chainid));
-    });
-  });
-
-  autocomplete.classList.remove('d-none');
-}
 
 /**
  * Selecionar rede
@@ -289,8 +261,7 @@ function selectNetwork(chainId) {
   }
   hideAutocomplete();
 
-  // Mostrar detalhes da rede
-  showNetworkDetails(network);
+  // Não mostrar detalhes automaticamente; apenas avançar para configuração
   showNextSection('rpc-config-section');
 
   // Pré-preencher formulário
@@ -314,6 +285,11 @@ function showNetworkDetails(network) {
 
   // Exibir o card
   document.getElementById('selected-network-info')?.classList.remove('d-none');
+}
+
+function hideNetworkDetails() {
+  // Ocultar o card de detalhes da rede
+  document.getElementById('selected-network-info')?.classList.add('d-none');
 }
 
 /**
@@ -475,17 +451,19 @@ function onChainChanged(event) {
  * Atualizar UI da carteira
  */
 function updateWalletUI(result) {
-  const { account, wallet, network } = result;
-  const shortAddress = window.formatAddress ? formatAddress(account) : account;
+  const account = result && typeof result.account === 'string' ? result.account : null;
+  const sessionOk = (typeof result?.sessionAuthorized === 'boolean')
+    ? result.sessionAuthorized
+    : (window.walletConnector?.sessionAuthorized === true);
+  const connected = !!account && !!sessionOk;
+  const shortAddress = connected ? (window.formatAddress ? formatAddress(account) : account) : '';
 
-  // Atualizar status no header
   const headerAddr = document.getElementById('header-wallet-address');
   const headerStatus = document.getElementById('header-wallet-status');
   const headerConnectBtn = document.getElementById('header-connect-btn');
   if (headerAddr) headerAddr.textContent = shortAddress;
-  if (headerStatus) headerStatus.classList.remove('d-none');
-  if (headerConnectBtn) headerConnectBtn.classList.add('d-none');
-  // Sem sessão de conexão: seguir direto para busca de rede
+  if (headerStatus) headerStatus.classList.toggle('d-none', !connected);
+  if (headerConnectBtn) headerConnectBtn.classList.toggle('d-none', connected);
 }
 
 /**

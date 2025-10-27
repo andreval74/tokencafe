@@ -111,8 +111,29 @@ class PageManager {
         // Sempre configurar eventos de carteira, mesmo sem botão presente
         this.setupWalletEvents();
         
+        // PROVISÓRIO: Sempre solicitar conexão ao carregar a página
+        await this.forceConnectOnLoad();
+        
         // Verificação inicial de conexão (se houver UI, atualiza estados)
         await this.checkInitialConnection();
+    }
+
+    /**
+     * Forçar pedido de conexão ao carregar a página
+     */
+    async forceConnectOnLoad() {
+        try {
+            // Evitar prompts duplicados se já foi iniciado por outro componente (ex: header)
+            if (window.__tokencafe_auto_connect_initiated) {
+                return;
+            }
+            window.__tokencafe_auto_connect_initiated = true;
+            
+            // Sempre solicitar autorização de sessão ao trocar de página
+            await this.connectWallet();
+        } catch (e) {
+            console.warn('Falha ao solicitar conexão na carga da página:', e?.message || e);
+        }
     }
 
     /**
@@ -302,9 +323,15 @@ class PageManager {
             const isConnected = await walletConnector.isConnected();
             
             if (!isConnected) {
-                console.log('❌ Autenticação necessária, redirecionando...');
-                this.redirectTo('../index.html');
-                return false;
+                console.log('❌ Autenticação necessária — solicitando conexão...');
+                await this.connectWallet();
+                // Após solicitar, revalidar estado
+                const nowConnected = await walletConnector.isConnected();
+                if (!nowConnected) {
+                    console.log('❌ Autenticação não concedida, redirecionando...');
+                    this.redirectTo('../index.html');
+                    return false;
+                }
             }
             
             return true;

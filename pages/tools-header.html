@@ -93,59 +93,62 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         const btnConnect = el.querySelector('#btn-connect');
         const btnLogout = el.querySelector('#btn-logout');
 
-        function updateStatus(account) {
-          if (!addrEl || !btnConnect) return;
-          if (account) {
-            if (addrText) addrText.textContent = `${account.slice(0, 6)}...${account.slice(-4)}`;
-            addrEl.classList.remove('d-none');
-            btnConnect.classList.add('d-none');
-          } else {
-            addrEl.classList.add('d-none');
-            if (addrText) addrText.textContent = '';
-            btnConnect.classList.remove('d-none');
-          }
+        // Vincular UI de status usando helper global
+        if (window.bindWalletStatusUI) {
+          window.bindWalletStatusUI({
+            addressEl: addrText,
+            statusWrapperEl: addrEl,
+            connectBtnEl: btnConnect
+          });
         }
-
-        // Estado inicial
-        try {
-          const initialAccount = window.walletConnector?.getStatus?.()?.account;
-          if (initialAccount) updateStatus(initialAccount);
-        } catch (e) {
-          /* ignore */
-        }
-
-        // Eventos globais de carteira
-        document.addEventListener('wallet:connected', (ev) => {
-          const account = ev.detail?.account || window.walletConnector?.getStatus?.()?.account;
-          updateStatus(account);
-        });
-        document.addEventListener('wallet:disconnected', () => updateStatus(null));
 
         // Clique de conectar
         if (btnConnect) {
           btnConnect.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
-              if (typeof window.connectWallet === 'function') {
-                await window.connectWallet();
+              if (window.walletConnector && typeof window.walletConnector.connect === 'function') {
+                await window.walletConnector.connect('metamask');
               } else {
-                await window.walletConnector?.connect?.('metamask');
+                alert('Conector de carteira indisponível. Verifique scripts base.');
               }
             } catch (err) {
               console.warn('tools-header: falha ao conectar carteira', err);
+              alert('Erro ao conectar carteira: ' + (err?.message || err));
             }
-          });
+          }, { capture: true });
         }
 
         // Clique de sair e volta para index.html principal
         if (btnLogout) {
           btnLogout.addEventListener('click', async () => {
             try { await window.walletConnector?.disconnect?.(); } catch (e) { /* ignore */ }
-            updateStatus(null);
             try { window.location.href = '/pages/index.html'; } catch (e) { /* ignore */ }
           });
         }
       });
+
+      // Auto-conexão ao carregar páginas de módulo: garante prompt imediato
+      (async function autoConnectOnModulePage(){
+        try {
+          const wc = window.walletConnector;
+          if (wc && typeof wc.isConnected === 'function') {
+            const already = await wc.isConnected();
+            if (already) return;
+          }
+          if (!window.__tokencafe_auto_connect_initiated) {
+            window.__tokencafe_auto_connect_initiated = true;
+            if (typeof window.connectWallet === 'function') {
+              await window.connectWallet();
+            } else if (wc && typeof wc.connect === 'function') {
+              await wc.connect('metamask');
+            }
+          }
+        } catch (e) {
+          console.warn('tools-header: falha na auto-conexão de módulo', e);
+        }
+      })();
+
     } catch (e) {
       console.warn('tools-header: falha ao popular variáveis', e);
     }

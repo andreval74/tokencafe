@@ -3,7 +3,6 @@
  * WALLET CONNECTOR - MÓDULO UNIFICADO DE CARTEIRAS
  * ================================================================================
  * Centraliza TODA a lógica de conexão com carteiras Web3
- * Substitui código duplicado em: wallet/script.js, rpc/rpc-index.js, link/link_core.js
  * 
  * FUNCIONALIDADES:
  * - Conexão MetaMask, Trust, WalletConnect, Coinbase
@@ -43,6 +42,13 @@ export class WalletConnector {
         
         // Debug mode
         this.debug = false;
+        
+        // Selo de sessão: só marcamos conectado após ação explícita nesta aba
+        try {
+            this.sessionAuthorized = sessionStorage.getItem('tokencafe_wallet_session_authorized') === 'true';
+        } catch (_) {
+            this.sessionAuthorized = false;
+        }
         
         this.init();
     }
@@ -107,6 +113,18 @@ export class WalletConnector {
                 throw new Error(`${walletType} não está disponível`);
             }
             
+            // Solicitar permissões (se suportado) para forçar prompt
+            if (window.ethereum && typeof window.ethereum.request === 'function') {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_requestPermissions',
+                        params: [{ eth_accounts: {} }]
+                    });
+                } catch (permErr) {
+                    // Ignorar se não suportado ou já concedido
+                }
+            }
+
             // Solicitar conexão
             const accounts = await window.ethereum.request({
                 method: 'eth_requestAccounts'
@@ -120,27 +138,19 @@ export class WalletConnector {
             this.isConnected = true;
             this.currentAccount = accounts[0];
             this.connectedWallet = walletType;
-            
-            // Obter informações da rede atual
+            // Marcar sessão como autorizada (ação explícita)
+            this.sessionAuthorized = true;
+            try { sessionStorage.setItem('tokencafe_wallet_session_authorized', 'true'); } catch (_) {}
             await this.updateNetworkInfo();
-            
-            // Obter saldo
             await this.updateBalance();
-            
-            // Configurar listeners específicos da carteira
             this.setupWalletListeners();
-            
-            // Salvar no cache
             this.saveConnectionCache();
-            
-            // Emitir evento de conexão
             this.emitEvent('wallet:connected', {
                 account: this.currentAccount,
                 wallet: this.connectedWallet,
                 chainId: this.currentChainId,
                 network: this.currentNetwork
             });
-            
             this.log(`✅ ${walletType} conectado: ${this.currentAccount}`);
             
             return {
@@ -180,8 +190,10 @@ export class WalletConnector {
             this.connectedWallet = null;
             this.balance = '0';
             
-            // Limpar cache
+            // Limpar cache e selo de sessão
             this.clearCache();
+            this.sessionAuthorized = false;
+            try { sessionStorage.removeItem('tokencafe_wallet_session_authorized'); } catch (_) {}
             
             // Remover listeners
             this.removeWalletListeners();
@@ -213,7 +225,8 @@ export class WalletConnector {
             this.log(`🔄 Trocando para rede ${targetChainId}...`);
             
             // Obter dados da rede
-            const networkData = await this.networks.getNetworkById(chainId);
+            const decId = typeof chainId === 'string' && chainId.startsWith('0x') ? parseInt(chainId, 16) : chainId;
+            const networkData = await this.networks.getNetworkById(decId);
             if (!networkData) {
                 throw new Error(`Rede ${chainId} não encontrada`);
             }
@@ -299,18 +312,50 @@ export class WalletConnector {
      */
     async updateBalance() {
         try {
-            if (!this.currentAccount || !window.ethereum) return;
-            
-            const balance = await window.ethereum.request({
-                method: 'eth_getBalance',
-                params: [this.currentAccount, 'latest']
-            });
-            
-            // Converter de wei para ether
-            this.balance = (parseInt(balance, 16) / Math.pow(10, 18)).toFixed(4);
-            
+            if (!this.currentAccount) return;
+
+            let weiHex = null;
+
+            // Tentar via MetaMask primeiro
+            if (window.ethereum) {
+                try {
+                    weiHex = await window.ethereum.request({
+                        method: 'eth_getBalance',
+                        params: [this.currentAccount, 'latest']
+                    });
+                } catch (mmErr) {
+                    this.log(`⚠️ Falha no MetaMask RPC ao obter saldo: ${mmErr?.message || mmErr}`, 'warn');
+                }
+            }
+
+            // Fallback via JsonRpcProvider (ethers) quando MM falhar
+            if (!weiHex && typeof ethers !== 'undefined') {
+                try {
+                    let rpcUrl = '';
+                    if (window.widgetRpcOverride?.rpcUrl) {
+                        rpcUrl = window.widgetRpcOverride.rpcUrl;
+                    } else if (this.currentNetwork?.rpc?.length) {
+                        rpcUrl = this.currentNetwork.rpc[0];
+                    } else if (this.currentChainId) {
+                        const decId = parseInt(this.currentChainId, 16);
+                        const net = window.networkManager?.getNetworkById ? window.networkManager.getNetworkById(decId) : null;
+                        rpcUrl = net?.rpc?.[0] || '';
+                    }
+                    if (!rpcUrl) rpcUrl = 'https://bsc-testnet.publicnode.com';
+
+                    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+                    const bn = await provider.getBalance(this.currentAccount);
+                    weiHex = ethers.utils.hexlify(bn);
+                } catch (fbErr) {
+                    this.log(`❌ Erro ao obter saldo (fallback): ${fbErr?.message || fbErr}`, 'error');
+                    return;
+                }
+            }
+
+            if (!weiHex) return;
+
+            this.balance = (parseInt(weiHex, 16) / Math.pow(10, 18)).toFixed(4);
             this.log(`💰 Saldo atualizado: ${this.balance} ETH`);
-            
         } catch (error) {
             this.log(`❌ Erro ao obter saldo: ${error.message}`, 'error');
         }
@@ -399,15 +444,27 @@ export class WalletConnector {
         try {
             const cachedConnection = this.getConnectionCache();
             if (!cachedConnection) return;
-            
             this.log('🔄 Tentando reconexão automática...');
             
-            if (this.isWalletAvailable(cachedConnection.wallet)) {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                
-                if (accounts.length > 0 && accounts[0] === cachedConnection.account) {
-                    await this.connect(cachedConnection.wallet);
-                    this.log('✅ Reconexão automática bem-sucedida');
+            if (this.isWalletAvailable(cachedConnection.wallet) && window.ethereum) {
+                const [accounts, unlocked] = await Promise.all([
+                    window.ethereum.request({ method: 'eth_accounts' }),
+                    (window.ethereum._metamask?.isUnlocked?.() || Promise.resolve(false))
+                ]);
+                if (!unlocked) {
+                    this.log('🔒 Carteira bloqueada; não reconectar automaticamente', 'warn');
+                    this.clearCache();
+                    this.isConnected = false;
+                    this.currentAccount = null;
+                    this.connectedWallet = null;
+                    return;
+                }
+                if (accounts && accounts.length > 0 && accounts[0] === cachedConnection.account) {
+                    await this.connectSilent(cachedConnection.wallet);
+                    this.log('✅ Reconexão automática (silenciosa) bem-sucedida');
+                } else {
+                    this.log('ℹ️ Cache de conexão inválido; limpando', 'warn');
+                    this.clearCache();
                 }
             }
             
@@ -460,6 +517,11 @@ export class WalletConnector {
     clearCache() {
         localStorage.removeItem('tokencafe_wallet_cache');
         this.cache.clear();
+        this.isConnected = false;
+        this.currentAccount = null;
+        this.connectedWallet = null;
+        this.sessionAuthorized = false;
+        try { sessionStorage.removeItem('tokencafe_wallet_session_authorized'); } catch (_) {}
     }
 
     /**
@@ -511,18 +573,187 @@ export class WalletConnector {
             chainId: this.currentChainId,
             network: this.currentNetwork,
             balance: this.balance,
-            availableWallets: this.availableWallets
+            availableWallets: this.availableWallets,
+            sessionAuthorized: !!this.sessionAuthorized
         };
+    }
+
+    /**
+     * Formatar endereço curto (ex: 0x1234...ABCD)
+     */
+    formatAddress(address, startChars = 6, endChars = 4) {
+        if (!address || typeof address !== 'string') return '';
+        const addr = String(address);
+        if (addr.length <= startChars + endChars) return addr;
+        return `${addr.slice(0, startChars)}...${addr.slice(-endChars)}`;
+    }
+
+    /**
+     * Vincular UI de status da carteira em páginas/headers
+     * Aceita elementos ou seletores (string) no config
+     */
+    bindStatusUI(config = {}) {
+        const resolve = (ref) => {
+            if (!ref) return null;
+            if (typeof ref === 'string') return document.querySelector(ref);
+            return ref;
+        };
+
+        const addressEl = resolve(config.addressEl);
+        const statusWrapperEl = resolve(config.statusWrapperEl);
+        const connectBtnEl = resolve(config.connectBtnEl);
+        const dashboardLinkEl = resolve(config.dashboardLinkEl);
+        const logoutBtnEl = resolve(config.logoutBtnEl);
+
+        const isBadgeStyle = connectBtnEl ? connectBtnEl.classList.contains('badge') : false;
+
+        const applyState = (state) => {
+            const account = (state && typeof state.account === 'string' && state.account) ? state.account : null;
+            const connected = !!account && !!this.sessionAuthorized;
+
+            // Atualiza texto/visibilidade do endereço
+            if (addressEl) {
+                addressEl.textContent = connected ? this.formatAddress(account) : '';
+            }
+            if (statusWrapperEl) {
+                statusWrapperEl.classList.toggle('d-none', !connected);
+            }
+
+            // Botão conectar: badge → esconder quando conectado; btn → atualizar estilo/texto
+            if (connectBtnEl) {
+                if (isBadgeStyle) {
+                    connectBtnEl.classList.toggle('d-none', connected);
+                } else {
+                    if (connected) {
+                        connectBtnEl.disabled = true;
+                        connectBtnEl.classList.remove('btn-warning');
+                        connectBtnEl.classList.add('btn-success');
+                        connectBtnEl.innerHTML = '<i class="bi bi-check-circle me-1"></i>Conectado';
+                    } else {
+                        connectBtnEl.disabled = false;
+                        connectBtnEl.classList.remove('btn-success');
+                        connectBtnEl.classList.add('btn-warning');
+                        connectBtnEl.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Conectar';
+                    }
+                }
+            }
+
+            if (dashboardLinkEl) {
+                dashboardLinkEl.classList.toggle('d-none', !connected);
+            }
+        };
+
+        // Estado inicial: verificar provider para evitar falso positivo
+        const refreshFromProvider = async () => {
+            try {
+                const accounts = await (window.ethereum?.request?.({ method: 'eth_accounts' }) || Promise.resolve([]));
+                const unlocked = await (window.ethereum?._metamask?.isUnlocked?.() || Promise.resolve(false)).catch(() => false);
+                const account = (Array.isArray(accounts) && accounts[0] && unlocked && this.sessionAuthorized) ? accounts[0] : null;
+                if (account) {
+                    this.currentAccount = account;
+                    this.isConnected = true;
+                } else {
+                    this.currentAccount = null;
+                    this.isConnected = false;
+                    try { localStorage.removeItem('tokencafe_wallet_cache'); } catch (_) {}
+                }
+                applyState({ account });
+            } catch (_) {
+                try { localStorage.removeItem('tokencafe_wallet_cache'); } catch (_) {}
+                applyState({ account: null });
+            }
+        };
+        // Estado inicial seguro: marcar como desconectado até confirmar provider
+        applyState({ account: null });
+        refreshFromProvider();
+
+        // Eventos para manter sincronizado
+        document.addEventListener('wallet:connected', (ev) => applyState(ev.detail));
+        document.addEventListener('wallet:disconnected', () => applyState({ account: null }));
+        document.addEventListener('wallet:accountChanged', (ev) => applyState(ev.detail));
+    }
+
+    /**
+     * Verificar se há conexão ativa
+     * Compatível com chamadas existentes (PageManager)
+     */
+    async isConnected() {
+        try {
+            if (window.ethereum) {
+                const [accs, unlocked] = await Promise.all([
+                    window.ethereum.request({ method: 'eth_accounts' }),
+                    (window.ethereum._metamask?.isUnlocked?.() || Promise.resolve(false))
+                ]);
+                if (unlocked && accs && accs.length > 0 && this.sessionAuthorized) {
+                    this.isConnected = true;
+                    this.currentAccount = accs[0];
+                } else {
+                    this.isConnected = false;
+                    this.currentAccount = null;
+                }
+            }
+        } catch (e) {
+            // silencioso
+        }
+        return !!this.isConnected && !!this.currentAccount && !!this.sessionAuthorized;
     }
 
     /**
      * Habilitar/desabilitar debug
      * @param {boolean} enabled - Ativar debug
      */
+    // Conexão silenciosa sem prompt (usando contas existentes)
+    async connectSilent(walletType = 'metamask') {
+        try {
+            this.log(`🔌 [silencioso] Tentando conectar ${walletType}...`);
+            if (!this.isWalletAvailable(walletType)) {
+                throw new Error(`${walletType} não está disponível`);
+            }
+            const [accounts, unlocked] = await Promise.all([
+                window.ethereum.request({ method: 'eth_accounts' }),
+                (window.ethereum._metamask?.isUnlocked?.() || Promise.resolve(false))
+            ]);
+            if (!unlocked) {
+                throw new Error('Carteira bloqueada. Não é possível reconectar automaticamente.');
+            }
+            if (!accounts || accounts.length === 0) {
+                throw new Error('Nenhuma conta previamente conectada');
+            }
+            // Importante: conexão silenciosa NÃO autoriza sessão
+            this.isConnected = true;
+            this.currentAccount = accounts[0];
+            this.connectedWallet = walletType;
+            await this.updateNetworkInfo();
+            await this.updateBalance();
+            this.setupWalletListeners();
+            this.saveConnectionCache();
+            this.emitEvent('wallet:connected', {
+                account: this.currentAccount,
+                wallet: this.connectedWallet,
+                chainId: this.currentChainId,
+                network: this.currentNetwork
+            });
+            this.log(`✅ [silencioso] ${walletType} conectado: ${this.currentAccount}`);
+            return {
+                success: true,
+                account: this.currentAccount,
+                wallet: this.connectedWallet,
+                chainId: this.currentChainId,
+                network: this.currentNetwork,
+                balance: this.balance
+            };
+        } catch (error) {
+            this.log(`❌ Erro ao conectar (silencioso) ${walletType}: ${error.message}`, 'error');
+            this.emitEvent('wallet:error', { action: 'connectSilent', wallet: walletType, error: error.message });
+            throw error;
+        }
+    }
+
     setDebug(enabled) {
         this.debug = enabled;
         this.log(`🐛 Debug mode: ${enabled ? 'ON' : 'OFF'}`);
     }
+
 }
 
 // Exportar instância global

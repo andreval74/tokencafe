@@ -3863,3 +3863,38 @@ Classes reutilizáveis para efeitos neon padronizados
   background-color: #d53a3a; /* leve escurecimento no hover */
   border-color: #d53a3a;
 }
+
+/* Widget-teste: layout de informações abaixo dos inputs */
+.field-info { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
+.field-info-line { display: flex; align-items: center; gap: 10px; }
+.field-info-line.values.simple-3 { display: grid; grid-template-columns: 160px minmax(0,1fr) minmax(0,1fr); gap: 8px; align-items: center; }
+  .field-info-line.values.simple-4 { display: grid; grid-template-columns: 160px minmax(0,1fr) minmax(0,1fr) auto; gap: 8px; align-items: center; }
+  .fi-col1 { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fi-col2 { color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fi-col3 { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fi-actions { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+  .fi-actions input { width: 110px; min-width: 0; }
+  .btn-icon { padding: 4px 8px; line-height: 1; }
+  .field-tx { font-size: 0.85rem; color: #bbb; }
+
+/* Ícones inline no final dos inputs (busca e endereços) */
+.input-end-icons {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+.input-end-icons .btn {
+  padding: 2px 6px;
+  line-height: 1;
+}
+.input-end-icons .btn i {
+  font-size: 1rem;
+}
+/* Espaço interno para ícones não sobreporem texto */
+.position-relative > .form-control {
+  padding-right: 72px;
+}

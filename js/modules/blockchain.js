@@ -38,31 +38,26 @@ class BlockchainCore {
      */
     async connectWallet() {
         try {
-            if (!this.isMetaMaskAvailable()) {
-                throw new Error('MetaMask nao esta instalado');
+            // Usar WalletConnector unificado
+            if (!window.walletConnector || typeof window.walletConnector.connect !== 'function') {
+                throw new Error('WalletConnector indisponível');
             }
 
-            const accounts = await window.ethereum.request({
-                method: 'eth_requestAccounts'
-            });
-
-            if (accounts.length > 0) {
-                this.connectedAccount = accounts[0];
-                console.log('Carteira conectada:', this.connectedAccount);
-                
-                // Configurar listeners para mudancas
+            const result = await window.walletConnector.connect('metamask');
+            if (result && result.success) {
+                this.connectedAccount = window.walletConnector.currentAccount;
+                // Configurar listeners para mudanças
                 this.setupEventListeners();
-                
-                // Obter informacoes da rede atual
-                await this.getCurrentNetworkInfo();
-                
+                // Obter informações da rede atual do conector
+                this.currentNetwork = window.walletConnector.currentNetwork || null;
+
                 return {
                     success: true,
                     account: this.connectedAccount,
                     network: this.currentNetwork
                 };
             } else {
-                throw new Error('Nenhuma conta encontrada');
+                throw new Error('Falha ao conectar carteira');
             }
         } catch (error) {
             console.error('Erro ao conectar carteira:', error);

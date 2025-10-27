@@ -66,19 +66,12 @@
                         </div>
                     </div>
 
-                    <!-- Campo de busca unificado -->
-                    <div class="mb-4">
-                        <label for="networkSearch" class="form-label">
-                            <i class="bi bi-search me-2"></i>Buscar Rede Blockchain
-                        </label>
-                        <div class="position-relative">
-                            <input type="text" class="form-control form-control-lg" id="networkSearch"
-                                placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, Polygon, 1, 137)">
-                            <div id="networkAutocomplete" class="network-autocomplete position-absolute w-100 d-none">
-                                <!-- Resultados da busca aparecerão aqui -->
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Campo de busca unificado (componente compartilhado) -->
+                    <div data-component="shared/components/network-search.html"
+                           data-ns-placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, Polygon, 1, 137)"
+                           data-ns-min-chars="1"
+                           data-ns-show-popular="false">
+                       </div>
 
                     <!-- Informações da rede selecionada -->
                     <div id="selected-network-info" class="card mb-4 d-none">

@@ -71,6 +71,11 @@ Baseado no header.html do TokenCafe com tema TokenCafe
           <button id="language-toggle-btn" class="btn btn-sm btn-transparent-info" type="button" title="Mudar Idioma">
             <i class="fas fa-globe" id="language-icon"></i>
           </button>
+
+          <!-- Conectar MetaMask -->
+          <button id="connect-metamask-btn" class="btn btn-sm btn-warning fw-bold" type="button" title="Conectar MetaMask">
+            <i class="bi bi-wallet2 me-1"></i>Conectar
+          </button>
         </div>
       </div>
     </div>
@@ -78,3 +83,53 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 </header>
 
 <div class="section-divider"></div>
+
+<script>
+  (function(){
+    function log(msg){ try{ console.log('[Header] ', msg); }catch(_){} }
+    const btn = document.getElementById('connect-metamask-btn');
+    if (!btn) return;
+
+    function updateStatus(account){
+      if (!btn) return;
+      if (account){
+        btn.classList.remove('btn-warning');
+        btn.classList.add('btn-success');
+        btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Conectado';
+      } else {
+        btn.classList.add('btn-warning');
+        btn.classList.remove('btn-success');
+        btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Conectar';
+      }
+    }
+
+    // Estado inicial via WalletConnector
+    try {
+      const initialAccount = window.walletConnector?.getStatus?.()?.account;
+      updateStatus(initialAccount || null);
+    } catch (e) { /* ignore */ }
+
+    // Eventos globais para manter UI sincronizada
+    document.addEventListener('wallet:connected', (ev) => {
+      const account = ev.detail?.account || window.walletConnector?.getStatus?.()?.account;
+      updateStatus(account);
+    });
+    document.addEventListener('wallet:disconnected', () => updateStatus(null));
+
+    // Clique de conectar — delega totalmente ao WalletConnector
+    btn.addEventListener('click', async () => {
+      try{
+        if (window.walletConnector && typeof window.walletConnector.isConnected === 'function'){
+          const already = await window.walletConnector.isConnected();
+          if (already) { log('Já conectado — não reabrir prompt'); return; }
+        }
+        if (window.walletConnector && typeof window.walletConnector.connect === 'function'){
+          log('Chamando walletConnector.connect("metamask")');
+          await window.walletConnector.connect('metamask');
+          return;
+        }
+        alert('Conector de carteira indisponível. Verifique scripts base.');
+      }catch(e){ console.error('Erro ao conectar MetaMask via header:', e); alert('Erro ao conectar: ' + (e.message || e)); }
+    }, { capture: true });
+  })();
+</script>

@@ -1,0 +1,24 @@
+<!-- Componente Compartilhado: Busca de Rede Blockchain
+     Este componente padroniza o campo de busca de redes, com suporte a autocomplete.
+     Configuração via data-attributes no contêiner pai:
+       - data-ns-placeholder: texto do placeholder do input
+       - data-ns-min-chars: número mínimo de caracteres para iniciar busca
+       - data-ns-show-popular: 'true' para exibir redes populares quando vazio
+     Eventos emitidos:
+       - network:search { query }
+       - network:selected { network }
+       - network:clear
+     Dependências: Bootstrap 5, js/shared/network-manager.js, js/shared/base-system.js
+-->
+<div class="network-search-component">
+  <div class="mb-3">
+    <label for="networkSearch" class="form-label">Buscar Rede Blockchain</label>
+    <div class="input-group">
+      <input type="text" id="networkSearch" class="form-control" placeholder="Buscar por nome, chainId ou símbolo" autocomplete="off">
+      <button type="button" id="nsInfoBtn" class="btn btn-outline-info" title="Mostrar informações"><i class="bi bi-info-circle"></i></button>
+      <button type="button" id="nsClearBtn" class="btn btn-outline-danger" title="Limpar campo"><i class="bi bi-x-circle"></i></button>
+    </div>
+  </div>
+  <div id="networkAutocomplete" class="network-autocomplete list-group" style="display:none;"></div>
+</div>
+<script type="module" src="/js/shared/network-search.js"></script>

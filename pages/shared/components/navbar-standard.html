@@ -67,31 +67,14 @@ Uso: Inclua via data-component="navbar-standard"
 <script>
 // Atualizar status da carteira na navbar
 document.addEventListener('DOMContentLoaded', function() {
-    // Escutar eventos de carteira
-    document.addEventListener('wallet:connected', function(e) {
-        const { account } = e.detail;
-        const shortAddress = account ? `${account.slice(0, 6)}...${account.slice(-4)}` : '';
-        
-        document.getElementById('wallet-address').textContent = shortAddress;
-        document.getElementById('wallet-status').classList.remove('d-none');
-        document.getElementById('connect-wallet-btn').classList.add('d-none');
-        document.getElementById('dashboard-link').classList.remove('d-none');
-    });
-    
-    document.addEventListener('wallet:disconnected', function() {
-        document.getElementById('wallet-status').classList.add('d-none');
-        document.getElementById('connect-wallet-btn').classList.remove('d-none');
-        document.getElementById('dashboard-link').classList.add('d-none');
-    });
-    
-    // Verificar status inicial
-    if (window.walletConnector?.isConnected) {
-        const status = window.walletConnector.getStatus();
-        if (status.account) {
-            document.dispatchEvent(new CustomEvent('wallet:connected', {
-                detail: { account: status.account }
-            }));
-        }
+    // Vincular UI usando helper global
+    if (window.bindWalletStatusUI) {
+        window.bindWalletStatusUI({
+            addressEl: '#wallet-address',
+            connectBtnEl: '#connect-wallet-btn',
+            dashboardLinkEl: '#dashboard-link',
+            statusWrapperEl: '#wallet-status'
+        });
     }
 });
 </script>

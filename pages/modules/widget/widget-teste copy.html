@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget Contract Checker</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+body { font-family: Arial, sans-serif; background: #111; color: #eee; padding: 20px; }
+input, textarea, button, select { width: 100%; margin: 5px 0; padding: 8px; border-radius: 6px; border: none; }
+input, textarea, select { background: #222; color: #eee; }
+button { background: #00b894; cursor: pointer; color: white; }
+#log { background: #000; color: #0f0; height: 200px; overflow-y: auto; padding: 10px; border-radius: 6px; }
+#summary { background: #222; color: #fff; padding: 10px; border-radius: 6px; margin-top: 10px; }
+#debugArea { background: #111; color: #0ff; padding: 10px; margin-top: 10px; border: 1px solid #0ff; border-radius: 8px; display: none; white-space: pre-wrap; }
+.step-status { font-size: 12px; color: #ccc; margin-top: 4px; }
+.step-status.ready { color: #8f8; }
+.step-status.blocked { color: #f88; }
+</style>
+</head>
+<body>
+<h2>🔍 Widget Contract Checker - Token Balance & Payable Functions</h2>
+<form id="checkerForm">
+<label>RPC URL:</label>
+<input id="rpcUrl" value="https://bsc-testnet.publicnode.com" required>
+<label>Contrato Token (SCAFE):</label>
+<input id="tokenContract" value="0x2cf724171a998C3d470048AC2F1b187a48A5cafE" required>
+<label>Contrato Sale:</label>
+<input id="saleContract" value="0x2701B4ef482BE4DD8A653B7C97090713A9a0AFE6" required>
+<label>Carteira Comprador:</label>
+<input id="buyerWallet" value="0x0b81337F18767565D2eA40913799317A25DC4bc5" required>
+<label>Carteira Recebedor:</label>
+<input id="receiverWallet" value="0xEe02E32d8d2888E9f1D6d13391E716Bc7F41f6Ae" required>
+<label>ABI Token (JSON):</label>
+<textarea id="tokenAbiText">[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":false,"internalType":"uint256","name":"balance","type":"uint256"}],"name":"OriginalBalanceChecked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"Terminated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"contractOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getBalances","outputs":[{"internalType":"uint256","name":"originalBalance","type":"uint256"},{"internalType":"uint256","name":"currentBalance","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"tokenOwner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"getOriginalAllowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getOriginalBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getOriginalName","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOriginalSymbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOriginalTotalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"logoURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"terminate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"terminated","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"unpause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}]</textarea>
+
+<label>ABI Sale (JSON):</label>
+<textarea id="saleAbiText">[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"buyer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"cost","type":"uint256"},{"indexed":false,"internalType":"string","name":"paymentMethod","type":"string"}],"name":"TokensPurchased","type":"event"},{"inputs":[],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"bnbPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"buy","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"destinationWallet","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"emergencyWithdrawBNB","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"maxPurchase","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"minPurchase","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"saleToken","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"newMinPurchase","type":"uint256"},{"internalType":"uint256","name":"newMaxPurchase","type":"uint256"}],"name":"updateLimits","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newBnbPrice","type":"uint256"}],"name":"updatePrices","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdrawTokens","outputs":[],"stateMutability":"nonpayable","type":"function"}]</textarea>
+
+<button type="submit">🚀 Rodar Checagens</button>
+<div id="status-runChecks" class="step-status blocked">Aguardando: preencher e carregar RPC/ABIs</div>
+</form>
+<button id="connectWallet">🔗 Conectar MetaMask</button>
+<div id="status-connectWallet" class="step-status blocked">Aguardando: conectar MetaMask</div>
+<button id="checkBalance">📊 Verificar Saldo do Contrato Sale</button>
+<div id="status-checkBalance" class="step-status blocked">Aguardando: RPC, ABI Token e endereço Sale</div>
+<label>Quantidade de tokens para enviar:</label>
+<input id="sendAmountTokens" value="1000" placeholder="Ex.: 1000">
+<button id="sendTokens">💸 Enviar Tokens de Teste para Sale</button>
+<div id="status-sendTokens" class="step-status blocked">Aguardando: MetaMask, ABI Token e saldo suficiente para enviar</div>
+<select id="payableFunctions"></select>
+<label>Preço por token (BNB):</label>
+<input id="buyTokenPrice" value="0.001" placeholder="Ex.: 0.001 BNB por token">
+<label>Quantidade de tokens a comprar:</label>
+<input id="buyAmountTokens" value="100" placeholder="Ex.: 100">
+<label>Valor em BNB a pagar (opcional):</label>
+<input id="bnbToPay" value="" placeholder="Ex.: 0.1">
+<button id="simulateBuy">💰 Simular Função Selecionada</button>
+<div id="status-simulateBuy" class="step-status blocked">Aguardando: RPC, ABI Sale e função selecionada</div>
+<button id="executeBuy">🛒 Executar Compra (buy)</button>
+<div id="status-executeBuy" class="step-status blocked">Aguardando: preencher preço/quantidade/valor e MetaMask</div>
+<button id="showDebug">🧠 Mostrar Log Completo</button>
+<div id="log"></div>
+<div id="summary"></div>
+<div id="debugArea"></div>
+
+<script>
+const log = msg => { 
+    const logEl = document.getElementById('log'); 
+    logEl.innerHTML += msg + "\\n"; 
+    logEl.scrollTop = logEl.scrollHeight; 
+    console.log(msg); 
+};
+
+// Sequenciador de ações para evitar erros por ordem incorreta
+(function setupActionSequencer(){
+  const getBtn = (id)=>document.getElementById(id);
+  const setBtnEnabled = (id, enabled, reason='')=>{ const b=getBtn(id); if(!b) return; b.disabled = !enabled; if(!enabled && reason){ b.title = reason; } else { b.removeAttribute('title'); } const st=document.getElementById('status-'+id); if(st){ if(enabled){ st.textContent='Pronto'; st.className='step-status ready'; } else { st.textContent='Aguardando: '+reason; st.className='step-status blocked'; } } };
+  const setStepLabel = (id, num, label)=>{ const b=getBtn(id); if(!b) return; const base = b.textContent.replace(/^Passo\s*\d+\s*:\s*/,''); b.textContent = `Passo ${num}: ${label || base}`; };
+  const safeAddr = (id)=>{ try{ return ethers.utils.getAddress((document.getElementById(id)?.value||'').trim()); }catch(_){ return null; } };
+  const hasAbi = (abi)=> Array.isArray(abi) && abi.length>0;
+
+  // Dar id ao botão de submit do formulário
+  const submitBtn = document.querySelector('#checkerForm button[type="submit"]');
+  if(submitBtn){ submitBtn.id = 'runChecksBtn'; }
+
+  function applyStepLabels(){
+    setStepLabel('runChecksBtn', 1, 'Carregar RPC e ABIs');
+    setStepLabel('connectWallet', 2, 'Conectar MetaMask');
+    setStepLabel('checkBalance', 3, 'Verificar saldo do Sale');
+    setStepLabel('sendTokens', 4, 'Enviar tokens de teste');
+    setStepLabel('simulateBuy', 5, 'Simular função payable');
+    const buyBtn = getBtn('executeBuy'); if(buyBtn){ setStepLabel('executeBuy', 6, 'Comprar (buy)'); }
+  }
+
+  window.applySequencer = function applySequencer(){
+    const rpcOk = !!provider;
+    const signerOk = !!signer;
+    const saleAddrOk = !!safeAddr('saleContract');
+    const tokenAddrOk = !!safeAddr('tokenContract');
+    const saleAbiOk = hasAbi(saleAbi);
+    const tokenAbiOk = hasAbi(tokenAbi);
+    const paySel = document.getElementById('payableFunctions');
+    const payableOk = !!(paySel && paySel.options && paySel.options.length>0 && paySel.value);
+    const bnbInput = document.getElementById('bnbToPay');
+    const priceOk = parseFloat(document.getElementById('buyTokenPrice')?.value||'0')>0;
+    const qtyOk = parseFloat(document.getElementById('buyAmountTokens')?.value||'0')>0;
+    const bnbOk = bnbInput ? (parseFloat(bnbInput.value||'0')>0 || (priceOk && qtyOk)) : (priceOk && qtyOk);
+
+    setBtnEnabled('runChecksBtn', true);
+    setBtnEnabled('connectWallet', true);
+    setBtnEnabled('checkBalance', (rpcOk && tokenAbiOk && saleAddrOk), 'Requer RPC, ABI Token e endereço Sale válido');
+    setBtnEnabled('sendTokens', (signerOk && tokenAbiOk && saleAddrOk), 'Requer MetaMask, ABI Token, endereço Sale válido e saldo suficiente');
+    setBtnEnabled('simulateBuy', (rpcOk && saleAbiOk && saleAddrOk && payableOk), 'Requer RPC, ABI Sale, endereço Sale e função selecionada');
+    const buyBtn = getBtn('executeBuy'); if(buyBtn){ setBtnEnabled('executeBuy', (signerOk && saleAbiOk && tokenAbiOk && saleAddrOk && tokenAddrOk && bnbOk), 'Requer MetaMask, ABIs, endereços válidos e valor em BNB'); }
+  };
+
+  function wireReeval(){
+    ['rpcUrl','tokenContract','saleContract','buyTokenPrice','buyAmountTokens','bnbToPay','payableFunctions','sendAmountTokens'].forEach(id=>{
+      const el=document.getElementById(id); if(!el) return;
+      const evt = (id==='payableFunctions') ? 'change' : 'input';
+      el.addEventListener(evt, ()=>{ try{ applySequencer(); refreshBuyerBalanceStatus(); }catch(_e){} });
+    });
+    document.getElementById('checkerForm')?.addEventListener('submit', ()=>{ setTimeout(()=>{ try{ applySequencer(); refreshBuyerBalanceStatus(); }catch(_e){} }, 100); });
+    document.getElementById('connectWallet')?.addEventListener('click', ()=>{ setTimeout(()=>{ try{ applySequencer(); refreshBuyerBalanceStatus(); }catch(_e){} }, 300); });
+  }
+
+  window.refreshBuyerBalanceStatus = async function(){
+    const st = document.getElementById('status-sendTokens');
+    const btn = document.getElementById('sendTokens');
+    if(!st) return;
+    if(!signer || !tokenAbi){ st.textContent = 'Aguardando: MetaMask e ABI Token'; st.className='step-status blocked'; return; }
+    try{
+      const tokenAddr = (document.getElementById('tokenContract')?.value||'').trim();
+      const amountStr = (document.getElementById('sendAmountTokens')?.value||'1000').trim();
+      const amountNum = parseFloat(amountStr);
+      if(!(amountNum>0)){
+        st.textContent = 'Aguardando: informe quantidade válida (> 0)';
+        st.className = 'step-status blocked';
+        if(btn){ btn.disabled = true; }
+        return;
+      }
+      const prov = signer?.provider || provider;
+      if(!prov){ st.textContent = 'Aguardando: RPC/MetaMask indisponível'; st.className='step-status blocked'; if(btn){ btn.disabled=true; } return; }
+      const code = await prov.getCode(tokenAddr);
+      addDebug('TokenCode-Step4', code);
+      if(code === '0x'){
+        st.textContent = 'Aguardando: contrato Token inexistente na rede atual';
+        st.className='step-status blocked';
+        if(btn){ btn.disabled=true; }
+        return;
+      }
+      const token = new ethers.Contract(tokenAddr, tokenAbi, signer);
+      const decimals = await token.decimals().catch(()=>18);
+      const buyerAddr = await signer.getAddress();
+      const bal = await token.balanceOf(buyerAddr);
+      const amountUnits = ethers.utils.parseUnits(amountStr, decimals);
+      const balFmt = ethers.utils.formatUnits(bal, decimals);
+      const enough = bal.gte(amountUnits);
+      st.textContent = enough ? `Pronto (saldo: ${balFmt}, enviar: ${amountStr})` : `Aguardando: saldo suficiente (atual: ${balFmt}, enviar: ${amountStr})`;
+      st.className = 'step-status ' + (enough ? 'ready' : 'blocked');
+      if(btn){ btn.disabled = (!enough) || btn.disabled; }
+    }catch(e){ st.textContent = 'Aguardando: erro ao ler saldo/decimais ('+e.message+')'; st.className='step-status blocked'; }
+  }
+
+  applyStepLabels();
+  wireReeval();
+  setTimeout(()=>{ try{ applySequencer(); refreshBuyerBalanceStatus(); }catch(_e){} }, 50);
+})();
+const debugLog = [];
+const addDebug = (label,data)=>{debugLog.push({time:new Date().toISOString(),label,data});console.debug(label,data);};
+document.getElementById('showDebug').onclick = ()=>{
+ const dbg=document.getElementById('debugArea');
+ dbg.style.display=dbg.style.display==='none'?'block':'none';
+ dbg.textContent=JSON.stringify(debugLog,null,2);
+};
+
+let provider, tokenAbi=null, saleAbi=null, signer;
+
+async function testRPC(url){
+ log('⏳ Conectando RPC...');
+ try{
+  provider=new ethers.providers.JsonRpcProvider(url);
+  const net=await provider.getNetwork();
+  addDebug('eth_chainId',net.chainId);
+  log('✅ RPC ativo - ChainId: '+net.chainId);
+  return true;
+ }catch(e){
+  log('❌ Erro ao conectar RPC: '+e.message);
+  addDebug('RPC Error',e);
+  return false;
+ }
+}
+
+document.getElementById('checkerForm').onsubmit=async(e)=>{
+ e.preventDefault();
+ document.getElementById('log').innerHTML='';
+ document.getElementById('summary').innerHTML='';
+ debugLog.length=0;
+ const rpcUrl=document.getElementById('rpcUrl').value;
+ const okRPC=await testRPC(rpcUrl);
+ if(!okRPC){document.getElementById('summary').textContent=JSON.stringify({status:'RPC failed'},null,2);return;}
+
+ try{tokenAbi=JSON.parse(document.getElementById('tokenAbiText').value);log('✅ ABI Token carregada');}catch(e){tokenAbi=null;log('⚠️ ABI Token inválida');addDebug('Token ABI Parse Error',e);}
+ try{saleAbi=JSON.parse(document.getElementById('saleAbiText').value);log('✅ ABI Sale carregada');}catch(e){saleAbi=null;log('⚠️ ABI Sale inválida');addDebug('Sale ABI Parse Error',e);}
+
+ const payFuncs = saleAbi? saleAbi.filter(f => f.type==='function' && f.stateMutability==='payable') : [];
+ const sel = document.getElementById('payableFunctions');
+ sel.innerHTML='';
+ payFuncs.forEach(f=>{
+     const opt=document.createElement('option');
+     opt.value=f.name;
+     opt.text=f.name+'('+f.inputs.map(i=>i.type).join(',')+')';
+     sel.appendChild(opt);
+ });
+ if(payFuncs.length>0){log('✅ Funções payable detectadas: '+payFuncs.map(f=>f.name).join(', '));}else{log('⚠️ Nenhuma função payable encontrada');}
+
+ document.getElementById('summary').textContent=JSON.stringify({rpc:rpcUrl,tokenAbiLoaded:!!tokenAbi,saleAbiLoaded:!!saleAbi,payableFunctions:payFuncs.map(f=>f.name)},null,2);
+ setTimeout(()=>{ try{ applySequencer(); refreshBuyerBalanceStatus(); }catch(_e){} }, 100);
+};
+
+// Conectar MetaMask
+document.getElementById('connectWallet').onclick=async()=>{
+ if(!window.ethereum)return alert('MetaMask não detectado');
+ try{
+  await window.ethereum.request({method:'eth_requestAccounts'});
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  signer = provider.getSigner();
+  const addr = await signer.getAddress();
+  log('👛 Conectado: '+addr);
+  addDebug('MetaMask',[addr]);
+ }catch(e){log('❌ Erro MetaMask: '+e.message);addDebug('MetaMask Error',e);} 
+ setTimeout(()=>{ try{ applySequencer(); refreshBuyerBalanceStatus(); }catch(_e){} }, 300);
+};
+
+// Verificar saldo do contrato Sale
+document.getElementById('checkBalance').onclick=async()=>{
+ if(!provider||!tokenAbi) return alert('Conecte RPC e carregue ABI Token');
+ try{
+  const tokenAddr=(document.getElementById('tokenContract').value||'').trim();
+  const saleAddr=(document.getElementById('saleContract').value||'').trim();
+  // Verificar se o contrato Token existe na rede atual
+  const code = await provider.getCode(tokenAddr);
+  addDebug('TokenCode', code);
+  if(code === '0x'){
+    log('⚠️ Código do contrato Token não encontrado no RPC. Verifique endereço e rede (ChainId 97).');
+    return;
+  }
+  const token = new ethers.Contract(tokenAddr, tokenAbi, provider);
+  let decimals = 18;
+  try{ decimals = await token.decimals(); }catch(decErr){ addDebug('DecimalsReadError', decErr); }
+  const bal = await token.balanceOf(saleAddr);
+  log(`📊 Saldo do contrato Sale: ${ethers.utils.formatUnits(bal,decimals)} SCAFE`);
+  addDebug('Sale Balance', bal.toString());
+ }catch(e){
+  log('❌ Erro ao verificar saldo: '+e.message);
+  addDebug('Balance Error',e);
+  if(e.code === 'CALL_EXCEPTION'){
+    log('💡 Dica: CALL_EXCEPTION indica revert ou contrato/ABI incompatíveis. Confirme endereço do token, rede (BSC Testnet 97) e ABI.');
+    log('🧭 Consulte: https://links.ethers.org/v5-errors-CALL_EXCEPTION');
+  }
+ }
+};
+
+// Enviar tokens de teste
+document.getElementById('sendTokens').onclick=async()=>{
+ if(!signer||!tokenAbi) return alert('Conecte MetaMask e carregue ABI Token');
+ try{
+  const tokenAddr=(document.getElementById('tokenContract').value||'').trim();
+  const saleAddr=(document.getElementById('saleContract').value||'').trim();
+  const prov = signer?.provider || provider;
+  const code = await (prov ? prov.getCode(tokenAddr) : Promise.resolve('0x'));
+  addDebug('TokenCode-Send', code);
+  if(code === '0x'){
+    log('⚠️ Token não encontrado na rede atual (getCode=0x). Verifique endereço e rede.');
+    return;
+  }
+  const token = new ethers.Contract(tokenAddr, tokenAbi, signer);
+  const decimals = await token.decimals().catch(()=>18);
+  const amountStr = (document.getElementById('sendAmountTokens')?.value||'1000').trim();
+  const amountNum = parseFloat(amountStr);
+  if(!(amountNum>0)){
+    log('⚠️ Quantidade inválida. Informe um valor > 0.');
+    await refreshBuyerBalanceStatus();
+    return;
+  }
+  const amount = ethers.utils.parseUnits(amountStr, decimals);
+  const buyerAddr = await signer.getAddress();
+  const buyerBal = await token.balanceOf(buyerAddr);
+  if(buyerBal.lt(amount)){
+    log(`⚠️ Saldo insuficiente do comprador: ${ethers.utils.formatUnits(buyerBal,decimals)} < ${amountStr}`);
+    addDebug('BuyerBalance', buyerBal.toString());
+    await refreshBuyerBalanceStatus();
+    return;
+  }
+  const tx = await token.transfer(saleAddr, amount);
+  log(`💸 Enviando ${amountStr} tokens para Sale...`);
+  await tx.wait();
+  log('✅ Tokens enviados com sucesso');
+  addDebug('TransferTx', tx.hash);
+  await refreshBuyerBalanceStatus();
+ }catch(e){log('❌ Erro ao enviar tokens: '+e.message);addDebug('Transfer Error',e);} 
+};
+
+// Executar compra
+document.getElementById('executeBuy').onclick = async()=>{
+  if(!signer || !saleAbi) return alert('Conecte MetaMask e carregue ABI Sale');
+  const sel=document.getElementById('payableFunctions');
+  const funcName=sel.value || 'buy';
+  try{
+    const saleAddr=document.getElementById('saleContract').value.trim();
+    const tokenAddr=document.getElementById('tokenContract').value.trim();
+    const sale = new ethers.Contract(saleAddr, saleAbi, signer);
+
+    // Pré-validações de configuração
+    if (sale.destinationWallet) {
+      const destWallet = await sale.destinationWallet();
+      if (destWallet === '0x0000000000000000000000000000000000000000') {
+        log('⚠️ destinationWallet é endereço zero. Configure-a no contrato.');
+        return;
+      }
+    }
+    if (sale.saleToken) {
+      const saleTokenAddr = await sale.saleToken();
+      if (saleTokenAddr === '0x0000000000000000000000000000000000000000') {
+        log('⚠️ saleToken não configurado (endereço zero).');
+        return;
+      }
+    }
+
+    const token = new ethers.Contract(tokenAddr, tokenAbi, signer || provider);
+    const decimals = await token.decimals().catch(()=>18);
+    const priceStr = (document.getElementById('buyTokenPrice')?.value || '0').trim();
+    const qtyStr = (document.getElementById('buyAmountTokens')?.value || '0').trim();
+    const manualBnbStr = (document.getElementById('bnbToPay')?.value || '').trim();
+    const qtyNum = parseFloat(qtyStr);
+    const priceNum = parseFloat(priceStr);
+    if (!(qtyNum > 0)) { log('⚠️ Informe quantidade de tokens > 0'); return; }
+    const quantityUnits = ethers.utils.parseUnits(qtyStr, decimals);
+
+    const buyAbiItem = Array.isArray(saleAbi) ? saleAbi.find(f => f.type === 'function' && f.name === 'buy') : null;
+    const buyInputsCount = buyAbiItem?.inputs?.length || 0;
+
+    let txValue = ethers.BigNumber.from(0);
+    if (priceNum > 0) {
+      const weiPerToken = ethers.utils.parseEther(priceStr);
+      txValue = weiPerToken.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals));
+    } else if (sale.bnbPrice) {
+      const pricePerUnit = await sale.bnbPrice();
+      txValue = pricePerUnit.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals));
+    } else {
+      txValue = ethers.utils.parseEther('0.01');
+    }
+    if (manualBnbStr) {
+      const manualWei = ethers.utils.parseEther(manualBnbStr);
+      if (!manualWei.eq(txValue)) {
+        log(`ℹ️ Valor BNB informado (${manualBnbStr}) difere do calculado (${ethers.utils.formatEther(txValue)}). Usando calculado para execução.`);
+      }
+    }
+
+    log(`🛒 Executando buy com qty=${qtyStr} tokens e value=${ethers.utils.formatEther(txValue)} BNB...`);
+    const saleWithSigner = sale.connect(signer);
+    let tx;
+    if (funcName === 'buy' && buyInputsCount === 0) {
+      tx = await saleWithSigner.buy({ value: txValue });
+    } else if (funcName === 'buy' && buyInputsCount >= 1) {
+      tx = await saleWithSigner.buy(quantityUnits, { value: txValue });
+    } else {
+      tx = await saleWithSigner[funcName]({ value: txValue });
+    }
+    addDebug('BuyTxHash', tx.hash);
+    const receipt = await tx.wait();
+    log(`✅ Compra confirmada em bloco ${receipt.blockNumber}. Tx: ${tx.hash}`);
+  }catch(e){
+    log('❌ Erro ao executar compra: '+e.message);
+    addDebug('ExecuteBuy Error', e);
+    if(e.code === 'UNPREDICTABLE_GAS_LIMIT'){
+      log('💡 Dica: A transação está revertendo. Verifique destinationWallet, saleToken, preço/quantidade e permissões.');
+    }
+  }
+  setTimeout(()=>{ try{ applySequencer(); }catch(_e){} }, 200);
+};
+// Simular compra (estimateGas)
+document.getElementById('simulateBuy').onclick = async()=>{
+  if(!provider || !saleAbi) return alert('Conecte RPC e carregue ABI Sale');
+  const sel = document.getElementById('payableFunctions');
+  const funcName = sel.value || 'buy';
+  try{
+    const saleAddr = (document.getElementById('saleContract').value||'').trim();
+    const tokenAddr = (document.getElementById('tokenContract').value||'').trim();
+    const sale = new ethers.Contract(saleAddr, saleAbi, provider);
+
+    const token = new ethers.Contract(tokenAddr, tokenAbi, signer || provider);
+    const decimals = await token.decimals().catch(()=>18);
+    const priceStr = (document.getElementById('buyTokenPrice')?.value || '0').trim();
+    const qtyStr = (document.getElementById('buyAmountTokens')?.value || '0').trim();
+    const manualBnbStr = (document.getElementById('bnbToPay')?.value || '').trim();
+    const qtyNum = parseFloat(qtyStr);
+    if(!(qtyNum>0)) { log('⚠️ Informe quantidade de tokens > 0'); return; }
+    const quantityUnits = ethers.utils.parseUnits(qtyStr, decimals);
+
+    const buyAbiItem = Array.isArray(saleAbi) ? saleAbi.find(f => f.type==='function' && f.name==='buy') : null;
+    const buyInputsCount = buyAbiItem?.inputs?.length || 0;
+    addDebug('BuyInputsCount', buyInputsCount);
+
+    let txValue = ethers.BigNumber.from(0);
+    if (priceStr && parseFloat(priceStr)>0) {
+      const weiPerToken = ethers.utils.parseEther(priceStr);
+      txValue = weiPerToken.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals));
+    } else if (sale.bnbPrice) {
+      const pricePerUnit = await sale.bnbPrice();
+      txValue = pricePerUnit.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals));
+    } else if (manualBnbStr) {
+      txValue = ethers.utils.parseEther(manualBnbStr);
+    } else {
+      txValue = ethers.utils.parseEther('0.01');
+    }
+    addDebug('TxValueWei', txValue.toString());
+    log(`🔍 Simulando ${funcName} com qty=${qtyStr} tokens e value=${ethers.utils.formatEther(txValue)} BNB...`);
+
+    const iface = new ethers.utils.Interface(saleAbi);
+    let data;
+    if (funcName === 'buy' && buyInputsCount === 0) {
+      data = iface.encodeFunctionData('buy', []);
+    } else if (funcName === 'buy' && buyInputsCount >= 1) {
+      data = iface.encodeFunctionData('buy', [quantityUnits]);
+    } else {
+      data = iface.encodeFunctionData(funcName, []);
+    }
+
+    const est = await provider.estimateGas({
+      to: saleAddr,
+      from: signer ? await signer.getAddress() : undefined,
+      data,
+      value: txValue
+    });
+    log(`✅ estimateGas: ${est.toString()}`);
+    addDebug('estimateGas', est.toString());
+    const st = document.getElementById('status-simulateBuy');
+    st.textContent = `OK: Gas ${est.toString()}`;
+    st.className = 'step-status ok';
+  }catch(e){
+    log('❌ Erro estimateGas: '+e.message);
+    addDebug('EstimateGas Error',e);
+    if(e.code === 'UNPREDICTABLE_GAS_LIMIT'){
+      log('💡 Dica: Transação pode reverter. Verifique destinationWallet, saleToken e parâmetros/valor.');
+      log('🧭 Consulte: https://links.ethers.org/v5-errors-UNPREDICTABLE_GAS_LIMIT');
+    }
+    const st = document.getElementById('status-simulateBuy');
+    st.textContent = 'Erro na simulação';
+    st.className = 'step-status blocked';
+  }
+  setTimeout(()=>{ try{ applySequencer(); }catch(_e){} }, 200);
+};
+</script>
+</body>
+</html>
