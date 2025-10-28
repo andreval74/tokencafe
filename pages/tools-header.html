@@ -102,52 +102,35 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
           });
         }
 
-        // Clique de conectar
+        // Clique de conectar → redireciona para a página de login de conexão
         if (btnConnect) {
-          btnConnect.addEventListener('click', async (e) => {
+          btnConnect.addEventListener('click', (e) => {
             e.preventDefault();
             try {
-              if (window.walletConnector && typeof window.walletConnector.connect === 'function') {
-                await window.walletConnector.connect('metamask');
-              } else {
-                alert('Conector de carteira indisponível. Verifique scripts base.');
-              }
+              const current = window.location.pathname + window.location.search + window.location.hash;
+              window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
             } catch (err) {
-              console.warn('tools-header: falha ao conectar carteira', err);
-              alert('Erro ao conectar carteira: ' + (err?.message || err));
+              console.warn('tools-header: falha ao redirecionar para login', err);
+              alert('Erro ao abrir a página de conexão: ' + (err?.message || err));
             }
           }, { capture: true });
         }
 
-        // Clique de sair e volta para index.html principal
+        // Clique de sair → limpeza completa e retorno ao início
         if (btnLogout) {
           btnLogout.addEventListener('click', async () => {
             try { await window.walletConnector?.disconnect?.(); } catch (e) { /* ignore */ }
+            try { window.walletConnector?.clearCache?.(); } catch (e) { /* ignore */ }
+            try { localStorage.removeItem('tokencafe_wallet_cache'); } catch (e) { /* ignore */ }
+            try { localStorage.removeItem('tokencafe_wallet_address'); } catch (e) { /* ignore */ }
+            try { sessionStorage.removeItem('tokencafe_wallet_session_authorized'); } catch (e) { /* ignore */ }
+            try { sessionStorage.removeItem('tokencafe_wallet_address'); } catch (e) { /* ignore */ }
             try { window.location.href = '/pages/index.html'; } catch (e) { /* ignore */ }
           });
         }
       });
 
-      // Auto-conexão ao carregar páginas de módulo: garante prompt imediato
-      (async function autoConnectOnModulePage(){
-        try {
-          const wc = window.walletConnector;
-          if (wc && typeof wc.isConnected === 'function') {
-            const already = await wc.isConnected();
-            if (already) return;
-          }
-          if (!window.__tokencafe_auto_connect_initiated) {
-            window.__tokencafe_auto_connect_initiated = true;
-            if (typeof window.connectWallet === 'function') {
-              await window.connectWallet();
-            } else if (wc && typeof wc.connect === 'function') {
-              await wc.connect('metamask');
-            }
-          }
-        } catch (e) {
-          console.warn('tools-header: falha na auto-conexão de módulo', e);
-        }
-      })();
+      // Removido guarda global para evitar redirecionamentos automáticos; status fica apenas no header
 
     } catch (e) {
       console.warn('tools-header: falha ao popular variáveis', e);

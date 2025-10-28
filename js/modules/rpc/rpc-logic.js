@@ -40,6 +40,18 @@ async function initRPCManager() {
   }
   // Sempre permitir uso da seção de rede sem exigir carteira
   showNextSection('network-section');
+
+  // Focar no campo de busca quando o componente estiver pronto
+  try {
+    const inputEl = await waitForSelector('#network-section #networkSearch', 2500);
+    if (inputEl) {
+      inputEl.focus();
+      // Disparar foco para exibir redes populares quando configurado
+      inputEl.dispatchEvent(new Event('focus'));
+      // Retentativa leve de foco caso algum outro elemento capture foco
+      attemptFocusRetry('#network-section #networkSearch');
+    }
+  } catch (_) {}
 }
 // Expor inicialização no escopo global para consumo entre módulos
 window.initRPCManager = initRPCManager;
@@ -495,6 +507,41 @@ function hideAllSections() {
   });
 }
 
+// Utilitário: aguardar seletor aparecer no DOM
+async function waitForSelector(selector, timeoutMs = 2000) {
+  return new Promise(resolve => {
+    const start = Date.now();
+    const tick = () => {
+      const el = document.querySelector(selector);
+      if (el) return resolve(el);
+      if (Date.now() - start >= timeoutMs) return resolve(null);
+      setTimeout(tick, 50);
+    };
+    tick();
+  });
+}
+
+// Fallback: tentar focar novamente algumas vezes e garantir que a seção permaneça visível
+function attemptFocusRetry(selector, tries = 5, delayMs = 150) {
+  let count = 0;
+  const tryFocus = () => {
+    const input = document.querySelector(selector);
+    const netSection = document.getElementById('network-section');
+    if (netSection && netSection.classList.contains('d-none')) {
+      console.debug('RPC: network-section estava oculto; exibindo novamente.');
+      netSection.classList.remove('d-none');
+    }
+    if (input) {
+      if (document.activeElement !== input) {
+        input.focus();
+        input.dispatchEvent(new Event('focus'));
+      }
+    }
+    if (++count < tries) setTimeout(tryFocus, delayMs);
+  };
+  setTimeout(tryFocus, delayMs);
+}
+
 // Limpar dados do formulário e preview
 function clearNetworkForm() {
   const ids = ['networkSearch'];
@@ -718,12 +765,12 @@ async function renderRpcOptions(network) {
     const radioEl = listEl.querySelector(`#rpc-options-list input[name="rpcChoice"][value="${url}"]`) || listEl.querySelector(`input[name="rpcChoice"][value="${url}"]`);
 
     const runTest = async () => {
-      btnEl.className = 'btn btn-sm btn-outline-warning';
+      btnEl.className = 'btn btn-sm btn-warning';
       btnEl.textContent = 'Testando...';
       const ok = await testRpcUrl(url, network?.chainId);
       rpcValidationCache[url] = !!ok;
       if (ok) {
-        btnEl.className = 'btn btn-sm btn-primary';
+        btnEl.className = 'btn btn-sm btn-success';
         btnEl.textContent = 'ONLINE';
         radioEl.disabled = false;
       } else {
@@ -797,10 +844,10 @@ document.getElementById('btn-test-custom-rpc')?.addEventListener('click', async 
     updateAddButtonState(network);
     return;
   }
-  if (btn) { btn.className = 'btn btn-outline-warning'; btn.textContent = 'Testando...'; }
+  if (btn) { btn.className = 'btn btn-warning'; btn.textContent = 'Testando...'; }
   const ok = await testRpcUrl(url, network?.chainId);
   if (btn) {
-    btn.className = ok ? 'btn btn-primary' : 'btn btn-danger';
+    btn.className = ok ? 'btn btn-success' : 'btn btn-danger';
     btn.textContent = ok ? 'ONLINE' : 'OFFLINE';
   }
   customRpcValidated = !!ok;

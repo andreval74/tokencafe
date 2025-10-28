@@ -447,19 +447,16 @@ export class WalletConnector {
             this.log('🔄 Tentando reconexão automática...');
             
             if (this.isWalletAvailable(cachedConnection.wallet) && window.ethereum) {
-                const [accounts, unlocked] = await Promise.all([
-                    window.ethereum.request({ method: 'eth_accounts' }),
-                    (window.ethereum._metamask?.isUnlocked?.() || Promise.resolve(false))
-                ]);
-                if (!unlocked) {
-                    this.log('🔒 Carteira bloqueada; não reconectar automaticamente', 'warn');
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (!accounts || accounts.length === 0) {
+                    this.log('🔒 Carteira sem contas autorizadas; não reconectar automaticamente', 'warn');
                     this.clearCache();
                     this.isConnected = false;
                     this.currentAccount = null;
                     this.connectedWallet = null;
                     return;
                 }
-                if (accounts && accounts.length > 0 && accounts[0] === cachedConnection.account) {
+                if (accounts[0] === cachedConnection.account) {
                     await this.connectSilent(cachedConnection.wallet);
                     this.log('✅ Reconexão automática (silenciosa) bem-sucedida');
                 } else {
@@ -647,8 +644,8 @@ export class WalletConnector {
         const refreshFromProvider = async () => {
             try {
                 const accounts = await (window.ethereum?.request?.({ method: 'eth_accounts' }) || Promise.resolve([]));
-                const unlocked = await (window.ethereum?._metamask?.isUnlocked?.() || Promise.resolve(false)).catch(() => false);
-                const account = (Array.isArray(accounts) && accounts[0] && unlocked && this.sessionAuthorized) ? accounts[0] : null;
+                const authorized = this.sessionAuthorized && Array.isArray(accounts) && accounts.length > 0;
+                const account = authorized ? accounts[0] : null;
                 if (account) {
                     this.currentAccount = account;
                     this.isConnected = true;
@@ -680,11 +677,8 @@ export class WalletConnector {
     async isConnected() {
         try {
             if (window.ethereum) {
-                const [accs, unlocked] = await Promise.all([
-                    window.ethereum.request({ method: 'eth_accounts' }),
-                    (window.ethereum._metamask?.isUnlocked?.() || Promise.resolve(false))
-                ]);
-                if (unlocked && accs && accs.length > 0 && this.sessionAuthorized) {
+                const accs = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accs && accs.length > 0 && this.sessionAuthorized) {
                     this.isConnected = true;
                     this.currentAccount = accs[0];
                 } else {
@@ -709,13 +703,7 @@ export class WalletConnector {
             if (!this.isWalletAvailable(walletType)) {
                 throw new Error(`${walletType} não está disponível`);
             }
-            const [accounts, unlocked] = await Promise.all([
-                window.ethereum.request({ method: 'eth_accounts' }),
-                (window.ethereum._metamask?.isUnlocked?.() || Promise.resolve(false))
-            ]);
-            if (!unlocked) {
-                throw new Error('Carteira bloqueada. Não é possível reconectar automaticamente.');
-            }
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             if (!accounts || accounts.length === 0) {
                 throw new Error('Nenhuma conta previamente conectada');
             }

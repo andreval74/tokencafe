@@ -377,48 +377,21 @@ class RPCInterface {
      */
     async ensureWalletConnection() {
         try {
-            // Verifica se o MetaMask está instalado
+            // Se carteira não disponível, informar e oferecer download
             if (!window.ethereum || !window.ethereum.isMetaMask) {
                 alert('MetaMask não está instalado. Por favor, instale o MetaMask para continuar.');
                 window.open('https://metamask.io/download/', '_blank');
                 return false;
             }
 
-            // Verifica se já está conectado
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            
-            if (accounts.length === 0) {
-                // Não está conectado, solicita conexão
-                console.log('MetaMask não conectado, solicitando conexão...');
-                
-                try {
-                    const newAccounts = await window.ethereum.request({ 
-                        method: 'eth_requestAccounts' 
-                    });
-                    
-                    if (newAccounts.length > 0) {
-                        console.log('MetaMask conectado com sucesso:', newAccounts[0]);
-                        return true;
-                    } else {
-                        console.error('Nenhuma conta retornada após conexão');
-                        return false;
-                    }
-                } catch (connectionError) {
-                    console.error('Erro ao conectar MetaMask:', connectionError);
-                    
-                    if (connectionError.code === 4001) {
-                        this.showMessage('error', 'Conexão cancelada pelo usuário');
-                    } else {
-                        this.showMessage('error', 'Erro ao conectar com o MetaMask');
-                    }
-                    return false;
-                }
-            }
+            // Usar WalletConnector unificado quando disponível
+            const wc = window.walletConnector;
+            const isConn = wc && typeof wc.isConnected === 'function' ? await wc.isConnected() : false;
+            if (isConn) return true;
 
-            // Já está conectado
-            console.log('MetaMask já conectado:', accounts[0]);
-            return true;
-            
+            // Não redirecionar automaticamente; deixar apenas header indicar estado
+            this.showMessage('warning', 'Conecte sua carteira pelo botão no topo.');
+            return false;
         } catch (error) {
             console.error('Erro ao verificar conexão do MetaMask:', error);
             this.showMessage('error', 'Erro ao verificar conexão do MetaMask');

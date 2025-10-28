@@ -560,7 +560,7 @@ function wireEvents() {
   const networkClearBtn = $('networkClearBtn'); if (networkClearBtn) networkClearBtn.addEventListener('click', clearNetworkSelection);
   const btnDetails = $('networkDetailsBtn'); if (btnDetails) btnDetails.addEventListener('click', () => {
     const info = $('selected-network-info');
-    const isOpen = info?.classList.contains('show');
+    const isOpen = info && !info.classList.contains('d-none');
     if (isOpen) return;
     const searchEl = $('networkSearch');
     const chainId = searchEl?.dataset?.chainId ? parseInt(searchEl.dataset.chainId, 10) : null;
@@ -659,40 +659,16 @@ function setupWalletIntegration() {
 }
 
 function setupNetworkSearch() {
-  const search = $('networkSearch');
-  const box = $('networkAutocomplete');
-  const nm = window.networkManager;
-  if (!search || !box || !nm || typeof nm.searchNetworks !== 'function') return;
-
-  const showPopular = () => {
-    const list = nm && typeof nm.getPopularNetworks === 'function' ? nm.getPopularNetworks(8) : [];
-    renderAutocomplete(list);
-    box.classList.remove('d-none');
-  };
-
-  search.addEventListener('focus', () => {
-    if (!search.value.trim()) showPopular();
+  // Integração com o componente de busca compartilhado (network-search)
+  // Comentário: O componente passa a controlar input e lista; aqui apenas reagimos aos eventos.
+  // - network:selected { network }: seleciona rede e atualiza UI do widget
+  // - network:clear: limpa a seleção e oculta informações
+  document.addEventListener('network:selected', (ev) => {
+    const net = ev?.detail?.network;
+    if (net) { selectNetwork(net); }
   });
-
-  search.addEventListener('input', (e) => {
-    const q = String(e.target.value || '').trim();
-    if (!q) { showPopular(); return; }
-    if (q.length < 2) { box.classList.add('d-none'); box.innerHTML = ''; return; }
-    const list = nm.searchNetworks(q, 10);
-    renderAutocomplete(list);
-  });
-
-  search.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Enter') {
-      const first = box?.querySelector?.('.autocomplete-item');
-      if (first) first.click();
-    }
-  });
-
-  document.addEventListener('click', (ev) => {
-    if (!ev.target.closest('#networkAutocomplete') && ev.target.id !== 'networkSearch') {
-      box.classList.add('d-none');
-    }
+  document.addEventListener('network:clear', () => {
+    clearNetworkSelection();
   });
 }
 
@@ -758,7 +734,7 @@ async function selectNetwork(network) {
   const curSymEl = $('nativeCurrencySymbolCode'); if (curSymEl) curSymEl.textContent = network.nativeCurrency?.symbol || '';
   const expText = $('explorerUrlCode'); if (expText) expText.textContent = explorer || '';
   const expLink = $('explorerUrlText'); if (expLink) { if (explorer) expLink.href = explorer; else expLink.removeAttribute('href'); }
-  const info = $('selected-network-info'); if (info) info.classList.add('show');
+  // Não abrir automaticamente o card de detalhes; seguir padrão do componente (oculto até clicar no botão I)
 
   // Ocultar seção de RPC (não necessária após seleção)
   const rpcSection = $('rpcSection'); if (rpcSection) rpcSection.classList.add('d-none');
@@ -836,7 +812,7 @@ function clearNetworkSelection() {
   window.widgetRpcOverride = null;
   try { localStorage.removeItem('widgetRpcOverride'); } catch {}
   const input = $('networkSearch'); if (input) { input.value = ''; delete input.dataset.chainId; }
-  const info = $('selected-network-info'); if (info) info.classList.remove('show');
+  const info = $('selected-network-info'); if (info) info.classList.add('d-none');
   ['networkNameCode','chainIdCode','nativeCurrencyNameCode','nativeCurrencySymbolCode','explorerUrlCode'].forEach(id => {
     const el = $(id); if (el) el.textContent = '';
   });
@@ -880,7 +856,7 @@ function clearNetworkSelection() {
           if (net) {
             selectNetwork(net);
           } else {
-            const info = $('selected-network-info'); if (info) info.classList.add('show');
+            const info = $('selected-network-info'); if (info) info.classList.add('d-none');
             const nameEl = $('networkNameCode'); if (nameEl) nameEl.textContent = obj.name || '';
             const idEl = $('chainIdCode'); if (idEl) idEl.textContent = String(obj.chainId || '');
             const exp = getFallbackExplorer(obj.chainId);
@@ -952,25 +928,26 @@ function clearNetworkSelection() {
         const name = data.meta.name || '';
         const tokenBalText = `Saldo: ${data.token ?? 'N/A'}${tokenNote}`;
         const bnbBalText = `Saldo: ${data.bnb}`;
-        const actionHtml = (fieldId==='tokenContract') ? `
-          <div class="fi-actions">
-            <input id="inlineAmount_tokenContract" class="form-control form-control-sm" placeholder="Valor">
-            <button id="inlineSend_tokenContract" class="btn btn-sm btn-primary btn-icon" title="Enviar para Sale">→</button>
-          </div>` : '';
-        const txHtml = (fieldId==='tokenContract') ? `<div id="inlineTx_tokenContract" class="field-tx"></div>` : '';
         el.innerHTML = `
-          <div class="field-info-line values ${fieldId==='tokenContract'?'simple-4':'simple-3'}">
+          <div class="field-info-line values ${fieldId==='tokenContract'?'simple-3':'simple-3'}">
             <span class="fi-col1">${sym}</span>
             <span class="fi-col2">${name}</span>
             <span class="fi-col3">${tokenBalText}</span>
-            ${fieldId==='tokenContract'?actionHtml:''}
           </div>
           <div class="field-info-line values simple-3">
             <span class="fi-col1">BNB</span>
             <span class="fi-col2">${nativeName}</span>
             <span class="fi-col3">${bnbBalText}</span>
           </div>
-          ${txHtml}
+          ${fieldId==='tokenContract' ? `
+          <div class="mt-2">
+            <div class="input-group input-group-sm">
+              <input id="inlineAmount_tokenContract" class="form-control" placeholder="Valor a transferir para o contrato sale.">
+              <button id="inlineSend_tokenContract" class="btn btn-primary" title="Enviar para Sale">transferir →</button>
+            </div>
+            <div id="inlineTx_tokenContract" class="field-tx mt-1"></div>
+          </div>
+          ` : ''}
         `;
         if(fieldId==='tokenContract'){
           const btn=document.getElementById('inlineSend_tokenContract');
@@ -981,25 +958,27 @@ function clearNetworkSelection() {
 
       const tokenBalText = `Saldo: ${data.token ?? 'N/A'}${tokenNote}`;
       const bnbBalText = `Saldo: ${data.bnb}`;
-      const actionHtml = (fieldId==='tokenContract') ? `
-        <div class="fi-actions">
-          <input id="inlineAmount_tokenContract" class="form-control form-control-sm" placeholder="Valor">
-          <button id="inlineSend_tokenContract" class="btn btn-sm btn-primary btn-icon" title="Enviar para Sale">→</button>
-        </div>` : '';
-      const txHtml = (fieldId==='tokenContract') ? `<div id="inlineTx_tokenContract" class="field-tx"></div>` : '';
       el.innerHTML = `
-        <div class="field-info-line values ${fieldId==='tokenContract'?'simple-4':'simple-3'}">
+        <div class="field-info-line values ${fieldId==='tokenContract'?'simple-3':'simple-3'}">
           <span class="fi-col1">Token</span>
           <span class="fi-col2">—</span>
           <span class="fi-col3">${tokenBalText}</span>
-          ${fieldId==='tokenContract'?actionHtml:''}
         </div>
         <div class="field-info-line values simple-3">
           <span class="fi-col1">BNB</span>
           <span class="fi-col2">${nativeName}</span>
           <span class="fi-col3">${bnbBalText}</span>
         </div>
-        ${txHtml}
+        ${fieldId==='tokenContract' ? `
+        <div class="mt-2">
+          <label for="inlineAmount_tokenContract" class="form-label small mb-1">Valor a transferir para o contrato sale</label>
+          <div class="input-group input-group-sm">
+            <input id="inlineAmount_tokenContract" class="form-control" placeholder="Valor">
+            <button id="inlineSend_tokenContract" class="btn btn-primary" title="Enviar para Sale">→</button>
+          </div>
+          <div id="inlineTx_tokenContract" class="field-tx mt-1"></div>
+        </div>
+        ` : ''}
       `;
       if(fieldId==='tokenContract'){
         const btn=document.getElementById('inlineSend_tokenContract');

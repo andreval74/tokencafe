@@ -21,36 +21,43 @@ class PageManager {
             'landing': {
                 hasWalletConnect: false,
                 hasAnimations: true,
-                redirectTarget: 'pages/index.html'
+                redirectTarget: 'pages/index.html',
+                autoConnectOnLoad: false
             },
             'main': {
                 hasWalletConnect: true,
                 hasAnimations: false,
-                redirectTarget: 'tools.html'
+                redirectTarget: 'tools.html',
+                autoConnectOnLoad: false
             },
             'tools': {
                 hasWalletConnect: true,
                 hasAnimations: false,
-                redirectTarget: null
+                redirectTarget: null,
+                autoConnectOnLoad: false
             },
             'rpc': {
                 hasWalletConnect: true,
                 hasAnimations: false,
-                requiresAuth: false
+                requiresAuth: false,
+                autoConnectOnLoad: false
             },
             'link': {
                 hasWalletConnect: true,
                 hasAnimations: false,
-                requiresAuth: false
+                requiresAuth: false,
+                autoConnectOnLoad: false
             },
             'dashboard': {
                 hasWalletConnect: true,
                 hasAnimations: false,
-                requiresAuth: true
+                requiresAuth: false,
+                autoConnectOnLoad: false
             },
             'default': {
                 hasWalletConnect: false,
-                hasAnimations: false
+                hasAnimations: false,
+                autoConnectOnLoad: false
             }
         };
     }
@@ -82,9 +89,7 @@ class PageManager {
             this.setupAnimations();
         }
         
-        if (config.requiresAuth) {
-            await this.checkAuthRequired();
-        }
+        // Validação de conexão foi centralizada no header; não checar por página
         
         // Configurar funções globais
         this.setupGlobalFunctions();
@@ -111,9 +116,12 @@ class PageManager {
         // Sempre configurar eventos de carteira, mesmo sem botão presente
         this.setupWalletEvents();
         
-        // PROVISÓRIO: Sempre solicitar conexão ao carregar a página
-        await this.forceConnectOnLoad();
-        
+        // Solicitar conexão no carregamento APENAS se configurado
+        const config = this.pageConfigs[this.pageType] || {};
+        if (config.autoConnectOnLoad) {
+            await this.forceConnectOnLoad();
+        }
+
         // Verificação inicial de conexão (se houver UI, atualiza estados)
         await this.checkInitialConnection();
     }
@@ -173,8 +181,9 @@ class PageManager {
      */
     async checkInitialConnection() {
         try {
-            const isConnected = await walletConnector.isConnected();
-            
+            const status = walletConnector?.getStatus?.();
+            const isConnected = !!status?.account && !!status?.sessionAuthorized;
+
             if (isConnected) {
                 console.log('🔗 Carteira já conectada');
                 this.showDashboardButton();
@@ -324,7 +333,10 @@ class PageManager {
             
             if (!isConnected) {
                 console.log('❌ Autenticação necessária — solicitando conexão...');
-                await this.connectWallet();
+                // Evitar prompt duplo: se já tentamos auto conectar nesta página, não reabrir
+                if (!window.__tokencafe_auto_connect_initiated) {
+                    await this.connectWallet();
+                }
                 // Após solicitar, revalidar estado
                 const nowConnected = await walletConnector.isConnected();
                 if (!nowConnected) {

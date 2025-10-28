@@ -2171,7 +2171,7 @@ class TokenCafeWalletManager {
             // Versão da carteira
             const walletVersionElement = document.getElementById('walletVersion');
             if (walletVersionElement) {
-                const version = window.ethereum.version || window.ethereum._metamask?.version || 'N/A';
+                const version = window.ethereum?.version ?? 'N/A';
                 walletVersionElement.value = version;
             }
 
@@ -2212,7 +2212,7 @@ class TokenCafeWalletManager {
                 // Verificar recursos específicos
                 if (window.ethereum.isMetaMask) capabilities.push('MetaMask API');
                 if (window.ethereum.autoRefreshOnNetworkChange !== undefined) capabilities.push('Auto Refresh');
-                if (window.ethereum._metamask) capabilities.push('MetaMask Provider');
+                // Não acessar propriedades internas não padronizadas para evitar avisos
                 
                 walletCapabilitiesElement.value = capabilities.join(', ') || 'Nenhuma capacidade detectada';
             }

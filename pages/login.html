@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conectar Carteira • TokenCafe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="../css/styles.css" rel="stylesheet" />
+</head>
+<body class="bg-page-black">
+    <div data-component="header.html"></div>
+
+    <div class="TokenCafe-container">
+      <div class="TokenCafe-content">
+        <section>
+          <div class="container min-vh-100 py-5">
+            <div class="row justify-content-center">
+              <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                  <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-shield-lock fs-3 me-3 text-primary"></i>
+                            <div>
+                                <h4 class="mb-0">Conectar à sua carteira</h4>
+                                <small class="text-muted">Para continuar, conecte sua carteira ao TokenCafe.</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <div>
+                                Usamos sua conexão com a carteira para autenticação simples. Nenhum dado sensível é armazenado.
+                            </div>
+                        </div>
+
+                        <div id="mmUnavailable" class="alert alert-warning d-none" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            MetaMask não foi detectado. Instale ou habilite sua carteira e tente novamente.
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <button id="btnConnectNow" class="btn btn-primary btn-lg">
+                                <i class="bi bi-wallet2"></i> Conectar MetaMask
+                            </button>
+                            <button id="btnCancel" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar e voltar ao início
+                            </button>
+                        </div>
+
+                        <div id="statusMsg" class="mt-3 text-muted small"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script type="module" src="../js/shared/base-system.js"></script>
+    <script type="module">
+        
+        const url = new URL(window.location.href);
+        const returnUrl = url.searchParams.get('return');
+        const statusMsg = document.getElementById('statusMsg');
+        const btnConnect = document.getElementById('btnConnectNow');
+        const btnCancel = document.getElementById('btnCancel');
+        const mmWarn = document.getElementById('mmUnavailable');
+
+        function redirectTo(target) {
+            const fallback = '/pages/index.html';
+            const dest = target || fallback;
+            window.location.href = dest;
+        }
+
+        async function checkAvailability() {
+            try {
+                let isMM = false;
+                if (window.walletConnector && typeof window.walletConnector.detectAvailableWallets === 'function') {
+                    const detected = await window.walletConnector.detectAvailableWallets();
+                    isMM = !!(detected && detected.metamask);
+                } else {
+                    isMM = !!(window.ethereum && window.ethereum.isMetaMask);
+                }
+                mmWarn.classList.toggle('d-none', isMM);
+                return isMM;
+            } catch (_) {
+                mmWarn.classList.remove('d-none');
+                return false;
+            }
+        }
+
+        async function handleConnect() {
+            statusMsg.textContent = 'Solicitando conexão à carteira...';
+            try {
+                if (!await checkAvailability()) {
+                    statusMsg.textContent = 'Carteira não disponível. Verifique sua instalação.';
+                    return;
+                }
+                const wc = window.walletConnector;
+                if (!wc || typeof wc.connect !== 'function') {
+                    statusMsg.textContent = 'Conector de carteira indisponível.';
+                    return;
+                }
+                const result = await wc.connect('metamask');
+                if (result && result.success) {
+                    statusMsg.textContent = 'Conexão realizada. Redirecionando...';
+                    const target = returnUrl ? decodeURIComponent(returnUrl) : null;
+                    redirectTo(target);
+                } else {
+                    statusMsg.textContent = 'Conexão não autorizada.';
+                }
+            } catch (err) {
+                statusMsg.textContent = 'Ação cancelada ou erro na conexão.';
+            }
+        }
+
+        btnConnect.addEventListener('click', handleConnect);
+        btnCancel.addEventListener('click', () => redirectTo('/pages/index.html'));
+
+        // Se já estiver conectado, volta automaticamente para a página de origem
+        (async () => {
+            try {
+                const status = window.walletConnector?.getStatus?.();
+                const connected = !!status?.account && !!status?.sessionAuthorized;
+                if (connected) {
+                    const target = returnUrl ? decodeURIComponent(returnUrl) : '/pages/tools.html';
+                    redirectTo(target);
+                }
+            } catch (_) {}
+        })();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

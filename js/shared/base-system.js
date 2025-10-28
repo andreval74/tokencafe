@@ -217,7 +217,15 @@ class BaseSystem {
                 scripts.forEach(script => {
                     if (script.src) {
                         const newScript = document.createElement('script');
-                        newScript.src = script.src;
+                        let src = script.getAttribute('src');
+                        try {
+                            // Se for caminho absoluto (começa com '/'), prefixar com basePath para funcionar em páginas aninhadas
+                            if (src && src.startsWith('/')) {
+                                const base = this.getBasePath();
+                                src = `${base}${src.slice(1)}`;
+                            }
+                        } catch (_) {}
+                        newScript.src = src;
                         if (script.type) newScript.type = script.type; // preserva tipo
                         document.head.appendChild(newScript);
                     } else {

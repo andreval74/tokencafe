@@ -40,11 +40,8 @@
 
 <body class="bg-page-black">
     <!-- Header padrão com status de carteira (componente) -->
-    <div data-component="tools-header.html"
-         data-icon="fa-link"
-         data-icon-alt="Link Generator"
-         data-title="Gerador de Links"
-         data-subtitle="Crie e compartilhe links de tokens">
+    <div data-component="tools-header.html" data-icon="fa-link" data-icon-alt="Link Generator"
+        data-title="Gerador de Links" data-subtitle="Crie e compartilhe links de tokens">
     </div>
 
     <!-- ==========================================================================
@@ -56,89 +53,19 @@
 
                 <!-- ===== SEÇÃO 1: SELEÇÃO DA REDE ===== -->
                 <div class="mb-4 d-none" id="network-section">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="me-3">
-                            <i class="bi bi-globe section-icon fs-4"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h4 class="mb-0">1. Selecionar Rede Blockchain</h4>
-                            <p class="text-muted mb-0">Escolha a rede onde o token reside</p>
-                        </div>
+                    <!-- Busca de Rede (COMPONENTE COMPARTILHADO)
+                         Substitui o input/autocomplete locais para padronizar comportamento e eventos.
+                         Atributos:
+                         - data-ns-placeholder: texto do placeholder do campo
+                         - data-ns-min-chars: mínimo de caracteres para iniciar busca
+                         - data-ns-show-popular: true para exibir redes populares ao focar/limpar
+                    -->
+                    <!-- Campo de busca unificado (componente compartilhado) -->
+                    <div data-component="shared/components/network-search.html"
+                        data-ns-placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, Polygon, 1, 137)"
+                        data-ns-min-chars="1" data-ns-show-popular="true" data-ns-show-details-on-select="false">
                     </div>
-
-                    <!-- Campo de busca unificado -->
-                    <div class="mb-4">
-                        <label for="networkSearch" class="form-label">
-                            <i class="bi bi-search me-2"></i>Buscar Rede Blockchain
-                        </label>
-                        <div class="position-relative">
-                            <input type="text" class="form-control form-control-lg" id="networkSearch"
-                                placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, Polygon, 1, 137)">
-                            <div id="networkAutocomplete" class="network-autocomplete position-absolute w-100 d-none">
-                                <!-- Resultados da busca aparecerão aqui -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Informações da rede selecionada -->
-                    <div id="selected-network-info" class="card mb-4 d-none">
-                        <div class="card-body">
-                            <h6 class="mb-2">Rede Selecionada:</h6>
-                            <div id="network-details">
-                                <!-- Detalhes estáticos da rede -->
-                                <div class="row g-2 mb-3">
-                                    <div class="col-md-6">
-                                        <div class="d-flex align-items-baseline gap-2">
-                                            <span>Nome:</span>
-                                            <span class="text-tokencafe" id="networkNameCode"></span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="d-flex align-items-baseline gap-2">
-                                            <span>Chain ID:</span>
-                                            <span class="text-tokencafe" id="chainIdCode"></span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="d-flex align-items-baseline gap-2">
-                                            <span>Moeda:</span>
-                                            <span class="text-tokencafe" id="nativeCurrencyNameCode"></span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="d-flex align-items-baseline gap-2">
-                                            <span>Símbolo:</span>
-                                            <span class="text-tokencafe" id="nativeCurrencySymbolCode"></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Informações (texto e links) -->
-                                <div class="row g-2 mb-2">
-                                    <div class="col-md-6">
-                                        <div class="d-flex align-items-baseline gap-2">
-                                            <span>URL RPC:
-                                                <a id="rpcUrlText" href="#" target="_blank" rel="noopener"
-                                                    class="text-decoration-none text-tokencafe">
-                                                    <span class="text-tokencafe" id="rpcUrlCode"></span>
-                                                </a>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="d-flex align-items-baseline gap-2">
-                                            <span>Block Explorer:
-                                                <a id="explorerUrlText" href="#" target="_blank" rel="noopener"
-                                                    class="text-decoration-none text-tokencafe">
-                                                    <span class="text-tokencafe" id="explorerUrlCode"></span>
-                                                </a>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Informações da rede selecionada são renderizadas pelo componente compartilhado -->
                 </div>
 
                 <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->

@@ -196,7 +196,6 @@ function selectNetwork(network) {
   if (rpcLink && rpc) rpcLink.href = rpc;
   if (expText) expText.textContent = explorer;
   if (expLink && explorer) expLink.href = explorer;
-  show('selected-network-info');
   show('token-section');
 }
 
@@ -234,8 +233,10 @@ async function fetchTokenData() {
       loading.textContent = 'Selecione uma rede antes de buscar o token.';
       loading.classList.remove('d-none');
       loading.classList.remove('alert-info');
-      loading.classList.add('alert-warning');
+      loading.classList.add('alert-danger');
     }
+    hide('token-info');
+    hide('generate-section');
     return;
   }
   if (!address || !isValidAddress(address)) {
@@ -246,6 +247,8 @@ async function fetchTokenData() {
       loading.classList.remove('alert-info');
       loading.classList.add('alert-danger');
     }
+    hide('token-info');
+    hide('generate-section');
     return;
   }
   const loading = document.getElementById('tokenLoading');
@@ -320,6 +323,7 @@ async function fetchTokenData() {
       }
       hadError = true;
       tokenFetched = false;
+      hide('token-info');
       hide('generate-section');
       return;
     }
@@ -339,19 +343,20 @@ async function fetchTokenData() {
       } catch {}
       if (isEoa) {
         if (loading) {
-          loading.textContent = 'O endereço informado parece ser de carteira (EOA), não um contrato.';
+          loading.textContent = 'Endereço é de carteira (EOA), não um contrato.';
           loading.classList.remove('alert-info');
-          loading.classList.add('alert-warning');
+          loading.classList.add('alert-danger');
         }
       } else {
         if (loading) {
-          loading.textContent = 'Contrato não encontrado nesta rede. Verifique o ChainId ou tente outro RPC.';
+          loading.textContent = 'Contrato não encontrado nesta rede (sem código/deploy). Verifique o ChainId ou tente outro RPC.';
           loading.classList.remove('alert-info');
           loading.classList.add('alert-danger');
         }
       }
       hadError = true;
       tokenFetched = false;
+      hide('token-info');
       hide('generate-section');
       return;
     }
@@ -384,6 +389,7 @@ async function fetchTokenData() {
     }
     hadError = true;
     tokenFetched = false;
+    hide('token-info');
     hide('generate-section');
   } finally {
     if (loading && !hadError) loading.classList.add('d-none');
@@ -513,25 +519,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Garantir que a seção de rede siga o padrão visual
   const netSection = document.getElementById('network-section');
   if (netSection) netSection.classList.remove('d-none');
-  const search = document.getElementById(ids.networkSearch);
-  const box = document.getElementById(ids.networkAutocomplete);
-  if (search && box) {
-    search.addEventListener('input', async (e) => {
-      const q = (e.target.value || '').toString().trim();
-      if (!q || q.length < 2) {
-        box.classList.add('d-none');
-        box.innerHTML = '';
-        return;
-      }
-      const list = networkManager.searchNetworks(q, 10);
-      renderAutocomplete(list);
-    });
-    document.addEventListener('click', (ev) => {
-      if (!ev.target.closest('#' + ids.networkAutocomplete) && ev.target.id !== ids.networkSearch) {
-        box.classList.add('d-none');
-      }
-    });
-  }
+  // Integração com o componente de busca compartilhado
+  // Comentário: O componente emite eventos padronizados que substituem a lógica local.
+  // - network:selected { network }: quando usuário escolhe uma rede na lista
+  // - network:clear: quando o campo é limpado (via botão X ou programaticamente)
+  // - network:toggleInfo { visible }: quando o usuário alterna a visualização dos detalhes (botão I)
+  document.addEventListener('network:selected', (ev) => {
+    const net = ev?.detail?.network;
+    if (net) selectNetwork(net);
+  });
+  document.addEventListener('network:clear', () => {
+    selectedNetwork = null;
+    tokenFetched = false;
+    hide('selected-network-info');
+    hide('token-section');
+    hide('generate-section');
+  });
+  document.addEventListener('network:toggleInfo', (ev) => {
+    const visible = !!(ev?.detail?.visible);
+    const card = document.getElementById('selected-network-info');
+    if (card) {
+      // Apenas refletir visibilidade; conteúdo é atualizado pelo componente
+      card.classList.toggle('d-none', !visible);
+    }
+  });
   document.getElementById(ids.btnTokenSearch)?.addEventListener('click', fetchTokenData);
   document.getElementById(ids.btnCopyLink)?.addEventListener('click', copyLink);
   // Pequenos: copiar - adicionar à carteira - ver contrato
