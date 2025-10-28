@@ -61,11 +61,18 @@
                         <input id="tokenContract" class="form-control"
                           value="0x2cf724171a998C3d470048AC2F1b187a48A5cafE" required>
                         <button id="tokenContractInfoBtn" class="btn btn-outline-info" type="button"
-                          title="Ver informações do Token" data-bs-toggle="tooltip" data-bs-placement="top">
+                          title="Ver informações e Transferir Token para o Contrato Sale" data-bs-toggle="tooltip" data-bs-placement="top">
                           <i class="bi bi-info-circle"></i>
                         </button>
                       </div>
-                      <div id="fieldBalance_tokenContract" class="small text-muted field-info collapse mt-2"></div>
+                      <div id="fieldBalance_tokenContract" class="small text-muted field-info collapse mt-2">
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <label class="form-label fw-semibold">ABI Token (JSON)</label>
+                      <textarea id="tokenAbiText" class="form-control font-monospace" rows="4"
+                        placeholder="Cole aqui o ABI do contrato Token..."></textarea>
                     </div>
 
                     <div class="col-12">
@@ -79,6 +86,12 @@
                         </button>
                       </div>
                       <div id="fieldBalance_saleContract" class="small text-muted field-info collapse"></div>
+                    </div>
+
+                    <div class="col-12">
+                      <label class="form-label fw-semibold">ABI Sale (JSON)</label>
+                      <textarea id="saleAbiText" class="form-control font-monospace" rows="4"
+                        placeholder="Cole aqui o ABI do contrato Sale..."></textarea>
                     </div>
 
                     <div class="col-12">
@@ -109,109 +122,12 @@
                       <div id="fieldBalance_receiverWallet" class="small text-muted field-info collapse"></div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Seção 3: ABIs -->
-            <div class="col-12">
-              <i class="bi bi-file-earmark-code fs-4 text-warning"></i>
-              <label for="networkSearch" class="form-label">ABIs e Carteiras</label>
-              <div class="card-body">
-                  <div class="row g-3">
-                    <div class="col-12 col-lg-6">
-                      <label class="form-label fw-semibold">ABI Token (JSON)</label>
-                      <textarea id="tokenAbiText" class="form-control font-monospace" rows="8"
-                        placeholder="Cole aqui o ABI do contrato Token..."></textarea>
-                    </div>
-                    <div class="col-12 col-lg-6">
-                      <label class="form-label fw-semibold">ABI Sale (JSON)</label>
-                      <textarea id="saleAbiText" class="form-control font-monospace" rows="8"
-                        placeholder="Cole aqui o ABI do contrato Sale..."></textarea>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Seção 4: Botão de Checagem -->
-            <div class="col-12">
-              <div class="card border-primary">
-                <div class="card-header bg-primary bg-opacity-10 border-primary">
-                  <h5 class="card-title mb-0">
-                    <i class="bi bi-play-circle me-2 text-primary"></i>
-                    4. Executar Checagens
-                  </h5>
-                </div>
-                <div class="card-body text-center">
-                  <!-- Passo 1: Conectar MetaMask -->
-                  <div class="mb-3">
-                    <button id="connectWallet" class="btn btn-outline-primary me-2 mb-2">
-                      <i class="bi bi-wallet2 me-1"></i>
-                      Conectar MetaMask
+                  <!-- botão checagem -->
+                  <div class="col-12 text-center mt-4">
+                    <button type="submit" class="btn btn-success btn-lg px-5">
+                      <i class="bi bi-rocket-takeoff"></i>
+                      Rodar Checagens
                     </button>
-                    <div id="walletStatus" class="small text-muted"></div>
-                  </div>
-
-                  <!-- Botão principal de checagem -->
-                  <button type="submit" class="btn btn-success btn-lg px-5">
-                    <i class="bi bi-rocket-takeoff me-2"></i>
-                    Rodar Checagens
-                  </button>
-                </div>
-              </div>
-            </div>
-
-
-
-            <!-- Seção 5: Verificações e Testes -->
-            <div class="col-12">
-              <div class="card border-secondary">
-                <div class="card-header bg-secondary bg-opacity-10 border-secondary">
-                  <h5 class="card-title mb-0">
-                    <i class="bi bi-check2-circle me-2 text-secondary"></i>
-                    5. Verificações e Testes
-                  </h5>
-                </div>
-                <div class="card-body">
-                  <div class="row g-3">
-                    <!-- Verificar Saldo -->
-                    <div class="col-12 col-md-6">
-                      <div class="border rounded p-3 h-100">
-                        <h6 class="fw-semibold mb-3">
-                          <i class="bi bi-cash-coin me-2 text-info"></i>
-                          Verificar Saldo do Contrato
-                        </h6>
-                        <button id="checkBalance" class="btn btn-outline-info w-100 mb-2">
-                          <i class="bi bi-currency-dollar me-1"></i>
-                          Verificar Saldo
-                        </button>
-                        <div id="balanceLoading" class="d-none small text-muted mb-2">
-                          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          Pesquisando saldos...
-                        </div>
-                        <div id="balanceSummary" class="small text-muted mt-2"></div>
-                      </div>
-                    </div>
-
-                    <!-- Enviar Tokens de Teste -->
-                    <div class="col-12 col-md-6">
-                      <div class="border rounded p-3 h-100">
-                        <h6 class="fw-semibold mb-3">
-                          <i class="bi bi-send me-2 text-warning"></i>
-                          Enviar Tokens de Teste
-                        </h6>
-                        <div class="mb-2">
-                          <label class="form-label small">Quantidade a enviar</label>
-                          <input id="sendAmountTokens" class="form-control form-control-sm" value="1000"
-                            placeholder="Ex.: 1000">
-                        </div>
-                        <button id="sendTokens" class="btn btn-outline-warning w-100 mb-2">
-                          <i class="bi bi-gift me-1"></i>
-                          Enviar Tokens para Sale
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -316,29 +232,29 @@
                       </button>
                     </div>
                   </div>
+
                   <div id="logContainer" class="p-3 bg-dark text-light font-monospace small rounded mb-3"
                     style="height: 300px; overflow-y: auto; border: 1px solid #dee2e6;">
-                    <div class="text-success">🚀 Widget Teste iniciado...</div>
+                    <div class="text-success">
+                      <pre id="log" class="card p-3 mb-2"></pre>
+                      <div id="summary" class="card p-3 mb-2"></div>
+                      <div id="debugArea" class="card p-3 d-none"></div>
+                    </div>
                   </div>
-                  <pre id="log" class="card p-3 mb-2"></pre>
-                  <div id="summary" class="card p-3 mb-2"></div>
-                  <div id="debugArea" class="card p-3 d-none"></div>
                 </div>
               </div>
             </div>
           </div>
-      </div>
-    </div>
 
-    <!-- Scripts Unificados -->
-    <!-- Base System para carregamento de componentes -->
-    <script type="module" src="../../../js/shared/base-system.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Ethers.js (para Web3) -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+          <!-- Scripts Unificados -->
+          <!-- Base System para carregamento de componentes -->
+          <script type="module" src="../../../js/shared/base-system.js"></script>
+          <!-- Bootstrap JS -->
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+          <!-- Ethers.js (para Web3) -->
+          <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
-    <script type="text/plain" data-migrated="true">
+          <script type="text/plain" data-migrated="true">
 const log = msg => { 
   const logEl = document.getElementById('log'); 
   logEl.textContent += msg + "\n"; 
@@ -643,7 +559,7 @@ async function testRPC(url){
 });
 
 </script>
-    <script type="module" src="../../../js/modules/widget/widget_teste.js"></script>
+          <script type="module" src="../../../js/modules/widget/widget_teste.js"></script>
 
 </body>
 

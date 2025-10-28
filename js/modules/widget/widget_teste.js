@@ -15,6 +15,8 @@ let tokenAbi = null;
 let saleAbi = null;
 // Manual override para RPC selecionada pelo usuário via busca
 window.widgetRpcOverride = window.widgetRpcOverride || null;
+// Cache de metadados por endereço de token (mantém símbolo/nome/decimais estáveis)
+window.widgetInlineMetaCache = window.widgetInlineMetaCache || {};
 
 // Fallbacks mínimos para redes populares
 function getFallbackRpc(chainId) {
@@ -44,12 +46,12 @@ function addDebug(msg) {
     area.value += `[${now}] ${msg}\n`;
     area.scrollTop = area.scrollHeight;
   }
-  try { console.log(`[${now}] WidgetTeste:`, msg); } catch(_) {}
+  try { console.log(`[${now}] WidgetTeste:`, msg); } catch (_) { }
 }
 function log(msg) {
   try {
     console.log(`[${new Date().toLocaleTimeString()}] WidgetTeste: ${msg}`);
-  } catch {}
+  } catch { }
   const el = $('log'); if (el) { el.textContent += (el.textContent ? "\n" : "") + msg; el.scrollTop = el.scrollHeight; }
 }
 
@@ -68,7 +70,7 @@ function refreshBuyerBalanceStatus() {
     const ok = balEl && balEl.value && balEl.value.trim() !== '';
     el.classList.add(ok ? 'text-success' : 'text-danger');
     el.innerText = ok ? 'OK' : 'Vazio';
-  } catch {}
+  } catch { }
 }
 
 function applySequencer() {
@@ -94,7 +96,7 @@ function applySequencer() {
 function applyRpcFromSystem() {
   try {
     let rpcUrl = '';
-  
+
     // Respeitar override manual do usuário (seleção via busca)
     if (window.widgetRpcOverride && window.widgetRpcOverride.rpcUrl) {
       rpcUrl = window.widgetRpcOverride.rpcUrl;
@@ -115,16 +117,16 @@ function applyRpcFromSystem() {
         rpcUrl = 'https://bsc-testnet.publicnode.com';
       }
     }
-  
+
     // Sanitiza RPC antes de aplicar
     rpcUrl = sanitizeRpcUrl(rpcUrl);
-  
+
     const hidden = $('rpcUrl'); if (hidden) hidden.value = rpcUrl;
     const codeEl = $('rpcUrlCode'); if (codeEl) codeEl.textContent = rpcUrl;
     const textEl = $('rpcUrlText'); if (textEl) textEl.href = rpcUrl;
-  
+
     try { rpcProvider = new ethers.providers.JsonRpcProvider(rpcUrl); } catch (e) { addDebug('Falha ao instanciar JsonRpcProvider: ' + e.message); }
-  
+
     log(`🔗 RPC aplicada: ${rpcUrl}`);
     applySequencer();
   } catch (e) {
@@ -139,14 +141,107 @@ function advanceToNextStep(currentBtnId) {
   const nextBtn = $(nextId);
   if (nextBtn) {
     nextBtn.disabled = false;
-    try { nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(_) {}
+    try { nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) { }
   }
 }
 
-function loadAbis() {
+async function loadAbis() {
   try {
     const tokEl = $('tokenAbiText');
     const saleEl = $('saleAbiText');
+
+    // Tentativa automática de obter ABI por endereço quando campos estão vazios
+    // 1) Sourcify (full/partial match)
+    // 2) Explorers Etherscan-like (se API key estiver configurada)
+    // 3) Fallback para ABIs mínimas (ERC-20 e buy())
+    const tryAutoFetch = async () => {
+      const addrToken = (document.getElementById('tokenContract')?.value || '').trim();
+      const addrSale = (document.getElementById('saleContract')?.value || '').trim();
+      const prov = signer?.provider || provider || rpcProvider || web3Provider;
+      let chainId = 97;
+      try { chainId = (await (prov || new ethers.providers.StaticJsonRpcProvider('https://bsc-testnet.publicnode.com')).getNetwork()).chainId; } catch (_) {}
+
+      const cache = window.widgetAbiCache || (window.widgetAbiCache = {});
+
+      async function fetchFromSourcify(address) {
+        if (!address || !ethers.utils.isAddress(address)) return null;
+        const base = 'https://repo.sourcify.dev/contracts';
+        const urls = [
+          `${base}/full_match/${chainId}/${address}/metadata.json`,
+          `${base}/partial_match/${chainId}/${address}/metadata.json`
+        ];
+        for (const u of urls) {
+          try {
+            const r = await fetch(u, { cache: 'no-store' });
+            if (!r.ok) continue;
+            const meta = await r.json();
+            const abi = meta?.output?.abi || meta?.abi || null;
+            if (Array.isArray(abi) && abi.length) return abi;
+          } catch (_) {}
+        }
+        return null;
+      }
+
+      function getExplorerEndpoint(chainId) {
+        // Mapeamento básico; expandir conforme necessário
+        switch (chainId) {
+          case 1: return { url: 'https://api.etherscan.io/api', keyName: 'etherscan' };
+          case 56: return { url: 'https://api.bscscan.com/api', keyName: 'bscscan' };
+          case 97: return { url: 'https://api-testnet.bscscan.com/api', keyName: 'bscscan' };
+          case 137: return { url: 'https://api.polygonscan.com/api', keyName: 'polygonscan' };
+          default: return null;
+        }
+      }
+
+      async function fetchFromExplorer(address) {
+        const ep = getExplorerEndpoint(chainId);
+        if (!ep || !address || !ethers.utils.isAddress(address)) return null;
+        // Chave pode vir de window.EXPLORER_API_KEYS ou localStorage
+        let apiKey = null;
+        try {
+          apiKey = window.EXPLORER_API_KEYS?.[ep.keyName] || JSON.parse(localStorage.getItem('EXPLORER_API_KEYS') || '{}')[ep.keyName] || null;
+        } catch (_) {}
+        if (!apiKey) { log('ℹ️ Explorer API key não configurada; pulando fetch ABI de explorer.'); return null; }
+        const url = `${ep.url}?module=contract&action=getabi&address=${address}&apikey=${apiKey}`;
+        try {
+          const r = await fetch(url, { cache: 'no-store' });
+          const j = await r.json();
+          if (String(j?.status) === '1' && j?.result) {
+            const parsed = JSON.parse(j.result);
+            if (Array.isArray(parsed)) return parsed;
+          }
+        } catch (_) {}
+        return null;
+      }
+
+      async function ensureAbiFor(address, kind) {
+        if (!address || !ethers.utils.isAddress(address)) return null;
+        const key = `${chainId}:${address.toLowerCase()}`;
+        if (cache[key]) return cache[key];
+        let abi = await fetchFromSourcify(address);
+        if (!abi) abi = await fetchFromExplorer(address);
+        if (abi) { cache[key] = abi; log(`✅ ABI ${kind} carregada automaticamente (${abi.length} itens)`); return abi; }
+        log(`⚠️ ABI ${kind} não encontrada em fontes públicas; usando defaults.`);
+        return null;
+      }
+
+      if (tokEl && !tokEl.value.trim() && addrToken) {
+        const abiTokenAuto = await ensureAbiFor(addrToken, 'Token');
+        if (abiTokenAuto) tokEl.value = JSON.stringify(abiTokenAuto, null, 2);
+      }
+      if (saleEl && !saleEl.value.trim() && addrSale) {
+        const abiSaleAuto = await ensureAbiFor(addrSale, 'Sale');
+        if (abiSaleAuto) saleEl.value = JSON.stringify(abiSaleAuto, null, 2);
+      }
+    };
+
+    // Executa fetch automático se necessário antes de parsear
+    if ((tokEl && !tokEl.value.trim()) || (saleEl && !saleEl.value.trim())) {
+      // set defaults primeiro para evitar campos vazios caso fetch falhe
+      setDefaultAbisIfEmpty();
+      try { await tryAutoFetch(); } catch (_) {}
+    }
+
     tokenAbi = JSON.parse(tokEl ? (tokEl.value || '[]') : '[]');
     saleAbi = JSON.parse(saleEl ? (saleEl.value || '[]') : '[]');
     log(`✅ ABIs carregadas: token=${(tokenAbi && tokenAbi.length) || 0}, sale=${(saleAbi && saleAbi.length) || 0}`);
@@ -191,7 +286,7 @@ async function testRPC() {
   }
   if (!rpcUrl) {
     log('❌ Informe uma RPC válida.');
-    try { console.error('WidgetTeste: RPC inválida', { rpcElExists: !!rpcEl, override: window.widgetRpcOverride, status: window.walletConnector?.getStatus?.() }); } catch(_) {}
+    try { console.error('WidgetTeste: RPC inválida', { rpcElExists: !!rpcEl, override: window.widgetRpcOverride, status: window.walletConnector?.getStatus?.() }); } catch (_) { }
     return;
   }
   try {
@@ -214,32 +309,32 @@ async function testRPC() {
       const textEl = $('rpcUrlText'); if (textEl) textEl.href = fallbackUrl;
     } catch (e2) {
       log(`❌ Falha na RPC: ${e.message}`);
-      try { console.error('WidgetTeste: Falha ao validar RPC', { rpcUrl, error: e, fallbackError: e2 }); } catch(_) {}
+      try { console.error('WidgetTeste: Falha ao validar RPC', { rpcUrl, error: e, fallbackError: e2 }); } catch (_) { }
     }
   }
 }
 
 // Helpers UI para verificação de saldos
-function setBalanceLoading(visible){
+function setBalanceLoading(visible) {
   const btn = document.getElementById('checkBalance');
   const loading = document.getElementById('balanceLoading');
-  if(btn){ btn.disabled = !!visible; btn.setAttribute('aria-busy', visible ? 'true':'false'); }
-  if(loading){ loading.classList.toggle('d-none', !visible); }
+  if (btn) { btn.disabled = !!visible; btn.setAttribute('aria-busy', visible ? 'true' : 'false'); }
+  if (loading) { loading.classList.toggle('d-none', !visible); }
 }
 
-function withTimeout(promise, ms, label){
-  return new Promise((resolve, reject)=>{
-    const timer = setTimeout(()=>{
-      reject(new Error(`Timeout após ${ms}ms${label?` (${label})`:''}`));
+function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Timeout após ${ms}ms${label ? ` (${label})` : ''}`));
     }, ms);
-    promise.then(v=>{ clearTimeout(timer); resolve(v); })
-           .catch(e=>{ clearTimeout(timer); reject(e); });
+    promise.then(v => { clearTimeout(timer); resolve(v); })
+      .catch(e => { clearTimeout(timer); reject(e); });
   });
 }
 
-function renderBalanceSummary(summary){
+function renderBalanceSummary(summary) {
   const sumEl = document.getElementById('balanceSummary');
-  if(!sumEl || !summary) return;
+  if (!sumEl || !summary) return;
   const mkRow = (title, obj) => `
     <div class="mb-2">
       <div class="fw-bold mb-1">${title}</div>
@@ -260,120 +355,121 @@ function renderBalanceSummary(summary){
   `;
 }
 
-async function checkSaleBalance(){
-  try{
+async function checkSaleBalance() {
+  try {
     setBalanceLoading(true);
     log('— Verificando saldos —');
 
-    const rpcInput = (document.getElementById('rpcUrl')?.value||'').trim();
+    const rpcInput = (document.getElementById('rpcUrl')?.value || '').trim();
     const rpcUrl = (typeof sanitizeRpcUrl === 'function') ? sanitizeRpcUrl(rpcInput) : rpcInput;
 
     let prov = null;
-    try{
-      if(typeof rpcProvider !== 'undefined' && rpcProvider) prov = rpcProvider;
-      else if(typeof web3Provider !== 'undefined' && web3Provider) prov = web3Provider;
-      else if(typeof signer !== 'undefined' && signer && signer.provider) prov = signer.provider;
-      else if(typeof provider !== 'undefined' && provider) prov = provider;
-    }catch(_e){ }
+    try {
+      if (typeof rpcProvider !== 'undefined' && rpcProvider) prov = rpcProvider;
+      else if (typeof web3Provider !== 'undefined' && web3Provider) prov = web3Provider;
+      else if (typeof signer !== 'undefined' && signer && signer.provider) prov = signer.provider;
+      else if (typeof provider !== 'undefined' && provider) prov = provider;
+    } catch (_e) { }
 
-    if(!prov){
+    if (!prov) {
       let candidateUrl = rpcUrl;
-      if(!candidateUrl){
+      if (!candidateUrl) {
         const overrideUrl = (window.widgetRpcOverride && window.widgetRpcOverride.rpcUrl) || '';
         const status = (window.walletConnector && window.walletConnector.getStatus) ? window.walletConnector.getStatus() : null;
         const statusRpc = status && status.network && Array.isArray(status.network.rpc) ? status.network.rpc[0] : '';
         candidateUrl = sanitizeRpcUrl ? sanitizeRpcUrl(overrideUrl || statusRpc || '') : (overrideUrl || statusRpc || '');
       }
-      if(candidateUrl){
-        try{ prov = new ethers.providers.JsonRpcProvider(candidateUrl); }
-        catch(e){ addDebug('ProvInitError', e); }
+      if (candidateUrl) {
+        try { prov = new ethers.providers.JsonRpcProvider(candidateUrl); }
+        catch (e) { addDebug('ProvInitError', e); }
       }
     }
 
     const fallbackProv = new ethers.providers.StaticJsonRpcProvider('https://bsc-testnet.publicnode.com', { chainId: 97, name: 'bsc-testnet' });
-    if(!prov){
+    if (!prov) {
       prov = fallbackProv;
       log('⚠️ RPC inválida ou indisponível, usando fallback BSC Testnet (97).');
     }
 
-    const tokenAddr = (document.getElementById('tokenContract')?.value||'').trim();
-    const saleAddr = (document.getElementById('saleContract')?.value||'').trim();
-    const buyerAddr = (document.getElementById('buyerWallet')?.value||'').trim();
-    const receiverAddr = (document.getElementById('receiverWallet')?.value||'').trim();
+    const tokenAddr = (document.getElementById('tokenContract')?.value || '').trim();
+    const saleAddr = (document.getElementById('saleContract')?.value || '').trim();
+    const buyerAddr = (document.getElementById('buyerWallet')?.value || '').trim();
+    const receiverAddr = (document.getElementById('receiverWallet')?.value || '').trim();
 
     const getNativeBalance = async (addr, label) => {
-      try{ return await withTimeout(prov.getBalance(addr), 5000, `${label}.getBalance`); }
-      catch(e){ addDebug(`${label}NativeTimeout`, e.message);
-        try{ log('⚠️ Timeout/erro na RPC, lendo nativo via fallback...'); return await withTimeout(fallbackProv.getBalance(addr), 5000, `${label}.getBalance(fallback)`); }
-        catch(e2){ addDebug(`${label}NativeFallbackError`, e2.message); return ethers.BigNumber.from(0); }
+      try { return await withTimeout(prov.getBalance(addr), 5000, `${label}.getBalance`); }
+      catch (e) {
+        addDebug(`${label}NativeTimeout`, e.message);
+        try { log('⚠️ Timeout/erro na RPC, lendo nativo via fallback...'); return await withTimeout(fallbackProv.getBalance(addr), 5000, `${label}.getBalance(fallback)`); }
+        catch (e2) { addDebug(`${label}NativeFallbackError`, e2.message); return ethers.BigNumber.from(0); }
       }
     };
 
     // Verificação de código do contrato nas duas RPCs (primária e fallback)
     let primaryCode = '0x', fallbackCode = '0x';
-    try{ primaryCode = await withTimeout(prov.getCode(tokenAddr), 5000, 'getCode(primary)'); }
-    catch(e){ addDebug('TokenCodePrimaryTimeout', e.message); }
-    try{ fallbackCode = await withTimeout(fallbackProv.getCode(tokenAddr), 5000, 'getCode(fallback)'); }
-    catch(e){ addDebug('TokenCodeFallbackTimeout', e.message); }
+    try { primaryCode = await withTimeout(prov.getCode(tokenAddr), 5000, 'getCode(primary)'); }
+    catch (e) { addDebug('TokenCodePrimaryTimeout', e.message); }
+    try { fallbackCode = await withTimeout(fallbackProv.getCode(tokenAddr), 5000, 'getCode(fallback)'); }
+    catch (e) { addDebug('TokenCodeFallbackTimeout', e.message); }
     addDebug('TokenCodePrimary', primaryCode);
     addDebug('TokenCodeFallback', fallbackCode);
 
     const primaryOk = primaryCode !== '0x';
     const fallbackOk = fallbackCode !== '0x';
 
-    let tokenBalances = { sale: null, buyer: null, receiver: null, tokenContract: null, decimals: 18, flags: { saleFallback:false, buyerFallback:false, receiverFallback:false, tokenContractFallback:false, decimalsFallback:false } };
+    let tokenBalances = { sale: null, buyer: null, receiver: null, tokenContract: null, decimals: 18, flags: { saleFallback: false, buyerFallback: false, receiverFallback: false, tokenContractFallback: false, decimalsFallback: false } };
 
-    if((primaryOk || fallbackOk) && Array.isArray(tokenAbi) && tokenAbi.length){
-      try{
+    if ((primaryOk || fallbackOk) && Array.isArray(tokenAbi) && tokenAbi.length) {
+      try {
         const tokenPrimary = primaryOk ? new ethers.Contract(tokenAddr, tokenAbi, prov) : null;
         const tokenFallback = fallbackOk ? new ethers.Contract(tokenAddr, tokenAbi, fallbackProv) : null;
 
         let decimals = 18;
-        if(tokenPrimary){
+        if (tokenPrimary) {
           decimals = await withTimeout(tokenPrimary.decimals(), 5000, 'token.decimals(primary)')
-            .catch(async e=>{
+            .catch(async e => {
               addDebug('TokenDecimalsPrimaryError', e.message);
-              if(tokenFallback){
-                try{ tokenBalances.flags.decimalsFallback = true; return await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)'); }
-                catch(e2){ addDebug('TokenDecimalsFallbackError', e2.message); return 18; }
+              if (tokenFallback) {
+                try { tokenBalances.flags.decimalsFallback = true; return await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)'); }
+                catch (e2) { addDebug('TokenDecimalsFallbackError', e2.message); return 18; }
               }
               return 18;
             });
-        } else if(tokenFallback){
+        } else if (tokenFallback) {
           tokenBalances.flags.decimalsFallback = true;
-          decimals = await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)').catch(e=>{ addDebug('TokenDecimalsFallbackError', e.message); return 18; });
+          decimals = await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)').catch(e => { addDebug('TokenDecimalsFallbackError', e.message); return 18; });
         }
 
         const readBal = async (addr, label) => {
-          if(tokenPrimary){
-            try{ return await withTimeout(tokenPrimary.balanceOf(addr), 5000, `token.balanceOf(${label},primary)`); }
-            catch(e){ addDebug(`${label}TokenPrimaryError`, e.message); }
+          if (tokenPrimary) {
+            try { return await withTimeout(tokenPrimary.balanceOf(addr), 5000, `token.balanceOf(${label},primary)`); }
+            catch (e) { addDebug(`${label}TokenPrimaryError`, e.message); }
           }
-          if(tokenFallback){
-            try{ tokenBalances.flags[`${label}Fallback`] = true; return await withTimeout(tokenFallback.balanceOf(addr), 5000, `token.balanceOf(${label},fallback)`); }
-            catch(e2){ addDebug(`${label}TokenFallbackError`, e2.message); return null; }
+          if (tokenFallback) {
+            try { tokenBalances.flags[`${label}Fallback`] = true; return await withTimeout(tokenFallback.balanceOf(addr), 5000, `token.balanceOf(${label},fallback)`); }
+            catch (e2) { addDebug(`${label}TokenFallbackError`, e2.message); return null; }
           }
           return null;
         };
 
         const [saleBal, buyerBal, receiverBal, tokenContractBal] = await Promise.all([
-          readBal(saleAddr,'sale'),
-          readBal(buyerAddr,'buyer'),
-          readBal(receiverAddr,'receiver'),
-          readBal(tokenAddr,'tokenContract')
+          readBal(saleAddr, 'sale'),
+          readBal(buyerAddr, 'buyer'),
+          readBal(receiverAddr, 'receiver'),
+          readBal(tokenAddr, 'tokenContract')
         ]);
 
         tokenBalances = { decimals, sale: saleBal, buyer: buyerBal, receiver: receiverBal, tokenContract: tokenContractBal, flags: tokenBalances.flags };
-      }catch(err){ addDebug('TokenReadError', err); }
+      } catch (err) { addDebug('TokenReadError', err); }
     } else {
       log('⚠️ Código do contrato Token não encontrado em nenhuma RPC. Exibindo apenas saldos nativos.');
     }
 
     const [tokenContractNative, saleNative, buyerNative, receiverNative] = await Promise.all([
-      getNativeBalance(tokenAddr,'TokenContract'),
-      getNativeBalance(saleAddr,'Sale'),
-      getNativeBalance(buyerAddr,'Buyer'),
-      getNativeBalance(receiverAddr,'Receiver')
+      getNativeBalance(tokenAddr, 'TokenContract'),
+      getNativeBalance(saleAddr, 'Sale'),
+      getNativeBalance(buyerAddr, 'Buyer'),
+      getNativeBalance(receiverAddr, 'Receiver')
     ]);
 
     const fmtNative = v => ethers.utils.formatEther(v || ethers.BigNumber.from(0));
@@ -387,21 +483,21 @@ async function checkSaleBalance(){
 
     renderBalanceSummary(summary);
 
-    if(tokenBalances.tokenContract){ log(`🏷️ Token (Contrato): ${summary.tokenContract.token}${tokenBalances.flags.tokenContractFallback ? ' (fallback)' : ''}`); }
+    if (tokenBalances.tokenContract) { log(`🏷️ Token (Contrato): ${summary.tokenContract.token}${tokenBalances.flags.tokenContractFallback ? ' (fallback)' : ''}`); }
     log(`🏷️ Token (Contrato) BNB: ${summary.tokenContract.bnb}`);
-    if(tokenBalances.sale){ log(`📊 Sale (Token): ${summary.sale.token}${tokenBalances.flags.saleFallback ? ' (fallback)' : ''}`); }
+    if (tokenBalances.sale) { log(`📊 Sale (Token): ${summary.sale.token}${tokenBalances.flags.saleFallback ? ' (fallback)' : ''}`); }
     log(`💎 Sale (BNB): ${summary.sale.bnb}`);
-    if(tokenBalances.buyer){ log(`👤 Buyer (Token): ${summary.buyer.token}${tokenBalances.flags.buyerFallback ? ' (fallback)' : ''}`); }
+    if (tokenBalances.buyer) { log(`👤 Buyer (Token): ${summary.buyer.token}${tokenBalances.flags.buyerFallback ? ' (fallback)' : ''}`); }
     log(`👤 Buyer (BNB): ${summary.buyer.bnb}`);
-    if(tokenBalances.receiver){ log(`🏦 Receiver (Token): ${summary.receiver.token}${tokenBalances.flags.receiverFallback ? ' (fallback)' : ''}`); }
+    if (tokenBalances.receiver) { log(`🏦 Receiver (Token): ${summary.receiver.token}${tokenBalances.flags.receiverFallback ? ' (fallback)' : ''}`); }
     log(`🏦 Receiver (BNB): ${summary.receiver.bnb}`);
 
-  }catch(e){
+  } catch (e) {
     log('❌ Erro ao verificar saldos: ' + e.message);
     addDebug('CheckSaleBalanceError', e);
-  }finally{
+  } finally {
     setBalanceLoading(false);
-    const st = document.getElementById('status-checkBalance'); if(st){ st.textContent='Pronto'; st.className='step-status ready mt-1'; }
+    const st = document.getElementById('status-checkBalance'); if (st) { st.textContent = 'Pronto'; st.className = 'step-status ready mt-1'; }
   }
 }
 
@@ -486,7 +582,7 @@ async function simulatePayable() {
       if (!rpcUrl) rpcUrl = 'https://bsc-testnet.publicnode.com';
       try { rpcProvider = new ethers.providers.JsonRpcProvider(rpcUrl); } catch (provErr) {
         log('❌ Erro ao criar provider: ' + provErr.message);
-        try { console.error('WidgetTeste: Provider init error', { rpcUrl, provErr }); } catch(_) {}
+        try { console.error('WidgetTeste: Provider init error', { rpcUrl, provErr }); } catch (_) { }
         return;
       }
     }
@@ -517,7 +613,7 @@ async function simulatePayable() {
     advanceToNextStep('simulateBuy');
   } catch (e) {
     log('❌ Erro na simulação: ' + e.message);
-    try { console.error('WidgetTeste: Erro simulatePayable', e); } catch(_) {}
+    try { console.error('WidgetTeste: Erro simulatePayable', e); } catch (_) { }
   }
 }
 
@@ -549,7 +645,7 @@ function setupDebugToggle() {
 }
 
 function wireEvents() {
-  const form = $('checkerForm'); if (form) form.addEventListener('submit', (e) => { e.preventDefault(); testRPC(); loadAbis(); applySequencer(); setTimeout(()=>advanceToNextStep('runChecksBtn'), 150); });
+  const form = $('checkerForm'); if (form) form.addEventListener('submit', (e) => { e.preventDefault(); testRPC(); loadAbis(); applySequencer(); setTimeout(() => advanceToNextStep('runChecksBtn'), 150); });
   const b1 = $('checkBalance'); if (b1) b1.addEventListener('click', checkSaleBalance);
   const b1b = $('checkSaleBtn'); if (b1b) b1b.addEventListener('click', checkSaleBalance);
   const b2 = $('sendTokens'); if (b2) b2.addEventListener('click', sendTestTokens);
@@ -576,10 +672,10 @@ function wireEvents() {
   });
 
   // Address info icons
-  const tokenInfo = $('tokenContractInfoBtn'); if (tokenInfo) tokenInfo.addEventListener('click', () => { const el=$('fieldBalance_tokenContract'); if (el){ const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if(!wasOpen){ try{ autoFetchField('tokenContract'); }catch(_){} } } });
-  const saleInfo = $('saleContractInfoBtn'); if (saleInfo) saleInfo.addEventListener('click', () => { const el=$('fieldBalance_saleContract'); if (el){ const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if(!wasOpen){ try{ autoFetchField('saleContract'); }catch(_){} } } });
-  const buyerInfo = $('buyerWalletInfoBtn'); if (buyerInfo) buyerInfo.addEventListener('click', () => { const el=$('fieldBalance_buyerWallet'); if (el){ const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if(!wasOpen){ try{ autoFetchField('buyerWallet'); }catch(_){} } } });
-  const receiverInfo = $('receiverWalletInfoBtn'); if (receiverInfo) receiverInfo.addEventListener('click', () => { const el=$('fieldBalance_receiverWallet'); if (el){ const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if(!wasOpen){ try{ autoFetchField('receiverWallet'); }catch(_){} } } });
+  const tokenInfo = $('tokenContractInfoBtn'); if (tokenInfo) tokenInfo.addEventListener('click', () => { const el = $('fieldBalance_tokenContract'); if (el) { const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if (!wasOpen) { try { autoFetchField('tokenContract'); } catch (_) { } } } });
+  const saleInfo = $('saleContractInfoBtn'); if (saleInfo) saleInfo.addEventListener('click', () => { const el = $('fieldBalance_saleContract'); if (el) { const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if (!wasOpen) { try { autoFetchField('saleContract'); } catch (_) { } } } });
+  const buyerInfo = $('buyerWalletInfoBtn'); if (buyerInfo) buyerInfo.addEventListener('click', () => { const el = $('fieldBalance_buyerWallet'); if (el) { const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if (!wasOpen) { try { autoFetchField('buyerWallet'); } catch (_) { } } } });
+  const receiverInfo = $('receiverWalletInfoBtn'); if (receiverInfo) receiverInfo.addEventListener('click', () => { const el = $('fieldBalance_receiverWallet'); if (el) { const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if (!wasOpen) { try { autoFetchField('receiverWallet'); } catch (_) { } } } });
 
   // Token transfer icon removido para padronizar com apenas informações
 
@@ -612,7 +708,7 @@ function setupWalletIntegration() {
         web3Provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = web3Provider.getSigner();
         const addr = e.detail && e.detail.account ? e.detail.account : await signer.getAddress();
-        const buyerEl = $('buyerAddress'); if (buyerEl) buyerEl.value = addr;
+        const buyerEl = $('buyerWallet'); if (buyerEl) buyerEl.value = addr;
         log(`🔗 Conectado (global): ${addr}`);
         refreshBuyerBalanceStatus();
         // Aplicar RPC do sistema ao conectar
@@ -625,14 +721,14 @@ function setupWalletIntegration() {
   document.addEventListener('wallet:disconnected', () => {
     signer = null;
     web3Provider = null;
-    const buyerEl = $('buyerAddress'); if (buyerEl) buyerEl.value = '';
+    const buyerEl = $('buyerWallet'); if (buyerEl) buyerEl.value = '';
     refreshBuyerBalanceStatus();
     log('🔌 Carteira desconectada (global).');
   });
   document.addEventListener('wallet:accountChanged', (e) => {
     const addr = e.detail && e.detail.account ? e.detail.account : null;
     if (addr) {
-      const buyerEl = $('buyerAddress'); if (buyerEl) buyerEl.value = addr;
+      const buyerEl = $('buyerWallet'); if (buyerEl) buyerEl.value = addr;
       refreshBuyerBalanceStatus();
       log('👤 Conta alterada: ' + addr);
     }
@@ -672,18 +768,18 @@ function setupNetworkSearch() {
   });
 }
 
-function setupAddressIcons(){
-  try{
-    const ids=['tokenContractInfoBtn','tokenContractTransferBtn','saleContractInfoBtn','buyerWalletInfoBtn','receiverWalletInfoBtn','networkDetailsBtn','networkClearBtn','btnClearNetworkSelection'];
-    ids.forEach(id=>{
+function setupAddressIcons() {
+  try {
+    const ids = ['tokenContractInfoBtn', 'tokenContractTransferBtn', 'saleContractInfoBtn', 'buyerWalletInfoBtn', 'receiverWalletInfoBtn', 'networkDetailsBtn', 'networkClearBtn', 'btnClearNetworkSelection'];
+    ids.forEach(id => {
       const el = document.getElementById(id);
-      if(!el) return;
-      try{
-        if(window.bootstrap && bootstrap.Tooltip){ new bootstrap.Tooltip(el); }
-        else { el.setAttribute('data-bs-toggle','tooltip'); }
-      }catch(_e){}
+      if (!el) return;
+      try {
+        if (window.bootstrap && bootstrap.Tooltip) { new bootstrap.Tooltip(el); }
+        else { el.setAttribute('data-bs-toggle', 'tooltip'); }
+      } catch (_e) { }
     });
-  }catch(_e){ /* ignore */ }
+  } catch (_e) { /* ignore */ }
 }
 
 function renderAutocomplete(list) {
@@ -741,7 +837,7 @@ async function selectNetwork(network) {
 
   // Registrar override manual
   window.widgetRpcOverride = { chainId: network.chainId, rpcUrl: rpc };
-  try { localStorage.setItem('widgetRpcOverride', JSON.stringify({ chainId: network.chainId, rpcUrl: rpc, name: network.name })); } catch {}
+  try { localStorage.setItem('widgetRpcOverride', JSON.stringify({ chainId: network.chainId, rpcUrl: rpc, name: network.name })); } catch { }
   toast(`Rede selecionada: ${network.name}`, 'success');
 
   // Fechar autocomplete e fixar chainId selecionado
@@ -810,10 +906,10 @@ async function selectNetwork(network) {
 function clearNetworkSelection() {
   // Remover override manual e limpar UI
   window.widgetRpcOverride = null;
-  try { localStorage.removeItem('widgetRpcOverride'); } catch {}
+  try { localStorage.removeItem('widgetRpcOverride'); } catch { }
   const input = $('networkSearch'); if (input) { input.value = ''; delete input.dataset.chainId; }
   const info = $('selected-network-info'); if (info) info.classList.add('d-none');
-  ['networkNameCode','chainIdCode','nativeCurrencyNameCode','nativeCurrencySymbolCode','explorerUrlCode'].forEach(id => {
+  ['networkNameCode', 'chainIdCode', 'nativeCurrencyNameCode', 'nativeCurrencySymbolCode', 'explorerUrlCode'].forEach(id => {
     const el = $(id); if (el) el.textContent = '';
   });
   const expLink = $('explorerUrlText'); if (expLink) expLink.removeAttribute('href');
@@ -862,12 +958,12 @@ function clearNetworkSelection() {
             const exp = getFallbackExplorer(obj.chainId);
             const expText = $('explorerUrlCode'); if (expText) expText.textContent = exp || '';
             const expLink = $('explorerUrlText'); if (expLink) { if (exp) expLink.href = exp; else expLink.removeAttribute('href'); }
-            try { rpcProvider = new ethers.providers.JsonRpcProvider(obj.rpcUrl); } catch {}
+            try { rpcProvider = new ethers.providers.JsonRpcProvider(obj.rpcUrl); } catch { }
           }
           toast(`Rede restaurada: ${obj.name || obj.chainId}`, 'info');
         }
       }
-    } catch {}
+    } catch { }
 
 
     setDefaultAbisIfEmpty();
@@ -888,17 +984,17 @@ function clearNetworkSelection() {
   }
 })();
 
-(function ensureSingleCheckBalanceListener(){
-  ['checkBalance','checkSaleBtn'].forEach(id=>{
+(function ensureSingleCheckBalanceListener() {
+  ['checkBalance', 'checkSaleBtn'].forEach(id => {
     const btn = $(id);
-    if (btn) btn.addEventListener('click', (e)=>checkSaleBalance(e), { capture: true });
+    if (btn) btn.addEventListener('click', (e) => checkSaleBalance(e), { capture: true });
   });
 })();
 
 
-(function(){
+(function () {
   // Debounce helper
-  function debounce(fn, ms){ let t; return function(...args){ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args), ms); }; }
+  function debounce(fn, ms) { let t; return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); }; }
 
   const erc20Minimal = [
     'function name() view returns (string)',
@@ -909,88 +1005,188 @@ function clearNetworkSelection() {
   ];
 
   // Inline field balance UI helpers
-  function setFieldBalanceLoading(fieldId, isLoading){
+  function setFieldBalanceLoading(fieldId, isLoading) {
     const el = document.getElementById(`fieldBalance_${fieldId}`);
-    if(!el) return;
-    if(isLoading){
+    if (!el) return;
+    if (isLoading) {
       el.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Carregando…`;
     }
   }
 
-  function renderFieldBalance(fieldId, data){
+  function renderFieldBalance(fieldId, data) {
     const el = document.getElementById(`fieldBalance_${fieldId}`);
-    if(!el) return;
+    if (!el) return;
     const nativeName = data.nativeName || 'Binance Coin';
     const tokenNote = data.tokenNote ? ` <small class="text-warning">${data.tokenNote}</small>` : '';
+    const tokenSymbol = (data.meta && data.meta.symbol) ? data.meta.symbol : 'TOKEN';
+    // Presets configuráveis: via window.widgetInlinePresets (array) ou data-inline-presets no input tokenContract (CSV)
+    const defaultPresets = [100, 1000, 10000];
+    let presets = defaultPresets;
+    try {
+      const cfg = (Array.isArray(window.widgetInlinePresets) && window.widgetInlinePresets.length) ? window.widgetInlinePresets : null;
+      const dsStr = document.getElementById('tokenContract')?.dataset?.inlinePresets || '';
+      const dsArr = dsStr ? dsStr.split(',').map(x => parseFloat(String(x).trim())).filter(n => isFinite(n) && n > 0) : null;
+      presets = dsArr || cfg || defaultPresets;
+    } catch (_e) { }
+    const fmtPresetLabel = (n) => { if (!isFinite(n)) return String(n); return (n % 1000 === 0 && n >= 1000) ? `${Math.floor(n / 1000)}k` : String(n); };
+    const presetsHtml = presets.map(p => `<button type="button" class="btn btn-outline-secondary inline-preset-btn" data-preset="${p}">${fmtPresetLabel(p)}</button>`).join('');
+    const sym = (data.meta && data.meta.symbol) ? data.meta.symbol : 'TOKEN';
+    const name = (data.meta && data.meta.name) ? data.meta.name : '—';
+    const tokenBalText = `Saldo: ${data.token ?? 'N/A'}${tokenNote}`;
+    const bnbBalText = `Saldo: ${data.bnb}`;
 
-    if(data.meta){
-        const sym = data.meta.symbol || 'TOKEN';
-        const name = data.meta.name || '';
-        const tokenBalText = `Saldo: ${data.token ?? 'N/A'}${tokenNote}`;
-        const bnbBalText = `Saldo: ${data.bnb}`;
-        el.innerHTML = `
-          <div class="field-info-line values ${fieldId==='tokenContract'?'simple-3':'simple-3'}">
-            <span class="fi-col1">${sym}</span>
-            <span class="fi-col2">${name}</span>
-            <span class="fi-col3">${tokenBalText}</span>
-          </div>
-          <div class="field-info-line values simple-3">
-            <span class="fi-col1">BNB</span>
-            <span class="fi-col2">${nativeName}</span>
-            <span class="fi-col3">${bnbBalText}</span>
-          </div>
-          ${fieldId==='tokenContract' ? `
-          <div class="mt-2">
-            <div class="input-group input-group-sm">
-              <input id="inlineAmount_tokenContract" class="form-control" placeholder="Valor a transferir para o contrato sale.">
-              <button id="inlineSend_tokenContract" class="btn btn-primary" title="Enviar para Sale">transferir →</button>
-            </div>
-            <div id="inlineTx_tokenContract" class="field-tx mt-1"></div>
-          </div>
-          ` : ''}
-        `;
-        if(fieldId==='tokenContract'){
-          const btn=document.getElementById('inlineSend_tokenContract');
-          if(btn) btn.addEventListener('click', performInlineTransfer);
-        }
-        return;
-      }
+    // Preservar mensagem de transação antes de re-renderizar
+    const prevTxMsg = (fieldId === 'tokenContract') ? (document.getElementById('inlineTx_tokenContract')?.innerHTML || '') : '';
 
-      const tokenBalText = `Saldo: ${data.token ?? 'N/A'}${tokenNote}`;
-      const bnbBalText = `Saldo: ${data.bnb}`;
-      el.innerHTML = `
-        <div class="field-info-line values ${fieldId==='tokenContract'?'simple-3':'simple-3'}">
-          <span class="fi-col1">Token</span>
-          <span class="fi-col2">—</span>
-          <span class="fi-col3">${tokenBalText}</span>
+    el.innerHTML = `
+      <div class="field-info-line values ${fieldId === 'tokenContract' ? 'simple-3' : 'simple-3'}">
+        <span class="fi-col1">${sym}</span>
+        <span class="fi-col2">${name}</span>
+        <span class="fi-col3">${tokenBalText}</span>
+      </div>
+      <div class="field-info-line values simple-3">
+        <span class="fi-col1">BNB</span>
+        <span class="fi-col2">${nativeName}</span>
+        <span class="fi-col3">${bnbBalText}</span>
+      </div>
+      ${data.readiness && data.readiness.status ? `
+      <div id="readiness_${fieldId}" class="form-text small mt-1 ${data.readiness.status === 'apto' ? 'text-success' : (data.readiness.status === 'nao_apto' ? 'text-danger' : 'text-warning')}">
+        ${fieldId === 'tokenContract' ? 'Contrato Token' : (fieldId === 'saleContract' ? 'Contrato Sale' : 'Endereço')}:
+        ${data.readiness.status === 'apto' ? 'apto' : (data.readiness.status === 'nao_apto' ? 'não apto' : 'indefinido')}.
+        ${Array.isArray(data.readiness.reasons) && data.readiness.reasons.length ? 'Razões: ' + data.readiness.reasons.join('; ') : ''}
+      </div>
+      ` : ''}
+      ${fieldId === 'saleContract' && data.saleTokenMismatch ? `
+      <div class="form-text text-warning small mt-1">
+        O saleToken do contrato difere do Token informado.<br>
+        saleToken: ${data.saleTokenAddr || 'N/A'}<br>
+        Token informado: ${data.tokenAddrInput || 'N/A'}
+      </div>
+      ` : ''}
+      ${fieldId === 'tokenContract' ? `
+      <div class="mt-2">
+        <label for="inlineAmount_tokenContract" class="form-label small mb-1">
+          Valor a transferir para o contrato sale em unidades de ${tokenSymbol}; decimais: ${typeof data.decimals === 'number' ? data.decimals : '—'}
+        </label>
+        <div class="input-group input-group-sm">
+          <input id="inlineAmount_tokenContract" class="form-control form-control-sm" placeholder="Ex.: 1000">
+          <div class="btn-group btn-group-sm" role="group" aria-label="Valores rápidos">${presetsHtml}</div>
+          <button id="inlineSend_tokenContract" class="btn btn-sm btn-primary" title="Enviar para Sale">enviar →</button>
         </div>
-        <div class="field-info-line values simple-3">
-          <span class="fi-col1">BNB</span>
-          <span class="fi-col2">${nativeName}</span>
-          <span class="fi-col3">${bnbBalText}</span>
-        </div>
-        ${fieldId==='tokenContract' ? `
-        <div class="mt-2">
-          <label for="inlineAmount_tokenContract" class="form-label small mb-1">Valor a transferir para o contrato sale</label>
-          <div class="input-group input-group-sm">
-            <input id="inlineAmount_tokenContract" class="form-control" placeholder="Valor">
-            <button id="inlineSend_tokenContract" class="btn btn-primary" title="Enviar para Sale">→</button>
-          </div>
-          <div id="inlineTx_tokenContract" class="field-tx mt-1"></div>
-        </div>
-        ` : ''}
-      `;
-      if(fieldId==='tokenContract'){
-        const btn=document.getElementById('inlineSend_tokenContract');
-        if(btn) btn.addEventListener('click', performInlineTransfer);
+        <div id="inlineTx_tokenContract" class="field-tx mt-1"></div>
+      </div>
+      ` : ''}
+    `;
+
+    // Restaurar mensagem de status de transação, se existir
+    if (fieldId === 'tokenContract') {
+      const t = el.querySelector('#inlineTx_tokenContract');
+      const msg = prevTxMsg || (window.widgetInlineLastTxMsg || '');
+      if (t && msg) t.innerHTML = msg;
+    }
+
+    if (fieldId === 'tokenContract') {
+      const btn = el.querySelector('#inlineSend_tokenContract');
+      if (btn) btn.addEventListener('click', performInlineTransfer);
+      const infoBtn = el.querySelector('#inlineInfo_tokenContract');
+      if (infoBtn) {
+        try { if (window.bootstrap && bootstrap.Tooltip) { new bootstrap.Tooltip(infoBtn); } } catch (_e) { }
+        infoBtn.addEventListener('click', () => {
+          const t = el.querySelector('#inlineTx_tokenContract'); if (!t) return;
+          t.innerHTML = '<span class="text-warning">Você pode enviar tokens ao contrato Sale. Informe um valor em unidades do token e clique em “enviar →”.</span>';
+        });
       }
+      const inp = el.querySelector('#inlineAmount_tokenContract');
+      el.querySelectorAll('.inline-preset-btn').forEach(b => {
+        b.addEventListener('click', () => { if (inp) inp.value = b.getAttribute('data-preset') || ''; });
+      });
+    }
   }
 
-  async function autoFetchField(fieldId){
-    try{
-      const addr = (document.getElementById(fieldId)?.value||'').trim();
-      let tokenAddrInput = (document.getElementById('tokenContract')?.value||'').trim();
-      if(!addr || !ethers.utils.isAddress(addr)){
+  // Avaliação de aptidão de contratos
+  async function assessTokenReadiness(tokenAddr, abiCandidate, prov, fallbackProv) {
+    const reasons = [];
+    let status = 'indefinido';
+    try {
+      const codePrimary = await withTimeout(prov.getCode(tokenAddr), 4000, 'token.getCode(primary)').catch(() => '0x');
+      const codeFallback = await withTimeout(fallbackProv.getCode(tokenAddr), 4000, 'token.getCode(fallback)').catch(() => '0x');
+      const hasCode = codePrimary !== '0x' || codeFallback !== '0x';
+      if (!hasCode) { reasons.push('Sem bytecode na rede'); status = 'nao_apto'; return { status, reasons }; }
+
+      const assessmentAbi = Array.isArray(abiCandidate) && abiCandidate.length ? abiCandidate : [
+        'function name() view returns (string)',
+        'function symbol() view returns (string)',
+        'function decimals() view returns (uint8)',
+        'function totalSupply() view returns (uint256)',
+        'function balanceOf(address) view returns (uint256)'
+      ];
+      const c = new ethers.Contract(tokenAddr, assessmentAbi, prov);
+      const cf = new ethers.Contract(tokenAddr, assessmentAbi, fallbackProv);
+      // Ler alguns campos básicos
+      let okDecimals = false, okBalance = false, okMeta = false;
+      try { await withTimeout(c.decimals(), 3000, 'token.decimals(primary)'); okDecimals = true; } catch (_e) { try { await withTimeout(cf.decimals(), 3000, 'token.decimals(fallback)'); okDecimals = true; } catch (_e2) { reasons.push('Falha ao ler decimals'); } }
+      try { const addr = (document.getElementById('buyerWallet')?.value || '').trim(); if (ethers.utils.isAddress(addr)) { await withTimeout(c.balanceOf(addr), 3000, 'token.balanceOf(primary)'); okBalance = true; } }
+      catch (_e) { try { const addr = (document.getElementById('buyerWallet')?.value || '').trim(); if (ethers.utils.isAddress(addr)) { await withTimeout(cf.balanceOf(addr), 3000, 'token.balanceOf(fallback)'); okBalance = true; } } catch (_e2) { reasons.push('Falha ao ler balanceOf'); } }
+      try { await withTimeout(c.name(), 3000, 'token.name'); await withTimeout(c.symbol(), 3000, 'token.symbol'); okMeta = true; } catch (_e) { try { await withTimeout(cf.name(), 3000, 'token.name(fallback)'); await withTimeout(cf.symbol(), 3000, 'token.symbol(fallback)'); okMeta = true; } catch (_e2) { reasons.push('Falha ao ler name/symbol'); } }
+
+      if (okDecimals && okBalance) { status = 'apto'; }
+      else if (okDecimals || okMeta) { status = 'indefinido'; }
+      else { status = 'nao_apto'; }
+    } catch (e) { reasons.push('Erro de avaliação: ' + (e?.message || e)); status = 'indefinido'; }
+    return { status, reasons };
+  }
+
+  async function assessSaleReadiness(saleAddr, saleAbiCandidate, prov, fallbackProv, tokenAddrExpected) {
+    const reasons = [];
+    let status = 'indefinido';
+    try {
+      const codePrimary = await withTimeout(prov.getCode(saleAddr), 4000, 'sale.getCode(primary)').catch(() => '0x');
+      const codeFallback = await withTimeout(fallbackProv.getCode(saleAddr), 4000, 'sale.getCode(fallback)').catch(() => '0x');
+      const hasCode = codePrimary !== '0x' || codeFallback !== '0x';
+      if (!hasCode) { reasons.push('Sem bytecode na rede'); status = 'nao_apto'; return { status, reasons }; }
+
+      const saleAbiMin = Array.isArray(saleAbiCandidate) && saleAbiCandidate.length ? saleAbiCandidate : [
+        'function buy() payable',
+        'function bnbPrice() view returns (uint256)',
+        'function saleToken() view returns (address)'
+      ];
+      const c = new ethers.Contract(saleAddr, saleAbiMin, prov);
+      const cf = new ethers.Contract(saleAddr, saleAbiMin, fallbackProv);
+
+      // Verificar existência de buy (via interface)
+      const hasBuyInAbi = saleAbiMin.some(x => (typeof x === 'string' ? x.includes('buy(') : (x && x.name === 'buy')));
+      if (!hasBuyInAbi) { reasons.push('ABI sem função buy()'); }
+
+      // Ler saleToken se disponível
+      let saleTokenAddr = null;
+      try { saleTokenAddr = await withTimeout(c.saleToken(), 3000, 'sale.saleToken(primary)'); }
+      catch (_e) { try { saleTokenAddr = await withTimeout(cf.saleToken(), 3000, 'sale.saleToken(fallback)'); } catch (_e2) { /* opcional */ } }
+      if (saleTokenAddr && ethers.utils.isAddress(saleTokenAddr) && tokenAddrExpected && ethers.utils.isAddress(tokenAddrExpected)) {
+        if (saleTokenAddr.toLowerCase() !== tokenAddrExpected.toLowerCase()) { reasons.push('saleToken diferente do Token informado'); }
+      }
+
+      // Ler preço se disponível
+      let priceOk = false;
+      try {
+        const p = await withTimeout(c.bnbPrice(), 3000, 'sale.bnbPrice(primary)');
+        priceOk = !!(p && !p.isZero());
+      } catch (_e) {
+        try { const p = await withTimeout(cf.bnbPrice(), 3000, 'sale.bnbPrice(fallback)'); priceOk = !!(p && !p.isZero()); }
+        catch (_e2) { /* ignorar */ }
+      }
+
+      if (hasBuyInAbi && (priceOk || saleTokenAddr)) { status = 'apto'; }
+      else if (hasBuyInAbi) { status = 'indefinido'; reasons.push('Sem confirmação de preço ou saleToken'); }
+      else { status = 'nao_apto'; }
+    } catch (e) { reasons.push('Erro de avaliação: ' + (e?.message || e)); status = 'indefinido'; }
+    return { status, reasons };
+  }
+
+  async function autoFetchField(fieldId) {
+    try {
+      const addr = (document.getElementById(fieldId)?.value || '').trim();
+      let tokenAddrInput = (document.getElementById('tokenContract')?.value || '').trim();
+      if (!addr || !ethers.utils.isAddress(addr)) {
         renderFieldBalance(fieldId, { token: null, bnb: '—' });
         return;
       }
@@ -998,160 +1194,203 @@ function clearNetworkSelection() {
 
       // Resolve providers (primary and fallback)
       let prov = null;
-      try{
-        if(typeof rpcProvider !== 'undefined' && rpcProvider) prov = rpcProvider;
-        else if(typeof web3Provider !== 'undefined' && web3Provider) prov = web3Provider;
-        else if(typeof signer !== 'undefined' && signer && signer.provider) prov = signer.provider;
-        else if(typeof provider !== 'undefined' && provider) prov = provider;
-      }catch(_e){ }
-      const rpcInput = (document.getElementById('rpcUrl')?.value||'').trim();
+      try {
+        if (typeof rpcProvider !== 'undefined' && rpcProvider) prov = rpcProvider;
+        else if (typeof web3Provider !== 'undefined' && web3Provider) prov = web3Provider;
+        else if (typeof signer !== 'undefined' && signer && signer.provider) prov = signer.provider;
+        else if (typeof provider !== 'undefined' && provider) prov = provider;
+      } catch (_e) { }
+      const rpcInput = (document.getElementById('rpcUrl')?.value || '').trim();
       const rpcUrl = (typeof sanitizeRpcUrl === 'function') ? sanitizeRpcUrl(rpcInput) : rpcInput;
-      if(!prov){
+      if (!prov) {
         let candidateUrl = rpcUrl;
-        if(!candidateUrl){
+        if (!candidateUrl) {
           const overrideUrl = (window.widgetRpcOverride && window.widgetRpcOverride.rpcUrl) || '';
           const status = (window.walletConnector && window.walletConnector.getStatus) ? window.walletConnector.getStatus() : null;
           const statusRpc = status && status.network && Array.isArray(status.network.rpc) ? status.network.rpc[0] : '';
           candidateUrl = sanitizeRpcUrl ? sanitizeRpcUrl(overrideUrl || statusRpc || '') : (overrideUrl || statusRpc || '');
         }
-        if(candidateUrl){
-          try{ prov = new ethers.providers.JsonRpcProvider(candidateUrl); }
-          catch(e){ addDebug('ProvInitErrorInline', e); }
+        if (candidateUrl) {
+          try { prov = new ethers.providers.JsonRpcProvider(candidateUrl); }
+          catch (e) { addDebug('ProvInitErrorInline', e); }
         }
       }
       const fallbackProv = new ethers.providers.StaticJsonRpcProvider('https://bsc-testnet.publicnode.com', { chainId: 97, name: 'bsc-testnet' });
-      if(!prov){ prov = fallbackProv; }
+      if (!prov) { prov = fallbackProv; }
 
       // Native currency name
       let nativeName = 'Binance Coin';
-      try{
+      try {
         const net = await withTimeout(prov.getNetwork(), 2000, 'getNetwork');
         const cid = net?.chainId; const nm = (net?.name || '').toLowerCase();
-        if(cid===1 || nm==='homestead') nativeName = 'Ether';
-        else if(cid===56 || cid===97 || nm.includes('bsc')) nativeName = 'Binance Coin';
+        if (cid === 1 || nm === 'homestead') nativeName = 'Ether';
+        else if (cid === 56 || cid === 97 || nm.includes('bsc')) nativeName = 'Binance Coin';
         else nativeName = net?.name || 'Native';
-      }catch(_e){ /* mantém default */ }
+      } catch (_e) { /* mantém default */ }
 
       // Native balance
-      const getNativeBalance = async (a,label)=>{
-        try{ return await withTimeout(prov.getBalance(a), 5000, `${label}.getBalance`); }
-        catch(e){ addDebug(`${label}NativeInlineTimeout`, e.message);
-          try{ return await withTimeout(fallbackProv.getBalance(a), 5000, `${label}.getBalance(fallback)`); }
-          catch(e2){ addDebug(`${label}NativeInlineFallbackError`, e2.message); return ethers.BigNumber.from(0); }
+      const getNativeBalance = async (a, label) => {
+        try { return await withTimeout(prov.getBalance(a), 5000, `${label}.getBalance`); }
+        catch (e) {
+          addDebug(`${label}NativeInlineTimeout`, e.message);
+          try { return await withTimeout(fallbackProv.getBalance(a), 5000, `${label}.getBalance(fallback)`); }
+          catch (e2) { addDebug(`${label}NativeInlineFallbackError`, e2.message); return ethers.BigNumber.from(0); }
         }
       };
 
       // Determine token address to read metadata from
       let tokenAddrForMeta = tokenAddrInput;
-      if(fieldId === 'tokenContract') tokenAddrForMeta = addr; // usar o próprio endereço
+      if (fieldId === 'tokenContract') tokenAddrForMeta = addr; // usar o próprio endereço
 
       // If sale contract, try reading saleToken from saleAbi and compare
       let saleTokenAddr = null; let saleTokenMismatch = false;
-      if(fieldId === 'saleContract' && Array.isArray(saleAbi) && saleAbi.length){
-        try{
+      if (fieldId === 'saleContract' && Array.isArray(saleAbi) && saleAbi.length) {
+        try {
           const salePrimary = new ethers.Contract(addr, saleAbi, prov);
           saleTokenAddr = await withTimeout(salePrimary.saleToken(), 5000, 'sale.saleToken(primary)');
-        }catch(e){
+        } catch (e) {
           addDebug('InlineSaleTokenPrimaryError', e.message);
-          try{
+          try {
             const saleFallback = new ethers.Contract(addr, saleAbi, fallbackProv);
-            saleTokenAddr = await withTimeout(saleFallback.saleToken(), 5000, 'sale.saleToken(fallback)').catch(()=>null);
-          }catch(e2){ addDebug('InlineSaleTokenFallbackError', e2.message); }
+            saleTokenAddr = await withTimeout(saleFallback.saleToken(), 5000, 'sale.saleToken(fallback)').catch(() => null);
+          } catch (e2) { addDebug('InlineSaleTokenFallbackError', e2.message); }
         }
-        if(saleTokenAddr && ethers.utils.isAddress(saleTokenAddr)){
-          if(tokenAddrForMeta && ethers.utils.isAddress(tokenAddrForMeta) && saleTokenAddr.toLowerCase() !== tokenAddrForMeta.toLowerCase()){
-            saleTokenMismatch = true;
+        const verifySale = (window.widgetVerifySaleToken === true) || (String(document.getElementById('saleContract')?.dataset?.verifySaleToken || '').toLowerCase() === 'true');
+        if (saleTokenAddr && ethers.utils.isAddress(saleTokenAddr)) {
+          if (tokenAddrForMeta && ethers.utils.isAddress(tokenAddrForMeta) && saleTokenAddr.toLowerCase() !== tokenAddrForMeta.toLowerCase()) {
+            saleTokenMismatch = !!verifySale;
             tokenAddrForMeta = saleTokenAddr; // usar o real configurado no Sale
           }
         }
       }
 
       // Token metadata + balances
+      // Use cache para dados estáveis (meta/decimals) e evite re-leitura desnecessária
       let meta = null; let decimals = 18; let tokenNote = '';
       let tokenBal = null;
-      if(tokenAddrForMeta && ethers.utils.isAddress(tokenAddrForMeta)){
-        let primaryCode='0x', fallbackCode='0x';
-        try{ primaryCode = await withTimeout(prov.getCode(tokenAddrForMeta), 5000, 'getCode(primary)'); }catch(e){ addDebug('InlineTokenCodePrimaryTimeout', e.message); }
-        try{ fallbackCode = await withTimeout(fallbackProv.getCode(tokenAddrForMeta), 5000, 'getCode(fallback)'); }catch(e){ addDebug('InlineTokenCodeFallbackTimeout', e.message); }
+      if (tokenAddrForMeta && ethers.utils.isAddress(tokenAddrForMeta)) {
+        const cacheKey = tokenAddrForMeta.toLowerCase();
+        const cached = window.widgetInlineMetaCache[cacheKey] || null;
+        if (cached) {
+          if (cached.decimals != null) decimals = cached.decimals;
+          if (cached.meta) meta = cached.meta;
+        }
+        let primaryCode = '0x', fallbackCode = '0x';
+        try { primaryCode = await withTimeout(prov.getCode(tokenAddrForMeta), 5000, 'getCode(primary)'); } catch (e) { addDebug('InlineTokenCodePrimaryTimeout', e.message); }
+        try { fallbackCode = await withTimeout(fallbackProv.getCode(tokenAddrForMeta), 5000, 'getCode(fallback)'); } catch (e) { addDebug('InlineTokenCodeFallbackTimeout', e.message); }
         const abiToUse = Array.isArray(tokenAbi) && tokenAbi.length ? tokenAbi : erc20Minimal;
         const tokenPrimary = (primaryCode !== '0x') ? new ethers.Contract(tokenAddrForMeta, abiToUse, prov) : null;
         const tokenFallback = (fallbackCode !== '0x') ? new ethers.Contract(tokenAddrForMeta, abiToUse, fallbackProv) : null;
         // decimals
-        if(tokenPrimary){
-          decimals = await withTimeout(tokenPrimary.decimals(), 5000, 'token.decimals(primary)').catch(async e=>{
-            addDebug('InlineDecimalsPrimaryError', e.message);
-            if(tokenFallback){ tokenNote='(fallback)'; return await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)').catch(()=>18); }
-            return 18;
-          });
-        } else if(tokenFallback){ tokenNote='(fallback)'; decimals = await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)').catch(()=>18); }
+        if (cached == null || cached.decimals == null) {
+          if (tokenPrimary) {
+            decimals = await withTimeout(tokenPrimary.decimals(), 5000, 'token.decimals(primary)').catch(async e => {
+              addDebug('InlineDecimalsPrimaryError', e.message);
+              if (tokenFallback) { tokenNote = '(fallback)'; return await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)').catch(() => decimals); }
+              return decimals;
+            });
+          } else if (tokenFallback) { tokenNote = '(fallback)'; decimals = await withTimeout(tokenFallback.decimals(), 5000, 'token.decimals(fallback)').catch(() => decimals); }
+        }
         // name/symbol/totalSupply
-        const readMeta = async (c)=>{
-          try{
-            const [nm, sym, ts] = await Promise.all([
-              withTimeout(c.name(), 5000, 'token.name'),
-              withTimeout(c.symbol(), 5000, 'token.symbol'),
-              withTimeout(c.totalSupply(), 5000, 'token.totalSupply')
-            ]);
-            return { name: nm, symbol: sym, totalSupply: ethers.utils.formatUnits(ts, decimals) };
-          }catch(e){ addDebug('InlineMetaError', e.message); return null; }
-        };
-        meta = tokenPrimary ? await readMeta(tokenPrimary) : null;
-        if(!meta && tokenFallback){ tokenNote='(fallback)'; meta = await readMeta(tokenFallback); }
+        if (cached == null || cached.meta == null) {
+          const readMeta = async (c) => {
+            try {
+              const [nm, sym, ts] = await Promise.all([
+                withTimeout(c.name(), 5000, 'token.name'),
+                withTimeout(c.symbol(), 5000, 'token.symbol'),
+                withTimeout(c.totalSupply(), 5000, 'token.totalSupply')
+              ]);
+              return { name: nm, symbol: sym, totalSupply: ethers.utils.formatUnits(ts, decimals) };
+            } catch (e) { addDebug('InlineMetaError', e.message); return null; }
+          };
+          meta = tokenPrimary ? await readMeta(tokenPrimary) : null;
+          if (!meta && tokenFallback) { tokenNote = '(fallback)'; meta = await readMeta(tokenFallback); }
+        }
+        // Atualizar cache se obtivermos valores válidos
+        try {
+          window.widgetInlineMetaCache[cacheKey] = {
+            decimals: decimals,
+            meta: meta || (cached ? cached.meta : null)
+          };
+        } catch (_e) { }
         // balanceOf for the current address (addr)
-        const readBal = async (c)=>{
-          try{ return await withTimeout(c.balanceOf(addr), 5000, 'token.balanceOf'); }
-          catch(e){ addDebug('InlineBalanceOfError', e.message); return null; }
+        const readBal = async (c) => {
+          try { return await withTimeout(c.balanceOf(addr), 5000, 'token.balanceOf'); }
+          catch (e) { addDebug('InlineBalanceOfError', e.message); return null; }
         };
         tokenBal = tokenPrimary ? await readBal(tokenPrimary) : null;
-        if(!tokenBal && tokenFallback){ tokenNote='(fallback)'; tokenBal = await readBal(tokenFallback); }
+        if (!tokenBal && tokenFallback) { tokenNote = '(fallback)'; tokenBal = await readBal(tokenFallback); }
       }
 
       // Native balance for the address
       const nativeBal = await getNativeBalance(addr, fieldId);
       const fmtNative = v => ethers.utils.formatEther(v || ethers.BigNumber.from(0));
-      const fmtToken = (v,d)=> v ? ethers.utils.formatUnits(v, d||18) : null;
+      const fmtToken = (v, d) => v ? ethers.utils.formatUnits(v, d || 18) : null;
+      // Avaliação de aptidão
+      let readiness = null;
+      try {
+        if (fieldId === 'tokenContract') {
+          const abiCandidate = Array.isArray(tokenAbi) && tokenAbi.length ? tokenAbi : erc20Minimal;
+          readiness = await assessTokenReadiness(addr, abiCandidate, prov, fallbackProv);
+        } else if (fieldId === 'saleContract') {
+          const abiCandidate = Array.isArray(saleAbi) && saleAbi.length ? saleAbi : [
+            'function buy() payable',
+            'function bnbPrice() view returns (uint256)',
+            'function saleToken() view returns (address)'
+          ];
+          readiness = await assessSaleReadiness(addr, abiCandidate, prov, fallbackProv, tokenAddrForMeta);
+        }
+      } catch (_e) { /* manter indefinido */ }
+
       renderFieldBalance(fieldId, {
         meta,
         token: fmtToken(tokenBal, decimals),
         bnb: fmtNative(nativeBal),
         tokenNote,
-        nativeName
+        nativeName,
+        decimals,
+        saleTokenMismatch,
+        saleTokenAddr,
+        tokenAddrInput,
+        readiness
       });
-    }catch(e){ addDebug('AutoFetchFieldError', e); }
+    } catch (e) { addDebug('AutoFetchFieldError', e); }
   }
 
-  function setupAutoFieldBalances(){
-    const ids=['tokenContract','saleContract','buyerWallet','receiverWallet'];
-    ids.forEach(id=>{
-      const el=document.getElementById(id); if(!el) return;
-      const deb=debounce(()=>autoFetchField(id), 600);
+  function setupAutoFieldBalances() {
+    const ids = ['tokenContract', 'saleContract', 'buyerWallet', 'receiverWallet'];
+    ids.forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      const deb = debounce(() => autoFetchField(id), 600);
       el.addEventListener('input', deb);
-      el.addEventListener('blur', ()=>autoFetchField(id));
+      el.addEventListener('blur', () => autoFetchField(id));
       // initial fetch
-      setTimeout(()=>autoFetchField(id), 300);
+      setTimeout(() => autoFetchField(id), 300);
     });
-    const rpcEl=document.getElementById('rpcUrl');
-    if(rpcEl){ const deb=debounce(()=>{ ids.forEach(id=>autoFetchField(id)); }, 800); rpcEl.addEventListener('input', deb); }
+    const rpcEl = document.getElementById('rpcUrl');
+    if (rpcEl) { const deb = debounce(() => { ids.forEach(id => autoFetchField(id)); }, 800); rpcEl.addEventListener('input', deb); }
   }
 
-  document.addEventListener('DOMContentLoaded', ()=>{ try{ setupAutoFieldBalances(); }catch(_e){} });
+  // Expor o fetch para uso fora deste escopo
+  try { window.autoFetchField = autoFetchField; } catch (_e) { }
+  document.addEventListener('DOMContentLoaded', () => { try { setupAutoFieldBalances(); } catch (_e) { } });
 })();
 
 
-function performInlineTransfer(){
-  (async()=>{
-    try{
-      if(!signer){ toast('Conecte a carteira para enviar.', 'warning'); return; }
-      const tokenAddr = (document.getElementById('tokenContract')?.value||'').trim();
-      const destAddr = (document.getElementById('saleContract')?.value||'').trim();
-      const amountStr = (document.getElementById('inlineAmount_tokenContract')?.value||'').trim();
-      if(!ethers.utils.isAddress(tokenAddr)){ toast('Endereço do Token inválido.', 'danger'); return; }
-      if(!ethers.utils.isAddress(destAddr)){ toast('Endereço de destino inválido.', 'danger'); return; }
-      if(!amountStr || !(parseFloat(amountStr)>0)){ toast('Informe um valor válido (> 0).', 'warning'); return; }
+function performInlineTransfer() {
+  (async () => {
+    try {
+      if (!signer) { toast('Conecte a carteira para enviar.', 'warning'); return; }
+      const tokenAddr = (document.getElementById('tokenContract')?.value || '').trim();
+      const destAddr = (document.getElementById('saleContract')?.value || '').trim();
+      const amountStr = (document.getElementById('inlineAmount_tokenContract')?.value || '').trim();
+      if (!ethers.utils.isAddress(tokenAddr)) { toast('Endereço do Token inválido.', 'danger'); return; }
+      if (!ethers.utils.isAddress(destAddr)) { toast('Endereço de destino inválido.', 'danger'); return; }
+      if (!amountStr || !(parseFloat(amountStr) > 0)) { toast('Informe um valor válido (> 0).', 'warning'); return; }
 
       const prov = signer?.provider || provider || rpcProvider || web3Provider;
       const code = await (prov ? prov.getCode(tokenAddr) : Promise.resolve('0x'));
-      if(code === '0x'){ toast('Contrato Token inexistente na rede atual.', 'danger'); return; }
+      if (code === '0x') { toast('Contrato Token inexistente na rede atual.', 'danger'); return; }
 
       const transferAbi = (Array.isArray(tokenAbi) && tokenAbi.length) ? tokenAbi : [
         'function name() view returns (string)',
@@ -1161,35 +1400,43 @@ function performInlineTransfer(){
         'function transfer(address to, uint256 amount) returns (bool)'
       ];
       const token = new ethers.Contract(tokenAddr, transferAbi, signer);
-      const decimals = await token.decimals().catch(()=>18);
+      const decimals = await token.decimals().catch(() => 18);
       const amount = ethers.utils.parseUnits(amountStr, decimals);
 
       const fromAddr = await signer.getAddress();
-      const fromBal = await token.balanceOf(fromAddr).catch(()=>null);
-      if(fromBal && fromBal.lt(amount)){ toast('Saldo insuficiente do remetente.', 'warning'); return; }
+      const fromBal = await token.balanceOf(fromAddr).catch(() => null);
+      if (fromBal && fromBal.lt(amount)) { toast('Saldo insuficiente do remetente.', 'warning'); return; }
 
-      const btn = document.getElementById('inlineSend_tokenContract'); if(btn) btn.disabled = true;
-      const txInfoEl = document.getElementById('inlineTx_tokenContract'); if(txInfoEl) txInfoEl.textContent = 'Enviando...';
+      const btn = document.getElementById('inlineSend_tokenContract'); if (btn) btn.disabled = true;
+      const txInfoEl = document.getElementById('inlineTx_tokenContract'); if (txInfoEl) txInfoEl.innerHTML = '<span class="text-warning">Solicitando assinatura...</span>';
 
       const tx = await token.transfer(destAddr, amount);
       const hash = tx.hash;
       let explorer = '';
-      try{ const net = await (prov ? prov.getNetwork() : Promise.resolve({ chainId: 97 })); explorer = typeof getFallbackExplorer === 'function' ? (getFallbackExplorer(net.chainId)||'') : ''; }catch(_e){}
+      try { const net = await (prov ? prov.getNetwork() : Promise.resolve({ chainId: 97 })); explorer = typeof getFallbackExplorer === 'function' ? (getFallbackExplorer(net.chainId) || '') : ''; } catch (_e) { }
       const url = explorer ? `${explorer}/tx/${hash}` : `https://testnet.bscscan.com/tx/${hash}`;
-      if(txInfoEl) txInfoEl.innerHTML = `Tx: <a href="${url}" target="_blank">${hash}</a>`;
+      if (txInfoEl) txInfoEl.innerHTML = `<span class="text-warning">Tx enviada: <a href="${url}" target="_blank">${hash}</a> • aguardando confirmação...</span>`;
 
       const rc = await tx.wait();
-      if(btn) btn.disabled = false;
+      if (txInfoEl) {
+        const successMsg = `<span class="text-success">Enviado com sucesso: <a href="${url}" target="_blank">${hash}</a></span>`;
+        txInfoEl.innerHTML = successMsg;
+        // persistir para restaurar após re-render
+        window.widgetInlineLastTxMsg = successMsg;
+      }
+      if (btn) btn.disabled = false;
 
       // Atualizar saldos inline
-      autoFetchField('tokenContract');
-      autoFetchField('saleContract');
-      autoFetchField('buyerWallet');
-      autoFetchField('receiverWallet');
-    }catch(e){
-      addDebug('InlineTransferError', e.message||e);
+      if (typeof window.autoFetchField === 'function') {
+        window.autoFetchField('tokenContract');
+        window.autoFetchField('saleContract');
+        window.autoFetchField('buyerWallet');
+        window.autoFetchField('receiverWallet');
+      }
+    } catch (e) {
+      addDebug('InlineTransferError', e.message || e);
       const txInfoEl = document.getElementById('inlineTx_tokenContract');
-      if(txInfoEl) txInfoEl.textContent = `Erro: ${e.message||e}`;
+      if (txInfoEl) txInfoEl.innerHTML = `<span class="text-danger">Erro: ${e.message || e}</span>`;
     }
   })();
 }
