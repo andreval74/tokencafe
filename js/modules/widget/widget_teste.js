@@ -1908,7 +1908,7 @@ async function generateWidget() {
   const previewConfig = { ...widgetConfig, network: { ...widgetConfig.network, name: networkName } };
     renderWidgetPreview(previewConfig);
     
-    // Salvar JSON no servidor
+    // Salvar JSON no servidor (apenas em ambiente local com Flask)
     try {
       addDebug('Salvando JSON no servidor...');
       const saveResponse = await fetch('/api/widget/save', {
@@ -1936,6 +1936,10 @@ async function generateWidget() {
         }
         addDebug(`✅ JSON salvo no servidor: ${saveResult.path}`);
         toast('Widget gerado e salvo no servidor!', 'success');
+      } else if (saveResponse.status === 404) {
+        // Ambiente sem Flask (produção/virtual)
+        addDebug('ℹ️ Servidor Flask não disponível. Use "Download JSON" para salvar.');
+        toast('Widget gerado! Use "Download JSON" para salvar o arquivo.', 'info');
       } else {
         let errorMsg = 'Erro desconhecido';
         try {
@@ -1956,9 +1960,10 @@ async function generateWidget() {
         toast('Widget gerado, mas falhou ao salvar no servidor. Use Download JSON.', 'warning');
       }
     } catch (saveError) {
-      addDebug(`⚠️ Erro ao salvar no servidor: ${saveError.message}`);
-      console.error('Save error details:', saveError);
-      toast('Widget gerado, mas falhou ao salvar no servidor. Use Download JSON.', 'warning');
+      // Erro de rede (servidor não está rodando ou CORS)
+      addDebug(`ℹ️ Não foi possível conectar ao servidor: ${saveError.message}`);
+      addDebug('💡 Use "Download JSON" e hospede o arquivo manualmente em /widget/gets/<owner>/<code>.json');
+      toast('Widget gerado! Use "Download JSON" para salvar.', 'info');
     }
     
     toast('Widget gerado com sucesso!', 'success');
