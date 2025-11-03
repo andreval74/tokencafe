@@ -3,6 +3,7 @@
 // Segue diretriz: sem scripts inline; inicialização via PageManager
 
 import PageManager from '../../shared/page-manager.js';
+import WidgetGenerator from './widget-generator.js';
 
 // Shorthand DOM helpers via base-system (se disponíveis)
 const $ = (sel) => document.getElementById(sel);
@@ -18,13 +19,22 @@ window.widgetRpcOverride = window.widgetRpcOverride || null;
 // Cache de metadados por endereço de token (mantém símbolo/nome/decimais estáveis)
 window.widgetInlineMetaCache = window.widgetInlineMetaCache || {};
 
-// Fallbacks mínimos para redes populares
+// Utilitários de debug/log mais verbosos
+function shortAddr(a) {
+  try { if (!a || typeof a !== 'string') return String(a || ''); return a.slice(0, 6) + '…' + a.slice(-4); } catch { return String(a || ''); }
+}
+function debugJSON(label, obj) {
+  try { addDebug(`${label}: ${JSON.stringify(obj, null, 2)}`); } catch (_) { addDebug(`${label}: [unstringifiable]`); }
+}
+
+// Fallbacks mínimos para redes populares (RPCs confiáveis)
 function getFallbackRpc(chainId) {
   switch (Number(chainId)) {
     case 56: return 'https://bsc-dataseed.binance.org';
-    case 97: return 'https://bsc-testnet.publicnode.com';
+    case 97: return 'https://bsc-testnet.publicnode.com'; // RPC confiável para BSC Testnet
     case 1: return 'https://eth.llamarpc.com';
     case 137: return 'https://polygon-rpc.com';
+    case 80001: return 'https://rpc-mumbai.maticvigil.com';
     default: return '';
   }
 }
@@ -248,6 +258,7 @@ async function loadAbis() {
     const el = $('checkSaleBtn'); if (el) el.classList.remove('disabled');
     const stRun = $('status-runChecksBtn'); if (stRun) { stRun.textContent = 'Pronto'; stRun.className = 'step-status ready mt-1'; }
     advanceToNextStep('runChecksBtn');
+    try { await validateWidgetConfig(); } catch (_) { }
   } catch (e) {
     log('❌ ABI inválida: ' + e.message);
   }
@@ -645,7 +656,24 @@ function setupDebugToggle() {
 }
 
 function wireEvents() {
-  const form = $('checkerForm'); if (form) form.addEventListener('submit', (e) => { e.preventDefault(); testRPC(); loadAbis(); applySequencer(); setTimeout(() => advanceToNextStep('runChecksBtn'), 150); });
+  const form = $('checkerForm');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        // Executa checks existentes e em seguida nossa validação unificada
+        testRPC();
+        loadAbis();
+        applySequencer();
+        setTimeout(() => advanceToNextStep('runChecksBtn'), 150);
+        // Validação assíncrona com timeout interno e fallback de RPC
+        await validateWidgetConfig();
+        addDebug('Validação manual (botão) executada');
+      } catch (err) {
+        addDebug(`Erro ao validar: ${err.message}`);
+      }
+    });
+  }
   const b1 = $('checkBalance'); if (b1) b1.addEventListener('click', checkSaleBalance);
   const b1b = $('checkSaleBtn'); if (b1b) b1b.addEventListener('click', checkSaleBalance);
   const b2 = $('sendTokens'); if (b2) b2.addEventListener('click', sendTestTokens);
@@ -686,10 +714,12 @@ function wireEvents() {
   
   const btnClear = $('btnClearNetworkSelection'); if (btnClear) btnClear.addEventListener('click', clearNetworkSelection);
   const networkClearBtn = $('networkClearBtn'); if (networkClearBtn) networkClearBtn.addEventListener('click', clearNetworkSelection);
-  const btnDetails = $('networkDetailsBtn'); if (btnDetails) btnDetails.addEventListener('click', () => {
+  const btnDetails = $('networkDetailsBtn');
+  if (btnDetails) btnDetails.addEventListener('click', () => {
     const info = $('selected-network-info');
     const isOpen = info && !info.classList.contains('d-none');
     if (isOpen) return;
+
     const searchEl = $('networkSearch');
     const chainId = searchEl?.dataset?.chainId ? parseInt(searchEl.dataset.chainId, 10) : null;
     const nm = window.networkManager;
@@ -697,11 +727,60 @@ function wireEvents() {
       const net = nm.getNetworkById(chainId);
       if (net) { selectNetwork(net); return; }
     }
+
     const q = String(searchEl?.value || '').trim();
     const list = nm && typeof nm.searchNetworks === 'function' ? nm.searchNetworks(q, 5) : [];
     if (list && list.length) { selectNetwork(list[0]); return; }
     toast('Selecione uma rede para ver detalhes.', 'warning');
   });
+
+  // Event listeners para geração de widget (nova funcionalidade)
+  const generateBtn = $('generateWidget');
+  if (generateBtn) {
+    generateBtn.addEventListener('click', generateWidget);
+    generateBtn.disabled = true; // Desabilitado até validação passar
+  }
+
+  // Validar ao carregar ABIs
+  const loadAbisBtn = $('loadAbisBtn');
+  if (loadAbisBtn) {
+    loadAbisBtn.addEventListener('click', () => {
+      setTimeout(async () => {
+        try {
+          await validateWidgetConfig();
+        } catch (e) {
+          addDebug(`Erro na validação: ${e.message}`);
+        }
+      }, 500);
+    });
+  }
+
+  // Re-validar quando campos importantes mudarem
+  const fieldsToWatch = ['saleContract', 'receiverWallet', 'rpcUrl'];
+  fieldsToWatch.forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.addEventListener('blur', () => {
+        setTimeout(async () => {
+          try {
+            await validateWidgetConfig();
+          } catch (e) {
+            addDebug(`Erro na validação: ${e.message}`);
+          }
+        }, 200);
+      });
+    }
+  });
+
+  // Auto-validar após 2s de carregamento inicial
+  setTimeout(async () => {
+    try {
+      await validateWidgetConfig();
+      addDebug('Validação inicial executada');
+    } catch (e) {
+      addDebug(`Erro na validação inicial: ${e.message}`);
+    }
+  }, 2000);
 
   // Address info icons
   const tokenInfo = $('tokenContractInfoBtn'); if (tokenInfo) tokenInfo.addEventListener('click', () => { const el = $('fieldBalance_tokenContract'); if (el) { const wasOpen = el.classList.contains('show'); el.classList.toggle('show'); if (!wasOpen) { try { autoFetchField('tokenContract'); } catch (_) { } } } });
@@ -1501,3 +1580,503 @@ function performInlineTransfer() {
     }
   })();
 }
+
+// ============================================================================
+// INTEGRAÇÃO COM WIDGET GENERATOR (validação e geração)
+// ============================================================================
+
+/**
+ * Valida configuração completa antes de permitir geração
+ * Atualiza checklist visual e habilita/desabilita botão "Gerar Widget"
+ */
+async function validateWidgetConfig() {
+  const checks = {
+    network: false,
+    sale: false,
+    receiver: false,
+    saleAbi: false,
+    purchase: false
+  };
+  
+  const errors = [];
+  const warnings = [];
+  
+  // 1. Rede selecionada e RPC funcional
+  let rpcUrl = $('rpcUrl')?.value?.trim();
+  const chainId = window.widgetSelectedChainId || 97;
+  // Se DOM não possuir rpcUrl, tentar recuperar do provider atual ou override
+  if (!rpcUrl) {
+    try { rpcUrl = rpcProvider?.connection?.url || rpcUrl; } catch (_) { }
+    if (!rpcUrl && typeof window.widgetRpcOverride === 'string') rpcUrl = window.widgetRpcOverride;
+    if (!rpcUrl) rpcUrl = getFallbackRpc(chainId);
+  }
+  debugJSON('Validação - entrada', { rpcUrl, chainId, hasSaleAbi: Array.isArray(saleAbi) && saleAbi.length > 0 });
+
+  if (rpcUrl) {
+    // Testar se RPC está respondendo
+    try {
+      if (!rpcProvider) {
+        rpcProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
+      }
+      // Timeout de 3 segundos para evitar travar a UI
+      const networkPromise = rpcProvider.getNetwork();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('RPC timeout')), 3000)
+      );
+      
+      await Promise.race([networkPromise, timeoutPromise]);
+      checks.network = true;
+      addDebug('Validação - RPC OK');
+    } catch (e) {
+      warnings.push(`RPC não responde: ${e.message}. Usando fallback.`);
+      // Aplicar fallback automaticamente
+      const fallbackUrl = getFallbackRpc(chainId);
+      if (fallbackUrl) {
+        try {
+          rpcProvider = new ethers.providers.JsonRpcProvider(fallbackUrl);
+          await rpcProvider.getNetwork();
+          const hidden = $('rpcUrl'); 
+          if (hidden) hidden.value = fallbackUrl;
+          const codeEl = $('rpcUrlCode'); 
+          if (codeEl) codeEl.textContent = fallbackUrl;
+          checks.network = true;
+          addDebug(`RPC fallback aplicada: ${fallbackUrl}`);
+        } catch (e2) {
+          errors.push('RPC não configurado ou indisponível');
+        }
+      } else {
+        errors.push('RPC não configurado');
+      }
+    }
+  } else {
+    errors.push('RPC não configurado');
+  }
+  
+  // 2. Contrato Sale válido
+  const saleAddr = $('saleContract')?.value?.trim();
+  if (saleAddr && ethers.utils.isAddress(saleAddr)) {
+    checks.sale = true;
+    addDebug(`Validação - Sale OK: ${shortAddr(saleAddr)}`);
+  } else {
+    errors.push('Endereço Sale inválido ou vazio');
+    addDebug('Validação - Sale inválido');
+  }
+  
+  // 3. Carteira recebedora (receiverWallet) - OPCIONAL
+  const receiverAddr = $('receiverWallet')?.value?.trim();
+  if (receiverAddr && ethers.utils.isAddress(receiverAddr)) {
+    checks.receiver = true;
+    addDebug(`Validação - Receiver informado: ${shortAddr(receiverAddr)}`);
+  } else {
+    // Receiver é opcional, então não é erro crítico
+    warnings.push('ReceiverWallet não configurado (tentará auto-detectar)');
+    checks.receiver = true; // Marcar como OK mesmo sem preencher
+    addDebug('Validação - Receiver ausente (tentará auto-detectar ao gerar)');
+  }
+  
+  // 4. ABI do Sale carregada
+  if (Array.isArray(saleAbi) && saleAbi.length > 0) {
+    checks.saleAbi = true;
+    addDebug(`Validação - Sale ABI itens: ${saleAbi.length}`);
+  } else {
+    errors.push('ABI do Sale não carregada (clique em "Carregar ABIs")');
+    addDebug('Validação - Sale ABI ausente');
+  }
+  
+  // 5. Função de compra detectável
+  if (checks.saleAbi) {
+    try {
+      const purchaseFunc = WidgetGenerator.detectPurchaseFunction(saleAbi);
+      if (purchaseFunc?.name) {
+        checks.purchase = true;
+        debugJSON('Validação - Função detectada', purchaseFunc);
+      } else {
+        errors.push('Nenhuma função payable encontrada no Sale');
+        addDebug('Validação - Nenhuma função payable encontrada');
+      }
+    } catch (e) {
+      errors.push(`Erro ao detectar função de compra: ${e.message}`);
+      addDebug(`Validação - Erro detectando função: ${e.message}`);
+    }
+  }
+  
+  // Atualizar checklist visual
+  updateChecklistUI(checks);
+  
+  // Habilitar/desabilitar botão de gerar
+  const generateBtn = $('generateWidget');
+  const allRequired = checks.network && checks.sale && checks.saleAbi && checks.purchase;
+  
+  if (generateBtn) {
+    generateBtn.disabled = !allRequired;
+    if (!allRequired) {
+      generateBtn.title = 'Complete a validação para gerar o widget';
+    } else {
+      generateBtn.title = 'Clique para gerar configuração JSON';
+    }
+  }
+  
+  // Log para debug
+  if (errors.length > 0) {
+    addDebug(`Validação: ${errors.length} erro(s) - ${errors.join('; ')}`);
+  }
+  if (warnings.length > 0) {
+    addDebug(`Validação: ${warnings.length} aviso(s) - ${warnings.join('; ')}`);
+  }
+  debugJSON('Validação - checklist', { checks, allRequired });
+  
+  return {
+    valid: allRequired,
+    checks,
+    errors,
+    warnings
+  };
+}
+
+/**
+ * Atualiza os ícones do checklist visual
+ */
+function updateChecklistUI(checks) {
+  const icons = {
+    network: $('checkNetwork'),
+    sale: $('checkSale'),
+    receiver: $('checkReceiver'),
+    saleAbi: $('checkSaleAbi'),
+    purchase: $('checkPurchase')
+  };
+  
+  Object.keys(checks).forEach(key => {
+    const icon = icons[key];
+    if (!icon) return;
+    
+    if (checks[key]) {
+      icon.textContent = '✅';
+      icon.classList.remove('text-muted', 'text-warning');
+      icon.classList.add('text-success');
+    } else {
+      icon.textContent = '⏳';
+      icon.classList.remove('text-success', 'text-muted');
+      icon.classList.add('text-warning');
+    }
+  });
+}
+
+/**
+ * Gera widget completo (JSON + snippet + preview)
+ */
+async function generateWidget() {
+  try {
+    addDebug('Gerar Widget - iniciado');
+    
+    // Validar novamente
+    const validation = await validateWidgetConfig();
+    if (!validation.valid) {
+      toast('Corrija os erros de validação antes de gerar', 'danger');
+      debugJSON('Gerar Widget - falha na validação', validation);
+      return;
+    }
+    
+    // Conectar carteira se não estiver conectada
+    if (!signer) {
+      toast('Conecte a carteira para gerar o widget', 'warning');
+      await connectWallet();
+      if (!signer) {
+        throw new Error('Falha ao conectar carteira');
+      }
+    }
+    
+  const ownerAddr = await signer.getAddress();
+  const ownerChecksum = ethers.utils.getAddress(ownerAddr);
+  addDebug(`Gerar Widget - owner: ${shortAddr(ownerChecksum)}`);
+    
+    // Coletar dados do formulário
+    const networkChainId = window.widgetSelectedChainId || 97;
+    const networkName = window.widgetSelectedNetworkName || 'BSC Testnet';
+    const networkRpc = $('rpcUrl')?.value?.trim() || (rpcProvider?.connection?.url || '');
+
+    const saleAddress = ethers.utils.getAddress($('saleContract')?.value?.trim() || '');
+  let receiverAddress = '';
+    let tokenAddress = '';
+
+    // ReceiverWallet (opcional) - tentar auto-detectar se vazio
+    const receiverInput = $('receiverWallet')?.value?.trim();
+    if (receiverInput && ethers.utils.isAddress(receiverInput)) {
+      receiverAddress = ethers.utils.getAddress(receiverInput);
+    }
+    if (!receiverAddress) {
+      try {
+        const prov = signer?.provider || rpcProvider || new ethers.providers.JsonRpcProvider(networkRpc || getFallbackRpc(networkChainId));
+        const minimal = [
+          'function destinationWallet() view returns (address)'
+        ];
+        const sale = new ethers.Contract(saleAddress, minimal, prov);
+        const autoRecv = await sale.destinationWallet();
+        if (autoRecv && ethers.utils.isAddress(autoRecv)) {
+          receiverAddress = ethers.utils.getAddress(autoRecv);
+          const rw = $('receiverWallet'); if (rw && !rw.value) rw.value = receiverAddress;
+          addDebug(`Receiver auto-detectado: ${receiverAddress}`);
+        }
+      } catch (_) { /* silencioso, seguirá sem receiver */ }
+      if (!receiverAddress) addDebug('Gerar Widget - receiver não informado e não detectado');
+    }
+
+    // Token (opcional)
+    const tokenInput = $('tokenContract')?.value?.trim();
+    if (tokenInput && ethers.utils.isAddress(tokenInput)) {
+      tokenAddress = ethers.utils.getAddress(tokenInput);
+    }
+
+    // Detectar função de compra a partir da ABI do Sale
+    const detectedPurchase = WidgetGenerator.detectPurchaseFunction(saleAbi || []);
+    if (!detectedPurchase) {
+      addDebug('Gerar Widget - nenhuma função payable detectada');
+      throw new Error('Não foi possível detectar uma função payable no contrato Sale.');
+    }
+    debugJSON('Gerar Widget - função de compra', detectedPurchase);
+
+    // Gerar código único do widget
+    const code = WidgetGenerator.generateWidgetCode(ownerChecksum);
+
+    // Montar estrutura esperada pelo gerador
+    const genInput = {
+      owner: ownerChecksum,
+      code,
+      chainId: Number(networkChainId),
+      rpcUrl: networkRpc,
+      saleContract: saleAddress,
+      receiverWallet: receiverAddress,
+      tokenContract: tokenAddress,
+      purchaseFunction: detectedPurchase,
+      saleAbi: saleAbi || [],
+      tokenAbi: tokenAbi || [],
+      ui: {
+        theme: 'light',
+        language: 'pt-BR',
+        showTestButton: true,
+        currencySymbol: (window.widgetSelectedNetworkSymbol || 'BNB'),
+        texts: {
+          title: 'Compre seus tokens',
+          description: 'Finalize sua compra com segurança.',
+          buyButton: 'Comprar agora'
+        }
+      }
+    };
+    
+    // Gerar JSON completo via WidgetGenerator
+  const widgetConfig = WidgetGenerator.generateWidgetConfig(genInput);
+  addDebug(`Gerar Widget - config OK: ${widgetConfig.code}`);
+    
+    addDebug(`Widget gerado: code=${widgetConfig.code}`);
+    
+    // Exibir código do widget
+    const codeEl = $('widgetCode');
+    if (codeEl) {
+      if ('value' in codeEl) codeEl.value = widgetConfig.code; else codeEl.textContent = widgetConfig.code;
+    }
+    
+    // Gerar snippet de incorporação
+  const snippet = WidgetGenerator.generateSnippet(ownerChecksum, widgetConfig.code);
+    const snippetEl = $('widgetSnippet');
+    if (snippetEl) {
+      if ('value' in snippetEl) snippetEl.value = snippet; else snippetEl.textContent = snippet;
+    }
+    const snippetArea = $('widgetSnippetArea');
+    if (snippetArea) snippetArea.classList.remove('d-none');
+    
+    // Habilitar botões de download/cópia
+  const downloadBtn = $('downloadJSON');
+  const copyBtn = $('copySnippet');
+    
+    if (downloadBtn) {
+      downloadBtn.disabled = false;
+      downloadBtn.onclick = () => WidgetGenerator.downloadJSON(widgetConfig);
+    }
+    
+    if (copyBtn) {
+      copyBtn.disabled = false;
+      copyBtn.onclick = async () => {
+        const success = await WidgetGenerator.copyToClipboard(snippet);
+        if (success) {
+          toast('Snippet copiado!', 'success');
+          addDebug('Snippet copiado para clipboard');
+        }
+      };
+    }
+    
+    // Renderizar preview
+  // Incluir "name" no objeto usado pelo preview para exibição
+  const previewConfig = { ...widgetConfig, network: { ...widgetConfig.network, name: networkName } };
+    renderWidgetPreview(previewConfig);
+    
+    // Salvar JSON no servidor
+    try {
+      addDebug('Salvando JSON no servidor...');
+      const saveResponse = await fetch('/api/widget/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          owner: ownerChecksum,
+          code: widgetConfig.code,
+          config: widgetConfig
+        })
+      });
+      
+      addDebug(`Save response status: ${saveResponse.status} ${saveResponse.statusText}`);
+      
+      if (saveResponse.ok) {
+        let saveResult;
+        try {
+          saveResult = await saveResponse.json();
+        } catch (jsonErr) {
+          const textResponse = await saveResponse.text();
+          addDebug(`Resposta não é JSON válido: ${textResponse.substring(0, 200)}`);
+          throw new Error('Servidor retornou resposta inválida');
+        }
+        addDebug(`✅ JSON salvo no servidor: ${saveResult.path}`);
+        toast('Widget gerado e salvo no servidor!', 'success');
+      } else {
+        let errorMsg = 'Erro desconhecido';
+        try {
+          // Use clone para evitar erro de stream já lido
+          const clone = saveResponse.clone();
+          const errorData = await clone.json();
+          errorMsg = errorData.error || errorData.message || `HTTP ${saveResponse.status}`;
+        } catch {
+          try {
+            const cloneText = saveResponse.clone();
+            const textError = await cloneText.text();
+            errorMsg = (textError || '').substring(0, 200) || `HTTP ${saveResponse.status}`;
+          } catch (_e2) {
+            errorMsg = `HTTP ${saveResponse.status}`;
+          }
+        }
+        addDebug(`⚠️ Erro ao salvar no servidor: ${errorMsg}`);
+        toast('Widget gerado, mas falhou ao salvar no servidor. Use Download JSON.', 'warning');
+      }
+    } catch (saveError) {
+      addDebug(`⚠️ Erro ao salvar no servidor: ${saveError.message}`);
+      console.error('Save error details:', saveError);
+      toast('Widget gerado, mas falhou ao salvar no servidor. Use Download JSON.', 'warning');
+    }
+    
+    toast('Widget gerado com sucesso!', 'success');
+    addDebug('Gerar Widget - concluído com sucesso');
+    
+  } catch (error) {
+    addDebug(`Gerar Widget - erro: ${error.message}`);
+    toast(`Erro: ${error.message}`, 'danger');
+  }
+}
+
+/**
+ * Renderiza preview do widget em iframe
+ */
+function renderWidgetPreview(config) {
+  const previewContainer = $('widgetPreviewContainer');
+  if (!previewContainer) return;
+  
+  // Criar iframe com HTML standalone
+  const iframe = document.createElement('iframe');
+  iframe.style.width = '100%';
+  iframe.style.height = '600px';
+  iframe.style.border = '1px solid #ddd';
+  iframe.style.borderRadius = '8px';
+  
+  previewContainer.innerHTML = '';
+  previewContainer.appendChild(iframe);
+  
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+  
+  // HTML completo para preview
+  const html = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Preview Widget - ${config.code}</title>
+      <style>
+        body { 
+          font-family: sans-serif; 
+          padding: 2rem; 
+          background: #f5f5f5; 
+        }
+        .preview-info {
+          background: white;
+          padding: 1rem;
+          border-radius: 8px;
+          margin-bottom: 1rem;
+          border-left: 4px solid #ff6b35;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="preview-info">
+        <strong>Preview do Widget</strong>
+        <p style="margin:0.5rem 0 0;font-size:0.9rem;color:#666;">
+          Code: <code>${config.code}</code><br>
+          Owner: <code>${config.owner}</code><br>
+          Network: ${config.network.name} (ChainId ${config.network.chainId})
+        </p>
+      </div>
+      
+      <!-- Widget será carregado aqui -->
+      <div class="tokencafe-widget" 
+           data-owner="${config.owner}" 
+           data-code="${config.code}">
+        <p style="text-align:center;padding:2rem;color:#999;">
+          ⏳ Carregando widget...<br>
+          <small>(Em produção, o loader seria externo)</small>
+        </p>
+      </div>
+      
+      <script>
+        // Simular carregamento do widget (em prod seria tokencafe-widget.min.js)
+        console.log('Preview widget:', {
+          owner: '${config.owner}',
+          code: '${config.code}',
+          config: ${JSON.stringify(config, null, 2)}
+        });
+        
+        // Placeholder de UI (em produção o loader renderizaria a UI completa)
+        setTimeout(() => {
+          const container = document.querySelector('.tokencafe-widget');
+          container.innerHTML = \`
+            <div style="max-width:420px;margin:0 auto;padding:1.5rem;background:white;border:2px solid #ddd;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+              <h3 style="margin:0 0 0.5rem;text-align:center;">${config.ui?.texts?.title || 'Compre seus tokens'}</h3>
+              <p style="margin:0 0 1.5rem;text-align:center;color:#666;font-size:0.95rem;">${config.ui?.texts?.description || 'Preview do widget gerado'}</p>
+              
+              <label style="display:block;margin-bottom:0.5rem;font-weight:600;">Quantidade</label>
+              <input type="number" value="100" style="width:100%;padding:0.75rem;margin-bottom:1rem;border:1px solid #ddd;border-radius:6px;"/>
+              
+              <label style="display:block;margin-bottom:0.5rem;font-weight:600;">Valor (${config.ui?.currencySymbol || 'BNB'})</label>
+              <input type="text" value="0.1" style="width:100%;padding:0.75rem;margin-bottom:1.5rem;border:1px solid #ddd;border-radius:6px;"/>
+              
+              <button style="width:100%;padding:1rem;font-size:1.1rem;font-weight:700;color:white;background:#ff6b35;border:none;border-radius:8px;cursor:pointer;">
+                ${config.ui?.texts?.buyButton || 'Comprar Agora'}
+              </button>
+              
+              <p style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #ddd;text-align:center;font-size:0.75rem;color:#999;">
+                Powered by <strong>TokenCafe</strong> v1.0.0
+              </p>
+            </div>
+          \`;
+        }, 500);
+      </script>
+    </body>
+    </html>
+  `;
+  
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
+  
+  addDebug('Preview renderizado no iframe');
+}
+
+// Expor funções globalmente para uso nos event listeners
+window.validateWidgetConfig = validateWidgetConfig;
+window.generateWidget = generateWidget;
+

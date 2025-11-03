@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokenCafe Widget - Demo</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
+    .info {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 TokenCafe Widget</h1>
+    <div class="info">
+      <strong>Teste do Widget de Compra</strong><br>
+      Este widget carrega automaticamente a configuração do contrato e permite compra direta via MetaMask.
+    </div>
+    
+    <!-- TokenCafe Widget - tc-20251103-152900-l20a-4bc5 -->
+    <div class="tokencafe-widget" 
+         data-owner="0x0b81337F18767565D2eA40913799317A25DC4bc5"
+         data-code="tc-20251103-152900-l20a-4bc5"></div>
+  </div>
+  
+  <script src="/assets/tokencafe-widget.min.js"></script>
+</body>
+</html>

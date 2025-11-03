@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "owner": "0x0b81337F18767565D2eA40913799317A25DC4bc5",
+  "code": "tc-20251103-152900-l20a-4bc5",
+  "network": {
+    "chainId": 97,
+    "rpcUrl": "https://bsc-testnet.publicnode.com"
+  },
+  "contracts": {
+    "sale": "0x2701B4ef482BE4DD8A653B7C97090713A9a0AFE6",
+    "receiverWallet": "0xEe02E32d8d2888E9f1D6d13391E716Bc7F41f6Ae",
+    "token": "0x2cf724171a998C3d470048AC2F1b187a48A5cafE"
+  },
+  "purchase": {
+    "functionName": "buy",
+    "functionSignature": "buy(uint256)",
+    "argsMode": "quantity",
+    "priceMode": "manual"
+  },
+  "ui": {
+    "theme": "light",
+    "language": "pt-BR",
+    "showTestButton": true,
+    "currencySymbol": "BNB",
+    "texts": {
+      "title": "Compre seus tokens",
+      "description": "Finalize sua compra com segurança.",
+      "buyButton": "Comprar agora"
+    }
+  },
+  "advanced": {
+    "minAbi": {
+      "sale": [
+        "function buy(uint256) payable",
+        "function destinationWallet() view returns (address)",
+        "function saleToken() view returns (address)",
+        "function bnbPrice() view returns (uint256)"
+      ],
+      "token": [
+        "function decimals() view returns (uint8)",
+        "function symbol() view returns (string)",
+        "function name() view returns (string)",
+        "function balanceOf(address) view returns (uint256)"
+      ]
+    }
+  },
+  "meta": {
+    "createdAt": "2025-11-03T15:29:00.000Z",
+    "updatedAt": "2025-11-03T15:29:00.000Z",
+    "createdBy": "0x0b81337F18767565D2eA40913799317A25DC4bc5"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "owner": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+  "code": "tc-20250116-143522-abc123",
+  "network": {
+    "chainId": 97,
+    "name": "BSC Testnet",
+    "rpcUrl": "https://bsc-testnet.publicnode.com"
+  },
+  "contracts": {
+    "sale": "0x1234567890123456789012345678901234567890",
+    "receiverWallet": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+    "token": "0x0987654321098765432109876543210987654321"
+  },
+  "purchase": {
+    "functionName": "buy",
+    "signature": "buy(uint256)",
+    "argsMode": "quantity",
+    "priceMode": "value"
+  },
+  "ui": {
+    "theme": "light",
+    "language": "pt-BR",
+    "showTestButton": true,
+    "currencySymbol": "tBNB",
+    "texts": {
+      "title": "Compre seus Tokens de Teste",
+      "description": "Widget de demonstração TokenCafe - BSC Testnet",
+      "buyButton": "Comprar Agora",
+      "connectWallet": "Conectar Carteira"
+    }
+  },
+  "advanced": {
+    "minAbi": {
+      "sale": [
+        "function buy(uint256) payable",
+        "function price() view returns (uint256)",
+        "function destinationWallet() view returns (address)"
+      ],
+      "token": [
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
+        "function decimals() view returns (uint8)"
+      ]
+    }
+  },
+  "meta": {
+    "createdAt": "2025-01-16T14:35:22.000Z",
+    "updatedAt": "2025-01-16T14:35:22.000Z",
+    "createdBy": "widget-teste.html"
+  }
+}

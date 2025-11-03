@@ -196,6 +196,16 @@ def serve_js(filename):
     """Servir arquivos JavaScript"""
     return send_from_directory('js', filename)
 
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Servir arquivos assets (widgets, etc)"""
+    return send_from_directory('assets', filename)
+
+@app.route('/widget/<path:filename>')
+def serve_widget(filename):
+    """Servir arquivos da pasta widget (JSONs de configuração)"""
+    return send_from_directory('widget', filename)
+
 @app.route('/imgs/<path:filename>')
 def serve_imgs(filename):
     """Servir imagens e favicons"""
@@ -615,6 +625,73 @@ def get_supported_networks():
     return jsonify({'networks': networks}), 200
 
 # ============================================================================
+# WIDGET CONFIGURATION STORAGE
+# ============================================================================
+
+@app.route('/api/widget/save', methods=['POST', 'OPTIONS'])
+def save_widget_config():
+    """
+    Salva configuração JSON do widget no servidor
+    Endpoint: POST /api/widget/save
+    Body: { owner, code, config (objeto JSON completo) }
+    """
+    try:
+        # Responder preflight CORS rapidamente
+        if request.method == 'OPTIONS':
+            return ('', 204)
+
+        print("🔵 [API] Recebendo requisição POST /api/widget/save")
+        data = request.get_json()
+        
+        if not data:
+            print("❌ [API] Body JSON ausente")
+            return jsonify({'error': 'Body JSON ausente'}), 400
+        
+        owner = data.get('owner')
+        code = data.get('code')
+        config = data.get('config')
+        
+        print(f"📝 [API] Owner: {owner}")
+        print(f"📝 [API] Code: {code}")
+        print(f"📝 [API] Config keys: {list(config.keys()) if config else 'None'}")
+        
+        # Validar campos obrigatórios
+        if not owner or not code or not config:
+            print("❌ [API] Campos obrigatórios ausentes")
+            return jsonify({'error': 'Campos owner, code e config são obrigatórios'}), 400
+        
+        # Criar diretório se não existir
+        widget_dir = os.path.join(BASE_DIR, 'widget', 'gets', owner)
+        os.makedirs(widget_dir, exist_ok=True)
+        print(f"📁 [API] Diretório criado/verificado: {widget_dir}")
+        
+        # Caminho do arquivo JSON
+        json_path = os.path.join(widget_dir, f'{code}.json')
+        print(f"💾 [API] Salvando em: {json_path}")
+        
+        # Salvar JSON
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+        
+        result = {
+            'success': True,
+            'message': 'Widget salvo com sucesso',
+            'path': f'/widget/gets/{owner}/{code}.json'
+        }
+        
+        print(f"✅ [API] Widget salvo com sucesso: {result['path']}")
+        return jsonify(result), 200
+        
+    except Exception as e:
+        print(f"❌ [API] Erro ao salvar widget: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': f'Erro ao salvar widget: {str(e)}'
+        }), 500
+
+# ============================================================================
 # SERVIDOR PRINCIPAL
 # ============================================================================
 
@@ -631,21 +708,20 @@ def health_check():
 if __name__ == '__main__':
     print("🐍 ===== TOKENCAFE FLASK SERVER =====")
     print("🚀 Iniciando servidor Flask...")
-    print("📡 Porta: 3001")
+    print("📡 Porta: 5000")
     print("🌐 URLs disponíveis:")
-    print("   • http://localhost:3001 (Página principal)")
-    print("   • http://localhost:3001/dashboard (Dashboard)")
-    print("   • http://localhost:3001/test-system (Testes)")
-    print("   • http://localhost:3001/api/auth/login (API Login)")
-    print("   • http://localhost:3001/api/widgets (API Widgets)")
-    print("   • http://localhost:3001/health (Health Check)")
+    print("   • http://localhost:5000 (Página principal)")
+    print("   • http://localhost:5000/pages/modules/widget/widget-teste.html (Admin)")
+    print("   • http://localhost:5000/pages/modules/widget/teste.html (Demo)")
+    print("   • http://localhost:5000/api/widget/save (API Salvar Widget)")
+    print("   • http://localhost:5000/health (Health Check)")
     print("☕ TokenCafe Flask - Pronto para servir!")
     print("=" * 50)
     
     # Executar servidor
     app.run(
         host='0.0.0.0',
-        port=3001,
+        port=5000,
         debug=True,
         use_reloader=False  # Evitar restart duplo no modo debug
     )
