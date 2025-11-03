@@ -652,6 +652,38 @@ function wireEvents() {
   const b3 = $('executeBuy'); if (b3) b3.addEventListener('click', executeBuy);
   const b4 = $('simulateBuy'); if (b4) b4.addEventListener('click', simulatePayable);
   const balEl = $('buyerBalance'); if (balEl) balEl.addEventListener('input', refreshBuyerBalanceStatus);
+  
+  // Botões de Log
+  const clearLogBtn = $('clearLog');
+  if (clearLogBtn) {
+    clearLogBtn.addEventListener('click', () => {
+      const logEl = $('log'); if (logEl) logEl.textContent = '';
+      const summaryEl = $('summary'); if (summaryEl) summaryEl.textContent = '';
+      const debugEl = $('debugArea'); if (debugEl) debugEl.textContent = '';
+      toast('Log limpo', 'info');
+    });
+  }
+  
+  const exportLogBtn = $('exportLog');
+  if (exportLogBtn) {
+    exportLogBtn.addEventListener('click', () => {
+      const logEl = $('log');
+      const summaryEl = $('summary');
+      const debugEl = $('debugArea');
+      let content = '=== LOG ===\n' + (logEl ? logEl.textContent : '') + '\n\n';
+      content += '=== SUMMARY ===\n' + (summaryEl ? summaryEl.textContent : '') + '\n\n';
+      content += '=== DEBUG ===\n' + (debugEl ? debugEl.textContent : '');
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `widget-log-${new Date().toISOString()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Log exportado', 'success');
+    });
+  }
+  
   const btnClear = $('btnClearNetworkSelection'); if (btnClear) btnClear.addEventListener('click', clearNetworkSelection);
   const networkClearBtn = $('networkClearBtn'); if (networkClearBtn) networkClearBtn.addEventListener('click', clearNetworkSelection);
   const btnDetails = $('networkDetailsBtn'); if (btnDetails) btnDetails.addEventListener('click', () => {
