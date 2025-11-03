@@ -640,34 +640,34 @@ def save_widget_config():
         if request.method == 'OPTIONS':
             return ('', 204)
 
-        print("🔵 [API] Recebendo requisição POST /api/widget/save")
+        print("[API] Recebendo requisicao POST /api/widget/save")
         data = request.get_json()
         
         if not data:
-            print("❌ [API] Body JSON ausente")
+            print("[API] ERROR: Body JSON ausente")
             return jsonify({'error': 'Body JSON ausente'}), 400
         
         owner = data.get('owner')
         code = data.get('code')
         config = data.get('config')
         
-        print(f"📝 [API] Owner: {owner}")
-        print(f"📝 [API] Code: {code}")
-        print(f"📝 [API] Config keys: {list(config.keys()) if config else 'None'}")
+        print(f"[API] Owner: {owner}")
+        print(f"[API] Code: {code}")
+        print(f"[API] Config keys: {list(config.keys()) if config else 'None'}")
         
-        # Validar campos obrigatórios
+        # Validar campos obrigatorios
         if not owner or not code or not config:
-            print("❌ [API] Campos obrigatórios ausentes")
-            return jsonify({'error': 'Campos owner, code e config são obrigatórios'}), 400
+            print("[API] ERROR: Campos obrigatorios ausentes")
+            return jsonify({'error': 'Campos owner, code e config sao obrigatorios'}), 400
         
-        # Criar diretório se não existir
+        # Criar diretorio se nao existir
         widget_dir = os.path.join(BASE_DIR, 'widget', 'gets', owner)
         os.makedirs(widget_dir, exist_ok=True)
-        print(f"📁 [API] Diretório criado/verificado: {widget_dir}")
+        print(f"[API] Diretorio criado/verificado: {widget_dir}")
         
         # Caminho do arquivo JSON
         json_path = os.path.join(widget_dir, f'{code}.json')
-        print(f"💾 [API] Salvando em: {json_path}")
+        print(f"[API] Salvando em: {json_path}")
         
         # Salvar JSON
         with open(json_path, 'w', encoding='utf-8') as f:
@@ -679,11 +679,11 @@ def save_widget_config():
             'path': f'/widget/gets/{owner}/{code}.json'
         }
         
-        print(f"✅ [API] Widget salvo com sucesso: {result['path']}")
+        print(f"[API] SUCCESS: Widget salvo com sucesso: {result['path']}")
         return jsonify(result), 200
         
     except Exception as e:
-        print(f"❌ [API] Erro ao salvar widget: {str(e)}")
+        print(f"[API] ERROR: Erro ao salvar widget: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({
@@ -706,16 +706,16 @@ def health_check():
     }), 200
 
 if __name__ == '__main__':
-    print("🐍 ===== TOKENCAFE FLASK SERVER =====")
-    print("🚀 Iniciando servidor Flask...")
-    print("📡 Porta: 5000")
-    print("🌐 URLs disponíveis:")
-    print("   • http://localhost:5000 (Página principal)")
-    print("   • http://localhost:5000/pages/modules/widget/widget-teste.html (Admin)")
-    print("   • http://localhost:5000/pages/modules/widget/teste.html (Demo)")
-    print("   • http://localhost:5000/api/widget/save (API Salvar Widget)")
-    print("   • http://localhost:5000/health (Health Check)")
-    print("☕ TokenCafe Flask - Pronto para servir!")
+    print("===== TOKENCAFE FLASK SERVER =====")
+    print("Iniciando servidor Flask...")
+    print("Porta: 5000")
+    print("URLs disponiveis:")
+    print("   * http://localhost:5000 (Pagina principal)")
+    print("   * http://localhost:5000/pages/modules/widget/widget-teste.html (Admin)")
+    print("   * http://localhost:5000/pages/modules/widget/teste.html (Demo)")
+    print("   * http://localhost:5000/api/widget/save (API Salvar Widget)")
+    print("   * http://localhost:5000/health (Health Check)")
+    print("TokenCafe Flask - Pronto para servir!")
     print("=" * 50)
     
     # Executar servidor

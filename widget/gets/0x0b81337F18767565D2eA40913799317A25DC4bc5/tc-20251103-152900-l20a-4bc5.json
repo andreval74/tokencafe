@@ -4,12 +4,13 @@
   "code": "tc-20251103-152900-l20a-4bc5",
   "network": {
     "chainId": 97,
-    "rpcUrl": "https://bsc-testnet.publicnode.com"
+    "rpcUrl": "https://data-seed-prebsc-1-s1.bnbchain.org:8545"
   },
   "contracts": {
     "sale": "0x2701B4ef482BE4DD8A653B7C97090713A9a0AFE6",
     "receiverWallet": "0xEe02E32d8d2888E9f1D6d13391E716Bc7F41f6Ae",
-    "token": "0x2cf724171a998C3d470048AC2F1b187a48A5cafE"
+    "token": "0x2cf724171a998C3d470048AC2F1b187a48A5cafE",
+    "tokenSymbol": "XCAFE"
   },
   "purchase": {
     "functionName": "buy",
@@ -20,12 +21,13 @@
   "ui": {
     "theme": "light",
     "language": "pt-BR",
-    "showTestButton": true,
+    "showTestButton": false,
     "currencySymbol": "BNB",
+    "tokenPrice": "0.01",
+    "availableTokens": "1M",
     "texts": {
-      "title": "Compre seus tokens",
-      "description": "Finalize sua compra com segurança.",
-      "buyButton": "Comprar agora"
+      "title": "Comprar Tokens",
+      "buyButton": "Conectar MetaMask"
     }
   },
   "advanced": {

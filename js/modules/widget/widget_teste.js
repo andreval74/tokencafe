@@ -2074,11 +2074,10 @@ function renderWidgetPreview(config) {
     </html>
   `;
   
-  iframeDoc.open();
-  iframeDoc.write(html);
-  iframeDoc.close();
+  // Usar srcdoc em vez de document.write para evitar CSP violations
+  iframe.srcdoc = html;
   
-  addDebug('Preview renderizado no iframe');
+  addDebug('Preview renderizado no iframe via srcdoc');
 }
 
 // Expor funções globalmente para uso nos event listeners
