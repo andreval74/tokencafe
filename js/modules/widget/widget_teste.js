@@ -1368,7 +1368,36 @@ function clearNetworkSelection() {
       setTimeout(() => autoFetchField(id), 300);
     });
     const rpcEl = document.getElementById('rpcUrl');
-    if (rpcEl) { const deb = debounce(() => { ids.forEach(id => autoFetchField(id)); }, 800); rpcEl.addEventListener('input', deb); }
+    if (rpcEl) {
+      const deb = debounce(() => {
+        // Recarregar ABIs e revalidar saldos quando RPC mudar
+        try { loadAbis(); } catch (_) { }
+        ids.forEach(id => autoFetchField(id));
+        try { checkSaleBalance(); } catch (_) { }
+      }, 800);
+      rpcEl.addEventListener('input', deb);
+    }
+
+    // Atualizações reativas de ABI quando usuário editar os endereços
+    const tokenEl = document.getElementById('tokenContract');
+    if (tokenEl) {
+      const debTok = debounce(async () => {
+        try { await autoFetchAndValidateContract(tokenEl.value.trim(), 'token'); } catch (_) { }
+        try { await loadAbis(); } catch (_) { }
+        try { autoFetchField('tokenContract'); } catch (_) { }
+      }, 700);
+      tokenEl.addEventListener('input', debTok);
+    }
+
+    const saleEl = document.getElementById('saleContract');
+    if (saleEl) {
+      const debSale = debounce(async () => {
+        try { await autoFetchAndValidateContract(saleEl.value.trim(), 'sale'); } catch (_) { }
+        try { await loadAbis(); } catch (_) { }
+        try { autoFetchField('saleContract'); } catch (_) { }
+      }, 700);
+      saleEl.addEventListener('input', debSale);
+    }
   }
 
   // Expor o fetch para uso fora deste escopo

@@ -293,17 +293,17 @@ const addDebug = (label,data)=>{ debugLog.push({time:new Date().toISOString(),la
     const saleAbiOk = hasAbi(saleAbi);
     const tokenAbiOk = hasAbi(tokenAbi);
     const paySel = document.getElementById('payableFunctions');
-    const payableOk = !!(paySel && paySel.options && paySel.options.length>0 && paySel.value);
-    const bnbInput = document.getElementById('bnbToPay');
+    const payableOk = !!(paySel && paySel.options && paySel.options.length>0);
     const priceOk = parseFloat(document.getElementById('buyTokenPrice')?.value||'0')>0;
     const qtyOk = parseFloat(document.getElementById('buyAmountTokens')?.value||'0')>0;
+    const bnbInput = document.getElementById('bnbToPay');
     const bnbOk = bnbInput ? (parseFloat(bnbInput.value||'0')>0 || (priceOk && qtyOk)) : (priceOk && qtyOk);
 
     setBtnEnabled('connectWallet', true);
     setBtnEnabled('runChecksBtn', true);
     setBtnEnabled('checkBalance', (rpcOk && tokenAbiOk && saleAddrOk), 'Requer RPC, ABI Token e endereço Sale válido');
     setBtnEnabled('sendTokens', (signerOk && tokenAbiOk && saleAddrOk), 'Requer MetaMask, ABI Token, endereço Sale válido e saldo suficiente');
-    setBtnEnabled('simulateBuy', (rpcOk && saleAbiOk && saleAddrOk && payableOk), 'Requer RPC, ABI Sale, endereço Sale e função selecionada');
+    setBtnEnabled('simulateBuy', (rpcOk && saleAbiOk && saleAddrOk && payableOk && (priceOk || qtyOk)), 'Requer RPC, ABI Sale, endereço Sale, função payable e preço/quantidade');
     const buyBtn = getBtn('executeBuy'); if(buyBtn){ setBtnEnabled('executeBuy', (signerOk && saleAbiOk && tokenAbiOk && saleAddrOk && tokenAddrOk && bnbOk), 'Requer MetaMask, ABIs, endereços válidos e valor em BNB'); }
   };
 
@@ -397,7 +397,20 @@ async function testRPC(url){
   try{ tokenAbi = JSON.parse(document.getElementById('tokenAbiText').value); log('✅ ABI Token carregada'); }catch(e){ tokenAbi=null; log('⚠️ ABI Token inválida'); addDebug('Token ABI Parse Error', e); }
   try{ saleAbi = JSON.parse(document.getElementById('saleAbiText').value); log('✅ ABI Sale carregada'); }catch(e){ saleAbi=null; log('⚠️ ABI Sale inválida'); addDebug('Sale ABI Parse Error', e); }
   const payFuncs = saleAbi ? saleAbi.filter(f => f.type==='function' && f.stateMutability==='payable') : [];
-  const sel = document.getElementById('payableFunctions'); if(sel){ sel.innerHTML=''; payFuncs.forEach(f=>{ const opt=document.createElement('option'); opt.value=f.name; opt.text=f.name+'('+f.inputs.map(i=>i.type).join(',')+')'; sel.appendChild(opt); }); }
+  const sel = document.getElementById('payableFunctions'); 
+  if(sel){ 
+    sel.innerHTML='<option value="">Selecione uma função...</option>'; 
+    payFuncs.forEach(f=>{ 
+      const opt=document.createElement('option'); 
+      opt.value=f.name; 
+      opt.text=f.name+'('+f.inputs.map(i=>i.type).join(',')+')'; 
+      sel.appendChild(opt); 
+    }); 
+    // Selecionar 'buy' automaticamente se disponível
+    if(payFuncs.find(f => f.name === 'buy')){
+      sel.value = 'buy';
+    }
+  }
   if(payFuncs.length>0){ log('✅ Funções payable detectadas: '+payFuncs.map(f=>f.name).join(', ')); } else { log('⚠️ Nenhuma função payable encontrada'); }
   if(sumEl){ sumEl.textContent = JSON.stringify({rpc:rpcUrl,tokenAbiLoaded:!!tokenAbi,saleAbiLoaded:!!saleAbi,payableFunctions:payFuncs.map(f=>f.name)},null,2); }
   const stRun = document.getElementById('status-runChecksBtn'); if(stRun){ stRun.textContent = 'Pronto'; stRun.className = 'step-status ready mt-1'; }
@@ -518,42 +531,115 @@ async function testRPC(url){
   if(!provider || !saleAbi){ alert('Conecte RPC e carregue ABI Sale'); return; }
   const sel = document.getElementById('payableFunctions');
   const funcName = sel?.value || 'buy';
+  if(!funcName){ alert('Selecione uma função payable'); return; }
   try{
     const saleAddr = (document.getElementById('saleContract').value||'').trim();
     const tokenAddr = (document.getElementById('tokenContract').value||'').trim();
+    if(!saleAddr){ alert('Informe o endereço do contrato Sale'); return; }
+    
     const sale = new ethers.Contract(saleAddr, saleAbi, provider);
-    const token = new ethers.Contract(tokenAddr, tokenAbi, signer || provider);
-    const decimals = await token.decimals().catch(()=>18);
     const priceStr = (document.getElementById('buyTokenPrice')?.value || '0').trim();
     const qtyStr = (document.getElementById('buyAmountTokens')?.value || '0').trim();
     const manualBnbStr = (document.getElementById('bnbToPay')?.value || '').trim();
+    
     const qtyNum = parseFloat(qtyStr);
-    if(!(qtyNum>0)) { log('⚠️ Informe quantidade de tokens > 0'); return; }
-    const quantityUnits = ethers.utils.parseUnits(qtyStr, decimals);
-    const buyAbiItem = Array.isArray(saleAbi) ? saleAbi.find(f => f.type==='function' && f.name==='buy') : null;
+    const priceNum = parseFloat(priceStr);
+    const manualBnbNum = parseFloat(manualBnbStr);
+    
+    if(!(qtyNum>0) && !(priceNum>0) && !(manualBnbNum>0)) { 
+      alert('Informe quantidade de tokens, preço por token ou valor em BNB'); 
+      return; 
+    }
+    
+    // Obter decimais do token se disponível
+    let decimals = 18;
+    if(tokenAddr && tokenAbi){
+      try{
+        const token = new ethers.Contract(tokenAddr, tokenAbi, provider);
+        decimals = await token.decimals();
+      }catch(e){ console.warn('Não foi possível obter decimais do token, usando 18'); }
+    }
+    
+    const buyAbiItem = Array.isArray(saleAbi) ? saleAbi.find(f => f.type==='function' && f.name===funcName) : null;
     const buyInputsCount = buyAbiItem?.inputs?.length || 0;
-    addDebug('BuyInputsCount', buyInputsCount);
+    addDebug('FunctionInputsCount', {function: funcName, inputs: buyInputsCount});
+    
     let txValue = ethers.BigNumber.from(0);
-    if (priceStr && parseFloat(priceStr)>0) { const weiPerToken = ethers.utils.parseEther(priceStr); txValue = weiPerToken.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals)); }
-    else if (sale.bnbPrice) { const pricePerUnit = await sale.bnbPrice(); txValue = pricePerUnit.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals)); }
-    else if (manualBnbStr) { txValue = ethers.utils.parseEther(manualBnbStr); }
-    else { txValue = ethers.utils.parseEther('0.01'); }
+    let quantityUnits = ethers.BigNumber.from(0);
+    
+    // Calcular quantidade em unidades se informada
+    if(qtyNum > 0){
+      quantityUnits = ethers.utils.parseUnits(qtyStr, decimals);
+    }
+    
+    // Calcular valor da transação
+    if (manualBnbNum > 0) { 
+      txValue = ethers.utils.parseEther(manualBnbStr); 
+    }
+    else if (priceNum > 0 && qtyNum > 0) { 
+      const weiPerToken = ethers.utils.parseEther(priceStr); 
+      txValue = weiPerToken.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals)); 
+    }
+    else if (qtyNum > 0) {
+      // Tentar obter preço do contrato
+      try{
+        if(sale.bnbPrice) { 
+          const pricePerUnit = await sale.bnbPrice(); 
+          txValue = pricePerUnit.mul(quantityUnits).div(ethers.BigNumber.from(10).pow(decimals)); 
+        } else {
+          txValue = ethers.utils.parseEther('0.01'); // Valor padrão
+        }
+      }catch(e){
+        txValue = ethers.utils.parseEther('0.01'); // Valor padrão
+      }
+    }
+    else { 
+      txValue = ethers.utils.parseEther('0.01'); // Valor padrão
+    }
+    
     addDebug('TxValueWei', txValue.toString());
     log(`🔍 Simulando ${funcName} com qty=${qtyStr} tokens e value=${ethers.utils.formatEther(txValue)} BNB...`);
+    
     const iface = new ethers.utils.Interface(saleAbi);
     let data;
-    if (funcName === 'buy' && buyInputsCount === 0) { data = iface.encodeFunctionData('buy', []); }
-    else if (funcName === 'buy' && buyInputsCount >= 1) { data = iface.encodeFunctionData('buy', [quantityUnits]); }
-    else { data = iface.encodeFunctionData(funcName, []); }
-    const est = await provider.estimateGas({ to: saleAddr, from: signer ? await signer.getAddress() : undefined, data, value: txValue });
+    if (funcName === 'buy' && buyInputsCount === 0) { 
+      data = iface.encodeFunctionData('buy', []); 
+    }
+    else if (funcName === 'buy' && buyInputsCount >= 1) { 
+      data = iface.encodeFunctionData('buy', [quantityUnits]); 
+    }
+    else { 
+      // Para outras funções, tentar sem parâmetros primeiro
+      data = iface.encodeFunctionData(funcName, []); 
+    }
+    
+    const fromAddress = signer ? await signer.getAddress() : undefined;
+    const est = await provider.estimateGas({ 
+      to: saleAddr, 
+      from: fromAddress, 
+      data, 
+      value: txValue 
+    });
+    
     log(`✅ estimateGas: ${est.toString()}`);
     addDebug('estimateGas', est.toString());
-    const st = document.getElementById('status-simulateBuy'); if(st){ st.textContent = `OK: Gas ${est.toString()}`; st.className = 'step-status ok mt-1'; }
+    const st = document.getElementById('status-simulateBuy'); 
+    if(st){ 
+      st.textContent = `OK: Gas ${est.toString()}`; 
+      st.className = 'step-status ok mt-1'; 
+    }
   }catch(e){
     log('❌ Erro estimateGas: ' + e.message);
     addDebug('EstimateGas Error',e);
-    if(e.code === 'UNPREDICTABLE_GAS_LIMIT'){ log('💡 Dica: Transação pode reverter. Verifique destinationWallet, saleToken e parâmetros/valor.'); log('🧭 Consulte: https://links.ethers.org/v5-errors-UNPREDICTABLE_GAS_LIMIT'); }
-    const st = document.getElementById('status-simulateBuy'); if(st){ st.textContent = 'Erro na simulação'; st.className = 'step-status blocked mt-1'; }
+    if(e.code === 'UNPREDICTABLE_GAS_LIMIT'){ 
+      log('💡 Dica: Transação pode reverter. Verifique destinationWallet, saleToken e parâmetros/valor.'); 
+      log('🧭 Consulte: https://links.ethers.org/v5-errors-UNPREDICTABLE_GAS_LIMIT'); 
+    }
+    const st = document.getElementById('status-simulateBuy'); 
+    if(st){ 
+      st.textContent = 'Erro na simulação'; 
+      st.className = 'step-status blocked mt-1'; 
+    }
   }
   setTimeout(()=>{ try{ applySequencer(); }catch(_e){} }, 200);
 });
