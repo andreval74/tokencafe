@@ -442,6 +442,11 @@ export class WalletConnector {
      */
     async tryAutoReconnect() {
         try {
+            // Evitar chamadas RPC sem ação explícita do usuário
+            if (!this.sessionAuthorized) {
+                this.log('⛔ Reconexão automática ignorada: sessão não autorizada');
+                return;
+            }
             const cachedConnection = this.getConnectionCache();
             if (!cachedConnection) return;
             this.log('🔄 Tentando reconexão automática...');
@@ -643,6 +648,11 @@ export class WalletConnector {
         // Estado inicial: verificar provider para evitar falso positivo
         const refreshFromProvider = async () => {
             try {
+                // Evita chamadas RPC quando não há sessão autorizada
+                if (!this.sessionAuthorized) {
+                    applyState({ account: null });
+                    return;
+                }
                 const accounts = await (window.ethereum?.request?.({ method: 'eth_accounts' }) || Promise.resolve([]));
                 const authorized = this.sessionAuthorized && Array.isArray(accounts) && accounts.length > 0;
                 const account = authorized ? accounts[0] : null;
@@ -676,6 +686,9 @@ export class WalletConnector {
      */
     async isConnected() {
         try {
+            if (!this.sessionAuthorized) {
+                return false;
+            }
             if (window.ethereum) {
                 const accs = await window.ethereum.request({ method: 'eth_accounts' });
                 if (accs && accs.length > 0 && this.sessionAuthorized) {

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widget Simples - Compra Básica</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Widget Simples</h1>
+      <p>Fluxo mínimo: conectar carteira e enviar pagamento ao beneficiário.</p>
+
+      <section class="card">
+        <div class="row">
+          <button id="connectBtn">Conectar MetaMask</button>
+          <span id="accountLabel">Carteira: -</span>
+        </div>
+
+        <div class="row">
+          <label>
+            Beneficiário (recebe o pagamento):
+            <input id="beneficiary" placeholder="0x..." />
+          </label>
+        </div>
+
+        <div class="row">
+          <label>
+            Quantidade (para cálculo):
+            <input id="qty" type="number" step="1" min="1" value="1" />
+          </label>
+        </div>
+
+        <div class="row">
+          <label>
+            Preço unitário (ETH):
+            <input id="priceEth" type="number" step="0.000000000000000001" value="0" />
+          </label>
+        </div>
+
+        <div class="row">
+          <button id="buyBtn">Enviar Pagamento</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Saída</h2>
+        <pre id="output"></pre>
+      </section>
+    </main>
+
+    <script src="./main.js"></script>
+  </body>
+</html>

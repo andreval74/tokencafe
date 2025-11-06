@@ -1,0 +1,11 @@
+{
+  "name": "widget-simples",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "npx http-server -p 3001 ."
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

@@ -22,7 +22,7 @@ O servidor iniciará na porta **5000**.
 
 ### 2️⃣ Gerar um Widget
 
-1. Abra: `http://localhost:5000/pages/modules/widget/widget-teste.html`
+1. Abra: `http://localhost:5000/pages/modules/widget/widget-criar.html`
 2. Conecte sua carteira MetaMask
 3. Selecione a rede (ex: BSC Testnet)
 4. Preencha o contrato Sale
@@ -38,7 +38,7 @@ Veja no console do navegador (F12):
 
 ### 4️⃣ Testar o Widget Gerado
 
-Abra: `http://localhost:5000/pages/modules/widget/teste.html`
+Abra: `http://localhost:5000/pages/modules/widget/widget-demo.html`
 
 Ou crie sua própria página HTML:
 ```html
@@ -64,7 +64,7 @@ Ou crie sua própria página HTML:
 - ✅ Rota para servir JSONs: `GET /widget/**`
 - ✅ Rota para servir assets: `GET /assets/**`
 
-### Frontend (widget_teste.js)
+### Frontend (widget-simple.js)
 - ✅ Após gerar widget, chama `/api/widget/save`
 - ✅ Logs detalhados sobre o salvamento
 - ✅ Toast de sucesso/aviso se falhar
@@ -87,7 +87,7 @@ Ou crie sua própria página HTML:
 
 **2. Se aparecer "HTTP 404":**
 - O JSON não foi salvo no servidor
-- Volte para `widget-teste.html` e gere novamente
+- Volte para `widget-criar.html` e gere novamente
 - Verifique se aparece "✅ JSON salvo no servidor"
 
 **3. Se aparecer "HTTP 500":**
@@ -125,10 +125,10 @@ tokencafe/
 │       └── <owner>/
 │           └── <code>.json   ← Configs dos widgets
 ├── pages/modules/widget/
-│   ├── widget-teste.html     ← Admin (gerador)
-│   └── teste.html            ← Demo externa
+│   ├── widget-criar.html     ← Admin (gerador)
+│   └── widget-demo.html      ← Demo externa
 └── js/modules/widget/
-    ├── widget_teste.js       ← Lógica admin
+    ├── widget-simple.js      ← Lógica admin/preview
     └── widget-generator.js   ← Funções de geração
 ```
 

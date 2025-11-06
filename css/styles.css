@@ -248,6 +248,86 @@ section[style*="gradient"], div[style*="gradient"] {
   color: var(--bs-body-color) !important;
 }
 
+/* ==========================
+   Widget Preview (tc-*)
+   ========================== */
+.tc-widget {
+  display: block;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.tc-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.tc-toggle-label { font-weight: 600; }
+.tc-toggle-btn {
+  padding: 6px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--bs-border-color);
+  background: transparent;
+  color: var(--bs-body-color);
+  cursor: pointer;
+}
+.tc-toggle-btn.active {
+  background: var(--bs-primary);
+  color: var(--tokencafe-light-text-inverse);
+  border-color: var(--bs-primary);
+}
+
+.tc-theme-light .tc-card { background: #ffffff; color: #1a202c; border: 1px solid #e2e8f0; }
+.tc-theme-light .tc-input { background: #ffffff; color: #1a202c; border-color: #cbd5e1; }
+.tc-theme-light .tc-input:focus { border-color: #2563eb; box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2); }
+.tc-theme-light .tc-input-suffix { background: #2563eb; color: #fff; }
+.tc-theme-light .tc-total-value { color: #2563eb; }
+.tc-theme-light .tc-connected { background: #e8f5e9; color: #1f5132; border: 1px solid #1f5132; }
+.tc-theme-light .tc-btn-primary { background: #10b981; color: #fff; }
+
+.tc-theme-dark .tc-card { background: #0f172a; color: #e5e7eb; border: 1px solid #334155; }
+.tc-theme-dark .tc-input { background: #1f2937; color: #e5e7eb; border-color: #334155; }
+.tc-theme-dark .tc-input:focus { border-color: #f85d23; box-shadow: 0 0 0 0.2rem rgba(248, 93, 35, 0.2); }
+.tc-theme-dark .tc-input-suffix { background: #2563eb; color: #fff; }
+.tc-theme-dark .tc-total-value { color: #93c5fd; }
+.tc-theme-dark .tc-connected { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid #10b981; }
+.tc-theme-dark .tc-btn-primary { background: #10b981; color: #fff; }
+
+.tc-card { border-radius: 14px; padding: 18px; box-shadow: 0 10px 24px rgba(0,0,0,0.08); }
+.tc-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; }
+.tc-card-title { display:flex; align-items:center; gap:8px; font-weight: 700; }
+.tc-title-icon { font-size: 18px; }
+.tc-badge { padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+.tc-badge-demo { background: #e8f5e9; color: #1f5132; border: 1px solid #1f5132; }
+
+.tc-token-row { display:flex; align-items:center; justify-content:space-between; margin: 8px 0 12px; }
+.tc-token-name { font-weight: 600; }
+.tc-chip { background: #2563eb; color: #fff; border-radius: 8px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+
+.tc-info-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.tc-info-label { font-size: 12px; color: var(--bs-tertiary-color); }
+.tc-info-value { font-weight: 600; }
+
+.tc-input-label { font-weight: 600; margin-bottom: 6px; display:block; }
+.tc-input-group { display:flex; align-items:center; gap: 8px; }
+.tc-input { flex:1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--bs-border-color); outline: none; }
+.tc-input-suffix { padding: 8px 12px; border-radius: 10px; font-weight: 700; }
+
+.tc-total-row { display:flex; align-items:center; justify-content:space-between; margin: 12px 0 10px; }
+.tc-total-label { font-weight: 600; }
+.tc-total-value { font-weight: 700; }
+
+.tc-connected { display:flex; align-items:center; gap:8px; padding: 10px; border-radius: 10px; margin: 10px 0; }
+.tc-connected-icon { font-size: 16px; }
+.tc-connected-text { font-weight: 600; }
+
+.tc-btn-primary { width:100%; padding: 12px; border:none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+.tc-btn-primary:hover { filter: brightness(1.05); }
+.tc-btn-icon { margin-right: 6px; }
+
+.tc-footer-note { margin-top: 12px; font-size: 12px; color: var(--bs-tertiary-color); display:grid; gap:4px; }
+.tc-safe, .tc-developed, .tc-contract { display:flex; align-items:center; gap:6px; }
+
 .card-header {
   background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-border-color) !important;
