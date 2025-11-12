@@ -248,6 +248,12 @@ section[style*="gradient"], div[style*="gradient"] {
   color: var(--bs-body-color) !important;
 }
 
+/* Painel lateral fixo para logs em páginas de módulos */
+.sticky-panel {
+  position: sticky;
+  top: 80px; /* abaixo do header fixo */
+}
+
 /* ==========================
    Widget Preview (tc-*)
    ========================== */

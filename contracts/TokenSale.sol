@@ -59,7 +59,10 @@ contract TokenSale {
      */
     function buy(uint256 quantity) external payable {
         require(quantity > 0, "Quantidade deve ser maior que zero");
-        uint256 totalCost = bnbPrice * quantity;
+        // Interpretar bnbPrice como preço por token inteiro; quantity é em unidades mínimas
+        uint8 tokenDecimals = IERC20(saleToken).decimals();
+        uint256 unitFactor = 10 ** tokenDecimals;
+        uint256 totalCost = (bnbPrice * quantity) / unitFactor;
         require(msg.value >= totalCost, "BNB insuficiente enviado");
         
         // Transferir tokens para o comprador
@@ -101,7 +104,10 @@ contract TokenSale {
         IERC20 usdt = IERC20(usdtToken);
         IERC20 token = IERC20(saleToken);
         
-        uint256 totalCost = usdtPrice * quantity;
+        // Interpretar usdtPrice como preço por token inteiro; quantity é em unidades mínimas
+        uint8 tokenDecimals = token.decimals();
+        uint256 unitFactor = 10 ** tokenDecimals;
+        uint256 totalCost = (usdtPrice * quantity) / unitFactor;
         
         // Verificar se o contrato tem tokens suficientes
         require(token.balanceOf(address(this)) >= quantity, "Saldo de tokens insuficiente no contrato");

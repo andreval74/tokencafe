@@ -343,6 +343,32 @@
                       </div>
                     </div>
 
+                    <!-- Status e Links de Verificação -->
+                    <div class="row g-3 mt-3">
+                      <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="text-muted">Sourcify:</span>
+                          <span id="sourcify-status" class="badge bg-secondary">Aguardando</span>
+                          <a id="sourcify-link" href="#" target="_blank" class="d-none">Abrir</a>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="text-muted">BscScan:</span>
+                          <span id="bscscan-status" class="badge bg-secondary">Aguardando</span>
+                          <a id="bscscan-link" href="#" target="_blank" class="d-none">Abrir</a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                      <div class="col-12 d-grid">
+                        <button id="auto-verify-btn" class="btn btn-outline-success">
+                          <i class="bi bi-magic me-2"></i>Verificar automaticamente (Sourcify + BscScan)
+                        </button>
+                      </div>
+                    </div>
+
                     <div class="row g-4">
                       <div class="col-12">
                         <small class="text-muted text-center">
@@ -382,6 +408,9 @@
 
   <!-- Ethers.js (para Web3) -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+  <!-- Configuração da API remota (Render) -->
+  <script src="../../../js/modules/contracts/api-config.js?v=1.1"></script>
 
   <!-- Módulo dedicado da página -->
   <script type="module" src="../../../js/modules/tokens/token_add.js"></script>

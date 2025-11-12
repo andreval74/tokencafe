@@ -150,17 +150,16 @@ npm run lint
 - **Bootstrap Classes**: Interface consistente
 - **Sem Inline Styles**: Manutenção facilitada
 
-## 🧪 Testes de Link (RPC unificada)
+## 🧩 Módulo de Links (RPC unificada)
 
-Para validar RPCs, integração com carteiras e chamadas ERC-20 sem depender de páginas de teste antigas, use o módulo de Link:
-- Página de testes: `pages/modules/link/link-tests.html`
-- Script de testes: `js/modules/link/link_tests.js`
+Use o Gerador de Links para validar RPCs, integração com carteiras e chamadas ERC-20 em produção:
+- Página principal: `pages/modules/link/link-index.html`
 
-O runner de testes do Link cobre:
+Funcionalidades principais:
 - Checagem de `chainId` e troca de rede
 - Conexão com carteiras (MetaMask/WalletConnect)
-- Chamadas comuns de contratos ERC-20
-- Tratamento de erros frequentes
+- Geração de links para `wallet_watchAsset`
+- Acesso rápido à verificação (BscScan/Etherscan/Sourcify)
 
 ## 🤝 Contribuindo
 

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <title>Contracts Builder - TokenCafe</title>
+  <meta name="description" content="Crie, valide, verifique e faça deploy de contratos de forma simples">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="TokenCafe Team">
+
+  <!-- Favicons TokenCafe -->
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png">
+
+  <!-- Fonts + Bootstrap + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <!-- TokenCafe CSS Unificado -->
+  <link href="../../../css/styles.css" rel="stylesheet">
+</head>
+
+<body class="bg-page-black">
+  <!-- Header unificado -->
+  <div data-component="tools-header.html" data-icon="fa-file-contract" data-icon-alt="Contracts Builder"
+    data-title="Contracts Builder" data-subtitle="Criação, verificação e deploy de contratos">
+  </div>
+
+  <div class="container py-3">
+    <div class="row g-4">
+      <!-- Coluna esquerda: formulário completo -->
+      <div class="col-lg-7 col-xl-7">
+
+        <!-- Seleção da Rede -->
+        <div class="mb-4" id="network-section">
+          <div data-component="shared/components/network-search.html"
+            data-ns-placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, BNB, 1, 56)" data-ns-min-chars="1"
+            data-ns-show-popular="true" data-ns-show-details-on-select="false">
+          </div>
+        </div>
+
+        <div class="row g-2 align-items-end">
+          <div class="col-12">
+            <div class="d-flex align-items-center mb-1">
+              <i class="bi bi-file-earmark-medical section-icon fs-6 me-2"
+                title="Selecione um grupo para ver detalhes, compatibilidades e funções"></i>
+              <h6 class="mb-0 small fw-semibold">Configurar Contrato</h6>
+            </div>
+            <p class="text-muted mb-2 small">Selecione o tipo e informe os dados do token</p>
+
+            <select id="contractGroup" class="form-select">
+              <option value="erc20-minimal">ERC20-Minimal</option>
+              <option value="erc20-controls">ERC20-Controls</option>
+              <option value="erc20-directsale">ERC20-DirectSale</option>
+              <option value="upgradeable-uups">Upgradeable-UUPS (OmniToken)</option>
+              <option value="tokensale-separado">TokenSale-Separado</option>
+            </select>
+            <div id="contractGroupInfo" class="mt-2"></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Nome do Token</label>
+            <input id="tokenName" class="form-control" placeholder="Meu Token" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Símbolo</label>
+            <input id="tokenSymbol" class="form-control" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Decimais</label>
+            <input id="tokenDecimals" type="number" min="0" max="18" value="18" class="form-control" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">Supply Inicial</label>
+            <input id="initialSupply" type="number" min="0" value="1000000" class="form-control" />
+          </div>
+        </div>
+
+        <!-- Parâmetros de Venda (decimal, não usar wei) -->
+        <div id="saleParams" class="mt-3 d-none">
+          <div class="d-flex align-items-center mb-2">
+            <div class="me-2"><i class="bi bi-cart section-icon fs-6"></i></div>
+            <div class="flex-grow-1">
+              <h6 class="mb-0 small fw-semibold">Parâmetros de Venda</h6>
+              <p class="text-muted mb-0 small">Valores em moeda nativa com decimais</p>
+            </div>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label class="form-label">Preço por 1 token</label>
+              <input id="tokenPriceDec" class="form-control" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Compra mínima</label>
+              <input id="minPurchaseDec" class="form-control" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Compra máxima</label>
+              <input id="maxPurchaseDec" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Cap por carteira (unidades mínimas)</label>
+              <input id="perWalletCap" type="number" min="0" value="0" class="form-control" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Carteira de recebimento (opcional)</label>
+              <input id="payoutWallet" class="form-control monospace-input" />
+            </div>
+          </div>
+        </div>
+
+      <!-- Personalização de Endereço (CREATE2) -->
+      <div class="mb-4" id="vanity-section">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">Modo</label>
+            <select id="vanityMode" class="form-select">
+              <option value="none">Sem personalização</option>
+              <option value="suffix-cafe">Sufixo padrão "cafe"</option>
+              <option value="prefix-custom">Prefixo custom (4 hex)</option>
+              <option value="suffix-custom">Sufixo custom (4 hex)</option>
+            </select>
+          </div>
+          <div class="col-md-6 d-none" id="vanityCustomContainer">
+            <label class="form-label">Valor (4 hex)</label>
+            <input id="vanityCustom" maxlength="4" class="form-control" pattern="^[0-9a-fA-F]{0,4}$" />
+            <div id="vanityHelp" class="form-text d-none">Somente 0–9 e a–f. Máximo 4 caracteres.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="mb-4" id="actions-section">
+        <div class="action-buttons d-flex flex-wrap gap-2">
+          <button id="btnCompile" class="btn btn-outline-info flex-grow-1">
+            <i class="bi bi-cpu me-1"></i> Compilar
+          </button>
+          <button id="btnDeploy" class="btn btn-success flex-grow-1" disabled>
+            <i class="bi bi-rocket-takeoff me-1"></i> Deploy
+          </button>
+          <!-- Botão de verificação removido: verificação automática pós-deploy -->
+        </div>
+        <!-- Links do Deploy movidos para detalhes do contrato -->
+
+        <!-- Detalhes do Contrato ERC-20 -->
+        <div id="erc20-details" class="mt-2 d-none">
+          <div class="small text-muted mb-1">Detalhes do contrato</div>
+          <div class="border rounded p-2 bg-dark-elevated">
+            <div class="small mb-1">Status: <span id="contractStatus">-</span></div>
+            <div class="row g-2 small">
+              <div class="col-12">Endereço: <a id="erc20Address" href="#" target="_blank" rel="noopener">-</a></div>
+              <div class="col-12">Transação: <a id="erc20TxHash" href="#" target="_blank" rel="noopener">-</a></div>
+              <div class="col-6">Nome: <span id="erc20Name">-</span></div>
+              <div class="col-6">Símbolo: <span id="erc20Symbol">-</span></div>
+              <div class="col-6">Decimais: <span id="erc20Decimals">-</span></div>
+              <div class="col-6">Total Supply: <span id="erc20Supply">-</span></div>
+              <div class="col-12 mt-1">Verificação:
+                <span class="ms-2">BscScan:
+                  <a id="erc20VerifyBsc" href="#" target="_blank" rel="noopener" class="badge bg-secondary text-decoration-none">pendente</a>
+                </span>
+                <span class="ms-3">Sourcify:
+                  <a id="erc20VerifySour" href="#" target="_blank" rel="noopener" class="badge bg-secondary text-decoration-none">pendente</a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arquivos do Contrato -->
+      <div class="mb-4" id="files-section">
+        <div class="d-flex align-items-center mb-2">
+          <div class="me-2"><i class="bi bi-filetype-sol section-icon fs-6"></i></div>
+          <div class="flex-grow-1">
+            <h6 class="mb-0 small fw-semibold">Arquivos do Contrato</h6>
+            <p class="text-muted mb-0 small">Escolha o tipo e faça preview/baixar após compilar</p>
+          </div>
+        </div>
+        <div class="row g-2 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label">Tipo de arquivo</label>
+            <select id="fileTypeSelect" class="form-select">
+              <option value="sol">Solidity (.sol)</option>
+              <option value="abi">ABI (.json)</option>
+              <option value="bytecode">Bytecode (.hex)</option>
+            </select>
+          </div>
+          <div class="col-md-6 d-flex gap-2">
+            <button id="btnPreviewFile" class="btn btn-outline-secondary flex-grow-1" disabled>
+              <i class="bi bi-eye me-1"></i> Preview
+            </button>
+            <button id="btnDownloadFile" class="btn btn-outline-primary flex-grow-1" disabled>
+              <i class="bi bi-download me-1"></i> Baixar
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+
+    <!-- Coluna direita: Logs fixos -->
+    <div class="col-lg-5 col-xl-5">
+      <div id="logs-section" class="mb-4 sticky-panel">
+        <div class="d-flex align-items-center mb-2">
+          <div class="me-2"><i class="bi bi-terminal section-icon fs-5"></i></div>
+          <h5 class="mb-0">Logs</h5>
+        </div>
+        <textarea id="output" class="form-control" rows="20"
+          placeholder="Mensagens e status aparecerão aqui..."></textarea>
+        <div class="form-text mt-1">Estas mensagens ajudam a guiar você passo a passo.</div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+
+  <!-- Scripts Unificados -->
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <!-- Configuração do endpoint da API (pode ser sobrescrito em produção) -->
+  <script src="../../../js/modules/contracts/api-config.js?v=1.1"></script>
+  <script type="module" src="../../../js/modules/contracts/builder.js?v=1.1"></script>
+
+  <!-- Modal de Preview de Arquivo -->
+  <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-labelledby="filePreviewLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-light border">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filePreviewLabel">Preview do Arquivo</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <pre class="small" id="filePreviewContent" style="white-space: pre-wrap; word-break: break-word;"></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

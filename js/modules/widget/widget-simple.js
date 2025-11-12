@@ -775,9 +775,7 @@ class WidgetSimple {
             
             // Purchase functions (payable)
             {"inputs": [{"internalType": "uint256", "name": "quantity", "type": "uint256"}], "name": "buy", "outputs": [], "stateMutability": "payable", "type": "function"},
-            {"inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}], "name": "purchase", "outputs": [], "stateMutability": "payable", "type": "function"},
-            {"inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}], "name": "buyTokens", "outputs": [], "stateMutability": "payable", "type": "function"},
-            {"inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}], "name": "buyToken", "outputs": [], "stateMutability": "payable", "type": "function"}
+            
         ];
     }
 

@@ -78,7 +78,7 @@ contract TokenSaleProxy {
         
         // Criar interface mínima para chamar o contrato original
         (bool sellerSuccess, ) = saleContract.call{value: sellerAmount}(
-            abi.encodeWithSignature("buyTokens(uint256)", amount)
+            abi.encodeWithSignature("buy(uint256)", amount)
         );
         require(sellerSuccess, "Token purchase failed");
         

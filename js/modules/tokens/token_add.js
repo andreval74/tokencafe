@@ -2,6 +2,7 @@
 // Captura completa de informações, detecção de rede e preview de contrato
 
 import { NetworkManager } from '../../shared/network-manager.js';
+import { getExplorerVerificationUrl } from '../contracts/explorer-utils.js';
 
 function qs(id) { return document.getElementById(id); }
 
@@ -10,6 +11,8 @@ function isValidEthAddress(addr) {
 }
 
 let selectedNetwork = null;
+// Base da API: usa configuração global (Render) ou localhost como fallback
+const API_BASE = window.TOKENCAFE_API_BASE || window.XCAFE_API_BASE || 'http://localhost:3000';
 
 function validateBasicFields() {
   const name = qs('tokenName')?.value?.trim();
@@ -260,6 +263,8 @@ function setupCreateFlow() {
     if (addr && !addr.value) addr.value = '0x0000000000000000000000000000000000000000';
     const hash = qs('transaction-hash-display');
     if (hash && !hash.value) hash.value = '0x' + '0'.repeat(64);
+    // Iniciar verificação automática (Sourcify e BscScan)
+    autoVerifyContract().catch(err => console.warn('Falha na verificação automática:', err));
   });
 }
 
@@ -271,8 +276,114 @@ function init() {
   setupCreateFlow();
   setupContractPreview();
   setupVerifyAction();
+  setupAutoVerifyButton();
 }
 
 document.addEventListener('DOMContentLoaded', init);
 
 export {};
+
+// =========================
+// Verificação Integrada
+// =========================
+
+function updateStatus(id, text, variant = 'secondary') {
+  const el = qs(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = `badge bg-${variant}`;
+}
+
+function setLink(id, url) {
+  const a = qs(id);
+  if (!a) return;
+  if (url) {
+    a.href = url;
+    a.classList.remove('d-none');
+  } else {
+    a.removeAttribute('href');
+    a.classList.add('d-none');
+  }
+}
+
+async function autoVerifyContract() {
+  try {
+    const address = qs('contract-address-display')?.value?.trim();
+    const name = qs('tokenName')?.value?.trim();
+    const symbol = qs('tokenSymbol')?.value?.trim();
+    const totalSupply = qs('totalSupply')?.value?.trim();
+    const decimals = parseInt(qs('decimals')?.value || '18', 10);
+    const chainId = selectedNetwork?.chainId || 97;
+
+    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      if (window.showToast) window.showToast('Endereço de contrato inválido para verificação.', 'warning');
+      return;
+    }
+    if (!(name && symbol && totalSupply)) {
+      if (window.showToast) window.showToast('Preencha Nome, Símbolo e Supply antes de verificar.', 'warning');
+      return;
+    }
+
+    updateStatus('sourcify-status', 'Verificando...', 'info');
+    updateStatus('bscscan-status', 'Enviando...', 'info');
+    setLink('sourcify-link', null);
+    setLink('bscscan-link', null);
+
+    // 1) Gerar artefatos (fonte e nome) via backend
+    const genResp = await fetch(`${API_BASE}/api/generate-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, symbol, totalSupply: Number(totalSupply), decimals })
+    });
+    const gen = await genResp.json();
+    const sourceCode = gen?.sourceCode || '';
+    const contractName = gen?.token?.contractName || `${symbol}Token`;
+
+    if (!sourceCode) throw new Error('sourceCode não retornado pelo backend');
+
+    // 2) Verificar no Sourcify
+    const sourBody = { chainId, contractAddress: address, contractName, sourceCode, optimizationUsed: true, runs: 200 };
+    const sourResp = await fetch(`${API_BASE}/api/verify-sourcify`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sourBody)
+    });
+    const sourJson = await sourResp.json().catch(() => ({}));
+    if (sourJson?.success) {
+      const status = sourJson.status || sourJson.match || 'ok';
+      updateStatus('sourcify-status', `Sourcify: ${status}`, 'success');
+      const repoUrl = `https://repo.sourcify.dev/contracts/full_match/${chainId}/${address}/`;
+      setLink('sourcify-link', repoUrl);
+    } else {
+      updateStatus('sourcify-status', 'Sourcify: falhou', 'danger');
+    }
+
+    // 3) Verificar no BscScan (Etherscan V2)
+    const bscBody = { chainId, contractAddress: address, contractName, sourceCode, optimizationUsed: true, runs: 200 };
+    const bscResp = await fetch(`${API_BASE}/api/verify-bscscan`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bscBody)
+    });
+    const bscJson = await bscResp.json().catch(() => ({}));
+    if (bscJson?.success) {
+      updateStatus('bscscan-status', 'BscScan: OK', 'success');
+      const url = bscJson.explorerUrl || getExplorerVerificationUrl(address, chainId);
+      setLink('bscscan-link', url);
+    } else {
+      const msg = bscJson?.message || 'falhou';
+      updateStatus('bscscan-status', `BscScan: ${msg}`, 'danger');
+    }
+
+    if (window.showToast) window.showToast('Verificação concluída.', 'success');
+  } catch (e) {
+    console.warn('Erro na verificação:', e);
+    updateStatus('sourcify-status', 'Sourcify: erro', 'danger');
+    updateStatus('bscscan-status', 'BscScan: erro', 'danger');
+    if (window.showToast) window.showToast(`Erro ao verificar: ${e?.message || e}`, 'error');
+  }
+}
+
+function setupAutoVerifyButton() {
+  const btn = qs('auto-verify-btn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    autoVerifyContract().catch(err => console.warn('Falha na verificação:', err));
+  });
+}
