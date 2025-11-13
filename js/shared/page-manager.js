@@ -34,7 +34,7 @@ class PageManager {
                 hasWalletConnect: true,
                 hasAnimations: false,
                 redirectTarget: null,
-                autoConnectOnLoad: false
+                autoConnectOnLoad: true
             },
             'rpc': {
                 hasWalletConnect: true,
@@ -136,8 +136,34 @@ class PageManager {
                 return;
             }
             window.__tokencafe_auto_connect_initiated = true;
-            
-            // Sempre solicitar autorização de sessão ao trocar de página
+            // Tentar reconexão silenciosa se já houver contas autorizadas no provider
+            let accounts = [];
+            try {
+                accounts = await (window.ethereum?.request?.({ method: 'eth_accounts' }) || Promise.resolve([]));
+            } catch (_) {
+                accounts = [];
+            }
+
+            if (Array.isArray(accounts) && accounts.length > 0) {
+                try {
+                    // Sincroniza estado sem prompt
+                    await walletConnector.connectSilent('metamask');
+                    this.showSuccessState();
+                    return;
+                } catch (_) {
+                    // Se falhar, segue para verificação padrão abaixo
+                }
+            }
+
+            // Checar status (sessão autorizada previamente nesta aba)
+            const status = walletConnector?.getStatus?.();
+            const isConnected = !!status?.account && !!status?.sessionAuthorized;
+            if (isConnected) {
+                this.showSuccessState();
+                return;
+            }
+
+            // Caso não haja contas e nem sessão autorizada, solicitar conexão
             await this.connectWallet();
         } catch (e) {
             console.warn('Falha ao solicitar conexão na carga da página:', e?.message || e);

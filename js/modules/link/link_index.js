@@ -225,6 +225,7 @@ function updateGeneratedLink() {
   if (url && tokenFetched) show('generate-section');
 }
 
+
 async function fetchTokenData() {
   const address = document.getElementById(ids.tokenAddress)?.value.trim();
   if (!selectedNetwork) {
@@ -560,36 +561,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById(ids.tokenImage)?.addEventListener('input', updateGeneratedLink);
 
   // Ações de verificação: abrir páginas de verificação com rede e endereço
-  const btnOpenSourcify = document.getElementById('btnOpenSourcify');
-  const btnOpenBscscan = document.getElementById('btnOpenBscscan');
-  btnOpenSourcify?.addEventListener('click', openSourcifyVerify);
-  btnOpenBscscan?.addEventListener('click', openBscscanVerify);
+  // Seção de verificação removida desta página
 });
 
-function openSourcifyVerify() {
-  const address = document.getElementById(ids.tokenAddress)?.value?.trim();
-  if (!selectedNetwork || !isValidAddress(address)) {
-    toast('Selecione a rede e informe um contrato válido (0x...).', 'warning');
-    return;
-  }
-  const chainId = selectedNetwork.chainId;
-  const url = `https://sourcify.dev/#/lookup/${chainId}/${address}`;
-  window.open(url, '_blank');
-}
-
-function openBscscanVerify() {
-  const address = document.getElementById(ids.tokenAddress)?.value?.trim();
-  if (!selectedNetwork || !isValidAddress(address)) {
-    toast('Selecione a rede e informe um contrato válido (0x...).', 'warning');
-    return;
-  }
-  const chainId = selectedNetwork.chainId;
-  // Etherscan V2 unified verify route com chainid na query
-  const base = (selectedNetwork.explorers?.[0]?.url || getFallbackExplorer(selectedNetwork.chainId) || '').replace(/\/$/, '');
-  if (!base) {
-    toast('Explorer indisponível para esta rede.', 'error');
-    return;
-  }
-  const url = `${base}/verifyContract?chainid=${chainId}&address=${address}`;
-  window.open(url, '_blank');
-}
+// Funções de verificação removidas nesta página
