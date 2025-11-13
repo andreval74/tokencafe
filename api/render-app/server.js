@@ -7,7 +7,22 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] }));
+const allowedOrigins = new Set([
+  'https://tokencafe.app',
+  'http://tokencafe.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+]);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('tiny'));
 
@@ -100,4 +115,3 @@ app.listen(PORT, () => {
   console.log(`🚀 TokenCafe Render API rodando na porta ${PORT}`);
   console.log(`🔗 Health: http://localhost:${PORT}/health`);
 });
-
