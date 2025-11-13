@@ -132,6 +132,34 @@ async function compileContract(sourceCode, contractName, optimization = true) {
     }
 }
 
+// Sanitiza nome do contrato para um identificador Solidity válido
+function sanitizeContractName(rawName) {
+    try {
+        const base = String(rawName || '').trim();
+        // Permitir letras, números e underscore
+        let cleaned = base.replace(/[^A-Za-z0-9_]/g, '');
+        if (!cleaned) cleaned = 'Token';
+        // Garantir primeiro caractere válido
+        if (!/^[A-Za-z_]/.test(cleaned)) cleaned = `_${cleaned}`;
+        // Limitar tamanho razoável
+        if (cleaned.length > 64) cleaned = cleaned.slice(0, 64);
+        return cleaned;
+    } catch (_) {
+        return 'Token';
+    }
+}
+
+// Valida e normaliza campos numéricos
+function normalizeSupply(totalSupply) {
+    if (typeof totalSupply === 'string') {
+        // Aceitar apenas dígitos
+        if (!/^\d+$/.test(totalSupply.trim())) return NaN;
+        return parseInt(totalSupply.trim(), 10);
+    }
+    if (typeof totalSupply === 'number') return totalSupply;
+    return NaN;
+}
+
 // Endpoint principal: compilação de contratos
 app.post('/api/compile-only', async (req, res) => {
     try {
@@ -183,14 +211,38 @@ app.post('/api/generate-token', async (req, res) => {
     try {
         const { name, symbol, totalSupply, decimals = 18 } = req.body;
 
-        if (!name || !symbol || !totalSupply) {
+        if (!name || !symbol || totalSupply === undefined || totalSupply === null) {
             return res.status(400).json({
                 success: false,
                 error: 'name, symbol e totalSupply são obrigatórios'
             });
         }
+        // Valida supply
+        const normalizedSupply = normalizeSupply(totalSupply);
+        if (!Number.isFinite(normalizedSupply) || normalizedSupply <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'totalSupply deve ser um número inteiro positivo'
+            });
+        }
+        // Valida decimals
+        const dec = parseInt(decimals, 10);
+        if (!Number.isFinite(dec) || dec < 0 || dec > 18) {
+            return res.status(400).json({
+                success: false,
+                error: 'decimals deve estar entre 0 e 18'
+            });
+        }
+        // Valida símbolo simples (opcional)
+        const sym = String(symbol).trim();
+        if (!sym || sym.length > 32) {
+            return res.status(400).json({
+                success: false,
+                error: 'symbol deve ter 1 a 32 caracteres'
+            });
+        }
 
-        const contractName = name.replace(/\s+/g, '');
+        const contractName = sanitizeContractName(name);
         
         const sourceCode = `
 // SPDX-License-Identifier: MIT
@@ -209,7 +261,7 @@ contract ${contractName} {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     
     constructor() {
-        totalSupply = ${totalSupply} * 10**decimals;
+        totalSupply = ${normalizedSupply} * 10**decimals;
         balanceOf[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
     }
@@ -246,9 +298,9 @@ contract ${contractName} {
             success: true,
             token: {
                 name,
-                symbol,
-                totalSupply,
-                decimals,
+                symbol: sym,
+                totalSupply: normalizedSupply,
+                decimals: dec,
                 contractName
             },
             sourceCode,

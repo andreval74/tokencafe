@@ -342,8 +342,175 @@ async function connectWallet() {
   }
 }
 
- const API_BASE = window.TOKENCAFE_API_BASE || window.XCAFE_API_BASE || 'http://localhost:3000';
+ // Funções auxiliares e resolução do API_BASE
+ function getApiBase() {
+   try {
+     const fromWin = window.TOKENCAFE_API_BASE || window.XCAFE_API_BASE || null;
+     const fromLs = window.localStorage?.getItem('api_base') || null;
+     const base = fromWin || fromLs || 'http://localhost:3000';
+     try { log(`API_BASE resolvido: ${base} (fonte: ${fromWin ? 'window' : fromLs ? 'localStorage' : 'fallback'})`); } catch (_) {}
+     return base;
+   } catch (_) {
+     return 'http://localhost:3000';
+   }
+ }
 
+ async function checkApiConnectivity(apiBase) {
+   const url = `${apiBase}/health`;
+   const start = Date.now();
+   try {
+     const controller = new AbortController();
+     const t = setTimeout(() => controller.abort(), 7000);
+     const resp = await fetch(url, { method: 'GET', signal: controller.signal });
+     clearTimeout(t);
+     const ms = Date.now() - start;
+     if (resp.ok) {
+       let info = '';
+       try {
+         const txt = await resp.text();
+         info = txt ? ` | Body: ${txt.slice(0, 120)}...` : '';
+       } catch (_) {}
+       log(`Conectividade OK: GET /health (${resp.status}) em ${ms}ms${info}`);
+       return true;
+     } else {
+       log(`Conectividade falhou: GET /health retornou ${resp.status} em ${ms}ms`);
+       return false;
+     }
+   } catch (err) {
+     const ms = Date.now() - start;
+     const msg = err?.message || String(err);
+     log(`Conectividade falhou: GET /health erro (${msg}) em ${ms}ms`);
+     if (msg.includes('Failed to fetch') || msg.includes('abort')) {
+       const pageProto = window.location.protocol;
+       const apiProto = (() => { try { return new URL(apiBase).protocol; } catch { return 'unknown:'; } })();
+       log(`Dica: verifique CORS e mixed content. Página: ${pageProto}, API: ${apiProto}, online=${navigator.onLine}`);
+     }
+     return false;
+   }
+ }
+
+ async function fetchWithDiagnostics(url, options = {}) {
+   const start = Date.now();
+   try {
+     const controller = new AbortController();
+     const timeoutMs = options.timeoutMs || 15000;
+     const t = setTimeout(() => controller.abort(), timeoutMs);
+     const resp = await fetch(url, { ...options, signal: controller.signal });
+     clearTimeout(t);
+    const ms = Date.now() - start;
+    const ct = resp.headers?.get?.('content-type') || 'desconhecido';
+    const rlLimit = resp.headers?.get?.('ratelimit-limit') || resp.headers?.get?.('RateLimit-Limit');
+    const rlRemain = resp.headers?.get?.('ratelimit-remaining') || resp.headers?.get?.('RateLimit-Remaining');
+    const rlReset = resp.headers?.get?.('ratelimit-reset') || resp.headers?.get?.('RateLimit-Reset');
+    const corsAllow = resp.headers?.get?.('access-control-allow-origin');
+    let extra = `content-type=${ct}`;
+    if (corsAllow) extra += ` | CORS allow=${corsAllow}`;
+    if (rlLimit || rlRemain || rlReset) extra += ` | RateLimit L=${rlLimit||'-'} R=${rlRemain||'-'} Reset=${rlReset||'-'}`;
+    log(`HTTP ${resp.status} em ${ms}ms | ${extra}`);
+    return resp;
+   } catch (err) {
+     const ms = Date.now() - start;
+     const msg = err?.message || String(err);
+     log(`Fetch falhou (${msg}) em ${ms}ms para ${url}`);
+     if (err instanceof TypeError && msg.includes('Failed to fetch')) {
+       const pageProto = window.location.protocol;
+       const apiProto = (() => { try { return new URL(url).protocol; } catch { return 'unknown:'; } })();
+       log(`Possível CORS/mixed content. Página: ${pageProto}, URL: ${apiProto}, online=${navigator.onLine}`);
+     }
+     throw err;
+   }
+ }
+
+ // Utilidades de fallback: sanitização de nome e geração de contrato
+ function sanitizeContractName(rawName) {
+   try {
+     const base = String(rawName || '').trim();
+     let cleaned = base.replace(/[^A-Za-z0-9_]/g, '');
+     if (!cleaned) cleaned = 'Token';
+     if (!/^[A-Za-z_]/.test(cleaned)) cleaned = `_${cleaned}`;
+     if (cleaned.length > 64) cleaned = cleaned.slice(0, 64);
+     return cleaned;
+   } catch (_) {
+     return 'Token';
+   }
+ }
+
+function generateTokenSource(name, symbol, decimals, totalSupplyInt) {
+  // Redireciona para a versão corrigida V2
+  return generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
+}
+
+ // V2: fonte ERC-20 corrigida para fallback de compilação
+ function generateTokenSourceV2(name, symbol, decimals, totalSupplyInt) {
+   try {
+     const contractName = sanitizeContractName(name);
+     const d = parseInt(decimals, 10);
+     const ts = parseInt(totalSupplyInt, 10);
+     const src = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\ncontract ${contractName} {\n    string public name = "${String(name)}";\n    string public symbol = "${String(symbol)}";\n    uint8 public decimals = ${d};\n    uint256 public totalSupply;\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    constructor() {\n        totalSupply = ${ts} * 10**decimals;\n        balanceOf[msg.sender] = totalSupply;\n        emit Transfer(address(0), msg.sender, totalSupply);\n    }\n\n    function transfer(address to, uint256 value) public returns (bool) {\n        require(balanceOf[msg.sender] >= value, "Insufficient balance");\n        balanceOf[msg.sender] -= value;\n        balanceOf[to] += value;\n        emit Transfer(msg.sender, to, value);\n        return true;\n    }\n\n    function approve(address spender, uint256 value) public returns (bool) {\n        allowance[msg.sender][spender] = value;\n        emit Approval(msg.sender, spender, value);\n        return true;\n    }\n\n    function transferFrom(address from, address to, uint256 value) public returns (bool) {\n        require(balanceOf[from] >= value, "Insufficient balance");\n        require(allowance[from][msg.sender] >= value, "Allowance exceeded");\n        balanceOf[from] -= value;\n        balanceOf[to] += value;\n        allowance[from][msg.sender] -= value;\n        emit Transfer(from, to, value);\n        return true;\n    }\n}`;
+     return { contractName, sourceCode: src.trim() };
+   } catch (_) {
+     const fallbackName = sanitizeContractName('Token');
+     const src = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\ncontract ${fallbackName} {\n    string public name = "Token";\n    string public symbol = "TKN";\n    uint8 public decimals = 18;\n    uint256 public totalSupply;\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    constructor() {\n        totalSupply = 1000000 * 10**decimals;\n        balanceOf[msg.sender] = totalSupply;\n        emit Transfer(address(0), msg.sender, totalSupply);\n    }\n}`;
+     return { contractName: fallbackName, sourceCode: src.trim() };
+   }
+ }
+
+async function probeEndpoint(apiBase, path) {
+  const url = `${apiBase}${path}`;
+  try {
+    const resp = await fetchWithDiagnostics(url, { method: 'OPTIONS', timeoutMs: 8000 });
+    log(`Probe ${path}: status ${resp.status}`);
+    return resp.status;
+  } catch (e) {
+    log(`Probe ${path} falhou: ${e?.message || e}`);
+    return -1;
+  }
+}
+
+// UI: renderização de status dos endpoints
+function setBadgeStatus(id, code) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('bg-success', 'bg-danger', 'bg-secondary', 'bg-warning');
+  if (typeof code !== 'number') {
+    el.textContent = 'pendente';
+    el.classList.add('bg-secondary');
+    return;
+  }
+  if (code >= 200 && code < 400) {
+    el.textContent = 'online';
+    el.classList.add('bg-success');
+  } else if (code === -1) {
+    el.textContent = 'erro';
+    el.classList.add('bg-danger');
+  } else {
+    el.textContent = 'offline';
+    el.classList.add('bg-secondary');
+  }
+}
+
+function renderApiStatus(statusMap) {
+  if (!statusMap) return;
+  setBadgeStatus('apiStatusGenerateToken', statusMap.generateToken);
+  setBadgeStatus('apiStatusCompileOnly', statusMap.compileOnly);
+  setBadgeStatus('apiStatusDeployServer', statusMap.deployServer);
+  setBadgeStatus('apiStatusVerifyBscscan', statusMap.verifyBscscan);
+  setBadgeStatus('apiStatusVerifySourcify', statusMap.verifySourcify);
+}
+
+async function checkApiEndpoints(apiBase) {
+  log('Sondando endpoints da API (OPTIONS)...');
+  const statusMap = {
+    generateToken: await probeEndpoint(apiBase, '/api/generate-token'),
+    compileOnly: await probeEndpoint(apiBase, '/api/compile-only'),
+    deployServer: await probeEndpoint(apiBase, '/api/deploy-server'),
+    verifyBscscan: await probeEndpoint(apiBase, '/api/verify-bscscan'),
+    verifySourcify: await probeEndpoint(apiBase, '/api/verify-sourcify'),
+  };
+  renderApiStatus(statusMap);
+}
+
+ const API_BASE = getApiBase();
  async function compileContract() {
   // Validação visual inline dos campos
   const ok = runAllFieldValidation() && validateForm();
@@ -352,45 +519,157 @@ async function connectWallet() {
     return;
   }
   try {
+    // Checagem de conectividade antes de compilar
+    await checkApiConnectivity(API_BASE);
+
     readForm();
     const name = state.form.token.name || 'MyToken';
     const symbol = state.form.token.symbol || 'MTK';
     const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
     const totalSupply = String(state.form.token.initialSupply || 0);
 
+    const payload = { name, symbol, totalSupply, decimals };
     log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}...`);
-    const resp = await fetch(`${API_BASE}/api/generate-token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, symbol, totalSupply, decimals })
-    });
-    if (!resp.ok) {
-      const txt = await resp.text();
-      throw new Error(`API retornou ${resp.status}: ${txt}`);
-    }
-  const data = await resp.json();
-  if (!data?.success) throw new Error(data?.error || 'Falha na compilação');
+    log(`Endpoint: ${API_BASE}/api/generate-token`);
+    try { log(`Payload: ${JSON.stringify(payload)}`); } catch (_) {}
 
-  const { compilation, sourceCode, token } = data;
-  state.compilation = {
-    abi: compilation?.abi,
-    bytecode: compilation?.bytecode,
-    metadata: compilation?.metadata,
-    sourceCode,
-    contractName: token?.contractName || token?.name?.replace(/\s+/g, '') || 'MyToken'
-  };
-  log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
-  const btnVerifyEl = document.querySelector('#btnVerify');
-  if (btnVerifyEl) btnVerifyEl.disabled = false;
-  $('#btnDeploy').disabled = false; // permite deploy imediato com MetaMask, se desejado
-  // habilitar UI de arquivos (preview/download)
-  const btnPrev = document.querySelector('#btnPreviewFile');
-  const btnDown = document.querySelector('#btnDownloadFile');
-  if (btnPrev) btnPrev.disabled = false;
-  if (btnDown) btnDown.disabled = false;
-} catch (err) {
-  log(`Erro na compilação: ${err.message || err}`);
-}
+    const resp = await fetchWithDiagnostics(`${API_BASE}/api/generate-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload),
+      timeoutMs: 20000
+    });
+
+    if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`API retornou ${resp.status}: ${txt || 'sem corpo'}`);
+    }
+
+    let data;
+    try {
+      data = await resp.json();
+    } catch (parseErr) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`Falha ao parsear JSON: ${parseErr?.message || parseErr}. Corpo: ${txt?.slice(0, 200) || 'vazio'}`);
+    }
+
+    if (!data?.success) throw new Error(data?.error || 'Falha na compilação (success=false)');
+
+    const { compilation, sourceCode, token } = data;
+    state.compilation = {
+      abi: compilation?.abi,
+      bytecode: compilation?.bytecode,
+      metadata: compilation?.metadata,
+      sourceCode,
+      contractName: token?.contractName || token?.name?.replace(/\s+/g, '') || 'MyToken'
+    };
+    log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
+
+    const btnVerifyEl = document.querySelector('#btnVerify');
+    if (btnVerifyEl) btnVerifyEl.disabled = false;
+    $('#btnDeploy').disabled = false; // permite deploy imediato com MetaMask, se desejado
+
+    // habilitar UI de arquivos (preview/download)
+    const btnPrev = document.querySelector('#btnPreviewFile');
+    const btnDown = document.querySelector('#btnDownloadFile');
+    if (btnPrev) btnPrev.disabled = false;
+    if (btnDown) btnDown.disabled = false;
+  } catch (err) {
+    const msg = err?.message || String(err);
+    if (err instanceof TypeError && msg.includes('Failed to fetch')) {
+      const pageProto = window.location.protocol;
+      const apiProto = (() => { try { return new URL(API_BASE).protocol; } catch { return 'unknown:'; } })();
+      log(`Erro na compilação: Failed to fetch. API=${API_BASE}`);
+      log(`Verifique CORS do backend, disponibilidade do servidor e mixed content (página ${pageProto} vs API ${apiProto}). online=${navigator.onLine}`);
+      // Fallback: tentar compilar via /api/compile-only com código gerado no frontend
+      try {
+        readForm();
+        const name = state.form.token.name || 'MyToken';
+        const symbol = state.form.token.symbol || 'MTK';
+        const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
+        const totalSupplyRaw = state.form.token.initialSupply || 0;
+        const totalSupplyInt = typeof totalSupplyRaw === 'string' ? parseInt(totalSupplyRaw, 10) : Number(totalSupplyRaw);
+        log(`Tentando fallback: gerar código local e compilar (${API_BASE}/api/compile-only)...`);
+        const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
+        try { log(`Contrato gerado: ${src.contractName}. Tamanho do código: ${src.sourceCode.length} chars`); } catch(_){ }
+        const resp2 = await fetchWithDiagnostics(`${API_BASE}/api/compile-only`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ sourceCode: src.sourceCode, contractName: src.contractName, optimization: true }),
+          timeoutMs: 20000
+        });
+        if (!resp2.ok) {
+          const txt = await resp2.text().catch(()=>'');
+          throw new Error(`Fallback retornou ${resp2.status}: ${txt || 'sem corpo'}`);
+        }
+        const data2 = await resp2.json().catch(async (e)=>{
+          const txt = await resp2.text().catch(()=> '');
+          throw new Error(`Falha ao parsear JSON fallback: ${e?.message || e}. Corpo: ${txt?.slice(0,200)||'vazio'}`);
+        });
+        if (!data2?.success) throw new Error(data2?.error || 'Fallback falhou (success=false)');
+        const { compilation } = data2;
+        state.compilation = {
+          abi: compilation?.abi,
+          bytecode: compilation?.bytecode,
+          sourceCode: src.sourceCode,
+          contractName: src.contractName
+        };
+        log(`Fallback OK: compilação concluída. ABI e bytecode prontos (${src.contractName}).`);
+        const btnVerifyEl = document.querySelector('#btnVerify');
+        if (btnVerifyEl) btnVerifyEl.disabled = false;
+        $('#btnDeploy').disabled = false;
+        const btnPrev = document.querySelector('#btnPreviewFile');
+        const btnDown = document.querySelector('#btnDownloadFile');
+        if (btnPrev) btnPrev.disabled = false;
+        if (btnDown) btnDown.disabled = false;
+        return; // encerrar após fallback com sucesso
+      } catch (fbErr) {
+        log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
+      }
+    } else {
+      log(`Erro na compilação: ${msg}`);
+      // Também tentar fallback quando não for erro de rede
+      try {
+        readForm();
+        const name = state.form.token.name || 'MyToken';
+        const symbol = state.form.token.symbol || 'MTK';
+        const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
+        const totalSupplyRaw = state.form.token.initialSupply || 0;
+        const totalSupplyInt = typeof totalSupplyRaw === 'string' ? parseInt(totalSupplyRaw, 10) : Number(totalSupplyRaw);
+        log(`Tentando fallback: gerar código local e compilar (${API_BASE}/api/compile-only)...`);
+        const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
+        const resp2 = await fetchWithDiagnostics(`${API_BASE}/api/compile-only`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ sourceCode: src.sourceCode, contractName: src.contractName, optimization: true }),
+          timeoutMs: 20000
+        });
+        if (!resp2.ok) {
+          const txt = await resp2.text().catch(()=>'');
+          throw new Error(`Fallback retornou ${resp2.status}: ${txt || 'sem corpo'}`);
+        }
+        const data2 = await resp2.json();
+        if (!data2?.success) throw new Error(data2?.error || 'Fallback falhou (success=false)');
+        const { compilation } = data2;
+        state.compilation = {
+          abi: compilation?.abi,
+          bytecode: compilation?.bytecode,
+          sourceCode: src.sourceCode,
+          contractName: src.contractName
+        };
+        log(`Fallback OK: compilação concluída. ABI e bytecode prontos (${src.contractName}).`);
+        const btnVerifyEl = document.querySelector('#btnVerify');
+        if (btnVerifyEl) btnVerifyEl.disabled = false;
+        $('#btnDeploy').disabled = false;
+        const btnPrev = document.querySelector('#btnPreviewFile');
+        const btnDown = document.querySelector('#btnDownloadFile');
+        if (btnPrev) btnPrev.disabled = false;
+        if (btnDown) btnDown.disabled = false;
+      } catch (fbErr) {
+        log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
+      }
+    }
+  }
 }
 
 function verifyPlaceholder() {
@@ -416,6 +695,19 @@ async function deployPlaceholder() {
   // Se temos artefatos compilados, preferir deploy via servidor
   if (state.compilation?.abi && state.compilation?.bytecode) {
     try {
+      // Sondar endpoint antes de tentar
+      try {
+        const st = await fetchWithDiagnostics(`${API_BASE}/api/deploy-server`, { method: 'OPTIONS', timeoutMs: 8000 })
+          .then(r => r.status)
+          .catch(() => -1);
+        if (st === -1 || (st >= 400 && st !== 204)) {
+          log('Endpoint /api/deploy-server não disponível (ou bloqueado). Prosseguindo com MetaMask.');
+          throw new Error('deploy-server indisponível');
+        }
+      } catch (probeErr) {
+        log(`Sonda de deploy servidor falhou: ${probeErr?.message || probeErr}`);
+        throw probeErr;
+      }
       log('Iniciando deploy via servidor (chave segura, RPC configurado)...');
       const reqChainId = state.form?.network?.chainId || state.wallet?.chainId || null;
       const resp = await fetch(`${API_BASE}/api/deploy-server`, {
@@ -798,7 +1090,7 @@ function updateERC20Details(symbol, name, decimals, supply, statusText, visible)
     if (elSym) elSym.textContent = symbol ?? elSym.textContent ?? '-';
     if (elName) elName.textContent = name ?? elName.textContent ?? '-';
     if (elDec) elDec.textContent = decimals != null ? String(decimals) : (elDec.textContent ?? '-');
-    if (elSup) elSup.textContent = supply ?? elSup.textContent ?? '-';
+    if (elSup) elSup.textContent = supply != null ? String(supply) : (elSup.textContent ?? '-');
     container.classList.toggle('d-none', !visible);
   } catch {}
 }
@@ -834,7 +1126,7 @@ async function initWalletIfConnected() {
   }
 }
 
-function bindUI() {
+async function bindUI() {
   // grupo altera visibilidade de venda
   $('#contractGroup').addEventListener('change', () => {
     readForm();
@@ -846,6 +1138,15 @@ function bindUI() {
   setSaleVisibility();
   updateContractInfo();
   updateVanityVisibility();
+
+  // Log do endpoint e checagem de conectividade ao carregar a página
+  try {
+    log(`Endpoint de API configurado: ${API_BASE}`);
+    const baseDisp = document.getElementById('apiBaseDisplay');
+    if (baseDisp) baseDisp.textContent = API_BASE;
+    await checkApiConnectivity(API_BASE);
+    await checkApiEndpoints(API_BASE);
+  } catch (_) {}
 
   const btnConnect = $('#btnConnect');
   // Inicializa carteira automaticamente, se houver
