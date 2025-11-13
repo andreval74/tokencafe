@@ -10,6 +10,9 @@ const PORT = process.env.PORT || 3000;
 const allowedOrigins = new Set([
   'https://tokencafe.app',
   'http://tokencafe.app',
+  'https://www.tokencafe.app',
+  'http://www.tokencafe.app',
+  'https://tokencafe.onrender.com',
   'http://localhost:5173',
   'http://127.0.0.1:5173'
 ]);
