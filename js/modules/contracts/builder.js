@@ -45,10 +45,10 @@ const state = {
 };
 
 function log(msg) {
-  const out = $('#output');
-  const line = `[${new Date().toISOString()}] ${msg}`;
-  out.value = `${out.value}\n${line}`.trim();
-  out.scrollTop = out.scrollHeight;
+  try {
+    const line = `[${new Date().toISOString()}] ${msg}`;
+    console.log(line);
+  } catch (_) {}
 }
 
 // Informações dos grupos de contrato e compatibilidade
@@ -496,6 +496,7 @@ function renderApiStatus(statusMap) {
   setBadgeStatus('apiStatusDeployServer', statusMap.deployServer);
   setBadgeStatus('apiStatusVerifyBscscan', statusMap.verifyBscscan);
   setBadgeStatus('apiStatusVerifySourcify', statusMap.verifySourcify);
+  setBadgeStatus('apiStatusVerifyPrivate', statusMap.verifyPrivate);
 }
 
 async function checkApiEndpoints(apiBase) {
@@ -506,6 +507,8 @@ async function checkApiEndpoints(apiBase) {
     deployServer: await probeEndpoint(apiBase, '/api/deploy-server'),
     verifyBscscan: await probeEndpoint(apiBase, '/api/verify-bscscan'),
     verifySourcify: await probeEndpoint(apiBase, '/api/verify-sourcify'),
+    verifyPrivate: await probeEndpoint(apiBase, '/api/verify-private'),
+    logRecipe: await probeEndpoint(apiBase, '/api/log-recipe'),
   };
   renderApiStatus(statusMap);
 }
@@ -560,6 +563,7 @@ async function checkApiEndpoints(apiBase) {
       abi: compilation?.abi,
       bytecode: compilation?.bytecode,
       metadata: compilation?.metadata,
+      deployedBytecode: compilation?.deployedBytecode,
       sourceCode,
       contractName: token?.contractName || token?.name?.replace(/\s+/g, '') || 'MyToken'
     };
@@ -567,13 +571,7 @@ async function checkApiEndpoints(apiBase) {
 
     const btnVerifyEl = document.querySelector('#btnVerify');
     if (btnVerifyEl) btnVerifyEl.disabled = false;
-    $('#btnDeploy').disabled = false; // permite deploy imediato com MetaMask, se desejado
-
-    // habilitar UI de arquivos (preview/download)
-    const btnPrev = document.querySelector('#btnPreviewFile');
-    const btnDown = document.querySelector('#btnDownloadFile');
-    if (btnPrev) btnPrev.disabled = false;
-    if (btnDown) btnDown.disabled = false;
+    $('#btnDeploy').disabled = false;
   } catch (err) {
     const msg = err?.message || String(err);
     if (err instanceof TypeError && msg.includes('Failed to fetch')) {
@@ -611,6 +609,7 @@ async function checkApiEndpoints(apiBase) {
         state.compilation = {
           abi: compilation?.abi,
           bytecode: compilation?.bytecode,
+          deployedBytecode: compilation?.deployedBytecode,
           sourceCode: src.sourceCode,
           contractName: src.contractName
         };
@@ -618,10 +617,6 @@ async function checkApiEndpoints(apiBase) {
         const btnVerifyEl = document.querySelector('#btnVerify');
         if (btnVerifyEl) btnVerifyEl.disabled = false;
         $('#btnDeploy').disabled = false;
-        const btnPrev = document.querySelector('#btnPreviewFile');
-        const btnDown = document.querySelector('#btnDownloadFile');
-        if (btnPrev) btnPrev.disabled = false;
-        if (btnDown) btnDown.disabled = false;
         return; // encerrar após fallback com sucesso
       } catch (fbErr) {
         log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
@@ -661,10 +656,6 @@ async function checkApiEndpoints(apiBase) {
         const btnVerifyEl = document.querySelector('#btnVerify');
         if (btnVerifyEl) btnVerifyEl.disabled = false;
         $('#btnDeploy').disabled = false;
-        const btnPrev = document.querySelector('#btnPreviewFile');
-        const btnDown = document.querySelector('#btnDownloadFile');
-        if (btnPrev) btnPrev.disabled = false;
-        if (btnDown) btnDown.disabled = false;
       } catch (fbErr) {
         log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
       }
@@ -737,6 +728,16 @@ async function deployPlaceholder() {
       const txUrl = txh ? getExplorerTxUrl(txh, chainId) : null;
       if (explorerUrl) log(`Explorer (Contrato): ${explorerUrl}`);
       if (txUrl) log(`Explorer (Transação): ${txUrl}`);
+      try {
+        const filesSection = document.getElementById('files-section');
+        const btnPrev = document.querySelector('#btnPreviewFile');
+        const btnDown = document.querySelector('#btnDownloadFile');
+        const btnExportRecipe = document.querySelector('#btnExportRecipe');
+        if (filesSection) filesSection.classList.remove('d-none');
+        if (btnPrev) btnPrev.disabled = false;
+        if (btnDown) btnDown.disabled = false;
+        if (btnExportRecipe) btnExportRecipe.disabled = false;
+      } catch (_) {}
       return;
     } catch (err) {
       log(`Erro no deploy servidor: ${err.message || err}`);
@@ -891,9 +892,68 @@ async function deployPlaceholder() {
 
     // Atualizar links na UI
     updateDeployLinks(explorerUrl, txUrl);
+    try {
+      const filesSection = document.getElementById('files-section');
+      const btnPrev = document.querySelector('#btnPreviewFile');
+      const btnDown = document.querySelector('#btnDownloadFile');
+      const btnExportRecipe = document.querySelector('#btnExportRecipe');
+      if (filesSection) filesSection.classList.remove('d-none');
+      if (btnPrev) btnPrev.disabled = false;
+      if (btnDown) btnDown.disabled = false;
+      if (btnExportRecipe) btnExportRecipe.disabled = false;
+    } catch (_) {}
+
+    try {
+      const rec = buildRecipe();
+      rec.deployment = rec.deployment || {};
+      rec.deployment.address = addr || rec.deployment.address || null;
+      rec.deployment.tx = tx?.hash || rec.deployment.tx || null;
+      fetch(`${API_BASE}/api/log-recipe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deploy', recipe: rec })
+      }).then(()=>{}).catch(()=>{});
+    } catch (_) {}
 
     // Habilitar verificação
   // verificação agora é automática; botão removido da UI
+
+    try {
+      const addrVerify = state.deployed?.address;
+      const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+      const dep = state.compilation?.deployedBytecode;
+      let payload = null;
+      if (addrVerify && chainIdVerify) {
+        if (dep) {
+          payload = { chainId: chainIdVerify, contractAddress: addrVerify, deployedBytecode: dep };
+        } else if (state.compilation?.sourceCode && state.compilation?.contractName) {
+          payload = { chainId: chainIdVerify, contractAddress: addrVerify, sourceCode: state.compilation.sourceCode, contractName: state.compilation.contractName };
+        }
+      }
+      if (payload) {
+        const respP = await fetch(`${API_BASE}/api/verify-private`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (respP.ok) {
+          const dataP = await respP.json();
+          const ok = !!dataP?.success && !!dataP?.match;
+          updateVerificationBadges({ privOk: ok });
+          log(ok ? 'Verificação privada por bytecode: ok' : 'Verificação privada por bytecode: pendente');
+        } else {
+          updateVerificationBadges({ privOk: false });
+          const txt = await respP.text();
+          log(`Falha na verificação privada: ${txt}`);
+        }
+      } else {
+        updateVerificationBadges({ privOk: false });
+        log('Verificação privada não iniciada: dados insuficientes.');
+      }
+    } catch (perr) {
+      updateVerificationBadges({ privOk: false });
+      log(`Erro na verificação privada: ${perr?.message || perr}`);
+    }
 
     // Verificação automática no BscScan (como no XCafe)
     try {
@@ -1048,10 +1108,11 @@ function updateDeployLinks(contractUrl, txUrl) {
 }
 
 // Atualiza badges de verificação BscScan/Sourcify
-function updateVerificationBadges({ bscUrl, bscOk, bscStatus, sourUrl, sourOk, sourStatus }) {
+function updateVerificationBadges({ bscUrl, bscOk, bscStatus, sourUrl, sourOk, sourStatus, privOk }) {
   try {
     const bscEl = document.getElementById('erc20VerifyBsc');
     const sourEl = document.getElementById('erc20VerifySour');
+    const privEl = document.getElementById('erc20VerifyPriv');
     if (bscEl) {
       bscEl.href = bscUrl || '#';
       const bscTxt = bscOk ? (bscStatus ? `verificado (${bscStatus})` : 'verificado') : 'pendente';
@@ -1071,8 +1132,13 @@ function updateVerificationBadges({ bscUrl, bscOk, bscStatus, sourUrl, sourOk, s
       sourEl.classList.toggle('bg-success', !!sourOk);
       sourEl.classList.toggle('bg-secondary', !sourOk);
     }
+    if (privEl) {
+      const privTxt = privOk ? 'verificado' : 'pendente';
+      privEl.textContent = privTxt;
+      privEl.classList.toggle('bg-success', !!privOk);
+      privEl.classList.toggle('bg-secondary', !privOk);
+    }
   } catch (e) {
-    // silencioso
   }
 }
 
@@ -1234,8 +1300,162 @@ async function bindUI() {
 
   const btnPrev = document.querySelector('#btnPreviewFile');
   const btnDown = document.querySelector('#btnDownloadFile');
+  const btnExportRecipe = document.querySelector('#btnExportRecipe');
+  const btnImportRecipe = document.querySelector('#btnImportRecipe');
+  const btnLogRecipe = document.querySelector('#btnLogRecipe');
+  const recipeFileInput = document.querySelector('#recipeFileInput');
   if (btnPrev) btnPrev.addEventListener('click', previewSelectedFile);
   if (btnDown) btnDown.addEventListener('click', downloadSelectedFile);
+  function buildRecipe() {
+    const net = state.form?.network || {};
+    const rec = {
+      group: state.form?.group || 'erc20-minimal',
+      network: { chainId: net?.chainId || state.wallet?.chainId || null, name: net?.name || null },
+      token: {
+        name: state.form?.token?.name || '',
+        symbol: state.form?.token?.symbol || '',
+        decimals: state.form?.token?.decimals ?? 18,
+        initialSupply: state.form?.token?.initialSupply ?? 0,
+      },
+      compilation: {
+        contractName: state.compilation?.contractName || null,
+        deployedBytecode: state.compilation?.deployedBytecode || null,
+      },
+      deployment: {
+        address: state.deployed?.address || null,
+        tx: state.deployed?.transactionHash || null,
+      },
+      sale: {
+        priceDec: state.form?.sale?.priceDec || null,
+        minDec: state.form?.sale?.minDec || null,
+        maxDec: state.form?.sale?.maxDec || null,
+        capUnits: state.form?.sale?.capUnits != null ? String(state.form.sale.capUnits) : null,
+        payoutWallet: state.form?.sale?.payoutWallet || null,
+      },
+      fees: {
+        bps: null,
+        fixedBnb: null,
+        fixedUsdt: null,
+      },
+      solcVersion: '0.8.26',
+      optimizerRuns: 200,
+      createdAt: new Date().toISOString(),
+    };
+    return rec;
+  }
+  function downloadRecipe() {
+    readForm();
+    const rec = buildRecipe();
+    const nameBase = (rec?.compilation?.contractName || rec?.token?.name || 'MyToken').replace(/\s+/g, '');
+    const chainId = rec?.network?.chainId || 'unknown';
+    const filename = `recipe_${nameBase}_${chainId}.json`;
+    const content = JSON.stringify(rec, null, 2);
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    log(`Receita exportada: ${filename}`);
+    try {
+      fetch(`${API_BASE}/api/log-recipe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'export', recipe: rec })
+      }).then(()=>{}).catch(()=>{});
+    } catch (_) {}
+  }
+  function applyRecipe(rec) {
+    try {
+      if (rec?.group) {
+        const sel = document.getElementById('contractGroup');
+        if (sel) sel.value = rec.group;
+      }
+      if (rec?.token) {
+        const t = rec.token;
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v != null ? String(v) : ''; };
+        set('tokenName', t.name);
+        set('tokenSymbol', t.symbol);
+        set('tokenDecimals', t.decimals);
+        set('initialSupply', t.initialSupply);
+      }
+      if (rec?.sale) {
+        const s = rec.sale;
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v != null ? String(v) : ''; };
+        set('tokenPriceDec', s.priceDec);
+        set('minPurchaseDec', s.minDec);
+        set('maxPurchaseDec', s.maxDec);
+        set('perWalletCap', s.capUnits);
+        set('payoutWallet', s.payoutWallet);
+      }
+      readForm();
+      setSaleVisibility();
+      updateContractInfo();
+      if (rec?.compilation) {
+        state.compilation = state.compilation || {};
+        state.compilation.contractName = rec.compilation.contractName || state.compilation.contractName || null;
+        state.compilation.deployedBytecode = rec.compilation.deployedBytecode || state.compilation.deployedBytecode || null;
+      }
+      if (rec?.deployment) {
+        state.deployed.address = rec.deployment.address || state.deployed.address || null;
+        state.deployed.transactionHash = rec.deployment.tx || state.deployed.transactionHash || null;
+        const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+        const explorerUrl = getExplorerContractUrl(state.deployed.address, chainId);
+        const txUrl = getExplorerTxUrl(state.deployed.transactionHash, chainId);
+        updateDeployLinks(explorerUrl, txUrl);
+      }
+      log('Receita importada e aplicada aos campos. Revise antes de compilar/deploy.');
+    } catch (e) {
+      log(`Falha ao aplicar receita: ${e?.message || e}`);
+    }
+  }
+  function importRecipeFromFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const rec = JSON.parse(reader.result);
+        applyRecipe(rec);
+        try {
+          fetch(`${API_BASE}/api/log-recipe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'import', recipe: rec })
+          }).then(()=>{}).catch(()=>{});
+        } catch (_) {}
+      } catch (e) {
+        log(`Falha ao ler receita: ${e?.message || e}`);
+      }
+    };
+    reader.readAsText(file);
+  }
+  if (btnExportRecipe) btnExportRecipe.addEventListener('click', downloadRecipe);
+  if (btnImportRecipe && recipeFileInput) {
+    btnImportRecipe.addEventListener('click', () => recipeFileInput.click());
+    recipeFileInput.addEventListener('change', (e) => {
+      const file = e.target?.files?.[0] || null;
+      importRecipeFromFile(file);
+      recipeFileInput.value = '';
+    });
+  }
+  function logRecipeNow() {
+    readForm();
+    const rec = buildRecipe();
+    fetch(`${API_BASE}/api/log-recipe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'manual', recipe: rec })
+    }).then(async (r)=>{
+      const ok = r.ok; const txt = await r.text().catch(()=> '');
+      log(ok ? 'Registro manual enviado.' : `Registro manual falhou: ${txt}`);
+    }).catch((e)=>{
+      log(`Registro manual erro: ${e?.message || e}`);
+    });
+  }
+  if (btnLogRecipe) btnLogRecipe.addEventListener('click', logRecipeNow);
 
   // Tooltip do ícone de informação do grupo
   try {

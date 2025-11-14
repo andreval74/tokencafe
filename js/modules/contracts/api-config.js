@@ -3,4 +3,8 @@
 // ou altere abaixo para sua URL no Render.
 
 window.TOKENCAFE_API_BASE = window.TOKENCAFE_API_BASE || window.localStorage?.getItem('api_base') || 'http://localhost:3000';
-
+try {
+  if (!window.localStorage?.getItem('api_base')) {
+    window.localStorage.setItem('api_base', window.TOKENCAFE_API_BASE);
+  }
+} catch (_) {}

@@ -17,9 +17,13 @@ contract TokenSale {
     address public saleToken;         // Token sendo vendido
     address public usdtToken;         // Endereço do contrato USDT
     address public destinationWallet; // Carteira que receberá os pagamentos
+    address public platformFeeWallet;
     
     uint256 public bnbPrice;          // Preço em BNB por token (em wei)
     uint256 public usdtPrice;         // Preço em USDT por token (considerando decimais do USDT)
+    uint256 public platformFeeBps;
+    uint256 public platformFeeFixedBnb;
+    uint256 public platformFeeFixedUsdt;
 
     // Limite por carteira (0 = sem limite) e rastreamento de compras por endereço
     uint256 public perWalletCap;      // Quantidade máxima de tokens por carteira
@@ -74,8 +78,16 @@ contract TokenSale {
             require(purchasedBy[msg.sender] + quantity <= perWalletCap, "Limite por carteira excedido");
         }
         
-        // Transferir pagamento para a carteira de destino
-        (bool sent, ) = destinationWallet.call{value: msg.value}("");
+        uint256 feePct = platformFeeBps > 0 ? (totalCost * platformFeeBps) / 10000 : 0;
+        uint256 feeFix = platformFeeFixedBnb;
+        uint256 feeTotal = feePct + feeFix;
+        if (feeTotal > totalCost) feeTotal = totalCost;
+        uint256 toDest = totalCost - feeTotal;
+        if (feeTotal > 0 && platformFeeWallet != address(0)) {
+            (bool f1, ) = platformFeeWallet.call{value: feeTotal}("");
+            require(f1, "Falha ao enviar taxa");
+        }
+        (bool sent, ) = destinationWallet.call{value: toDest}("");
         require(sent, "Falha ao enviar BNB");
         
         // Transferir tokens para o comprador
@@ -117,8 +129,15 @@ contract TokenSale {
             require(purchasedBy[msg.sender] + quantity <= perWalletCap, "Limite por carteira excedido");
         }
         
-        // Transferir USDT do comprador para a carteira de destino
-        require(usdt.transferFrom(msg.sender, destinationWallet, totalCost), "Falha na transferencia de USDT");
+        uint256 feePct = platformFeeBps > 0 ? (totalCost * platformFeeBps) / 10000 : 0;
+        uint256 feeFix = platformFeeFixedUsdt;
+        uint256 feeTotal = feePct + feeFix;
+        if (feeTotal > totalCost) feeTotal = totalCost;
+        uint256 toDest = totalCost - feeTotal;
+        if (feeTotal > 0 && platformFeeWallet != address(0)) {
+            require(usdt.transferFrom(msg.sender, platformFeeWallet, feeTotal), "Falha taxa USDT");
+        }
+        require(usdt.transferFrom(msg.sender, destinationWallet, toDest), "Falha na transferencia de USDT");
         
         // Transferir tokens para o comprador
         require(token.transfer(msg.sender, quantity), "Falha na transferencia de tokens");
@@ -183,5 +202,12 @@ contract TokenSale {
     
     function updatePerWalletCap(uint256 newCap) external onlyOwner {
         perWalletCap = newCap;
+    }
+
+    function setPlatformFee(address wallet, uint256 bps, uint256 fixedBnb, uint256 fixedUsdt) external onlyOwner {
+        platformFeeWallet = wallet;
+        platformFeeBps = bps;
+        platformFeeFixedBnb = fixedBnb;
+        platformFeeFixedUsdt = fixedUsdt;
     }
 }
