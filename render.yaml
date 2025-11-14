@@ -10,3 +10,10 @@ services:
     startCommand: npm start
     autoDeploy: true
     healthCheckPath: /health
+  - type: static
+    name: tokencafe-site
+    branch: main
+    plan: free
+    rootDir: .
+    staticPublishPath: .
+    autoDeploy: true
