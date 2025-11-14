@@ -27,10 +27,11 @@ app.use(cors({
     // Ex.: https://seu-site.onrender.com
     const isRenderSubdomain = /^https:\/\/[a-z0-9-]+\.onrender\.com$/i.test(origin);
     if (isRenderSubdomain) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
+    return callback(null, false);
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  allowedHeaders: ['Content-Type'],
+  optionsSuccessStatus: 204
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('tiny'));
