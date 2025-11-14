@@ -23,6 +23,10 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.has(origin)) return callback(null, true);
+    // Permite qualquer site publicado na Render (subdomínio .onrender.com) via HTTPS
+    // Ex.: https://seu-site.onrender.com
+    const isRenderSubdomain = /^https:\/\/[a-z0-9-]+\.onrender\.com$/i.test(origin);
+    if (isRenderSubdomain) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
