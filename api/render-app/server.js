@@ -12,6 +12,8 @@ const allowedOrigins = new Set([
   'http://tokencafe.app',
   'https://www.tokencafe.app',
   'http://www.tokencafe.app',
+  'https://api.tokencafe.app',
+  'http://api.tokencafe.app',
   'https://tokencafe.onrender.com',
   'http://localhost:5173',
   'http://127.0.0.1:5173'
