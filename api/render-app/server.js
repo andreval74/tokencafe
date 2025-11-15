@@ -110,7 +110,9 @@ app.post('/api/generate-token', (req, res) => {
     if (!name || !symbol) return res.status(400).json({ error: 'Missing name or symbol' });
     const d = Number.isFinite(decimals) ? parseInt(decimals, 10) : 18;
     if (!Number.isFinite(d) || d < 0 || d > 18) return res.status(400).json({ error: 'Invalid decimals' });
-    const ts = parseInt(String(totalSupply || 0), 10);
+    const tsStr = String(totalSupply ?? '0');
+    const tsSan = tsStr.replace(/[^0-9]/g, '');
+    const ts = parseInt(tsSan || '0', 10);
     if (!Number.isFinite(ts) || ts < 0) return res.status(400).json({ error: 'Invalid totalSupply' });
 
     const contractName = sanitizeContractName(name);

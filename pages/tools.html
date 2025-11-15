@@ -68,7 +68,7 @@
                         <div class="tool-tile-title">Wallet Manager</div>
                         <div class="tool-tile-desc">Gerenciador de Carteiras Web3</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="modules/wallet/wallet-index.html" class="btn btn-sm btn-primary rounded-3 w-100"
+                            <a href="modules/wallet/wallet-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
                                 aria-label="Abrir Wallet Manager">
                                 <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
@@ -82,7 +82,7 @@
                         <div class="tool-tile-title">RPC Manager</div>
                         <div class="tool-tile-desc">Conexões RPC e redes</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="modules/rpc/rpc-index.html" class="btn btn-sm btn-primary rounded-3 w-100"
+                            <a href="modules/rpc/rpc-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
                                 aria-label="Abrir RPC Manager">
                                 <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
@@ -96,7 +96,7 @@
                         <div class="tool-tile-title">Link Generator</div>
                         <div class="tool-tile-desc">Links para adicionar tokens</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="modules/link/link-index.html" class="btn btn-sm btn-primary rounded-3 w-100"
+                            <a href="modules/link/link-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
                                 aria-label="Abrir Link Generator">
                                 <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
@@ -110,10 +110,14 @@
                         <div class="tool-tile-title">Contracts Builder</div>
                         <div class="tool-tile-desc">Crie, valide, verifique e faça o deploy de contratos</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="modules/contracts/index.html" class="btn btn-sm btn-primary rounded-3 w-100"
+                            <a href="modules/contracts/index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
                                aria-label="Abrir Contracts Builder">
-                                <i class="fas fa-door-open me-1"></i> Abrir Módulo
+                               <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
+                            <button id="importRecipeBtn" class="btn btn-sm btn-outline-warning rounded-3 w-100" aria-label="Importar Receita .json">
+                                <i class="fas fa-upload me-1"></i> Importar .json
+                            </button>
+                            <input type="file" id="importRecipeInput" accept="application/json" class="d-none" />
                         </div>
                     </div>
 
@@ -124,9 +128,9 @@
                         <div class="tool-tile-title">Mini Widget</div>
                         <div class="tool-tile-desc">Venda de tokens plug & play</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="modules/widget/widget-index.html" class="btn btn-sm btn-primary rounded-3 w-100"
+                            <a href="modules/widget/widget-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
                                aria-label="Abrir Widget de Compra">
-                                <i class="fas fa-door-open me-1"></i> Abrir Widget
+                               <i class="fas fa-door-open me-1"></i> Abrir Widget
                             </a>
                         </div>
                     </div>
@@ -138,15 +142,15 @@
                         <div class="tool-tile-title">Gerenciador de Token</div>
                         <div class="tool-tile-desc">Criação e gestão de tokens</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="modules/tokens/token-add.html" class="btn btn-sm btn-primary rounded-3 w-100" aria-label="Abrir Token Add">
+                            <a href="modules/tokens/token-add.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Add">
                                 <i class="fas fa-add me-1"></i> Cadastro
                             </a>
-                            <a href="modules/tokens/token-manager.html" class="btn btn-sm btn-primary rounded-3 w-100" aria-label="Abrir Token Manager">
+                            <a href="modules/tokens/token-manager.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Manager">
                                 <i class="fas fa-list me-1"></i> Gerenciador
                             </a>
                             <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip"
                                 title="Teste indisponível">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-dark rounded-3 w-100 disabled"
+                                <a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary rounded-3 w-100 disabled"
                                     role="button" aria-disabled="true" aria-label="Abrir Testes de Tokens">
                                     <i class="fas fa-vial me-1"></i> Abrir Teste
                                 </a>
@@ -162,12 +166,12 @@
                         <div class="tool-tile-desc">Relatórios e métricas</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                             <a href="modules/analytics/analytics-reports.html"
-                                class="btn btn-sm btn-primary rounded-3 w-100" aria-label="Abrir Analytics">
+                                class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Analytics">
                                 <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
                             <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip"
                                 title="Teste indisponível">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-dark rounded-3 w-100 disabled"
+                                <a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary rounded-3 w-100 disabled"
                                     role="button" aria-disabled="true" aria-label="Abrir Testes de Analytics">
                                     <i class="fas fa-vial me-1"></i> Abrir Teste
                                 </a>
@@ -183,12 +187,12 @@
                         <div class="tool-tile-desc">Explore e gerencie templates</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                             <a href="modules/templates/template-gallery.html"
-                                class="btn btn-sm btn-primary rounded-3 w-100" aria-label="Abrir Template Gallery">
+                                class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Template Gallery">
                                 <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
                             <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip"
                                 title="Teste indisponível">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-dark rounded-3 w-100 disabled"
+                                <a href="javascript:void(0)" class="btn btn-sm btn-outline-secondary rounded-3 w-100 disabled"
                                     role="button" aria-disabled="true" aria-label="Abrir Testes de Templates">
                                     <i class="fas fa-vial me-1"></i> Abrir Teste
                                 </a>
@@ -203,7 +207,7 @@
                         <div class="tool-tile-title">System Settings</div>
                         <div class="tool-tile-desc">Preferências e configurações do sistema</div>
                         <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-                            <a href="javascript:void(0)" class="btn btn-sm btn-primary rounded-3 w-100 disabled"
+                            <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary rounded-3 w-100 disabled"
                                 role="button" aria-disabled="true" aria-label="Abrir System Settings">
                                 <i class="fas fa-door-open me-1"></i> Abrir Módulo
                             </a>
@@ -393,3 +397,23 @@
 </body>
 
 </html>
+            const importBtn = document.getElementById('importRecipeBtn');
+            const importInput = document.getElementById('importRecipeInput');
+            if (importBtn && importInput) {
+                importBtn.addEventListener('click', () => importInput.click());
+                importInput.addEventListener('change', (e) => {
+                    const file = e.target?.files?.[0] || null;
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const rec = JSON.parse(reader.result);
+                            localStorage.setItem('tokencafe_contract_recipe_import', JSON.stringify(rec));
+                            window.location.href = 'modules/contracts/index.html';
+                        } catch (err) {
+                            alert('Falha ao importar .json: ' + (err?.message || err));
+                        }
+                    };
+                    reader.readAsText(file);
+                });
+            }

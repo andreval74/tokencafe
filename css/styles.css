@@ -346,10 +346,75 @@ section[style*="gradient"], div[style*="gradient"] {
 
 /* Botões — definições legadas removidas. Variantes consolidadas ao final do arquivo. */
 
-.btn:disabled {
+.btn:disabled, .btn.disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  background-color: transparent !important;
 }
+.btn-outline-primary:disabled, .btn-outline-secondary:disabled, .btn-outline-success:disabled, .btn-outline-warning:disabled, .btn-outline-info:disabled {
+  color: #adb5bd !important;
+  background-color: transparent !important;
+  border-color: #6c757d !important;
+}
+
+/* Estados "já usados" (sucesso/falha), desativados e com cor padrão Bootstrap */
+.btn-used-success:disabled, .btn-used-success.btn.disabled {
+  color: var(--tokencafe-success, var(--bs-success)) !important;
+  background-color: transparent !important;
+  border-color: var(--tokencafe-success, var(--bs-success)) !important;
+  opacity: 0.6;
+}
+.btn-used-error:disabled, .btn-used-error.btn.disabled {
+  color: var(--tokencafe-danger, var(--bs-danger)) !important;
+  background-color: transparent !important;
+  border-color: var(--tokencafe-danger, var(--bs-danger)) !important;
+  opacity: 0.6;
+}
+
+/* Outline disabled states keep color with slight transparency */
+.btn-outline-success:disabled, .btn-outline-success.btn.disabled {
+  color: var(--tokencafe-success, var(--bs-success)) !important;
+  border-color: var(--tokencafe-success, var(--bs-success)) !important;
+  background-color: transparent !important;
+  opacity: 0.6;
+}
+.btn-outline-danger:disabled, .btn-outline-danger.btn.disabled {
+  color: var(--tokencafe-danger, var(--bs-danger)) !important;
+  border-color: var(--tokencafe-danger, var(--bs-danger)) !important;
+  background-color: transparent !important;
+  opacity: 0.6;
+}
+
+/* Padrão outline para todas variantes e hover preenchendo */
+.btn-primary,
+.btn-outline-primary { color: var(--bs-primary) !important; background-color: transparent !important; border: 1px solid var(--bs-primary) !important; }
+.btn-primary:hover,
+.btn-outline-primary:hover { color: #fff !important; background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important; }
+
+.btn-success,
+.btn-outline-success { color: var(--bs-success) !important; background-color: transparent !important; border: 1px solid var(--bs-success) !important; }
+.btn-success:hover,
+.btn-outline-success:hover { color: #fff !important; background-color: var(--bs-success) !important; border-color: var(--bs-success) !important; }
+
+.btn-danger,
+.btn-outline-danger { color: var(--bs-danger) !important; background-color: transparent !important; border: 1px solid var(--bs-danger) !important; }
+.btn-danger:hover,
+.btn-outline-danger:hover { color: #fff !important; background-color: var(--bs-danger) !important; border-color: var(--bs-danger) !important; }
+
+.btn-warning,
+.btn-outline-warning { color: var(--bs-warning) !important; background-color: transparent !important; border: 1px solid var(--bs-warning) !important; }
+.btn-warning:hover,
+.btn-outline-warning:hover { color: #212529 !important; background-color: var(--bs-warning) !important; border-color: var(--bs-warning) !important; }
+
+.btn-info,
+.btn-outline-info { color: var(--bs-info) !important; background-color: transparent !important; border: 1px solid var(--bs-info) !important; }
+.btn-info:hover,
+.btn-outline-info:hover { color: #fff !important; background-color: var(--bs-info) !important; border-color: var(--bs-info) !important; }
+
+.btn-secondary,
+.btn-outline-secondary { color: var(--bs-secondary) !important; background-color: transparent !important; border: 1px solid var(--bs-secondary) !important; }
+.btn-secondary:hover,
+.btn-outline-secondary:hover { color: #fff !important; background-color: var(--bs-secondary) !important; border-color: var(--bs-secondary) !important; }
 
 /* Bootstrap Alerts - Dark Theme */
 .alert-success {
@@ -3832,12 +3897,15 @@ Classes reutilizáveis para efeitos neon padronizados
 }
 .btn-primary:hover,
 .btn-primary:focus {
-  color: #fff;
-  background-image: linear-gradient(135deg, var(--tokencafe-primary) 0%, var(--tokencafe-primary-dark) 50%, var(--tokencafe-primary) 100%);
+  color: var(--tokencafe-primary) !important;
+  background: transparent !important;
+  border: 1px solid var(--tokencafe-primary) !important;
 }
 .btn-primary:disabled {
   opacity: 0.85;
-  background-image: linear-gradient(135deg, #b65b1f 0%, #cc6a2a 50%, #d77c3a 100%);
+  background: transparent !important;
+  color: #adb5bd !important;
+  border-color: #6c757d !important;
 }
 
 /* Limpar/Cancelar: cinza escuro padronizado */
@@ -3886,69 +3954,6 @@ Classes reutilizáveis para efeitos neon padronizados
 }
 
 /* Outline aviso (não destrutivo) */
-.btn-outline-warning {
-  color: var(--tokencafe-warning);
-  border-color: var(--tokencafe-warning);
-  background: transparent;
-}
-.btn-outline-warning:hover,
-.btn-outline-warning:focus {
-  color: #fff;
-  background-color: var(--tokencafe-warning);
-  border-color: var(--tokencafe-warning);
-}
-
-/* Sucesso: verde consistente com o tema */
-.btn-success {
-  color: #fff;
-  background-color: var(--tokencafe-success);
-  border-color: var(--tokencafe-success);
-}
-.btn-success:hover,
-.btn-success:focus {
-  color: #fff;
-  background-color: #0fa97a; /* leve escurecimento no hover */
-  border-color: #0fa97a;
-}
-
-/* Aviso: amarelo/laranja com alto contraste */
-.btn-warning {
-  color: #1a1a1a;
-  background-color: var(--tokencafe-warning);
-  border-color: var(--tokencafe-warning);
-}
-.btn-warning:hover,
-.btn-warning:focus {
-  color: #1a1a1a;
-  background-color: #d48a0a; /* leve escurecimento no hover */
-  border-color: #d48a0a;
-}
-
-/* Informação: azul */
-.btn-info {
-  color: #fff;
-  background-color: var(--tokencafe-info);
-  border-color: var(--tokencafe-info);
-}
-.btn-info:hover,
-.btn-info:focus {
-  color: #fff;
-  background-color: #2f6fd6; /* leve escurecimento no hover */
-  border-color: #2f6fd6;
-}
-
-/* Erro/Destrutivo: vermelho */
-.btn-danger {
-  color: #fff;
-  background-color: var(--tokencafe-danger);
-  border-color: var(--tokencafe-danger);
-}
-.btn-danger:hover,
-.btn-danger:focus {
-  color: #fff;
-  background-color: #d53a3a; /* leve escurecimento no hover */
-  border-color: #d53a3a;
-}
 
 /* Widget-teste: layout de informações abaixo dos inputs */
 .field-info { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }

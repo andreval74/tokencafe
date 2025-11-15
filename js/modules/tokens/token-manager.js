@@ -214,9 +214,9 @@ class TokenManager {
                     <div class="stat"><span class="stat-label">Network:</span><span class="stat-value">${token.network}</span></div>
                 </div>
                 <div class="token-actions">
-                    <button class="btn btn-sm btn-primary" onclick="tokenManager.viewDetails('${tokenId}')">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="tokenManager.viewDetails('${tokenId}')">Ver Detalhes</button>
             <button class="btn btn-sm btn-outline-secondary" onclick="tokenManager.editToken('${tokenId}')">Editar</button>
-                    <button class="btn btn-sm btn-outline" onclick="tokenManager.copyAddress('${token.contractAddress}')">Copiar</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="tokenManager.copyAddress('${token.contractAddress}')">Copiar</button>
                 </div>
             </div>
         `;

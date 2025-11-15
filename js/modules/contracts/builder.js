@@ -5,6 +5,7 @@
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 import { getExplorerContractUrl, getExplorerTxUrl, getExplorerVerificationUrl } from './explorer-utils.js';
+import { addTokenToMetaMask } from '../../shared/metamask-utils.js';
 
 // Estado simples do módulo
 const state = {
@@ -138,7 +139,11 @@ function readForm() {
   state.form.token.name = $('#tokenName').value.trim();
   state.form.token.symbol = $('#tokenSymbol').value.trim().toUpperCase();
   state.form.token.decimals = parseInt($('#tokenDecimals').value || '18', 10);
-  state.form.token.initialSupply = parseInt($('#initialSupply').value || '0', 10);
+  {
+    const raw = String($('#initialSupply').value || '').trim();
+    const sanitized = raw.replace(/[^0-9]/g, '');
+    state.form.token.initialSupply = parseInt(sanitized || '0', 10);
+  }
 
   // Entradas decimais (strings), não usar wei. Conversão será feita no backend.
   state.form.sale.priceDec = ($('#tokenPriceDec').value || '').trim();
@@ -514,7 +519,7 @@ async function checkApiEndpoints(apiBase) {
 }
 
  const API_BASE = getApiBase();
- async function compileContract() {
+async function compileContract() {
   // Validação visual inline dos campos
   const ok = runAllFieldValidation() && validateForm();
   if (!ok) {
@@ -529,7 +534,7 @@ async function checkApiEndpoints(apiBase) {
     const name = state.form.token.name || 'MyToken';
     const symbol = state.form.token.symbol || 'MTK';
     const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
-    const totalSupply = String(state.form.token.initialSupply || 0);
+    const totalSupply = Number.isFinite(state.form.token.initialSupply) ? state.form.token.initialSupply : 0;
 
     const payload = { name, symbol, totalSupply, decimals };
     log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}...`);
@@ -569,9 +574,8 @@ async function checkApiEndpoints(apiBase) {
     };
     log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
 
-    const btnVerifyEl = document.querySelector('#btnVerify');
-    if (btnVerifyEl) btnVerifyEl.disabled = false;
     $('#btnDeploy').disabled = false;
+    try { const c = document.getElementById('btnCompile'); if (c) c.disabled = true; } catch (_) {}
   } catch (err) {
     const msg = err?.message || String(err);
     if (err instanceof TypeError && msg.includes('Failed to fetch')) {
@@ -614,9 +618,8 @@ async function checkApiEndpoints(apiBase) {
           contractName: src.contractName
         };
         log(`Fallback OK: compilação concluída. ABI e bytecode prontos (${src.contractName}).`);
-        const btnVerifyEl = document.querySelector('#btnVerify');
-        if (btnVerifyEl) btnVerifyEl.disabled = false;
         $('#btnDeploy').disabled = false;
+        try { const c = document.getElementById('btnCompile'); if (c) c.disabled = true; } catch (_) {}
         return; // encerrar após fallback com sucesso
       } catch (fbErr) {
         log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
@@ -653,13 +656,23 @@ async function checkApiEndpoints(apiBase) {
           contractName: src.contractName
         };
         log(`Fallback OK: compilação concluída. ABI e bytecode prontos (${src.contractName}).`);
-        const btnVerifyEl = document.querySelector('#btnVerify');
-        if (btnVerifyEl) btnVerifyEl.disabled = false;
         $('#btnDeploy').disabled = false;
+        try { const c = document.getElementById('btnCompile'); if (c) c.disabled = true; } catch (_) {}
       } catch (fbErr) {
         log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
       }
     }
+    // marcar botão como falha usada e desativar até correção dos campos
+    try {
+      const c = document.getElementById('btnCompile');
+      if (c) {
+        c.disabled = true;
+        c.classList.remove('btn-primary');
+        c.classList.remove('btn-outline-success');
+        c.classList.remove('btn-outline-danger');
+        c.classList.add('btn-used-error');
+      }
+    } catch (_) {}
   }
 }
 
@@ -729,18 +742,79 @@ async function deployPlaceholder() {
       if (explorerUrl) log(`Explorer (Contrato): ${explorerUrl}`);
       if (txUrl) log(`Explorer (Transação): ${txUrl}`);
       try {
-        const filesSection = document.getElementById('files-section');
-        const btnPrev = document.querySelector('#btnPreviewFile');
-        const btnDown = document.querySelector('#btnDownloadFile');
-        const btnExportRecipe = document.querySelector('#btnExportRecipe');
-        if (filesSection) filesSection.classList.remove('d-none');
-        if (btnPrev) btnPrev.disabled = false;
-        if (btnDown) btnDown.disabled = false;
-        if (btnExportRecipe) btnExportRecipe.disabled = false;
+        const d = document.getElementById('btnDeploy');
+        if (d) {
+          d.disabled = true;
+          d.classList.remove('btn-outline-danger');
+          d.classList.remove('btn-outline-success');
+          d.classList.add('btn-used-success');
+        }
       } catch (_) {}
+      try {
+        const filesSection = document.getElementById('files-section');
+        const bSol = document.querySelector('#btnDownloadSol');
+        const bJson = document.querySelector('#btnDownloadJson');
+        const bHex = document.querySelector('#btnDownloadHex');
+        if (filesSection) filesSection.classList.remove('d-none');
+        if (bSol) bSol.disabled = false;
+        if (bJson) bJson.disabled = false;
+        if (bHex) bHex.disabled = false;
+      } catch (_) {}
+      try {
+        updateDeployLinks(explorerUrl, txUrl);
+        updateERC20Details(null, null, null, null, 'Deploy concluído (servidor)', true);
+      } catch (_) {}
+      // Verificação privada on-chain
+      try {
+        const addrVerify = state.deployed?.address;
+        const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+        const dep = state.compilation?.deployedBytecode;
+        let payload = null;
+        if (addrVerify && chainIdVerify) {
+          if (dep) {
+            payload = { chainId: chainIdVerify, contractAddress: addrVerify, deployedBytecode: dep };
+          } else if (state.compilation?.sourceCode && state.compilation?.contractName) {
+            payload = { chainId: chainIdVerify, contractAddress: addrVerify, sourceCode: state.compilation.sourceCode, contractName: state.compilation.contractName };
+          }
+        }
+        if (payload) {
+          const respP = await fetch(`${API_BASE}/api/verify-private`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (respP.ok) {
+            const dataP = await respP.json();
+            const ok = !!dataP?.success && !!dataP?.match;
+            updateVerificationBadges({ privOk: ok });
+            log(ok ? 'Verificação privada por bytecode: ok' : 'Verificação privada por bytecode: pendente');
+          } else {
+            updateVerificationBadges({ privOk: false });
+            const txt = await respP.text();
+            log(`Falha na verificação privada: ${txt}`);
+          }
+        } else {
+          updateVerificationBadges({ privOk: false });
+          log('Verificação privada não iniciada: dados insuficientes.');
+        }
+      } catch (perr) {
+        updateVerificationBadges({ privOk: false });
+        log(`Erro na verificação privada: ${perr?.message || perr}`);
+      }
       return;
     } catch (err) {
       log(`Erro no deploy servidor: ${err.message || err}`);
+      try {
+        const d = document.getElementById('btnDeploy');
+        if (d) {
+          d.disabled = true;
+          d.classList.remove('btn-primary');
+          d.classList.remove('btn-outline-success');
+          d.classList.remove('btn-outline-danger');
+          d.classList.add('btn-used-error');
+        }
+      } catch (_) {}
+      try { const mm = document.getElementById('btnAddToMetaMask'); if (mm) mm.disabled = true; } catch (_) {}
       // prosseguir para fluxo MetaMask se desejado
     }
   }
@@ -894,14 +968,24 @@ async function deployPlaceholder() {
     updateDeployLinks(explorerUrl, txUrl);
     try {
       const filesSection = document.getElementById('files-section');
-      const btnPrev = document.querySelector('#btnPreviewFile');
-      const btnDown = document.querySelector('#btnDownloadFile');
-      const btnExportRecipe = document.querySelector('#btnExportRecipe');
+      const bSol = document.querySelector('#btnDownloadSol');
+      const bJson = document.querySelector('#btnDownloadJson');
+      const bHex = document.querySelector('#btnDownloadHex');
       if (filesSection) filesSection.classList.remove('d-none');
-      if (btnPrev) btnPrev.disabled = false;
-      if (btnDown) btnDown.disabled = false;
-      if (btnExportRecipe) btnExportRecipe.disabled = false;
+      if (bSol) bSol.disabled = false;
+      if (bJson) bJson.disabled = false;
+      if (bHex) bHex.disabled = false;
     } catch (_) {}
+    try {
+      const d = document.getElementById('btnDeploy');
+      if (d) {
+        d.disabled = true;
+        d.classList.remove('btn-outline-danger');
+        d.classList.remove('btn-outline-success');
+        d.classList.add('btn-used-success');
+      }
+    } catch (_) {}
+    try { const mm = document.getElementById('btnAddToMetaMask'); if (mm) mm.disabled = false; } catch (_) {}
 
     try {
       const rec = buildRecipe();
@@ -1084,6 +1168,17 @@ async function deployPlaceholder() {
     }
   } catch (err) {
     log(`Erro no deploy via MetaMask: ${err?.message || err}`);
+    try {
+      const d = document.getElementById('btnDeploy');
+      if (d) {
+        d.disabled = true;
+        d.classList.remove('btn-primary');
+        d.classList.remove('btn-outline-success');
+        d.classList.remove('btn-outline-danger');
+        d.classList.add('btn-used-error');
+      }
+    } catch (_) {}
+    try { const mm = document.getElementById('btnAddToMetaMask'); if (mm) mm.disabled = true; } catch (_) {}
   }
 }
 
@@ -1110,36 +1205,51 @@ function updateDeployLinks(contractUrl, txUrl) {
 // Atualiza badges de verificação BscScan/Sourcify
 function updateVerificationBadges({ bscUrl, bscOk, bscStatus, sourUrl, sourOk, sourStatus, privOk }) {
   try {
-    const bscEl = document.getElementById('erc20VerifyBsc');
-    const sourEl = document.getElementById('erc20VerifySour');
-    const privEl = document.getElementById('erc20VerifyPriv');
-    if (bscEl) {
-      bscEl.href = bscUrl || '#';
-      const bscTxt = bscOk ? (bscStatus ? `verificado (${bscStatus})` : 'verificado') : 'pendente';
-      bscEl.textContent = bscTxt;
-      bscEl.classList.toggle('bg-success', !!bscOk);
-      bscEl.classList.toggle('bg-secondary', !bscOk);
-    }
-    if (sourEl) {
-      sourEl.href = sourUrl || '#';
-      let sourTxt = 'pendente';
-      if (sourOk) {
-        sourTxt = 'verificado';
-        if (sourStatus === 'perfect') sourTxt = 'verificado (perfeito)';
-        else if (sourStatus === 'partial') sourTxt = 'verificado (parcial)';
+    const bscBtn = document.getElementById('erc20VerifyBscBtn');
+    const sourBtn = document.getElementById('erc20VerifySourBtn');
+    const privBtn = document.getElementById('erc20VerifyPrivBtn');
+    if (bscBtn) {
+      const ok = !!bscOk;
+      bscBtn.dataset.url = bscUrl || '';
+      bscBtn.classList.remove('btn-outline-success', 'btn-used-success', 'btn-used-error');
+      if (ok) {
+        bscBtn.classList.remove('btn-outline-secondary');
+        bscBtn.classList.add('btn-used-success');
+        bscBtn.disabled = true;
+      } else {
+        bscBtn.classList.add('btn-outline-secondary');
+        bscBtn.disabled = false;
       }
-      sourEl.textContent = sourTxt;
-      sourEl.classList.toggle('bg-success', !!sourOk);
-      sourEl.classList.toggle('bg-secondary', !sourOk);
     }
-    if (privEl) {
-      const privTxt = privOk ? 'verificado' : 'pendente';
-      privEl.textContent = privTxt;
-      privEl.classList.toggle('bg-success', !!privOk);
-      privEl.classList.toggle('bg-secondary', !privOk);
+    if (sourBtn) {
+      const ok = !!sourOk;
+      sourBtn.dataset.url = sourUrl || '';
+      sourBtn.classList.remove('btn-outline-success', 'btn-used-success', 'btn-used-error');
+      if (ok) {
+        sourBtn.classList.remove('btn-outline-secondary');
+        sourBtn.classList.add('btn-used-success');
+        sourBtn.disabled = true;
+      } else {
+        sourBtn.classList.add('btn-outline-secondary');
+        sourBtn.disabled = false;
+      }
     }
-  } catch (e) {
-  }
+    if (privBtn) {
+      const ok = !!privOk;
+      privBtn.dataset.verified = ok ? 'true' : 'false';
+      privBtn.classList.remove('btn-outline-success', 'btn-used-error');
+      if (ok) {
+        privBtn.classList.add('btn-used-success');
+        privBtn.disabled = true;
+        try { if (window.markButtonAsUsed) window.markButtonAsUsed('erc20VerifyPrivBtn', true); } catch (_) {}
+      } else {
+        privBtn.classList.remove('btn-used-success');
+        privBtn.classList.add('btn-outline-secondary');
+        privBtn.disabled = false;
+      }
+      privBtn.innerHTML = ok ? '<i class="bi bi-check2-circle me-1"></i> Token Cafe (verificado)' : 'Token Cafe';
+    }
+  } catch (_) {}
 }
 
 // Atualiza seção de detalhes ERC-20 na UI
@@ -1217,9 +1327,38 @@ async function bindUI() {
   const btnConnect = $('#btnConnect');
   // Inicializa carteira automaticamente, se houver
   initWalletIfConnected();
-  $('#btnCompile').addEventListener('click', compileContract);
-  // botão de verificação removido; verificação ocorre automaticamente pós-deploy
-  $('#btnDeploy').addEventListener('click', deployPlaceholder);
+  const btnCompile = document.getElementById('btnCompile');
+  const btnDeploy = document.getElementById('btnDeploy');
+  const btnAddMM = document.getElementById('btnAddToMetaMask');
+  if (btnCompile) btnCompile.addEventListener('click', async () => {
+    await compileContract();
+    try {
+      btnCompile.disabled = true;
+      btnCompile.classList.remove('btn-primary');
+      btnCompile.classList.remove('btn-outline-danger');
+      btnCompile.classList.add('btn-outline-success');
+    } catch (_) {}
+    try { if (window.bootstrap?.Tooltip) new bootstrap.Tooltip(btnDeploy); } catch (_) {}
+  });
+  if (btnDeploy) btnDeploy.addEventListener('click', async () => {
+    await deployPlaceholder();
+    try {
+      btnDeploy.disabled = true;
+      btnDeploy.classList.remove('btn-primary');
+      btnDeploy.classList.remove('btn-outline-danger');
+      btnDeploy.classList.add('btn-outline-success');
+    } catch (_) {}
+    try { const mm = document.getElementById('btnAddToMetaMask'); if (mm) mm.disabled = false; } catch (_) {}
+  });
+  if (btnAddMM) btnAddMM.addEventListener('click', async () => {
+    try {
+      const address = state?.deployed?.address || '';
+      const symbol = state?.erc20?.symbol || state?.form?.token?.symbol || 'TKN';
+      const decimals = Number.isFinite(state?.erc20?.decimals) ? state.erc20.decimals : (state?.form?.token?.decimals || 18);
+      const res = await addTokenToMetaMask({ address, symbol, decimals });
+      log(res.success ? 'Token adicionado à MetaMask' : `Falha ao adicionar: ${res.error}`);
+    } catch (e) { log(`Erro MetaMask: ${e?.message || e}`); }
+  });
 
   // Integrar com componente de busca de rede (network-search)
   const nsContainer = document.querySelector('[data-component*="network-search.html"]').parentElement || document;
@@ -1231,13 +1370,17 @@ async function bindUI() {
     state.form.sale.nativeSymbol = net?.nativeCurrency?.symbol || '';
     state.form.sale.nativeDecimals = net?.nativeCurrency?.decimals ?? 18;
     log(`Rede selecionada: ${net.name} (chainId ${net.chainId})`);
+    try {
+      const vname = document.getElementById('verifyNetworkName');
+      if (vname) vname.textContent = net.name || '-';
+    } catch (_) {}
   });
   nsContainer.addEventListener('network:clear', () => {
     state.form.network = null;
     log('Rede limpa.');
   });
 
-  // UI: Preview e Download de arquivos compilados
+  // UI: Downloads pós-deploy
   function getSelectedFile() {
     const sel = document.querySelector('#fileTypeSelect');
     const type = sel ? sel.value : 'sol';
@@ -1299,13 +1442,42 @@ async function bindUI() {
   }
 
   const btnPrev = document.querySelector('#btnPreviewFile');
-  const btnDown = document.querySelector('#btnDownloadFile');
-  const btnExportRecipe = document.querySelector('#btnExportRecipe');
-  const btnImportRecipe = document.querySelector('#btnImportRecipe');
-  const btnLogRecipe = document.querySelector('#btnLogRecipe');
-  const recipeFileInput = document.querySelector('#recipeFileInput');
-  if (btnPrev) btnPrev.addEventListener('click', previewSelectedFile);
-  if (btnDown) btnDown.addEventListener('click', downloadSelectedFile);
+  const btnDownloadSol = document.querySelector('#btnDownloadSol');
+  const btnDownloadJson = document.querySelector('#btnDownloadJson');
+  const btnDownloadHex = document.querySelector('#btnDownloadHex');
+  function downloadSol() {
+    if (!state?.compilation?.sourceCode) { log('Fonte indisponível: compile e faça deploy antes.'); return; }
+    const name = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+    const content = state.compilation.sourceCode;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `${name}.sol`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    log(`Arquivo baixado: ${name}.sol`);
+  }
+  function downloadJson() {
+    if (!state?.compilation?.abi) { log('ABI indisponível: compile e faça deploy antes.'); return; }
+    const name = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+    const content = JSON.stringify(state.compilation.abi, null, 2);
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `${name}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    log(`Arquivo baixado: ${name}.json`);
+  }
+  function downloadHex() {
+    if (!state?.compilation?.bytecode) { log('Bytecode indisponível: compile e faça deploy antes.'); return; }
+    const name = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+    const hex = String(state.compilation.bytecode || '').replace(/^0x/i, '');
+    const blob = new Blob([hex], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `${name}.hex`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    log(`Arquivo baixado: ${name}.hex`);
+  }
+  if (btnDownloadSol) btnDownloadSol.addEventListener('click', downloadSol);
+  if (btnDownloadJson) btnDownloadJson.addEventListener('click', downloadJson);
+  if (btnDownloadHex) btnDownloadHex.addEventListener('click', downloadHex);
   function buildRecipe() {
     const net = state.form?.network || {};
     const rec = {
@@ -1342,31 +1514,6 @@ async function bindUI() {
       createdAt: new Date().toISOString(),
     };
     return rec;
-  }
-  function downloadRecipe() {
-    readForm();
-    const rec = buildRecipe();
-    const nameBase = (rec?.compilation?.contractName || rec?.token?.name || 'MyToken').replace(/\s+/g, '');
-    const chainId = rec?.network?.chainId || 'unknown';
-    const filename = `recipe_${nameBase}_${chainId}.json`;
-    const content = JSON.stringify(rec, null, 2);
-    const blob = new Blob([content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-    log(`Receita exportada: ${filename}`);
-    try {
-      fetch(`${API_BASE}/api/log-recipe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'export', recipe: rec })
-      }).then(()=>{}).catch(()=>{});
-    } catch (_) {}
   }
   function applyRecipe(rec) {
     try {
@@ -1412,50 +1559,7 @@ async function bindUI() {
       log(`Falha ao aplicar receita: ${e?.message || e}`);
     }
   }
-  function importRecipeFromFile(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const rec = JSON.parse(reader.result);
-        applyRecipe(rec);
-        try {
-          fetch(`${API_BASE}/api/log-recipe`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'import', recipe: rec })
-          }).then(()=>{}).catch(()=>{});
-        } catch (_) {}
-      } catch (e) {
-        log(`Falha ao ler receita: ${e?.message || e}`);
-      }
-    };
-    reader.readAsText(file);
-  }
-  if (btnExportRecipe) btnExportRecipe.addEventListener('click', downloadRecipe);
-  if (btnImportRecipe && recipeFileInput) {
-    btnImportRecipe.addEventListener('click', () => recipeFileInput.click());
-    recipeFileInput.addEventListener('change', (e) => {
-      const file = e.target?.files?.[0] || null;
-      importRecipeFromFile(file);
-      recipeFileInput.value = '';
-    });
-  }
-  function logRecipeNow() {
-    readForm();
-    const rec = buildRecipe();
-    fetch(`${API_BASE}/api/log-recipe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'manual', recipe: rec })
-    }).then(async (r)=>{
-      const ok = r.ok; const txt = await r.text().catch(()=> '');
-      log(ok ? 'Registro manual enviado.' : `Registro manual falhou: ${txt}`);
-    }).catch((e)=>{
-      log(`Registro manual erro: ${e?.message || e}`);
-    });
-  }
-  if (btnLogRecipe) btnLogRecipe.addEventListener('click', logRecipeNow);
+  
 
   // Tooltip do ícone de informação do grupo
   try {
@@ -1508,9 +1612,186 @@ async function bindUI() {
     if (!el) return;
     el.addEventListener('input', fn);
     el.addEventListener('blur', fn);
+    // ao alterar campos, permitir nova compilação e limpar marcador de erro
+    el.addEventListener('input', () => {
+      try {
+        const c = document.getElementById('btnCompile');
+        if (c) {
+          c.disabled = false;
+          c.classList.remove('btn-outline-danger');
+          c.classList.remove('btn-outline-success');
+          c.classList.add('btn-outline-primary');
+        }
+      } catch (_) {}
+    });
   });
+
+  // Verificação: splash modal com instruções
+  function showVerifyModal(kind) {
+    try {
+      const modalEl = document.getElementById('verifyInfoModal');
+      const titleEl = document.getElementById('verifyInfoTitle');
+      const contentEl = document.getElementById('verifyInfoContent');
+      const actionBtn = null;
+      const openLink = document.getElementById('verifyOpenLink');
+      if (!modalEl || !window.bootstrap?.Modal) return;
+      let title = 'Verificação';
+      let html = '';
+      let actionEnabled = false;
+      let actionHandler = null;
+      let openHref = '#';
+      const addr = state.deployed?.address;
+      const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+      if (kind === 'bsc') {
+        title = 'Verificação no BscScan';
+        html = `
+          <p>Para verificar no BscScan, você precisa do código <strong>.sol</strong>, das configurações de compilação (solc/optimizer) e, se houver, dos argumentos do construtor.</p>
+          <div class="alert alert-dark">
+            <div class="mb-2">Baixe os arquivos necessários:</div>
+            <div class="d-flex gap-2">
+              <button id="verifyDlSol" class="btn btn-sm btn-outline-primary">Baixar .sol</button>
+              <button id="verifyDlJson" class="btn btn-sm btn-outline-primary">Baixar .json (ABI)</button>
+              <button id="verifyDlHex" class="btn btn-sm btn-outline-primary">Baixar .hex (bytecode)</button>
+            </div>
+            <div class="mt-2 small">Compiler: solc 0.8.26 | Optimizer: runs=200</div>
+          </div>
+          <p>Depois, abra a página de verificação do explorer e publique o código.</p>
+        `;
+        actionHandler = () => {
+          const url = getExplorerVerificationUrl(addr, chainId); try { window.open(url, '_blank'); } catch {}
+        };
+        openHref = getExplorerVerificationUrl(addr, chainId) || '#';
+      } else if (kind === 'sour') {
+        title = 'Verificação via Sourcify';
+        html = `
+          <p>O Sourcify permite verificação open-source. Baixe e guarde o <strong>.sol</strong> e o <strong>metadata</strong> (se disponível). Em seguida, envie pelo portal.</p>
+          <div class="alert alert-dark">
+            <div class="mb-2">Baixe os arquivos:</div>
+            <div class="d-flex gap-2">
+              <button id="verifyDlSol" class="btn btn-sm btn-outline-primary">Baixar .sol</button>
+              <button id="verifyDlMeta" class="btn btn-sm btn-outline-primary">Baixar metadata.json</button>
+            </div>
+          </div>
+        `;
+        actionHandler = () => { try { window.open('https://sourcify.dev/#/', '_blank'); } catch {} };
+        openHref = 'https://sourcify.dev/#/';
+      } else {
+        title = 'Verificação TokenCafe';
+        html = `
+          <p>TokenCafe realizou verificação privada comparando o bytecode on-chain com o compilado. Este processo valida seu deploy sem expor o código-fonte publicamente.</p>
+          <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="bi bi-check2-circle me-2"></i>
+            <div>Contrato verificado pela rede TokenCafe. Tudo OK.</div>
+          </div>
+          <p class="small">Guarde seus arquivos (.sol/.json/.hex) na seção de downloads para auditorias futuras.</p>
+        `;
+        const ok = document.getElementById('erc20VerifyPrivBtn')?.dataset?.verified === 'true';
+        actionEnabled = false; // sem ação; já verificado
+        actionHandler = () => {};
+        openHref = '#';
+      }
+      if (titleEl) titleEl.textContent = title;
+      if (contentEl) contentEl.innerHTML = html;
+      // sem botão de ação no splash: apenas o link de verificação
+      if (openLink) {
+        openLink.href = openHref || '#';
+        openLink.classList.toggle('disabled', !openHref || openHref === '#');
+      }
+      // Bind downloads
+      const dlSol = document.getElementById('verifyDlSol');
+      const dlJson = document.getElementById('verifyDlJson');
+      const dlHex = document.getElementById('verifyDlHex');
+      const dlMeta = document.getElementById('verifyDlMeta');
+      if (dlSol) dlSol.onclick = () => {
+        try {
+          const content = state?.compilation?.sourceCode || '';
+          if (!content) { log('Fonte indisponível: compile/deploy antes.'); return; }
+          const name = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+          const blob = new Blob([content], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${name}.sol`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
+        } catch (e) { log('Falha ao baixar .sol: ' + (e?.message || e)); }
+      };
+      if (dlJson) dlJson.onclick = () => {
+        try {
+          const abi = state?.compilation?.abi; if (!abi) { log('ABI indisponível: compile/deploy antes.'); return; }
+          const name = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+          const content = JSON.stringify(abi, null, 2);
+          const blob = new Blob([content], { type: 'application/json' });
+          const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${name}.json`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
+        } catch (e) { log('Falha ao baixar .json: ' + (e?.message || e)); }
+      };
+      if (dlHex) dlHex.onclick = () => {
+        try {
+          const bc = state?.compilation?.bytecode; if (!bc) { log('Bytecode indisponível: compile/deploy antes.'); return; }
+          const name = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+          const hex = String(bc || '').replace(/^0x/i, '');
+          const blob = new Blob([hex], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${name}.hex`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
+        } catch (e) { log('Falha ao baixar .hex: ' + (e?.message || e)); }
+      };
+      if (dlMeta) dlMeta.onclick = () => {
+        try {
+          const meta = state?.compilation?.metadata; if (!meta) { log('Metadata indisponível.'); return; }
+          const name = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+          const content = JSON.stringify(meta, null, 2);
+          const blob = new Blob([content], { type: 'application/json' });
+          const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${name}.metadata.json`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
+        } catch (e) { log('Falha ao baixar metadata: ' + (e?.message || e)); }
+      };
+      const m = new bootstrap.Modal(modalEl); m.show();
+    } catch (_) {}
+  }
+  const bscBtn = document.getElementById('erc20VerifyBscBtn');
+  const sourBtn = document.getElementById('erc20VerifySourBtn');
+  const privBtn = document.getElementById('erc20VerifyPrivBtn');
+  if (bscBtn) bscBtn.addEventListener('click', () => {
+    try { if (window.setButtonState) window.setButtonState('erc20VerifyBscBtn', 'loading'); } catch (_) {}
+    showVerifyModal('bsc');
+    try { if (window.setButtonState) window.setButtonState('erc20VerifyBscBtn', 'default'); } catch (_) {}
+  });
+  if (sourBtn) sourBtn.addEventListener('click', () => {
+    try { if (window.setButtonState) window.setButtonState('erc20VerifySourBtn', 'loading'); } catch (_) {}
+    showVerifyModal('sour');
+    try { if (window.setButtonState) window.setButtonState('erc20VerifySourBtn', 'default'); } catch (_) {}
+  });
+  if (privBtn) privBtn.addEventListener('click', () => showVerifyModal('priv'));
 }
 
 document.addEventListener('DOMContentLoaded', bindUI);
+
+// Importação automática de receita vinda do Tools
+try {
+  const raw = localStorage.getItem('tokencafe_contract_recipe_import');
+  if (raw) {
+    localStorage.removeItem('tokencafe_contract_recipe_import');
+    const rec = JSON.parse(raw);
+    // aplicar após DOM pronto
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const apply = (r) => {
+          try {
+            const sel = document.getElementById('contractGroup');
+            if (sel && r?.group) sel.value = r.group;
+            if (r?.token) {
+              const t = r.token;
+              const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v != null ? String(v) : ''; };
+              set('tokenName', t.name);
+              set('tokenSymbol', t.symbol);
+              set('tokenDecimals', t.decimals);
+              set('initialSupply', t.initialSupply);
+            }
+            readForm(); setSaleVisibility(); updateContractInfo();
+            log('Receita carregada do Tools. Revise e compile.');
+          } catch (e) { log('Falha ao aplicar receita importada: ' + (e?.message || e)); }
+        };
+        apply(rec);
+      } catch (e) { log('Falha ao ler receita importada: ' + (e?.message || e)); }
+    });
+  }
+} catch (_) {}
 
 

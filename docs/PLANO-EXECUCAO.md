@@ -60,3 +60,7 @@
 
 - 2025-11-14T16:15:53.485Z | export | CafeToken | chainId=97 | addr=0x0000000000000000000000000000000000000000 | tx=0xdeadbeef | group=erc20-minimal | dec=18 | supply=1000 | deployedBytecodeLen=6
 - 2025-11-14T16:28:03.633Z | manual | Btcom | chainId=97 | addr=0xC13f599D809f1D74E540ea228baF2f9d5cCaE07B | tx=0xac559f154e1168af13c6b7be59148579fbef033bc4054a54a7c5c1e31eca098e | group=erc20-minimal | dec=18 | supply=1000000000 | deployedBytecodeLen=3464
+- 2025-11-14T17:41:25.470Z | export | _1teste | chainId=97 | addr=0x434A02E4D4A1c348E0a904753442a9f49b046a3F | tx=0x8c311b2603c19c81a384b6a2a803d8700c30176143f110d7e6141efa20374f24 | group=erc20-minimal | dec=18 | supply=1000000 | deployedBytecodeLen=3464
+- 2025-11-14T17:50:24.831Z | import | _1teste | chainId=97 | addr=0x434A02E4D4A1c348E0a904753442a9f49b046a3F | tx=0x8c311b2603c19c81a384b6a2a803d8700c30176143f110d7e6141efa20374f24 | group=erc20-minimal | dec=18 | supply=1000000 | deployedBytecodeLen=3464
+- 2025-11-14T18:27:48.849Z | export | Btcom | chainId=97 | addr=0xBff2da28f7110495ed9a661ed77E1DdAf0d81dA8 | tx=0xfa1e4f25c75cc80160f33f4304937589bb7a43d3e579a93993e3b6b18d157915 | group=erc20-minimal | dec=18 | supply=2500000000 | deployedBytecodeLen=3464
+- 2025-11-14T18:35:13.876Z | manual | SmartCafe | chainId=97 | addr=0x192212D7A0430848CBC897e5037a69f23F09EdB4 | tx=0xb216812ab334027ea69159b11395482b0a9d86da54461c027f3a70e6fa51995d | group=erc20-minimal | dec=18 | supply=1000000 | deployedBytecodeLen=3464

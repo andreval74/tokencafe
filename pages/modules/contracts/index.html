@@ -151,20 +151,31 @@
         <!-- Ações -->
         <div class="mb-4" id="actions-section">
           <div class="action-buttons d-flex flex-wrap gap-2">
-            <button id="btnCompile" class="btn btn-outline-info flex-grow-1">
+            <button id="btnCompile" class="btn btn-outline-primary flex-grow-1">
               <i class="bi bi-cpu me-1"></i> Compilar
             </button>
-            <button id="btnDeploy" class="btn btn-success flex-grow-1" disabled>
+            <button id="btnDeploy" class="btn btn-outline-primary flex-grow-1" disabled data-bs-toggle="tooltip"
+              title="Fazer deploy do contrato na rede selecionada">
               <i class="bi bi-rocket-takeoff me-1"></i> Deploy
             </button>
-            <!-- Botão de verificação removido: verificação automática pós-deploy -->
+            <button id="btnAddToMetaMask" class="btn btn-outline-warning flex-grow-1" disabled>
+              <img src="../../../imgs/metamask.svg" alt="MetaMask" style="width: 20px; height: 20px;" class="me-1">
+              Adicionar ao MetaMask
+            </button>
+            <!-- Verificação principal removida; usar seção de detalhes com botões dedicados -->
           </div>
           <!-- Links do Deploy movidos para detalhes do contrato -->
 
           <!-- Detalhes do Contrato ERC-20 -->
-          <div id="erc20-details" class="mt-2 d-none">
-            <div class="small text-muted mb-1">Detalhes do contrato</div>
-            <div class="border rounded p-2 bg-dark-elevated">
+          <div id="erc20-details" class="mt-4 d-none">
+            <div class="d-flex align-items-center mb-2">
+              <div class="me-2"><i class="bi bi-file-binary section-icon fs-6"></i></div>
+              <div class="flex-grow-1">
+                <h6 class="mb-0 small fw-semibold">Detalhes do Contrato</h6>
+                <p class="text-muted mb-0 small">Dados do contrato ERC-20</p>
+              </div>
+            </div>
+            <div class="border rounded p-3 bg-dark-elevated">
               <div class="small mb-1">Status: <span id="contractStatus">-</span></div>
               <div class="row g-2 small">
                 <div class="col-12">Endereço: <a id="erc20Address" href="#" target="_blank" rel="noopener">-</a></div>
@@ -174,69 +185,47 @@
                 <div class="col-6">Decimais: <span id="erc20Decimals">-</span></div>
                 <div class="col-6">Total Supply: <span id="erc20Supply">-</span></div>
                 <div class="col-12 mt-1">Verificação:
-                  <span class="ms-2">BscScan:
-                    <a id="erc20VerifyBsc" href="#" target="_blank" rel="noopener"
-                      class="badge bg-secondary text-decoration-none">pendente</a>
-                  </span>
-                  <span class="ms-3">Sourcify:
-                    <a id="erc20VerifySour" href="#" target="_blank" rel="noopener"
-                      class="badge bg-secondary text-decoration-none">pendente</a>
-                  </span>
-                  <span class="ms-3">TokenCafe:
-                    <span id="erc20VerifyPriv" class="badge bg-secondary">pendente</span>
-                  </span>
+                  <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button id="erc20VerifyPrivBtn" class="btn btn-used-success flex-grow-1" type="button"
+                      disabled>Token Cafe (verificado)</button>
+                    <button id="erc20VerifyBscBtn" class="btn btn-outline-secondary flex-grow-1" type="button">BscScan
+                      (<span id="verifyNetworkName">-</span>)</button>
+                    <button id="erc20VerifySourBtn" class="btn btn-outline-secondary flex-grow-1"
+                      type="button">Sourcify</button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-
-
-
-
-
-
         <!-- Personalização de Endereço (CREATE2) -->
-      <div class="mb-4 d-none" id="files-section">
+        <div class="mb-4 d-none" id="files-section">
           <div class="d-flex align-items-center mb-2">
-            <div class="me-2"><i class="bi bi-file-binary section-icon fs-6"></i></div>
+            <div class="me-2"><i class="bi bi-file-arrow-down section-icon fs-6"></i></div>
             <div class="flex-grow-1">
-              <h6 class="mb-0 small fw-semibold">Download Arquivos</h6>
-              <p class="text-muted mb-0 small">Escolhe o tipo de arquivo para download</p>
+              <h6 class="mb-0 small fw-semibold">Download de Arquivos</h6>
+              <p class="text-muted mb-0 small">Disponível após o deploy</p>
             </div>
           </div>
-
-          <!-- Arquivos do Contrato -->
           <div class="border rounded p-3 bg-dark-elevated">
-            <div class="row g-3">
-              <div class="col-md-12">
-                <label class="form-label">Tipo de arquivo</label>
-                <select id="fileTypeSelect" class="form-select">
-                  <option value="sol">Solidity (.sol)</option>
-                  <option value="abi">ABI (.json)</option>
-                  <option value="bytecode">Bytecode (.hex)</option>
-                </select>
-              </div>
-              <div class="col-md-12 d-flex gap-2">
-                <button id="btnPreviewFile" class="btn btn-outline-secondary flex-grow-1" disabled>
-                  <i class="bi bi-eye me-1"></i> Preview
+            <div class="row g-2">
+              <div class="col-12 d-flex gap-2">
+                <button id="btnDownloadSol" class="btn btn-outline-primary flex-grow-1" disabled>
+                  <i class="bi bi-filetype-sol me-1"></i> Baixar .sol
                 </button>
-                <button id="btnDownloadFile" class="btn btn-outline-primary flex-grow-1" disabled>
-                  <i class="bi bi-download me-1"></i> Baixar
+                <button id="btnDownloadJson" class="btn btn-outline-primary flex-grow-1" disabled>
+                  <i class="bi bi-filetype-json me-1"></i> Baixar .json
                 </button>
-                <button id="btnExportRecipe" class="btn btn-outline-success flex-grow-1" disabled>
-                  <i class="bi bi-journal-text me-1"></i> Exportar .json
+                <button id="btnDownloadHex" class="btn btn-outline-primary flex-grow-1" disabled>
+                  <i class="bi bi-filetype-hex me-1"></i> Baixar .hex
                 </button>
-                <button id="btnImportRecipe" class="btn btn-outline-warning flex-grow-1">
-                  <i class="bi bi-upload me-1"></i> Importar .json
-                </button>
-                <button id="btnLogRecipe" class="btn btn-outline-info flex-grow-1">
-                  <i class="bi bi-pen me-1"></i> Verificar Agora
-                </button>
-                <input type="file" id="recipeFileInput" accept="application/json" class="d-none" />
               </div>
             </div>
+            <small class="text-danger">
+              <i class="bi bi-exclamation-triangle"></i>
+              Salve estes arquivos (.sol, .json, .hex). Eles serão necessários para
+              verificação e auditoria futuras.</small>
           </div>
         </div>
       </div>
@@ -244,8 +233,25 @@
     </div>
   </div>
 
-
   <!-- Scripts Unificados -->
+  <!-- Modal Splash Verificação -->
+  <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-light border">
+        <div class="modal-header">
+          <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="verifyInfoContent" class="small"></div>
+        </div>
+        <div class="modal-footer">
+          <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir página de
+            verificação</a>
+        </div>
+      </div>
+    </div>
+  </div>
   <script type="module" src="../../../js/shared/base-system.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
@@ -253,23 +259,7 @@
   <script src="../../../js/modules/contracts/api-config.js?v=1.1"></script>
   <script type="module" src="../../../js/modules/contracts/builder.js?v=1.1"></script>
 
-  <!-- Modal de Preview de Arquivo -->
-  <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-labelledby="filePreviewLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content bg-dark text-light border">
-        <div class="modal-header">
-          <h5 class="modal-title" id="filePreviewLabel">Preview do Arquivo</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <pre class="small" id="filePreviewContent" style="white-space: pre-wrap; word-break: break-word;"></pre>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </body>
 
 </html>
