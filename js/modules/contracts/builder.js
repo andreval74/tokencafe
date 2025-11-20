@@ -1329,6 +1329,7 @@ async function bindUI() {
   initWalletIfConnected();
   const btnCompile = document.getElementById('btnCompile');
   const btnDeploy = document.getElementById('btnDeploy');
+  const btnBuildDeploy = document.getElementById('btnBuildDeploy');
   const btnAddMM = document.getElementById('btnAddToMetaMask');
   if (btnCompile) btnCompile.addEventListener('click', async () => {
     await compileContract();
@@ -1349,6 +1350,19 @@ async function bindUI() {
       btnDeploy.classList.add('btn-outline-success');
     } catch (_) {}
     try { const mm = document.getElementById('btnAddToMetaMask'); if (mm) mm.disabled = false; } catch (_) {}
+  });
+  if (btnBuildDeploy) btnBuildDeploy.addEventListener('click', async () => {
+    try {
+      btnBuildDeploy.disabled = true;
+      await compileContract();
+      await deployPlaceholder();
+      btnBuildDeploy.classList.remove('btn-outline-success');
+      btnBuildDeploy.classList.add('btn-used-success');
+      try { const mm = document.getElementById('btnAddToMetaMask'); if (mm) mm.disabled = false; } catch (_) {}
+    } catch (e) {
+      btnBuildDeploy.classList.remove('btn-outline-success');
+      btnBuildDeploy.classList.add('btn-used-error');
+    }
   });
   if (btnAddMM) btnAddMM.addEventListener('click', async () => {
     try {

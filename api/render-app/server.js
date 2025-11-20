@@ -12,42 +12,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-const allowedOrigins = new Set([
-  'https://tokencafe.app',
-  'http://tokencafe.app',
-  'https://www.tokencafe.app',
-  'http://www.tokencafe.app',
-  'https://api.tokencafe.app',
-  'http://api.tokencafe.app',
-  'https://tokencafe.onrender.com'
-]);
-
-function isLocalDevOrigin(origin) {
-  try {
-    const o = String(origin || '');
-    if (!o) return false;
-    if (/^https?:\/\/localhost(?::\d+)?$/i.test(o)) return true;
-    if (/^https?:\/\/127\.0\.0\.1(?::\d+)?$/i.test(o)) return true;
-    if (/^https?:\/\/[\[]?::1[\]]?(?::\d+)?$/i.test(o)) return true;
-    if (/^https?:\/\/(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)[0-9]{1,3}\.[0-9]{1,3}(?::\d+)?$/i.test(o)) return true;
-    return false;
-  } catch {
-    return false;
-  }
-}
-
 app.use(cors({
-  origin: (origin, callback) => {
-    const isProd = String(process.env.NODE_ENV).toLowerCase() === 'production';
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.has(origin)) return callback(null, true);
-    const isRenderSubdomain = /^https:\/\/[a-z0-9-]+\.onrender\.com$/i.test(origin);
-    if (isRenderSubdomain) return callback(null, true);
-    if (!isProd && isLocalDevOrigin(origin)) return callback(null, true);
-    return callback(null, false);
-  },
+  origin: true,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
   optionsSuccessStatus: 204
 }));
 app.use(express.json({ limit: '1mb' }));
