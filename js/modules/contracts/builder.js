@@ -4,6 +4,9 @@
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+function getDeployButton(){
+  try { return document.getElementById('btnDeploy') || document.getElementById('btnBuildDeploy'); } catch(_) { return null; }
+}
 import { getExplorerContractUrl, getExplorerTxUrl, getExplorerVerificationUrl } from './explorer-utils.js';
 import { addTokenToMetaMask } from '../../shared/metamask-utils.js';
 
@@ -574,7 +577,7 @@ async function compileContract() {
     };
     log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
 
-    $('#btnDeploy').disabled = false;
+    { const d = getDeployButton(); if (d) d.disabled = false; }
     try { const c = document.getElementById('btnCompile'); if (c) c.disabled = true; } catch (_) {}
   } catch (err) {
     const msg = err?.message || String(err);
@@ -618,7 +621,7 @@ async function compileContract() {
           contractName: src.contractName
         };
         log(`Fallback OK: compilação concluída. ABI e bytecode prontos (${src.contractName}).`);
-        $('#btnDeploy').disabled = false;
+        { const d = getDeployButton(); if (d) d.disabled = false; }
         try { const c = document.getElementById('btnCompile'); if (c) c.disabled = true; } catch (_) {}
         return; // encerrar após fallback com sucesso
       } catch (fbErr) {
@@ -656,7 +659,7 @@ async function compileContract() {
           contractName: src.contractName
         };
         log(`Fallback OK: compilação concluída. ABI e bytecode prontos (${src.contractName}).`);
-        $('#btnDeploy').disabled = false;
+        { const d = getDeployButton(); if (d) d.disabled = false; }
         try { const c = document.getElementById('btnCompile'); if (c) c.disabled = true; } catch (_) {}
       } catch (fbErr) {
         log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
@@ -683,11 +686,11 @@ function verifyPlaceholder() {
     const url = getExplorerVerificationUrl(contractAddr, chainId);
     log(`Abrindo verificação do contrato no explorer: ${url}`);
     try { window.open(url, '_blank'); } catch {}
-    $('#btnDeploy').disabled = false;
+    { const d = getDeployButton(); if (d) d.disabled = false; }
     return;
   }
   log('Verificação iniciada (placeholder). Após o deploy, o botão abrirá o explorer na aba de verificação.');
-  $('#btnDeploy').disabled = false;
+  { const d = getDeployButton(); if (d) d.disabled = false; }
 }
 
 async function deployPlaceholder() {
@@ -742,7 +745,7 @@ async function deployPlaceholder() {
       if (explorerUrl) log(`Explorer (Contrato): ${explorerUrl}`);
       if (txUrl) log(`Explorer (Transação): ${txUrl}`);
       try {
-        const d = document.getElementById('btnDeploy');
+        const d = getDeployButton();
         if (d) {
           d.disabled = true;
           d.classList.remove('btn-outline-danger');
@@ -805,7 +808,7 @@ async function deployPlaceholder() {
     } catch (err) {
       log(`Erro no deploy servidor: ${err.message || err}`);
       try {
-        const d = document.getElementById('btnDeploy');
+        const d = getDeployButton();
         if (d) {
           d.disabled = true;
           d.classList.remove('btn-primary');
@@ -977,7 +980,7 @@ async function deployPlaceholder() {
       if (bHex) bHex.disabled = false;
     } catch (_) {}
     try {
-      const d = document.getElementById('btnDeploy');
+      const d = getDeployButton();
       if (d) {
         d.disabled = true;
         d.classList.remove('btn-outline-danger');
@@ -1169,7 +1172,7 @@ async function deployPlaceholder() {
   } catch (err) {
     log(`Erro no deploy via MetaMask: ${err?.message || err}`);
     try {
-      const d = document.getElementById('btnDeploy');
+      const d = getDeployButton();
       if (d) {
         d.disabled = true;
         d.classList.remove('btn-primary');
@@ -1328,7 +1331,7 @@ async function bindUI() {
   // Inicializa carteira automaticamente, se houver
   initWalletIfConnected();
   const btnCompile = document.getElementById('btnCompile');
-  const btnDeploy = document.getElementById('btnDeploy');
+  const btnDeploy = getDeployButton();
   const btnBuildDeploy = document.getElementById('btnBuildDeploy');
   const btnAddMM = document.getElementById('btnAddToMetaMask');
   if (btnCompile) btnCompile.addEventListener('click', async () => {

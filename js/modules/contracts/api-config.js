@@ -20,7 +20,25 @@
       originDefault = window.location.origin;
     }
   } catch(_){ originDefault = null; }
-  var base = (isUrl(override) ? override : null) || existing || stored || originDefault || 'http://localhost:3000';
-  window.TOKENCAFE_API_BASE = base;
-  try { if (isUrl(base)) window.localStorage && window.localStorage.setItem('api_base', base); } catch(_){}
+  var chosen = (isUrl(override) ? override : null) || existing || stored || originDefault || 'http://localhost:3000';
+  try {
+    var pageProto = String(window.location.protocol || '');
+    var chosenUrl = new URL(chosen);
+    var isHttpChosen = chosenUrl.protocol === 'http:';
+    var isLocalHost = ['localhost','127.0.0.1'].indexOf(chosenUrl.hostname) !== -1;
+    if (pageProto === 'https:' && isHttpChosen) {
+      if (!isLocalHost) {
+        chosenUrl.protocol = 'https:';
+        chosen = chosenUrl.toString();
+      } else {
+        if (isUrl(override) && String(new URL(override).protocol) === 'https:') {
+          chosen = override;
+        } else if (existing && isUrl(existing) && String(new URL(existing).protocol) === 'https:') {
+          chosen = existing;
+        }
+      }
+    }
+  } catch(_){ }
+  window.TOKENCAFE_API_BASE = chosen;
+  try { if (isUrl(chosen)) window.localStorage && window.localStorage.setItem('api_base', chosen); } catch(_){}
 })();
