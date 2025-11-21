@@ -578,6 +578,13 @@ async function compileContract() {
     log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
 
     { const d = getDeployButton(); if (d) d.disabled = false; }
+    try {
+      const nm = state.form?.token?.name || 'MyToken';
+      const sym = state.form?.token?.symbol || 'TKN';
+      const dec = Number.isFinite(state.form?.token?.decimals) ? state.form.token.decimals : 18;
+      const supHuman = formatPtBR(state.form?.token?.initialSupply ?? 0);
+      updateERC20Details(sym, nm, dec, supHuman, 'Compilado (artefatos prontos)', true);
+    } catch(_) {}
     try { const c = document.getElementById('btnCompile'); if (c) c.disabled = true; } catch (_) {}
   } catch (err) {
     const msg = err?.message || String(err);
@@ -757,15 +764,20 @@ async function deployPlaceholder() {
         const filesSection = document.getElementById('files-section');
         const bSol = document.querySelector('#btnDownloadSol');
         const bJson = document.querySelector('#btnDownloadJson');
+        const bMeta = document.querySelector('#btnDownloadMeta');
+        const bHardhat = document.querySelector('#btnDownloadHardhat');
         const bHex = document.querySelector('#btnDownloadHex');
         if (filesSection) filesSection.classList.remove('d-none');
         if (bSol) bSol.disabled = false;
         if (bJson) bJson.disabled = false;
         if (bHex) bHex.disabled = false;
+        if (bMeta) bMeta.disabled = !(state?.compilation?.metadata);
+        if (bHardhat) bHardhat.disabled = !(state?.compilation?.sourceCode);
       } catch (_) {}
       try {
         updateDeployLinks(explorerUrl, txUrl);
         updateERC20Details(null, null, null, null, 'Deploy concluído (servidor)', true);
+        updateVerificationBadges({ bscUrl: getExplorerVerificationUrl(addr, chainId) });
       } catch (_) {}
       // Verificação privada on-chain
       try {
@@ -973,11 +985,15 @@ async function deployPlaceholder() {
       const filesSection = document.getElementById('files-section');
       const bSol = document.querySelector('#btnDownloadSol');
       const bJson = document.querySelector('#btnDownloadJson');
+      const bMeta = document.querySelector('#btnDownloadMeta');
+      const bHardhat = document.querySelector('#btnDownloadHardhat');
       const bHex = document.querySelector('#btnDownloadHex');
       if (filesSection) filesSection.classList.remove('d-none');
       if (bSol) bSol.disabled = false;
       if (bJson) bJson.disabled = false;
       if (bHex) bHex.disabled = false;
+      if (bMeta) bMeta.disabled = !(state?.compilation?.metadata);
+      if (bHardhat) bHardhat.disabled = !(state?.compilation?.sourceCode);
     } catch (_) {}
     try {
       const d = getDeployButton();
@@ -989,6 +1005,7 @@ async function deployPlaceholder() {
       }
     } catch (_) {}
     try { const mm = document.getElementById('btnAddToMetaMask'); if (mm) mm.disabled = false; } catch (_) {}
+    try { updateVerificationBadges({ bscUrl: getExplorerVerificationUrl(addr, chainId) }); } catch(_){}
 
     try {
       const rec = buildRecipe();
@@ -1208,49 +1225,20 @@ function updateDeployLinks(contractUrl, txUrl) {
 // Atualiza badges de verificação BscScan/Sourcify
 function updateVerificationBadges({ bscUrl, bscOk, bscStatus, sourUrl, sourOk, sourStatus, privOk }) {
   try {
-    const bscBtn = document.getElementById('erc20VerifyBscBtn');
-    const sourBtn = document.getElementById('erc20VerifySourBtn');
-    const privBtn = document.getElementById('erc20VerifyPrivBtn');
-    if (bscBtn) {
-      const ok = !!bscOk;
-      bscBtn.dataset.url = bscUrl || '';
-      bscBtn.classList.remove('btn-outline-success', 'btn-used-success', 'btn-used-error');
-      if (ok) {
-        bscBtn.classList.remove('btn-outline-secondary');
-        bscBtn.classList.add('btn-used-success');
-        bscBtn.disabled = true;
-      } else {
-        bscBtn.classList.add('btn-outline-secondary');
-        bscBtn.disabled = false;
-      }
-    }
-    if (sourBtn) {
-      const ok = !!sourOk;
-      sourBtn.dataset.url = sourUrl || '';
-      sourBtn.classList.remove('btn-outline-success', 'btn-used-success', 'btn-used-error');
-      if (ok) {
-        sourBtn.classList.remove('btn-outline-secondary');
-        sourBtn.classList.add('btn-used-success');
-        sourBtn.disabled = true;
-      } else {
-        sourBtn.classList.add('btn-outline-secondary');
-        sourBtn.disabled = false;
-      }
-    }
-    if (privBtn) {
-      const ok = !!privOk;
-      privBtn.dataset.verified = ok ? 'true' : 'false';
-      privBtn.classList.remove('btn-outline-success', 'btn-used-error');
-      if (ok) {
-        privBtn.classList.add('btn-used-success');
-        privBtn.disabled = true;
-        try { if (window.markButtonAsUsed) window.markButtonAsUsed('erc20VerifyPrivBtn', true); } catch (_) {}
-      } else {
-        privBtn.classList.remove('btn-used-success');
-        privBtn.classList.add('btn-outline-secondary');
-        privBtn.disabled = false;
-      }
-      privBtn.innerHTML = ok ? '<i class="bi bi-check2-circle me-1"></i> Token Cafe (verificado)' : 'Token Cafe';
+    const link = document.getElementById('erc20VerifyLink');
+    const addrVerify = state.deployed?.address;
+    const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+    let url = null;
+    url = bscUrl || sourUrl || (addrVerify && chainIdVerify ? getExplorerVerificationUrl(addrVerify, chainIdVerify) : null);
+    if (link) {
+      link.href = url || '#';
+      link.classList.toggle('disabled', !url);
+      try {
+        const hasMeta = !!state?.compilation?.metadata;
+        const netNameEl = document.getElementById('verifyNetworkName');
+        const netName = netNameEl ? netNameEl.textContent || '-' : '-';
+        link.innerHTML = `${hasMeta ? 'Verificar automaticamente' : 'Abrir verificação'} (${netName})`;
+      } catch (_) {}
     }
   } catch (_) {}
 }
@@ -1300,6 +1288,17 @@ async function initWalletIfConnected() {
     const { chainId } = await provider.getNetwork();
     state.wallet = { provider, signer, address, chainId };
     log(`Carteira detectada: ${address} (chainId ${chainId}).`);
+    try {
+      const nm = window.networkManager;
+      const net = nm?.getNetworkById?.(chainId) || null;
+      if (net) {
+        state.form.network = net;
+        const vname = document.getElementById('verifyNetworkName');
+        if (vname) vname.textContent = net.name || '-';
+        const nsInput = document.getElementById('networkSearch');
+        if (nsInput) { nsInput.value = net.name; nsInput.dataset.chainId = String(net.chainId); }
+      }
+    } catch(_) {}
   } catch (err) {
     // silencioso
   }
@@ -1391,16 +1390,75 @@ async function bindUI() {
       const vname = document.getElementById('verifyNetworkName');
       if (vname) vname.textContent = net.name || '-';
     } catch (_) {}
+    try {
+      if (state.wallet?.provider && window.ethereum) {
+        const hexChain = '0x' + Number(net.chainId).toString(16);
+        window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hexChain }] })
+          .then(async ()=>{
+            const after = await state.wallet.provider.getNetwork();
+            state.wallet.chainId = after.chainId;
+            log(`Carteira alterada para chainId ${after.chainId}.`);
+          })
+          .catch(e=>{ log(`Falha ao trocar rede da carteira: ${e?.message||e}`); });
+      }
+    } catch(_){}
   });
+
+  try {
+    const vLink = document.getElementById('erc20VerifyLink');
+    if (vLink) {
+      vLink.addEventListener('click', async (e) => {
+        try {
+          const addr = state.deployed?.address;
+          const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+          const src = state.compilation?.sourceCode;
+          const meta = state.compilation?.metadata;
+          if (addr && chainId && src && meta) {
+            e.preventDefault();
+            // Primeiro: tentar verificação automática unificada no backend (se disponível)
+            try {
+              const respAuto = await fetch(`${API_BASE}/api/verify-auto`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chainId, contractAddress: addr, contractName: state.compilation?.contractName, sourceCode: src, metadata: JSON.stringify(meta) })
+              });
+              if (respAuto.ok) {
+                const dataA = await respAuto.json();
+                const linkA = dataA?.link || dataA?.lookupUrl || null;
+                updateVerificationBadges({ sourUrl: linkA, sourOk: !!linkA, sourStatus: dataA?.status });
+                if (linkA) { try { window.open(linkA, '_blank'); } catch {} return; }
+              }
+            } catch (_) {}
+            // Segundo: fallback para Sourcify
+            try {
+              const respS = await fetch(`${API_BASE}/api/verify-sourcify`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chainId, contractAddress: addr, contractName: state.compilation?.contractName, sourceCode: src, metadata: JSON.stringify(meta) })
+              });
+              if (respS.ok) {
+                const dataS = await respS.json();
+                const lookup = dataS?.lookupUrl || dataS?.repoFull || dataS?.repoAny || null;
+                updateVerificationBadges({ sourUrl: lookup, sourOk: !!lookup, sourStatus: dataS?.status });
+                if (lookup) { try { window.open(lookup, '_blank'); } catch {} return; }
+              }
+            } catch (_) {}
+            // Terceiro: abrir verificação do explorer
+            const fallback = getExplorerVerificationUrl(addr, chainId);
+            try { window.open(fallback, '_blank'); } catch {}
+          }
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
   nsContainer.addEventListener('network:clear', () => {
     state.form.network = null;
     log('Rede limpa.');
   });
 
   // UI: Downloads pós-deploy
+  let currentPreviewType = 'sol';
   function getSelectedFile() {
     const sel = document.querySelector('#fileTypeSelect');
-    const type = sel ? sel.value : 'sol';
+    const type = sel ? sel.value : currentPreviewType || 'sol';
     const nameBase = state?.compilation?.contractName || (state.form?.token?.name || 'MyToken').replace(/\s+/g, '');
     let filename = nameBase;
     let content = '';
@@ -1410,8 +1468,23 @@ async function bindUI() {
       content = state?.compilation?.sourceCode || '// Código não disponível. Gere o contrato primeiro.';
       mime = 'text/plain';
     } else if (type === 'abi') {
-      filename = `${nameBase}.abi.json`;
-      content = state?.compilation?.abi ? JSON.stringify(state.compilation.abi, null, 2) : '[]';
+      filename = `${nameBase}.standard-input.json`;
+      const source = state?.compilation?.sourceCode || '';
+      const contractFile = `${nameBase}.sol`;
+      const standardInput = {
+        language: 'Solidity',
+        sources: { [contractFile]: { content: source } },
+        settings: {
+          optimizer: { enabled: true, runs: 200 },
+          outputSelection: { '*': { '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'metadata'] } }
+        }
+      };
+      content = JSON.stringify(standardInput, null, 2);
+      mime = 'application/json';
+    } else if (type === 'metadata') {
+      filename = `${nameBase}.metadata.json`;
+      const meta = state?.compilation?.metadata || {};
+      content = JSON.stringify(meta, null, 2);
       mime = 'application/json';
     } else if (type === 'bytecode') {
       filename = `${nameBase}.bytecode.hex`;
@@ -1492,9 +1565,98 @@ async function bindUI() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 3000);
     log(`Arquivo baixado: ${name}.hex`);
   }
-  if (btnDownloadSol) btnDownloadSol.addEventListener('click', downloadSol);
-  if (btnDownloadJson) btnDownloadJson.addEventListener('click', downloadJson);
-  if (btnDownloadHex) btnDownloadHex.addEventListener('click', downloadHex);
+  if (btnDownloadSol) btnDownloadSol.addEventListener('click', () => { currentPreviewType = 'sol'; previewSelectedFile(); });
+  if (btnDownloadJson) btnDownloadJson.addEventListener('click', () => { currentPreviewType = 'abi'; previewSelectedFile(); });
+  const btnDownloadMeta = document.querySelector('#btnDownloadMeta');
+  if (btnDownloadMeta) btnDownloadMeta.addEventListener('click', () => { currentPreviewType = 'metadata'; previewSelectedFile(); });
+  if (btnDownloadHex) btnDownloadHex.addEventListener('click', () => { currentPreviewType = 'bytecode'; previewSelectedFile(); });
+  const btnCopyFile = document.getElementById('btnCopyFile');
+  const btnSaveFile = document.getElementById('btnSaveFile');
+  if (btnCopyFile) btnCopyFile.addEventListener('click', () => {
+    const { content } = getSelectedFile();
+    try { navigator.clipboard.writeText(content||''); log('Conteúdo copiado.'); } catch(_) { log('Falha ao copiar.'); }
+  });
+  if (btnSaveFile) btnSaveFile.addEventListener('click', () => { downloadSelectedFile(); });
+
+  function getSolcVersion() {
+    try {
+      const v = state?.compilation?.metadata?.compiler?.version || '';
+      const m = v.match(/\d+\.\d+\.\d+/);
+      return m ? m[0] : '0.8.20';
+    } catch (_) { return '0.8.20'; }
+  }
+  function generateHardhatConfig() {
+    const version = getSolcVersion();
+    return [
+      "require('@nomicfoundation/hardhat-verify');",
+      '',
+      'module.exports = {',
+      `  solidity: '${version}',`,
+      '  networks: {',
+      "    sepolia: { url: process.env.SEPOLIA_RPC_URL, accounts: [process.env.PRIVATE_KEY] },",
+      "    bscTestnet: { url: process.env.BSC_TESTNET_RPC_URL, accounts: [process.env.PRIVATE_KEY] },",
+      "    bsc: { url: process.env.BSC_MAINNET_RPC_URL, accounts: [process.env.PRIVATE_KEY] }",
+      '  },',
+      '  etherscan: {',
+      '    apiKey: {',
+      "      sepolia: process.env.ETHERSCAN_KEY,",
+      "      bscTestnet: process.env.BSCSCAN_KEY,",
+      "      bsc: process.env.BSCSCAN_KEY",
+      '    }',
+      '  }',
+      '};',
+      ''
+    ].join('\n');
+  }
+  function generatePackageJson() {
+    const pkg = {
+      name: 'hardhat-verify-project',
+      private: true,
+      devDependencies: {
+        hardhat: '^2.22.8',
+        '@nomicfoundation/hardhat-verify': '^2.0.0'
+      },
+      scripts: {
+        verify: 'node scripts/verify.js'
+      }
+    };
+    return JSON.stringify(pkg, null, 2);
+  }
+  function generateVerifyScript() {
+    return [
+      "const hre = require('hardhat');",
+      '',
+      'async function main() {',
+      '  const address = process.env.CONTRACT_ADDRESS;',
+      '  const args = process.env.CONSTRUCTOR_ARGS ? JSON.parse(process.env.CONSTRUCTOR_ARGS) : [];',
+      '  if (!address) throw new Error("Set CONTRACT_ADDRESS in environment.");',
+      '  await hre.run("verify:verify", { address, constructorArguments: args });',
+      '}',
+      'main().catch((e)=>{ console.error(e); process.exit(1); });',
+      ''
+    ].join('\n');
+  }
+  function downloadTextFile(name, content, mime) {
+    const blob = new Blob([content], { type: mime || 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  }
+  function downloadHardhatFiles() {
+    try {
+      const nameBase = (state?.compilation?.contractName || 'MyToken').replace(/\s+/g, '');
+      const source = state?.compilation?.sourceCode || '';
+      if (!source) { log('Fonte indisponível: compile/deploy antes.'); return; }
+      downloadTextFile('package.json', generatePackageJson(), 'application/json');
+      downloadTextFile('hardhat.config.js', generateHardhatConfig(), 'application/javascript');
+      downloadTextFile('scripts/verify.js', generateVerifyScript(), 'application/javascript');
+      downloadTextFile(`contracts/${nameBase}.sol`, source, 'text/plain');
+      log('Arquivos Hardhat baixados. Configure suas variáveis (.env) e rode a verificação.');
+    } catch (e) { log('Falha ao baixar Hardhat files: ' + (e?.message || e)); }
+  }
+  const btnDownloadHardhat = document.querySelector('#btnDownloadHardhat');
+  if (btnDownloadHardhat) btnDownloadHardhat.addEventListener('click', () => { downloadHardhatFiles(); });
   function buildRecipe() {
     const net = state.form?.network || {};
     const rec = {
@@ -1604,8 +1766,37 @@ async function bindUI() {
         vanityInput.classList.add('is-invalid');
         if (help) help.textContent = 'Precisa ter exatamente 4 hex (0–9, a–f).';
       }
-    });
-  }
+  });
+
+  try {
+    const vLink = document.getElementById('erc20VerifyLink');
+    if (vLink) {
+      vLink.addEventListener('click', async (e) => {
+        try {
+          const addr = state.deployed?.address;
+          const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+          const src = state.compilation?.sourceCode;
+          const meta = state.compilation?.metadata;
+          if (addr && chainId && src && meta) {
+            e.preventDefault();
+            const respS = await fetch(`${API_BASE}/api/verify-sourcify`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chainId, contractAddress: addr, contractName: state.compilation?.contractName, sourceCode: src, metadata: JSON.stringify(meta) })
+            });
+            if (respS.ok) {
+              const dataS = await respS.json();
+              const lookup = dataS?.lookupUrl || dataS?.repoFull || dataS?.repoAny || null;
+              updateVerificationBadges({ sourUrl: lookup, sourOk: !!lookup, sourStatus: dataS?.status });
+              if (lookup) { try { window.open(lookup, '_blank'); } catch {} return; }
+            }
+            const fallback = getExplorerVerificationUrl(addr, chainId);
+            try { window.open(fallback, '_blank'); } catch {}
+          }
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
+}
 
   const vanityModeSel = $('#vanityMode');
   if (vanityModeSel) {

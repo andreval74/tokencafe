@@ -152,7 +152,7 @@
         <div class="mb-4" id="actions-section">
           <div class="action-buttons d-flex flex-wrap gap-2">
             <button id="btnBuildDeploy" class="btn btn-outline-success flex-grow-1">
-              <i class="bi bi-tools me-1"></i> Compilar + Deploy
+              <i class="bi bi-tools me-1"></i> Compilar e Deploy
             </button>
             <button id="btnAddToMetaMask" class="btn btn-outline-warning flex-grow-1" disabled>
               <img src="../../../imgs/metamask.svg" alt="MetaMask" style="width: 20px; height: 20px;" class="me-1">
@@ -179,16 +179,7 @@
                 <div class="col-6">Símbolo: <span id="erc20Symbol">-</span></div>
                 <div class="col-6">Decimais: <span id="erc20Decimals">-</span></div>
                 <div class="col-6">Total Supply: <span id="erc20Supply">-</span></div>
-                <div class="col-12 mt-1">Verificação:
-                  <div class="d-flex flex-wrap gap-2 mt-2">
-                    <button id="erc20VerifyPrivBtn" class="btn btn-used-success flex-grow-1" type="button"
-                      disabled>Token Cafe (verificado)</button>
-                    <button id="erc20VerifyBscBtn" class="btn btn-outline-secondary flex-grow-1" type="button">BscScan
-                      (<span id="verifyNetworkName">-</span>)</button>
-                    <button id="erc20VerifySourBtn" class="btn btn-outline-secondary flex-grow-1"
-                      type="button">Sourcify</button>
-                  </div>
-                </div>
+                <div class="col-12 mt-1">Verificação: <a id="erc20VerifyLink" href="#" target="_blank" rel="noopener"><span id="verifyNetworkName">-</span></a></div>
               </div>
             </div>
           </div>
@@ -204,22 +195,28 @@
             </div>
           </div>
           <div class="border rounded p-3 bg-dark-elevated">
-            <div class="row g-2">
+              <div class="row g-2">
               <div class="col-12 d-flex gap-2">
                 <button id="btnDownloadSol" class="btn btn-outline-primary flex-grow-1" disabled>
-                  <i class="bi bi-filetype-sol me-1"></i> Baixar .sol
+                  <i class="bi bi-filetype-sol me-1"></i> Visualizar .sol
                 </button>
                 <button id="btnDownloadJson" class="btn btn-outline-primary flex-grow-1" disabled>
-                  <i class="bi bi-filetype-json me-1"></i> Baixar .json
+                  <i class="bi bi-filetype-json me-1"></i> Visualizar .json
+                </button>
+                <button id="btnDownloadMeta" class="btn btn-outline-primary flex-grow-1" disabled>
+                  <i class="bi bi-filetype-json me-1"></i> Visualizar metadata.json
+                </button>
+                <button id="btnDownloadHardhat" class="btn btn-outline-secondary flex-grow-1" disabled>
+                  <i class="bi bi-box-arrow-down me-1"></i> Baixar Hardhat (verificação)
                 </button>
                 <button id="btnDownloadHex" class="btn btn-outline-primary flex-grow-1" disabled>
-                  <i class="bi bi-filetype-hex me-1"></i> Baixar .hex
+                  <i class="bi bi-filetype-hex me-1"></i> Visualizar .hex
                 </button>
               </div>
-            </div>
+              </div>
             <small class="text-danger">
               <i class="bi bi-exclamation-triangle"></i>
-              Salve estes arquivos (.sol, .json, .hex). Eles serão necessários para
+              Revise e salve estes arquivos (.sol, .json, .hex). Eles serão necessários para
               verificação e auditoria futuras.</small>
           </div>
         </div>
@@ -253,6 +250,23 @@
   <script>window.TOKENCAFE_API_BASE = 'https://tokencafe.onrender.com';</script>
   <!-- Configuração do endpoint da API (pode ser sobrescrito em produção) -->
   <script src="../../../js/modules/contracts/api-config.js?v=1.1"></script>
+  <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-light border">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filePreviewLabel">Preview do Arquivo</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="filePreviewContent" class="small" style="white-space:pre-wrap"></pre>
+        </div>
+        <div class="modal-footer">
+          <button id="btnCopyFile" type="button" class="btn btn-outline-info">Copiar</button>
+          <button id="btnSaveFile" type="button" class="btn btn-outline-success">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <script type="module" src="../../../js/modules/contracts/builder.js?v=1.1"></script>
 
 
