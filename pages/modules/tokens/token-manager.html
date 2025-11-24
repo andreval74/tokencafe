@@ -33,9 +33,8 @@
           <div id="token-manager-module">
             <!-- Header do Módulo -->
             <div class="module-header d-flex justify-content-between align-items-center mb-4">
-              <div class="module-title">
-                <h1 class="h3 mb-1">🪙 Meus Tokens</h1>
-                <p class="text-secondary mb-0">Gerencie todos os seus tokens criados na TokenCafe</p>
+              <div class="module-title flex-grow-1">
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-coin" data-st-title="Meus Tokens" data-st-subtitle="Gerencie todos os seus tokens criados"></div>
               </div>
               <div class="module-actions">
                 <button class="btn btn-outline-primary" onclick="quickAction('create-token')">
@@ -138,6 +137,9 @@
     </div>
 
     <!-- Scripts -->
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Token Manager padronizado"></div>
+    </div>
     <script type="module" src="../../../js/shared/base-system.js"></script>
     <div data-component="shared/layouts/scripts-base.html"></div>
     <script src="../../../js/modules/tokens/token-manager.js?v=2"></script>

@@ -37,12 +37,9 @@
             <div class="card bg-dark-elevated text-light mb-3">
               <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-cog me-3 fs-4"></i>
-                    <div>
-                      <h4 class="mb-0">Configurações do Sistema</h4>
-                      <p class="text-muted mb-0">Gerencie as configurações e preferências do TokenCafe</p>
-                    </div>
+                  <!-- Título do módulo (padrão unificado) -->
+                  <div class="flex-grow-1">
+                    <div data-component="shared/components/section-title.html" data-st-icon="bi-gear" data-st-title="Configurações do Sistema" data-st-subtitle="Gerencie as configurações e preferências do TokenCafe"></div>
                   </div>
                   <div class="d-flex gap-2">
                     <button class="btn btn-outline-secondary" id="resetSettingsBtn">
@@ -112,15 +109,8 @@
             <div class="settings-content">
               <!-- Configurações Gerais -->
               <div class="settings-section active card bg-dark-elevated text-light mb-3 p-3" id="general">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-sliders-h section-icon fs-4"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h4 class="mb-0">Geral</h4>
-                    <p class="text-muted mb-0">Configurações básicas do sistema</p>
-                  </div>
-                </div>
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-sliders" data-st-title="Geral" data-st-subtitle="Configurações básicas do sistema"></div>
                 <div class="settings-groups">
                   <div class="settings-group">
                     <h3>Idioma e Região</h3>
@@ -185,15 +175,8 @@
 
               <!-- Configurações de Aparência -->
               <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="appearance">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-palette section-icon fs-4"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h4 class="mb-0">Aparência</h4>
-                    <p class="text-muted mb-0">Personalize a interface do sistema</p>
-                  </div>
-                </div>
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-palette" data-st-title="Aparência" data-st-subtitle="Personalize a interface do sistema"></div>
                 <div class="settings-groups">
                   <div class="settings-group">
                     <h3>Tema</h3>
@@ -278,15 +261,8 @@
 
               <!-- Configurações de Notificações -->
               <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="notifications">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-bell section-icon fs-4"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h4 class="mb-0">Notificações</h4>
-                    <p class="text-muted mb-0">Configure como e quando receber notificações</p>
-                  </div>
-                </div>
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-bell" data-st-title="Notificações" data-st-subtitle="Configure como e quando receber notificações"></div>
                 <!-- Sub-abas: Notificações -->
                 <div class="card bg-dark-elevated p-2 mb-3">
                   <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Notificações">
@@ -406,15 +382,8 @@
 
               <!-- Configurações de Segurança -->
               <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="security">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-shield-alt section-icon fs-4"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h4 class="mb-0">Segurança</h4>
-                    <p class="text-muted mb-0">Configure as opções de segurança do sistema</p>
-                  </div>
-                </div>
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-shield-lock" data-st-title="Segurança" data-st-subtitle="Configure as opções de segurança do sistema"></div>
                 <!-- Sub-abas: Segurança -->
                 <div class="card bg-dark-elevated p-2 mb-3">
                   <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Segurança">
@@ -539,15 +508,8 @@
 
               <!-- Configurações de Blockchain -->
               <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="blockchain">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-link section-icon fs-4"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h4 class="mb-0">Blockchain</h4>
-                    <p class="text-muted mb-0">Configure as conexões e preferências de blockchain</p>
-                  </div>
-                </div>
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-link-45deg" data-st-title="Blockchain" data-st-subtitle="Configure as conexões e preferências de blockchain"></div>
                 <!-- Sub-abas: Blockchain -->
                 <div class="card bg-dark-elevated p-2 mb-3">
                   <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Blockchain">
@@ -631,15 +593,8 @@
 
               <!-- Configurações Avançadas -->
               <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="advanced">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-cogs section-icon fs-4"></i>
-                  </div>
-                  <div class="flex-grow-1">
-                    <h4 class="mb-0">Configurações Avançadas</h4>
-                    <p class="text-muted mb-0">Configurações para usuários experientes</p>
-                  </div>
-                </div>
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-gear" data-st-title="Configurações Avançadas" data-st-subtitle="Configurações para usuários experientes"></div>
                 <!-- Sub-abas: Avançado -->
                 <div class="card bg-dark-elevated p-2 mb-3">
                   <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Avançado">
@@ -743,6 +698,10 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="System Settings padronizado"></div>
     </div>
 
     <!-- Modal de Confirmação -->

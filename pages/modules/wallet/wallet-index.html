@@ -127,22 +127,21 @@
             </div>
           </div>
           <!-- Seção 3: Ações da Carteira (inicialmente oculta) -->
-          <div class="row g-2 mb-3 d-none" id="wallet-actions-section">
-            <div class="col-6 d-grid">
-              <button id="disconnectWallet" class="btn btn-outline-warning btn-lg w-100">
-                <i class="bi bi-x-circle me-2"></i>
-                Desconectar Carteira
-              </button>
-            </div>
-            <div class="col-6 d-grid">
-              <button id="clearDataBtn" class="btn btn-outline-danger btn-lg w-100">
-                <i class="bi bi-arrow-clockwise me-2"></i>
-                Limpar Dados e Recomeçar
-              </button>
-            </div>
+          <div class="d-flex gap-2 mb-3 d-none" id="wallet-actions-section">
+            <button id="disconnectWallet" class="btn btn-outline-warning btn-lg flex-fill">
+              <i class="bi bi-x-circle me-2"></i>
+              Desconectar Carteira
+            </button>
+            <button id="clearDataBtn" class="btn btn-outline-danger btn-lg flex-fill">
+              <i class="bi bi-arrow-clockwise me-2"></i>
+              Limpar Dados e Recomeçar
+            </button>
           </div>
         </div>
       </div>
+    </div>
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Wallet Manager padronizado"></div>
     </div>
     <!-- scripts -->
     <script type="module" src="../../../js/shared/base-system.js"></script>

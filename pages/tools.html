@@ -1,367 +1,341 @@
 <!doctype html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TokenCafe Tools - Hub de Ferramentas</title>
+    <meta name="description" content="Hub central de ferramentas TokenCafe - Acesse todas as funcionalidades Web3" />
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TokenCafe Tools - Hub de Ferramentas</title>
-  <meta name="description" content="Hub central de ferramentas TokenCafe - Acesse todas as funcionalidades Web3" />
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../imgs/tkncafe32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../imgs/tkncafe16x16.png" />
 
-  <!-- Favicons -->
-  <link rel="icon" type="image/png" sizes="32x32" href="../imgs/tkncafe32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="../imgs/tkncafe16x16.png" />
+    <!-- CSS Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 
-  <!-- CSS Libraries -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link href="/css/styles.css?v=5" rel="stylesheet" />
+    <link href="/css/utility-classes.css?v=5" rel="stylesheet" />
+  </head>
 
-  <!-- Custom CSS -->
-  <link href="/css/styles.css?v=5" rel="stylesheet" />
-  <link href="/css/utility-classes.css?v=5" rel="stylesheet" />
-</head>
+  <body class="bg-page-black">
+    <!-- Header Unificado -->
+    <div data-component="tools-header.html" data-icon="fa-tools" data-icon-alt="TokenCafe" data-title="TokenCafe Tools" data-subtitle="Hub Central de Ferramentas Web3"></div>
 
-<body class="bg-page-black">
-  <!-- Header Unificado -->
-  <div  data-component="tools-header.html" 
-        data-icon="fa-tools" 
-        data-icon-alt="TokenCafe" 
-        data-title="TokenCafe Tools"
-        data-subtitle="Hub Central de Ferramentas Web3">
-  </div>
+    <!-- Main Content -->
+    <div class="container py-4 bg-page-black min-vh-100">
+      <div class="row">
+        <div class="col-12">
+          <!-- Grid de Ferramentas - Tiles minimalistas -->
+          <div class="tool-tiles">
+            <!-- System Status -->
+            <a href="#" class="tool-tile tool-link" aria-label="Verificar Status do Sistema" id="systemStatusTile">
+              <span class="tool-tile-status badge bg-success">Finalizado</span>
+              <div class="tool-tile-icon"><i class="fas fa-heartbeat"></i></div>
+              <div class="tool-tile-title">System Status</div>
+              <div class="tool-tile-desc">Verificar saúde do sistema, se todas as funcionalidades estão operacionais e atualizadas.</div>
+            </a>
 
-  <!-- Main Content -->
-  <div class="container py-4 bg-page-black min-vh-100">
-    <div class="row">
-      <div class="col-12">
-        <!-- Grid de Ferramentas - Tiles minimalistas -->
-        <div class="tool-tiles">
-          <!-- System Status -->
-          <a href="#" class="tool-tile tool-link" aria-label="Verificar Status do Sistema" id="systemStatusTile">
-            <span class="tool-tile-status badge bg-success">Finalizado</span>
-            <div class="tool-tile-icon"><i class="fas fa-heartbeat"></i></div>
-            <div class="tool-tile-title">System Status</div>
-            <div class="tool-tile-desc">Verificar saúde do sistema, se todas as funcionalidades estão operacionais e
-              atualizadas.</div>
-          </a>
+            <div class="tool-tile" aria-label="Guia de Estilos">
+              <span class="tool-tile-status badge bg-success">Finalizado</span>
+              <div class="tool-tile-icon"><i class="fas fa-palette"></i></div>
+              <div class="tool-tile-title">Guia de Estilos</div>
+              <div class="tool-tile-desc">Referência de padrões de UI e CSS</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="style-guide.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Guia de Estilos">
+                  <i class="fas fa-book-open me-1"></i>
+                  Abrir Guia
+                </a>
+              </div>
+            </div>
 
-          <div class="tool-tile" aria-label="Guia de Estilos">
-            <span class="tool-tile-status badge bg-success">Finalizado</span>
-            <div class="tool-tile-icon"><i class="fas fa-palette"></i></div>
-            <div class="tool-tile-title">Guia de Estilos</div>
-            <div class="tool-tile-desc">Referência de padrões de UI e CSS</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="style-guide.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Guia de Estilos">
-                <i class="fas fa-book-open me-1"></i>
-                Abrir Guia
-              </a>
+            <!-- Wallet Manager -->
+            <div class="tool-tile" aria-label="Wallet Manager">
+              <span class="tool-tile-status badge bg-success">Finalizado</span>
+              <div class="tool-tile-icon"><i class="fas fa-wallet"></i></div>
+              <div class="tool-tile-title">Wallet Manager</div>
+              <div class="tool-tile-desc">Gerenciador de Carteiras Web3</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/wallet/wallet-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Wallet Manager">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Módulo
+                </a>
+                <a href="modules/wallet/wallet-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de Wallet">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- RPC Manager -->
+            <div class="tool-tile" aria-label="RPC Manager">
+              <span class="tool-tile-status badge bg-success">Finalizado</span>
+              <div class="tool-tile-icon">
+                <i class="fas fa-network-wired"></i>
+              </div>
+              <div class="tool-tile-title">RPC Manager</div>
+              <div class="tool-tile-desc">Conexões RPC e redes</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/rpc/rpc-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir RPC Manager">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Módulo
+                </a>
+                <a href="modules/rpc/rpc-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de RPC">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- Link Generator -->
+            <div class="tool-tile" aria-label="Link Generator">
+              <span class="tool-tile-status badge bg-success">Finalizado</span>
+              <div class="tool-tile-icon"><i class="fas fa-link"></i></div>
+              <div class="tool-tile-title">Link Generator</div>
+              <div class="tool-tile-desc">Links para adicionar tokens</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/link/link-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Link Generator">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Módulo
+                </a>
+                <a href="modules/link/link-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de Link">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- Contracts Builder -->
+            <div class="tool-tile" aria-label="Contracts Builder">
+              <span class="tool-tile-status badge bg-success">Finalizado</span>
+              <div class="tool-tile-icon">
+                <i class="fas fa-file-contract"></i>
+              </div>
+              <div class="tool-tile-title">Contracts Builder</div>
+              <div class="tool-tile-desc">Crie, valide, verifique e faça o deploy de contratos</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/contracts/index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Contracts Builder">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Módulo
+                </a>
+                <button id="importRecipeBtn" class="btn btn-sm btn-outline-warning rounded-3 w-100" aria-label="Importar Receita .json">
+                  <i class="fas fa-upload me-1"></i>
+                  Importar .json
+                </button>
+                <input type="file" id="importRecipeInput" accept="application/json" class="d-none" />
+                <a href="modules/contracts/index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de Contracts">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- Mini Widget -->
+            <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+              <span class="tool-tile-status badge bg-warning">Em Breve</span>
+              <div class="tool-tile-icon"><i class="fas fa-rocket"></i></div>
+              <div class="tool-tile-title">Mini Widget</div>
+              <div class="tool-tile-desc">Venda de tokens plug & play</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/widget/widget-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Widget de Compra">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Widget
+                </a>
+              </div>
+            </div>
+
+            <!-- Gerenciador de Token -->
+            <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+              <span class="tool-tile-status badge bg-warning">Em Breve</span>
+              <div class="tool-tile-icon"><i class="fas fa-coins"></i></div>
+              <div class="tool-tile-title">Gerenciador de Token</div>
+              <div class="tool-tile-desc">Criação e gestão de tokens</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/tokens/token-add.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Add">
+                  <i class="fas fa-plus me-1"></i>
+                  Cadastro
+                </a>
+                <a href="modules/tokens/token-manager.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Manager">
+                  <i class="fas fa-list me-1"></i>
+                  Gerenciador
+                </a>
+                <a href="modules/tokens/token-manager.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de Tokens">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+              <span class="tool-tile-status badge bg-warning">Em Breve</span>
+              <div class="tool-tile-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <div class="tool-tile-title">Analytics</div>
+              <div class="tool-tile-desc">Relatórios e métricas</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/analytics/analytics-reports.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Analytics">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Módulo
+                </a>
+                <a href="modules/analytics/analytics-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de Analytics">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- Template Gallery -->
+            <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+              <span class="tool-tile-status badge bg-warning">Em Breve</span>
+              <div class="tool-tile-icon">
+                <i class="fas fa-layer-group"></i>
+              </div>
+              <div class="tool-tile-title">Template Gallery</div>
+              <div class="tool-tile-desc">Explore e gerencie templates</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/templates/template-gallery.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Template Gallery">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Módulo
+                </a>
+                <a href="modules/templates/template-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de Templates">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="tool-tile admin-disabled" aria-label="System Settings" aria-disabled="true">
+              <span class="tool-tile-status badge bg-info">Admin</span>
+              <div class="tool-tile-icon"><i class="fas fa-cog"></i></div>
+              <div class="tool-tile-title">System Settings</div>
+              <div class="tool-tile-desc">Preferências e configurações do sistema</div>
+              <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+                <a href="modules/settings/system-settings.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir System Settings">
+                  <i class="fas fa-door-open me-1"></i>
+                  Abrir Módulo
+                </a>
+                <a href="modules/settings/settings-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Testes de Configurações">
+                  <i class="fas fa-vial me-1"></i>
+                  Abrir Teste
+                </a>
+              </div>
+            </div>
+
+            <!-- Dashboard (Admin - desativado temporariamente) -->
+            <div class="tool-tile admin-disabled" aria-label="Dashboard (Admin)" aria-disabled="true">
+              <span class="tool-tile-status badge bg-info">Admin</span>
+              <div class="tool-tile-icon">
+                <i class="fas fa-tachometer-alt"></i>
+              </div>
+              <div class="tool-tile-title">Dashboard</div>
+              <div class="tool-tile-desc">Sistema integrado</div>
+              <div class="tool-tile-footer small d-flex align-items-center gap-2 mt-2 text-secondary">
+                <i class="fas fa-user-shield"></i>
+                <span>Somente Admin (temporariamente desativado)</span>
+              </div>
             </div>
           </div>
 
-          <!-- Wallet Manager -->
-          <div class="tool-tile" aria-label="Wallet Manager">
-            <span class="tool-tile-status badge bg-success">Finalizado</span>
-            <div class="tool-tile-icon"><i class="fas fa-wallet"></i></div>
-            <div class="tool-tile-title">Wallet Manager</div>
-            <div class="tool-tile-desc">Gerenciador de Carteiras Web3</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/wallet/wallet-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Wallet Manager">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Módulo
-              </a>
-              <a href="modules/wallet/wallet-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de Wallet">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
+          <!-- Instruções e Status -->
+          <div class="row mt-5">
+            <div class="col-12">
+              <div class="card border-0 shadow-lg card-glass">
+                <div class="card-body">
+                  <h5 class="text-white mb-4">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                    Status do Sistema Unificado
+                  </h5>
 
-          <!-- RPC Manager -->
-          <div class="tool-tile" aria-label="RPC Manager">
-            <span class="tool-tile-status badge bg-success">Finalizado</span>
-            <div class="tool-tile-icon">
-              <i class="fas fa-network-wired"></i>
-            </div>
-            <div class="tool-tile-title">RPC Manager</div>
-            <div class="tool-tile-desc">Conexões RPC e redes</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/rpc/rpc-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir RPC Manager">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Módulo
-              </a>
-              <a href="modules/rpc/rpc-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de RPC">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <h6 class="text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Módulos Finalizados (Sistema Unificado)
+                      </h6>
+                      <ul class="list-unstyled text-light">
+                        <li class="mb-2">
+                          <i class="fas fa-check text-success me-2"></i>
+                          RPC Manager - 100% Finalizado
+                        </li>
+                        <li class="mb-2">
+                          <i class="fas fa-check text-success me-2"></i>
+                          Link Generator - 100% Finalizado
+                        </li>
+                        <li class="mb-2">
+                          <i class="fas fa-check text-success me-2"></i>
+                          Sistema Base Unificado
+                        </li>
+                        <li class="mb-2">
+                          <i class="fas fa-check text-success me-2"></i>
+                          PageManager Unificado
+                        </li>
+                        <li class="mb-2">
+                          <i class="fas fa-check text-success me-2"></i>
+                          Wallet Manager - 100% Finalizado
+                        </li>
+                        <li class="mb-2">
+                          <i class="fas fa-check text-success me-2"></i>
+                          Token Manager - 100% Finalizado
+                        </li>
+                      </ul>
+                    </div>
 
-          <!-- Link Generator -->
-          <div class="tool-tile" aria-label="Link Generator">
-            <span class="tool-tile-status badge bg-success">Finalizado</span>
-            <div class="tool-tile-icon"><i class="fas fa-link"></i></div>
-            <div class="tool-tile-title">Link Generator</div>
-            <div class="tool-tile-desc">Links para adicionar tokens</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/link/link-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Link Generator">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Módulo
-              </a>
-              <a href="modules/link/link-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de Link">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
+                    <div class="col-md-6">
+                      <h6 class="text-warning mb-3">
+                        <i class="fas fa-clock me-2"></i>
+                        Próximas Migrações
+                      </h6>
+                      <ul class="list-unstyled text-light">
+                        <li class="mb-2">
+                          <i class="fas fa-hourglass-half text-warning me-2"></i>
+                          Analytics Reports
+                        </li>
+                        <li class="mb-2">
+                          <i class="fas fa-hourglass-half text-warning me-2"></i>
+                          Templates Gallery
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
 
-          <!-- Contracts Builder -->
-          <div class="tool-tile" aria-label="Contracts Builder">
-            <span class="tool-tile-status badge bg-success">Finalizado</span>
-            <div class="tool-tile-icon">
-              <i class="fas fa-file-contract"></i>
-            </div>
-            <div class="tool-tile-title">Contracts Builder</div>
-            <div class="tool-tile-desc">Crie, valide, verifique e faça o deploy de contratos</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/contracts/index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Contracts Builder">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Módulo
-              </a>
-              <button id="importRecipeBtn" class="btn btn-sm btn-outline-warning rounded-3 w-100"
-                aria-label="Importar Receita .json">
-                <i class="fas fa-upload me-1"></i>
-                Importar .json
-              </button>
-              <input type="file" id="importRecipeInput" accept="application/json" class="d-none" />
-              <a href="modules/contracts/index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de Contracts">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
-
-          <!-- Mini Widget -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
-            <span class="tool-tile-status badge bg-warning">Em Breve</span>
-            <div class="tool-tile-icon"><i class="fas fa-rocket"></i></div>
-            <div class="tool-tile-title">Mini Widget</div>
-            <div class="tool-tile-desc">Venda de tokens plug & play</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/widget/widget-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Widget de Compra">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Widget
-              </a>
-            </div>
-          </div>
-
-          <!-- Gerenciador de Token -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
-            <span class="tool-tile-status badge bg-warning">Em Breve</span>
-            <div class="tool-tile-icon"><i class="fas fa-coins"></i></div>
-            <div class="tool-tile-title">Gerenciador de Token</div>
-            <div class="tool-tile-desc">Criação e gestão de tokens</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/tokens/token-add.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Token Add">
-                <i class="fas fa-plus me-1"></i>
-                Cadastro
-              </a>
-              <a href="modules/tokens/token-manager.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Token Manager">
-                <i class="fas fa-list me-1"></i>
-                Gerenciador
-              </a>
-              <a href="modules/tokens/token-manager.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de Tokens">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
-
-          <!-- Analytics -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
-            <span class="tool-tile-status badge bg-warning">Em Breve</span>
-            <div class="tool-tile-icon">
-              <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="tool-tile-title">Analytics</div>
-            <div class="tool-tile-desc">Relatórios e métricas</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/analytics/analytics-reports.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Analytics">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Módulo
-              </a>
-              <a href="modules/analytics/analytics-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de Analytics">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
-
-          <!-- Template Gallery -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
-            <span class="tool-tile-status badge bg-warning">Em Breve</span>
-            <div class="tool-tile-icon">
-              <i class="fas fa-layer-group"></i>
-            </div>
-            <div class="tool-tile-title">Template Gallery</div>
-            <div class="tool-tile-desc">Explore e gerencie templates</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/templates/template-gallery.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Template Gallery">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Módulo
-              </a>
-              <a href="modules/templates/template-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de Templates">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
-
-          <!-- System Settings -->
-          <div class="tool-tile admin-disabled" aria-label="System Settings" aria-disabled="true">
-            <span class="tool-tile-status badge bg-info">Admin</span>
-            <div class="tool-tile-icon"><i class="fas fa-cog"></i></div>
-            <div class="tool-tile-title">System Settings</div>
-            <div class="tool-tile-desc">Preferências e configurações do sistema</div>
-            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-              <a href="modules/settings/system-settings.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir System Settings">
-                <i class="fas fa-door-open me-1"></i>
-                Abrir Módulo
-              </a>
-              <a href="modules/settings/settings-tests.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
-                aria-label="Abrir Testes de Configurações">
-                <i class="fas fa-vial me-1"></i>
-                Abrir Teste
-              </a>
-            </div>
-          </div>
-
-          <!-- Dashboard (Admin - desativado temporariamente) -->
-          <div class="tool-tile admin-disabled" aria-label="Dashboard (Admin)" aria-disabled="true">
-            <span class="tool-tile-status badge bg-info">Admin</span>
-            <div class="tool-tile-icon">
-              <i class="fas fa-tachometer-alt"></i>
-            </div>
-            <div class="tool-tile-title">Dashboard</div>
-            <div class="tool-tile-desc">Sistema integrado</div>
-            <div class="tool-tile-footer small d-flex align-items-center gap-2 mt-2 text-secondary">
-              <i class="fas fa-user-shield"></i>
-              <span>Somente Admin (temporariamente desativado)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Instruções e Status -->
-        <div class="row mt-5">
-          <div class="col-12">
-            <div class="card border-0 shadow-lg card-glass">
-              <div class="card-body">
-                <h5 class="text-white mb-4">
-                  <i class="fas fa-info-circle me-2 text-primary"></i>
-                  Status do Sistema Unificado
-                </h5>
-
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <h6 class="text-success mb-3">
-                      <i class="fas fa-check-circle me-2"></i>
-                      Módulos Finalizados (Sistema Unificado)
+                  <div class="alert alert-primary mt-4 mb-0 alert-soft-primary">
+                    <h6 class="text-primary mb-3">
+                      <i class="fas fa-rocket me-2"></i>
+                      Como Usar as Ferramentas
                     </h6>
-                    <ul class="list-unstyled text-light">
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        RPC Manager - 100% Finalizado
+                    <ul class="mb-0 text-light">
+                      <li>
+                        🔗
+                        <strong>Conecte sua carteira</strong>
+                        usando o botão no cabeçalho
                       </li>
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Link Generator - 100% Finalizado
+                      <li>
+                        🎯
+                        <strong>Ferramentas Migradas</strong>
+                        usam o sistema unificado (sem bugs)
                       </li>
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Sistema Base Unificado
+                      <li>
+                        ⚠️
+                        <strong>Ferramentas "Em Breve"</strong>
+                        podem ter inconsistências
                       </li>
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        PageManager Unificado
+                      <li>
+                        🎮
+                        <strong>Teste cada ferramenta</strong>
+                        individualmente para validar funcionalidades
                       </li>
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Wallet Manager - 100% Finalizado
-                      </li>
-                      <li class="mb-2">
-                        <i class="fas fa-check text-success me-2"></i>
-                        Token Manager - 100% Finalizado
+                      <li>
+                        🔄
+                        <strong>Sistema Independente</strong>
+                        - cada ferramenta funciona sozinha
                       </li>
                     </ul>
                   </div>
-
-                  <div class="col-md-6">
-                    <h6 class="text-warning mb-3">
-                      <i class="fas fa-clock me-2"></i>
-                      Próximas Migrações
-                    </h6>
-                    <ul class="list-unstyled text-light">
-                      <li class="mb-2">
-                        <i class="fas fa-hourglass-half text-warning me-2"></i>
-                        Analytics Reports
-                      </li>
-                      <li class="mb-2">
-                        <i class="fas fa-hourglass-half text-warning me-2"></i>
-                        Templates Gallery
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div class="alert alert-primary mt-4 mb-0 alert-soft-primary">
-                  <h6 class="text-primary mb-3">
-                    <i class="fas fa-rocket me-2"></i>
-                    Como Usar as Ferramentas
-                  </h6>
-                  <ul class="mb-0 text-light">
-                    <li>
-                      🔗
-                      <strong>Conecte sua carteira</strong>
-                      usando o botão no cabeçalho
-                    </li>
-                    <li>
-                      🎯
-                      <strong>Ferramentas Migradas</strong>
-                      usam o sistema unificado (sem bugs)
-                    </li>
-                    <li>
-                      ⚠️
-                      <strong>Ferramentas "Em Breve"</strong>
-                      podem ter inconsistências
-                    </li>
-                    <li>
-                      🎮
-                      <strong>Teste cada ferramenta</strong>
-                      individualmente para validar funcionalidades
-                    </li>
-                    <li>
-                      🔄
-                      <strong>Sistema Independente</strong>
-                      - cada ferramenta funciona sozinha
-                    </li>
-                  </ul>
                 </div>
               </div>
             </div>
@@ -369,12 +343,13 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Scripts -->
-  <script type="module" src="../js/shared/base-system.js"></script>
-  <div data-component="shared/layouts/scripts-base.html"></div>
-  <script type="module" src="../js/modules/tools/tools.js?v=1.0"></script>
-</body>
-
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Todos os módulos padronizados"></div>
+    </div>
+    <!-- Scripts -->
+    <script type="module" src="../js/shared/base-system.js"></script>
+    <div data-component="shared/layouts/scripts-base.html"></div>
+    <script type="module" src="../js/modules/tools/tools.js?v=1.0"></script>
+  </body>
 </html>
