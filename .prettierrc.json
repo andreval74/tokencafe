@@ -1,0 +1,6 @@
+{
+  "printWidth": 1000,
+  "proseWrap": "never",
+  "htmlWhitespaceSensitivity": "ignore",
+  "singleAttributePerLine": false
+}

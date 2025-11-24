@@ -1,0 +1,27 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2021": true },
+  "extends": ["eslint:recommended"],
+  "parserOptions": { "ecmaVersion": "latest", "sourceType": "module" },
+  "globals": {
+    "ethers": "readonly",
+    "bootstrap": "readonly",
+    "$": "readonly",
+    "API_BASE": "readonly",
+    "web3": "readonly"
+  },
+  "overrides": [
+    {
+      "files": ["api/**/*.js"],
+      "env": { "node": true }
+    }
+  ],
+  "rules": {
+    "no-empty": "off",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^unused" }],
+    "no-undef": "off",
+    "no-useless-escape": "off",
+    "valid-typeof": "warn"
+  },
+  "ignorePatterns": ["node_modules/", "dist/", "build/"]
+}

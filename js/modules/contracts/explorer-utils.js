@@ -2,7 +2,7 @@
 // Provides contract, transaction, and verification URLs per chainId
 
 export function getExplorerContractUrl(contractAddress, chainId) {
-  const addr = contractAddress || '';
+  const addr = contractAddress || "";
   const map = {
     1: `https://etherscan.io/address/${addr}`,
     56: `https://bscscan.com/address/${addr}`,
@@ -15,7 +15,7 @@ export function getExplorerContractUrl(contractAddress, chainId) {
 }
 
 export function getExplorerTxUrl(txHash, chainId) {
-  const tx = txHash || '';
+  const tx = txHash || "";
   const map = {
     1: `https://etherscan.io/tx/${tx}`,
     56: `https://bscscan.com/tx/${tx}`,
@@ -28,7 +28,7 @@ export function getExplorerTxUrl(txHash, chainId) {
 }
 
 export function getExplorerVerificationUrl(contractAddress, chainId) {
-  const addr = contractAddress || '';
+  const addr = contractAddress || "";
   const map = {
     1: `https://etherscan.io/address/${addr}#code`,
     56: `https://bscscan.com/address/${addr}#code`,
@@ -39,4 +39,3 @@ export function getExplorerVerificationUrl(contractAddress, chainId) {
   };
   return map[chainId] || `https://etherscan.io/address/${addr}#code`;
 }
-

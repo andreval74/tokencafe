@@ -10,13 +10,13 @@
  */
 export function generateWidgetCode(owner = null) {
   const now = new Date();
-  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+  const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, "");
   const random = Math.random().toString(36).substring(2, 6);
-  
+
   // Se tiver owner, usar últimos 4 chars do endereço para facilitar identificação
-  const ownerSuffix = owner ? `-${owner.slice(-4).toLowerCase()}` : '';
-  
+  const ownerSuffix = owner ? `-${owner.slice(-4).toLowerCase()}` : "";
+
   return `tc-${dateStr}-${timeStr}-${random}${ownerSuffix}`;
 }
 
@@ -26,7 +26,7 @@ export function generateWidgetCode(owner = null) {
  * @returns {boolean} True se válido
  */
 export function isValidAddress(address) {
-  if (!address || typeof address !== 'string') return false;
+  if (!address || typeof address !== "string") return false;
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
 
@@ -37,17 +37,17 @@ export function isValidAddress(address) {
  */
 export function toChecksumAddress(address) {
   if (!isValidAddress(address)) return address;
-  
+
   // Se ethers.js disponível, usar getAddress
-  if (typeof ethers !== 'undefined' && ethers.utils && ethers.utils.getAddress) {
+  if (typeof ethers !== "undefined" && ethers.utils && ethers.utils.getAddress) {
     try {
       return ethers.utils.getAddress(address);
     } catch (e) {
-      console.warn('Erro ao converter checksum:', e);
+      console.warn("Erro ao converter checksum:", e);
       return address;
     }
   }
-  
+
   return address;
 }
 
@@ -59,30 +59,27 @@ export function toChecksumAddress(address) {
  */
 export function detectPurchaseFunction(abi) {
   if (!Array.isArray(abi) || !abi.length) return null;
-  
+
   // Filtrar apenas funções payable
-  const payables = abi.filter(f => 
-    f.type === 'function' && 
-    (f.stateMutability === 'payable' || f.payable === true)
-  );
-  
+  const payables = abi.filter((f) => f.type === "function" && (f.stateMutability === "payable" || f.payable === true));
+
   if (!payables.length) return null;
-  
+
   // Priorizar "buy"
-  let func = payables.find(f => f.name === 'buy');
-  
+  let func = payables.find((f) => f.name === "buy");
+
   // Se não achar, pegar a primeira payable
   if (!func) func = payables[0];
-  
+
   // Construir assinatura
   const inputs = func.inputs || [];
-  const signature = `${func.name}(${inputs.map(i => i.type).join(',')})`;
-  
+  const signature = `${func.name}(${inputs.map((i) => i.type).join(",")})`;
+
   return {
     name: func.name,
     signature,
-    inputs: inputs.map(i => ({ name: i.name, type: i.type })),
-    argsMode: inputs.length === 0 ? 'none' : (inputs.length === 1 && inputs[0].type.includes('uint') ? 'quantity' : 'custom')
+    inputs: inputs.map((i) => ({ name: i.name, type: i.type })),
+    argsMode: inputs.length === 0 ? "none" : inputs.length === 1 && inputs[0].type.includes("uint") ? "quantity" : "custom",
   };
 }
 
@@ -94,24 +91,24 @@ export function detectPurchaseFunction(abi) {
  */
 export function createMinimalAbi(fullAbi, functionsNeeded = []) {
   if (!Array.isArray(fullAbi)) return [];
-  
+
   const fragments = [];
-  
-  fullAbi.forEach(item => {
-    if (item.type !== 'function') return;
+
+  fullAbi.forEach((item) => {
+    if (item.type !== "function") return;
     if (functionsNeeded.length && !functionsNeeded.includes(item.name)) return;
-    
-    const inputs = (item.inputs || []).map(i => i.type).join(',');
-    const outputs = (item.outputs || []).map(o => o.type).join(',');
-    const state = item.stateMutability || (item.constant ? 'view' : 'nonpayable');
-    
+
+    const inputs = (item.inputs || []).map((i) => i.type).join(",");
+    const outputs = (item.outputs || []).map((o) => o.type).join(",");
+    const state = item.stateMutability || (item.constant ? "view" : "nonpayable");
+
     let fragment = `function ${item.name}(${inputs})`;
-    if (state !== 'nonpayable') fragment += ` ${state}`;
+    if (state !== "nonpayable") fragment += ` ${state}`;
     if (outputs) fragment += ` returns (${outputs})`;
-    
+
     fragments.push(fragment);
   });
-  
+
   return fragments;
 }
 
@@ -132,107 +129,90 @@ export function createMinimalAbi(fullAbi, functionsNeeded = []) {
  * @returns {Object} JSON de configuração completo
  */
 export function generateWidgetConfig(config) {
-  const {
-    owner,
-    code,
-    chainId,
-    rpcUrl,
-    saleContract,
-    receiverWallet,
-    tokenContract,
-    purchaseFunction,
-    saleAbi,
-    tokenAbi,
-    ui = {}
-  } = config;
-  
+  const { owner, code, chainId, rpcUrl, saleContract, receiverWallet, tokenContract, purchaseFunction, saleAbi, tokenAbi, ui = {} } = config;
+
   // Validações básicas
   if (!owner || !isValidAddress(owner)) {
-    throw new Error('Owner inválido ou não fornecido');
+    throw new Error("Owner inválido ou não fornecido");
   }
   if (!code) {
-    throw new Error('Código do widget não fornecido');
+    throw new Error("Código do widget não fornecido");
   }
-  if (!chainId || typeof chainId !== 'number') {
-    throw new Error('ChainId inválido');
+  if (!chainId || typeof chainId !== "number") {
+    throw new Error("ChainId inválido");
   }
   if (!saleContract || !isValidAddress(saleContract)) {
-    throw new Error('Contrato Sale inválido ou não fornecido');
+    throw new Error("Contrato Sale inválido ou não fornecido");
   }
   if (!receiverWallet || !isValidAddress(receiverWallet)) {
-    throw new Error('Carteira recebedora inválida ou não fornecida');
+    throw new Error("Carteira recebedora inválida ou não fornecida");
   }
-  
+
   // Construir JSON base
   const widgetConfig = {
     schemaVersion: 1,
     owner: toChecksumAddress(owner),
     code,
     network: {
-      chainId
+      chainId,
     },
     contracts: {
       sale: toChecksumAddress(saleContract),
-      receiverWallet: toChecksumAddress(receiverWallet)
+      receiverWallet: toChecksumAddress(receiverWallet),
     },
     purchase: {
-      functionName: purchaseFunction?.name || 'buy',
-      argsMode: purchaseFunction?.argsMode || 'none',
-      priceMode: 'manual' // Default; pode ser 'contract' ou 'fixed' no futuro
+      functionName: purchaseFunction?.name || "buy",
+      argsMode: purchaseFunction?.argsMode || "none",
+      priceMode: "manual", // Default; pode ser 'contract' ou 'fixed' no futuro
     },
     ui: {
-      theme: ui.theme || 'light',
-      language: ui.language || 'pt-BR',
+      theme: ui.theme || "light",
+      language: ui.language || "pt-BR",
       showTestButton: ui.showTestButton !== false, // Default true
-      currencySymbol: ui.currencySymbol || 'BNB',
+      currencySymbol: ui.currencySymbol || "BNB",
       texts: ui.texts || {
-        title: 'Compre seus tokens',
-        description: 'Finalize sua compra com segurança.',
-        buyButton: 'Comprar agora'
-      }
+        title: "Compre seus tokens",
+        description: "Finalize sua compra com segurança.",
+        buyButton: "Comprar agora",
+      },
     },
     meta: {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      createdBy: toChecksumAddress(owner)
-    }
+      createdBy: toChecksumAddress(owner),
+    },
   };
-  
+
   // Adicionar rpcUrl se fornecido
   if (rpcUrl) {
     widgetConfig.network.rpcUrl = rpcUrl;
   }
-  
+
   // Adicionar tokenContract se fornecido
   if (tokenContract && isValidAddress(tokenContract)) {
     widgetConfig.contracts.token = toChecksumAddress(tokenContract);
   }
-  
+
   // Adicionar assinatura da função se disponível
   if (purchaseFunction?.signature) {
     widgetConfig.purchase.functionSignature = purchaseFunction.signature;
   }
-  
+
   // Criar fragmentos mínimos de ABI (sem expor ABI completa)
   if (saleAbi || tokenAbi) {
     widgetConfig.advanced = { minAbi: {} };
-    
+
     if (saleAbi && Array.isArray(saleAbi)) {
-      const saleFunctions = [
-        purchaseFunction?.name || 'buy',
-        'destinationWallet',
-        'saleToken',
-        'bnbPrice'
-      ];
+      const saleFunctions = [purchaseFunction?.name || "buy", "destinationWallet", "saleToken", "bnbPrice"];
       widgetConfig.advanced.minAbi.sale = createMinimalAbi(saleAbi, saleFunctions);
     }
-    
+
     if (tokenAbi && Array.isArray(tokenAbi)) {
-      const tokenFunctions = ['decimals', 'symbol', 'name', 'balanceOf'];
+      const tokenFunctions = ["decimals", "symbol", "name", "balanceOf"];
       widgetConfig.advanced.minAbi.token = createMinimalAbi(tokenAbi, tokenFunctions);
     }
   }
-  
+
   return widgetConfig;
 }
 
@@ -243,11 +223,11 @@ export function generateWidgetConfig(config) {
  * @param {string} scriptUrl - URL do loader (default: relativo)
  * @returns {string} HTML snippet
  */
-export function generateSnippet(owner, code, scriptUrl = '/assets/tokencafe-widget.min.js') {
+export function generateSnippet(owner, code, scriptUrl = "/assets/tokencafe-widget.min.js") {
   if (!owner || !code) {
-    throw new Error('Owner e code são obrigatórios para gerar snippet');
+    throw new Error("Owner e code são obrigatórios para gerar snippet");
   }
-  
+
   return `<!-- TokenCafe Widget - ${code} -->
 <script src="${scriptUrl}" async></script>
 <div class="tokencafe-widget" 
@@ -261,20 +241,20 @@ export function generateSnippet(owner, code, scriptUrl = '/assets/tokencafe-widg
  * @param {string} filename - Nome do arquivo (opcional)
  */
 export function downloadJSON(config, filename = null) {
-  if (!config || typeof config !== 'object') {
-    throw new Error('Configuração inválida para download');
+  if (!config || typeof config !== "object") {
+    throw new Error("Configuração inválida para download");
   }
-  
-  const fname = filename || `widget-${config.code || 'config'}.json`;
+
+  const fname = filename || `widget-${config.code || "config"}.json`;
   const json = JSON.stringify(config, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
+  const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-  
-  const a = document.createElement('a');
+
+  const a = document.createElement("a");
   a.href = url;
   a.download = fname;
   a.click();
-  
+
   URL.revokeObjectURL(url);
 }
 
@@ -289,19 +269,19 @@ export async function copyToClipboard(text) {
       await navigator.clipboard.writeText(text);
       return true;
     }
-    
+
     // Fallback para navegadores antigos
-    const textarea = document.createElement('textarea');
+    const textarea = document.createElement("textarea");
     textarea.value = text;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
     document.body.appendChild(textarea);
     textarea.select();
-    const success = document.execCommand('copy');
+    const success = document.execCommand("copy");
     document.body.removeChild(textarea);
     return success;
   } catch (e) {
-    console.error('Erro ao copiar:', e);
+    console.error("Erro ao copiar:", e);
     return false;
   }
 }
@@ -315,36 +295,36 @@ export async function copyToClipboard(text) {
 export function validateConfig(config) {
   const errors = [];
   const warnings = [];
-  
+
   // Obrigatórios
   if (!config.owner || !isValidAddress(config.owner)) {
-    errors.push('Owner (carteira conectada) inválido ou ausente');
+    errors.push("Owner (carteira conectada) inválido ou ausente");
   }
-  if (!config.chainId || typeof config.chainId !== 'number') {
-    errors.push('ChainId inválido ou ausente');
+  if (!config.chainId || typeof config.chainId !== "number") {
+    errors.push("ChainId inválido ou ausente");
   }
   if (!config.saleContract || !isValidAddress(config.saleContract)) {
-    errors.push('Contrato Sale inválido ou ausente');
+    errors.push("Contrato Sale inválido ou ausente");
   }
   if (!config.receiverWallet || !isValidAddress(config.receiverWallet)) {
-    errors.push('Carteira recebedora inválida ou ausente');
+    errors.push("Carteira recebedora inválida ou ausente");
   }
-  
+
   // Opcionais mas recomendados
   if (!config.tokenContract) {
-    warnings.push('Token não informado; testes de decimais e saldo não serão feitos');
+    warnings.push("Token não informado; testes de decimais e saldo não serão feitos");
   }
   if (!config.rpcUrl) {
-    warnings.push('RPC não informado; usando fallback por chainId');
+    warnings.push("RPC não informado; usando fallback por chainId");
   }
   if (!config.purchaseFunction || !config.purchaseFunction.name) {
     warnings.push('Função de compra não detectada; assumindo "buy()"');
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   };
 }
 
@@ -359,5 +339,5 @@ export default {
   generateSnippet,
   downloadJSON,
   copyToClipboard,
-  validateConfig
+  validateConfig,
 };

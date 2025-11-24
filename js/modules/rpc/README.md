@@ -5,79 +5,88 @@ Este módulo fornece funcionalidades para o gerador de links RPC usado pelo rpc-
 ## Arquivos Ativos
 
 ### Core
+
 - **`rpc-index.js`** - Interface principal para geração de links RPC
 - **`debug-system.js`** - Sistema de debug e logs
 
 ### Integrações
+
 - **`chainlist-integration.js`** - Integração com ChainList API
 - **`network-icons.js`** - Gerenciador de ícones das redes
 
 ### Dados Centralizados
+
 - **`shared/data/rpcs.json`** - Dados de RPCs das redes (fonte centralizada)
 
 ## Funcionalidades Principais
 
 ### 1. Conexão com Wallet
+
 ```javascript
-import RPCCore from './rpc-core.js';
+import RPCCore from "./rpc-core.js";
 
 const rpc = new RPCCore();
 
 // Conectar wallet de forma simples
 const resultado = await rpc.connectWalletSimple();
 if (resultado.success) {
-    console.log('Conectado:', resultado.account);
+  console.log("Conectado:", resultado.account);
 }
 ```
 
 ### 2. Adicionar Redes Populares
+
 ```javascript
 // Adicionar Polygon
-await rpc.addPopularNetwork('polygon');
+await rpc.addPopularNetwork("polygon");
 
 // Adicionar BSC
-await rpc.addPopularNetwork('bsc');
+await rpc.addPopularNetwork("bsc");
 
 // Adicionar Avalanche
-await rpc.addPopularNetwork('avalanche');
+await rpc.addPopularNetwork("avalanche");
 ```
 
 ### 3. Criar Rede Customizada
+
 ```javascript
 const redeCustomizada = rpc.createQuickNetwork({
-    chainId: 1337,
-    chainName: 'Minha Rede Local',
-    rpcUrl: 'http://localhost:8545',
-    symbol: 'ETH',
-    name: 'Ethereum Local'
+  chainId: 1337,
+  chainName: "Minha Rede Local",
+  rpcUrl: "http://localhost:8545",
+  symbol: "ETH",
+  name: "Ethereum Local",
 });
 
 await rpc.addNetworkSimple(redeCustomizada);
 ```
 
 ### 4. Testar Conectividade RPC
+
 ```javascript
-const teste = await rpc.testRpcUrl('https://polygon-rpc.com/');
+const teste = await rpc.testRpcUrl("https://polygon-rpc.com/");
 if (teste.success) {
-    console.log('RPC funcionando, latência:', teste.latency + 'ms');
+  console.log("RPC funcionando, latência:", teste.latency + "ms");
 }
 ```
 
 ### 5. Trocar de Rede
+
 ```javascript
 // Trocar para Polygon
-await rpc.switchNetworkSimple('0x89');
+await rpc.switchNetworkSimple("0x89");
 
 // Trocar para BSC
-await rpc.switchNetworkSimple('0x38');
+await rpc.switchNetworkSimple("0x38");
 ```
 
 ### 6. Obter Informações da Rede Atual
+
 ```javascript
 const info = await rpc.getCurrentNetworkSimple();
 if (info.success) {
-    console.log('Chain ID:', info.chainId);
-    console.log('Conta conectada:', info.connectedAccount);
+  console.log("Chain ID:", info.chainId);
+  console.log("Conta conectada:", info.connectedAccount);
 }
 ```
 
@@ -86,7 +95,7 @@ if (info.success) {
 O módulo inclui configurações para as seguintes redes populares:
 
 - **ethereum** - Ethereum Mainnet
-- **polygon** - Polygon Mainnet  
+- **polygon** - Polygon Mainnet
 - **bsc** - Binance Smart Chain
 - **avalanche** - Avalanche Network
 
@@ -129,25 +138,28 @@ Veja o arquivo `rpc-examples.js` para exemplos completos de uso, incluindo:
 ## Como Usar
 
 1. Importe a classe principal:
+
 ```javascript
-import RPCCore from './js/modules/rpc/rpc-core.js';
+import RPCCore from "./js/modules/rpc/rpc-core.js";
 ```
 
 2. Crie uma instância:
+
 ```javascript
 const rpc = new RPCCore();
 ```
 
 3. Use os métodos simplificados:
+
 ```javascript
 // Conectar
 await rpc.connectWalletSimple();
 
 // Adicionar rede
-await rpc.addPopularNetwork('polygon');
+await rpc.addPopularNetwork("polygon");
 
 // Trocar rede
-await rpc.switchNetworkSimple('0x89');
+await rpc.switchNetworkSimple("0x89");
 ```
 
 ## Compatibilidade

@@ -1,432 +1,424 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<body>
-  <script>
-    // Conexão centralizada de carteira no Widget usando WalletConnector
-    async function connectWallet(provider = 'metamask') {
-      try {
-        if (!window.walletConnector || typeof window.walletConnector.connect !== 'function') {
-          alert('Sistema de conexão de carteira indisponível. Atualize a página e tente novamente.');
-          return;
-        }
-        const result = await window.walletConnector.connect(provider);
-        if (!result || !result.success) {
-          alert('Falha ao conectar a carteira.');
-          return;
-        }
-        console.log('Carteira conectada:', result.account);
-        const statusEl = document.getElementById('contract-validation-status');
-        if (statusEl && !statusEl.innerHTML) {
-          statusEl.innerHTML = '<div class="alert alert-info">✅ Carteira conectada. Você pode validar e testar o contrato.</div>';
-        }
-      } catch (e) {
-        console.error('Erro na conexão de carteira:', e);
-        alert(e?.message || 'Falha na conexão. Verifique sua carteira e tente novamente.');
-      }
-    }
-
-    // Variáveis globais
-    let provider;
-    const fallbackRpcs = [
-      'https://data-seed-prebsc-1-s1.binance.org:8545/',  // Binance oficial testnet
-      'https://data-seed-prebsc-2-s1.binance.org:8545/',  // Binance oficial testnet
-      'https://bsc-testnet.public.blastapi.io',           // BlastAPI testnet
-      'https://bsc-testnet-rpc.publicnode.com',           // PublicNode testnet
-      'https://data-seed-prebsc-1-s2.binance.org:8545/',  // Binance backup
-      'https://data-seed-prebsc-2-s2.binance.org:8545/',  // Binance backup
-      'https://bsc-testnet.blockpi.network/v1/rpc/public', // BlockPI testnet
-      'https://endpoints.omniatech.io/v1/bsc/testnet/public' // OmniaTech testnet
-    ];
-
-    // Função para verificar se endereço é válido
-    function isValidEthereumAddress(address) {
-      return /^0x[a-fA-F0-9]{40}$/.test(address);
-    }
-
-    // Função para inicializar provider
-    async function initializeProvider(useMetaMask = true) {
-      if (!window.ethereum || metamaskBlacklisted) {
-        return false;
-      }
-      
-      try {
-        // Usar 'any' para evitar falhas de detecção de rede
-        const provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
-        
-        // Teste rigoroso: usar exatamente a mesma operação que está falhando
-        // Usar endereço de contrato BSC TESTNET conhecido (PancakeSwap Router Testnet)
-        const testContractAddress = '0xD99D1c33F9fC3444f8101754aBC46c52416550D1';
-        
-        // Criar promise com timeout de 3 segundos
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Timeout: MetaMask não respondeu em 3 segundos')), 3000);
-        });
-        
-        // Testar getCode() com timeout - exatamente a operação que está falhando
-        const codePromise = provider.getCode(testContractAddress);
-        
-        await Promise.race([codePromise, timeoutPromise]);
-        
-        console.log('✅ MetaMask passou no teste rigoroso de getCode()');
-        return true;
-      } catch (error) {
-        console.warn('❌ MetaMask falhou no teste rigoroso:', error.message);
-        
-        // Blacklist imediata para qualquer erro relacionado a RPC
-        if (error.message.includes('Internal JSON-RPC error') || 
-            error.message.includes('Timeout') ||
-            error.message.includes('missing trie node') ||
-            error.code === -32603 ||
-            error.code === -32002) {
-          metamaskBlacklisted = true;
-          console.warn('🚫 MetaMask foi adicionado à blacklist devido a problemas de RPC detectados no teste rigoroso');
-        }
-        return false;
-      }
-    }
-
-    // Função auxiliar para criar providers alternativos
-    async function getAlternativeProviders(skipMetaMask = false) {
-      const providers = [];
-      
-      // Testar MetaMask primeiro antes de adicionar à lista (a menos que seja ignorado)
-      let metamaskWorking = false;
-      if (!skipMetaMask) {
-        metamaskWorking = await testMetaMaskHealth();
-      }
-      
-      if (metamaskWorking) {
-        console.log('MetaMask está funcionando, adicionando à lista de providers');
-        providers.push(new ethers.providers.Web3Provider(window.ethereum));
-      } else {
-        console.log(skipMetaMask ? 'Ignorando MetaMask por escolha, usando RPCs públicos' : 'MetaMask não está disponível ou com problemas, usando apenas RPCs públicos');
-        
-        // Mostrar feedback imediato para o usuário
-        const statusEl = document.getElementById('contract-validation-status');
-        if (statusEl) {
-          if (skipMetaMask) {
-            statusEl.innerHTML = '<div class="alert alert-info">🔄 Validando usando RPCs públicos da BSC Testnet (ignorando MetaMask).</div>';
-          } else if (!statusEl.innerHTML.includes('MetaMask indisponível')) {
-            statusEl.innerHTML = '<div class="alert alert-warning">⚠️ MetaMask indisponível. Usando RPCs públicos BSC...</div>';
-          }
-        }
-      }
-      
-      // Melhores RPCs BSC TESTNET de 2024 (ordenados por performance)
-      const bscRPCs = [
-        'https://data-seed-prebsc-1-s1.binance.org:8545/',  // Binance oficial testnet
-        'https://data-seed-prebsc-2-s1.binance.org:8545/',  // Binance oficial testnet
-        'https://bsc-testnet.public.blastapi.io',           // BlastAPI testnet
-        'https://bsc-testnet-rpc.publicnode.com',           // PublicNode testnet
-        'https://data-seed-prebsc-1-s2.binance.org:8545/',  // Binance backup
-        'https://data-seed-prebsc-2-s2.binance.org:8545/',  // Binance backup
-        'https://bsc-testnet.blockpi.network/v1/rpc/public', // BlockPI testnet
-        'https://endpoints.omniatech.io/v1/bsc/testnet/public' // OmniaTech testnet
-      ];
-      
-      bscRPCs.forEach(rpc => {
+  <body>
+    <script>
+      // Conexão centralizada de carteira no Widget usando WalletConnector
+      async function connectWallet(provider = "metamask") {
         try {
-          // SOLUÇÃO RADICAL: Provider com configuração estática completa da BSC TESTNET
-          // Não permite detecção automática de rede para evitar "could not detect network"
-          const networkConfig = {
-            name: "bsc-testnet",
-            chainId: 97,
-            ensAddress: null,
-            _defaultProvider: null
-          };
-          
-          const provider = new ethers.providers.StaticJsonRpcProvider(rpc, networkConfig);
-          
-          // Forçar configuração estática para evitar detecção automática
-          provider._network = networkConfig;
-          provider.detectNetwork = () => Promise.resolve(networkConfig);
-          
-          providers.push(provider);
+          if (!window.walletConnector || typeof window.walletConnector.connect !== "function") {
+            alert("Sistema de conexão de carteira indisponível. Atualize a página e tente novamente.");
+            return;
+          }
+          const result = await window.walletConnector.connect(provider);
+          if (!result || !result.success) {
+            alert("Falha ao conectar a carteira.");
+            return;
+          }
+          console.log("Carteira conectada:", result.account);
+          const statusEl = document.getElementById("contract-validation-status");
+          if (statusEl && !statusEl.innerHTML) {
+            statusEl.innerHTML = '<div class="alert alert-info">✅ Carteira conectada. Você pode validar e testar o contrato.</div>';
+          }
         } catch (e) {
-          console.warn(`Falha ao criar provider para ${rpc}:`, e);
-        }
-      });
-      
-      return providers;
-    }
-    
-    // Função auxiliar SIMPLIFICADA para retry com diferentes providers
-    // FALLBACK DIRETO sem validações que causam problemas
-    async function retryWithProviders(operation, maxRetries = 8, skipMetaMask = false) {
-      const providers = await getAlternativeProviders(skipMetaMask); // Agora é async
-      let lastError;
-      const backoffBaseMs = 300; // backoff exponencial leve
-      
-      if (providers.length === 0) {
-        throw new Error('Nenhum provider disponível');
-      }
-      
-      for (let i = 0; i < providers.length && i < maxRetries; i++) {
-        try {
-          const isMetaMask = providers[i] instanceof ethers.providers.Web3Provider;
-          const providerName = isMetaMask ? 'MetaMask' : `RPC BSC ${i + 1}`;
-          
-          console.log(`Tentativa ${i + 1} com provider ${providerName}`);
-          
-          // SOLUÇÃO RADICAL: Executar operação diretamente sem validações prévias
-          return await operation(providers[i]);
-        } catch (error) {
-          lastError = error;
-          console.warn(`Tentativa ${i + 1} falhou:`, error.message);
-          
-          // FALLBACK DIRETO: Qualquer erro, passa para o próximo provider
-          // Não fazer distinção de tipos de erro para evitar complicações
-          console.log(`🔄 Passando para próximo provider...`);
-          // Backoff leve antes da próxima tentativa
-          const delay = Math.min(backoffBaseMs * (i + 1), 2000);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-      }
-      
-      throw lastError;
-    }
-    
-    // Função melhorada para verificar se contrato existe com fallback
-    async function checkContractExists(address, description = 'contrato') {
-      console.log(`🔍 [checkContractExists] Verificando existência de ${description}: ${address}`);
-      
-      if (!address || !isValidEthereumAddress(address)) {
-        console.warn(`⚠️ [checkContractExists] Endereço inválido para ${description}`);
-        return false;
-      }
-
-      let normalizedAddress;
-      try {
-        normalizedAddress = ethers.utils.getAddress(address);
-      } catch (err) {
-        console.warn(`⚠️ [checkContractExists] Erro na normalização de ${description}: ${err.message}`);
-        return false;
-      }
-
-      // Tenta com provider atual (MetaMask)
-      if (provider) {
-        try {
-          const code = await provider.getCode(normalizedAddress);
-          const exists = code !== '0x';
-          console.log(`✅ [checkContractExists] ${description} via MetaMask: ${exists ? 'existe' : 'não existe'}`);
-          return exists;
-        } catch (error) {
-          console.warn(`❌ [checkContractExists] Erro via MetaMask para ${description}: ${error.message}`);
+          console.error("Erro na conexão de carteira:", e);
+          alert(e?.message || "Falha na conexão. Verifique sua carteira e tente novamente.");
         }
       }
 
-      // Fallback para RPCs diretos
-      for (const rpcUrl of fallbackRpcs) {
-        try {
-          const fallbackProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
-          const code = await fallbackProvider.getCode(normalizedAddress);
-          const exists = code !== '0x';
-          console.log(`✅ [checkContractExists] ${description} via RPC ${rpcUrl}: ${exists ? 'existe' : 'não existe'}`);
-          return exists;
-        } catch (error) {
-          console.warn(`❌ [checkContractExists] Erro via RPC ${rpcUrl} para ${description}: ${error.message}`);
-          continue;
+      // Variáveis globais
+      let provider;
+      const fallbackRpcs = [
+        "https://data-seed-prebsc-1-s1.binance.org:8545/", // Binance oficial testnet
+        "https://data-seed-prebsc-2-s1.binance.org:8545/", // Binance oficial testnet
+        "https://bsc-testnet.public.blastapi.io", // BlastAPI testnet
+        "https://bsc-testnet-rpc.publicnode.com", // PublicNode testnet
+        "https://data-seed-prebsc-1-s2.binance.org:8545/", // Binance backup
+        "https://data-seed-prebsc-2-s2.binance.org:8545/", // Binance backup
+        "https://bsc-testnet.blockpi.network/v1/rpc/public", // BlockPI testnet
+        "https://endpoints.omniatech.io/v1/bsc/testnet/public", // OmniaTech testnet
+      ];
+
+      // Função para verificar se endereço é válido
+      function isValidEthereumAddress(address) {
+        return /^0x[a-fA-F0-9]{40}$/.test(address);
+      }
+
+      // Função para inicializar provider
+      async function initializeProvider(useMetaMask = true) {
+        if (!window.ethereum || metamaskBlacklisted) {
+          return false;
         }
-      }
 
-      console.error(`❌ [checkContractExists] Falha total ao verificar ${description}`);
-      return false;
-    }
-
-    // Função para verificar se uma função existe no contrato
-    async function checkContractFunction(contractAddress, functionSignature, description = 'função') {
-      console.log(`🔧 [checkContractFunction] Verificando ${description} no contrato: ${contractAddress}`);
-      
-      if (!contractAddress || !isValidEthereumAddress(contractAddress)) {
-        console.warn(`⚠️ [checkContractFunction] Endereço de contrato inválido para ${description}`);
-        return false;
-      }
-
-      let normalizedAddress;
-      try {
-        normalizedAddress = ethers.utils.getAddress(contractAddress);
-      } catch (err) {
-        console.warn(`⚠️ [checkContractFunction] Erro na normalização para ${description}: ${err.message}`);
-        return false;
-      }
-
-      const testABI = [functionSignature];
-
-      // Tenta com provider atual (MetaMask)
-      if (provider) {
         try {
-          const contract = new ethers.Contract(normalizedAddress, testABI, provider);
-          const functionName = functionSignature.split('(')[0].replace('function ', '');
-          
-          // Tenta chamar a função (se for view/pure)
-          if (functionSignature.includes('view') || functionSignature.includes('pure')) {
-            await contract[functionName]();
-          }
-          
-          console.log(`✅ [checkContractFunction] ${description} existe via MetaMask`);
+          // Usar 'any' para evitar falhas de detecção de rede
+          const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+
+          // Teste rigoroso: usar exatamente a mesma operação que está falhando
+          // Usar endereço de contrato BSC TESTNET conhecido (PancakeSwap Router Testnet)
+          const testContractAddress = "0xD99D1c33F9fC3444f8101754aBC46c52416550D1";
+
+          // Criar promise com timeout de 3 segundos
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Timeout: MetaMask não respondeu em 3 segundos")), 3000);
+          });
+
+          // Testar getCode() com timeout - exatamente a operação que está falhando
+          const codePromise = provider.getCode(testContractAddress);
+
+          await Promise.race([codePromise, timeoutPromise]);
+
+          console.log("✅ MetaMask passou no teste rigoroso de getCode()");
           return true;
         } catch (error) {
-          // Se o erro não for sobre função inexistente, pode ser outro problema
-          if (!error.message.includes('function') && !error.message.includes('method')) {
-            console.log(`✅ [checkContractFunction] ${description} provavelmente existe (erro de execução, não de existência)`);
-            return true;
+          console.warn("❌ MetaMask falhou no teste rigoroso:", error.message);
+
+          // Blacklist imediata para qualquer erro relacionado a RPC
+          if (error.message.includes("Internal JSON-RPC error") || error.message.includes("Timeout") || error.message.includes("missing trie node") || error.code === -32603 || error.code === -32002) {
+            metamaskBlacklisted = true;
+            console.warn("🚫 MetaMask foi adicionado à blacklist devido a problemas de RPC detectados no teste rigoroso");
           }
-          console.warn(`❌ [checkContractFunction] ${description} não existe via MetaMask: ${error.message}`);
+          return false;
         }
       }
 
-      // Fallback para RPCs diretos
-      for (const rpcUrl of fallbackRpcs) {
-        try {
-          const fallbackProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
-          const contract = new ethers.Contract(normalizedAddress, testABI, fallbackProvider);
-          const functionName = functionSignature.split('(')[0].replace('function ', '');
-          
-          if (functionSignature.includes('view') || functionSignature.includes('pure')) {
-            await contract[functionName]();
-          }
-          
-          console.log(`✅ [checkContractFunction] ${description} existe via RPC ${rpcUrl}`);
-          return true;
-        } catch (error) {
-          if (!error.message.includes('function') && !error.message.includes('method')) {
-            console.log(`✅ [checkContractFunction] ${description} provavelmente existe via RPC ${rpcUrl}`);
-            return true;
-          }
-          console.warn(`❌ [checkContractFunction] ${description} não existe via RPC ${rpcUrl}: ${error.message}`);
-          continue;
-        }
-      }
+      // Função auxiliar para criar providers alternativos
+      async function getAlternativeProviders(skipMetaMask = false) {
+        const providers = [];
 
-      console.error(`❌ [checkContractFunction] Falha total ao verificar ${description}`);
-      return false;
-    }
+        // Testar MetaMask primeiro antes de adicionar à lista (a menos que seja ignorado)
+        let metamaskWorking = false;
+        if (!skipMetaMask) {
+          metamaskWorking = await testMetaMaskHealth();
+        }
 
-    async function detectContractInformation() {
-      console.log('🔍 [detectContractInformation] Iniciando detecção de informações do contrato');
-      
-      try {
-        const contractAddressEl = document.getElementById('deployedContractAddress');
-        const tokenAddressEl = document.getElementById('contractTokenAddress');
-        
-        if (!contractAddressEl || !tokenAddressEl) {
-          const errorMsg = 'Campos de endereço não encontrados na UI';
-          console.error(`❌ [detectContractInformation] ${errorMsg}`);
-          alert(errorMsg);
-          return;
-        }
-        
-        const contractAddress = contractAddressEl.value.trim();
-        const tokenAddress = tokenAddressEl.value.trim();
-        
-        if (!contractAddress) {
-          const errorMsg = 'Por favor, informe o endereço do contrato de venda deployado';
-          console.warn(`⚠️ [detectContractInformation] ${errorMsg}`);
-          alert(errorMsg);
-          return;
-        }
-        
-        // Validar formato dos endereços
-        if (!isValidEthereumAddress(contractAddress)) {
-          const errorMsg = 'Endereço do contrato inválido';
-          console.error(`❌ [detectContractInformation] ${errorMsg}: ${contractAddress}`);
-          alert(errorMsg);
-          return;
-        }
-        
-        // Inicializar provider (MetaMask se disponível, senão RPC público)
-        if (!provider) {
-          console.log('🔗 [detectContractInformation] Provider não inicializado, tentando inicializar...');
-          await initializeProvider(true).catch(err => console.warn(`⚠️ [detectContractInformation] Falha ao inicializar provider: ${err.message}`));
-          if (!provider) {
-            console.log('🔄 [detectContractInformation] Tentando fallback para RPC público...');
-            await initializeProvider(false).catch(err => console.error(`❌ [detectContractInformation] Fallback de provider falhou: ${err.message}`));
-          }
-          if (!provider) {
-            throw new Error('Não foi possível inicializar nenhum provider');
-          }
-        }
-        
-        // Mostrar status de carregamento
-        const statusEl = document.getElementById('contract-validation-status');
-        if (statusEl) {
-          statusEl.innerHTML = '<div class="alert alert-info">🔍 Verificando existência do contrato...</div>';
-        }
-        
-        // Verificar se o contrato existe com função melhorada
-        console.log('🔍 [detectContractInformation] Verificando existência do contrato...');
-        const contractExists = await checkContractExists(contractAddress, 'contrato de venda');
-        
-        if (!contractExists) {
-          const errorMsg = 'Contrato não encontrado no endereço informado. Verifique se o endereço está correto e se o contrato foi deployado.';
-          console.error(`❌ [detectContractInformation] ${errorMsg}`);
+        if (metamaskWorking) {
+          console.log("MetaMask está funcionando, adicionando à lista de providers");
+          providers.push(new ethers.providers.Web3Provider(window.ethereum));
+        } else {
+          console.log(skipMetaMask ? "Ignorando MetaMask por escolha, usando RPCs públicos" : "MetaMask não está disponível ou com problemas, usando apenas RPCs públicos");
+
+          // Mostrar feedback imediato para o usuário
+          const statusEl = document.getElementById("contract-validation-status");
           if (statusEl) {
-            statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
+            if (skipMetaMask) {
+              statusEl.innerHTML = '<div class="alert alert-info">🔄 Validando usando RPCs públicos da BSC Testnet (ignorando MetaMask).</div>';
+            } else if (!statusEl.innerHTML.includes("MetaMask indisponível")) {
+              statusEl.innerHTML = '<div class="alert alert-warning">⚠️ MetaMask indisponível. Usando RPCs públicos BSC...</div>';
+            }
           }
-          return;
         }
-        
-        console.log('✅ [detectContractInformation] Contrato existe, prosseguindo com detecção...');
-        if (statusEl) {
-          statusEl.innerHTML = '<div class="alert alert-info">🔍 Detectando informações do contrato...</div>';
-        }
-        
-        // Se não tiver endereço do token, tentar detectar automaticamente
-        if (!tokenAddress) {
+
+        // Melhores RPCs BSC TESTNET de 2024 (ordenados por performance)
+        const bscRPCs = [
+          "https://data-seed-prebsc-1-s1.binance.org:8545/", // Binance oficial testnet
+          "https://data-seed-prebsc-2-s1.binance.org:8545/", // Binance oficial testnet
+          "https://bsc-testnet.public.blastapi.io", // BlastAPI testnet
+          "https://bsc-testnet-rpc.publicnode.com", // PublicNode testnet
+          "https://data-seed-prebsc-1-s2.binance.org:8545/", // Binance backup
+          "https://data-seed-prebsc-2-s2.binance.org:8545/", // Binance backup
+          "https://bsc-testnet.blockpi.network/v1/rpc/public", // BlockPI testnet
+          "https://endpoints.omniatech.io/v1/bsc/testnet/public", // OmniaTech testnet
+        ];
+
+        bscRPCs.forEach((rpc) => {
           try {
-            const detectedTokenAddress = await retryWithProviders(async (currentProvider) => {
-              // Tentar múltiplas assinaturas comuns para endereço de token
-              try {
-                const cSaleToken = new ethers.Contract(contractAddress, ["function saleToken() view returns (address)"], currentProvider);
-                return await cSaleToken.saleToken();
-              } catch (_) {
-                try {
-                  const cToken = new ethers.Contract(contractAddress, ["function token() view returns (address)"], currentProvider);
-                  return await cToken.token();
-                } catch (_) {
+            // SOLUÇÃO RADICAL: Provider com configuração estática completa da BSC TESTNET
+            // Não permite detecção automática de rede para evitar "could not detect network"
+            const networkConfig = {
+              name: "bsc-testnet",
+              chainId: 97,
+              ensAddress: null,
+              _defaultProvider: null,
+            };
+
+            const provider = new ethers.providers.StaticJsonRpcProvider(rpc, networkConfig);
+
+            // Forçar configuração estática para evitar detecção automática
+            provider._network = networkConfig;
+            provider.detectNetwork = () => Promise.resolve(networkConfig);
+
+            providers.push(provider);
+          } catch (e) {
+            console.warn(`Falha ao criar provider para ${rpc}:`, e);
+          }
+        });
+
+        return providers;
+      }
+
+      // Função auxiliar SIMPLIFICADA para retry com diferentes providers
+      // FALLBACK DIRETO sem validações que causam problemas
+      async function retryWithProviders(operation, maxRetries = 8, skipMetaMask = false) {
+        const providers = await getAlternativeProviders(skipMetaMask); // Agora é async
+        let lastError;
+        const backoffBaseMs = 300; // backoff exponencial leve
+
+        if (providers.length === 0) {
+          throw new Error("Nenhum provider disponível");
+        }
+
+        for (let i = 0; i < providers.length && i < maxRetries; i++) {
+          try {
+            const isMetaMask = providers[i] instanceof ethers.providers.Web3Provider;
+            const providerName = isMetaMask ? "MetaMask" : `RPC BSC ${i + 1}`;
+
+            console.log(`Tentativa ${i + 1} com provider ${providerName}`);
+
+            // SOLUÇÃO RADICAL: Executar operação diretamente sem validações prévias
+            return await operation(providers[i]);
+          } catch (error) {
+            lastError = error;
+            console.warn(`Tentativa ${i + 1} falhou:`, error.message);
+
+            // FALLBACK DIRETO: Qualquer erro, passa para o próximo provider
+            // Não fazer distinção de tipos de erro para evitar complicações
+            console.log(`🔄 Passando para próximo provider...`);
+            // Backoff leve antes da próxima tentativa
+            const delay = Math.min(backoffBaseMs * (i + 1), 2000);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+        }
+
+        throw lastError;
+      }
+
+      // Função melhorada para verificar se contrato existe com fallback
+      async function checkContractExists(address, description = "contrato") {
+        console.log(`🔍 [checkContractExists] Verificando existência de ${description}: ${address}`);
+
+        if (!address || !isValidEthereumAddress(address)) {
+          console.warn(`⚠️ [checkContractExists] Endereço inválido para ${description}`);
+          return false;
+        }
+
+        let normalizedAddress;
+        try {
+          normalizedAddress = ethers.utils.getAddress(address);
+        } catch (err) {
+          console.warn(`⚠️ [checkContractExists] Erro na normalização de ${description}: ${err.message}`);
+          return false;
+        }
+
+        // Tenta com provider atual (MetaMask)
+        if (provider) {
+          try {
+            const code = await provider.getCode(normalizedAddress);
+            const exists = code !== "0x";
+            console.log(`✅ [checkContractExists] ${description} via MetaMask: ${exists ? "existe" : "não existe"}`);
+            return exists;
+          } catch (error) {
+            console.warn(`❌ [checkContractExists] Erro via MetaMask para ${description}: ${error.message}`);
+          }
+        }
+
+        // Fallback para RPCs diretos
+        for (const rpcUrl of fallbackRpcs) {
+          try {
+            const fallbackProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
+            const code = await fallbackProvider.getCode(normalizedAddress);
+            const exists = code !== "0x";
+            console.log(`✅ [checkContractExists] ${description} via RPC ${rpcUrl}: ${exists ? "existe" : "não existe"}`);
+            return exists;
+          } catch (error) {
+            console.warn(`❌ [checkContractExists] Erro via RPC ${rpcUrl} para ${description}: ${error.message}`);
+            continue;
+          }
+        }
+
+        console.error(`❌ [checkContractExists] Falha total ao verificar ${description}`);
+        return false;
+      }
+
+      // Função para verificar se uma função existe no contrato
+      async function checkContractFunction(contractAddress, functionSignature, description = "função") {
+        console.log(`🔧 [checkContractFunction] Verificando ${description} no contrato: ${contractAddress}`);
+
+        if (!contractAddress || !isValidEthereumAddress(contractAddress)) {
+          console.warn(`⚠️ [checkContractFunction] Endereço de contrato inválido para ${description}`);
+          return false;
+        }
+
+        let normalizedAddress;
+        try {
+          normalizedAddress = ethers.utils.getAddress(contractAddress);
+        } catch (err) {
+          console.warn(`⚠️ [checkContractFunction] Erro na normalização para ${description}: ${err.message}`);
+          return false;
+        }
+
+        const testABI = [functionSignature];
+
+        // Tenta com provider atual (MetaMask)
+        if (provider) {
+          try {
+            const contract = new ethers.Contract(normalizedAddress, testABI, provider);
+            const functionName = functionSignature.split("(")[0].replace("function ", "");
+
+            // Tenta chamar a função (se for view/pure)
+            if (functionSignature.includes("view") || functionSignature.includes("pure")) {
+              await contract[functionName]();
+            }
+
+            console.log(`✅ [checkContractFunction] ${description} existe via MetaMask`);
+            return true;
+          } catch (error) {
+            // Se o erro não for sobre função inexistente, pode ser outro problema
+            if (!error.message.includes("function") && !error.message.includes("method")) {
+              console.log(`✅ [checkContractFunction] ${description} provavelmente existe (erro de execução, não de existência)`);
+              return true;
+            }
+            console.warn(`❌ [checkContractFunction] ${description} não existe via MetaMask: ${error.message}`);
+          }
+        }
+
+        // Fallback para RPCs diretos
+        for (const rpcUrl of fallbackRpcs) {
+          try {
+            const fallbackProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
+            const contract = new ethers.Contract(normalizedAddress, testABI, fallbackProvider);
+            const functionName = functionSignature.split("(")[0].replace("function ", "");
+
+            if (functionSignature.includes("view") || functionSignature.includes("pure")) {
+              await contract[functionName]();
+            }
+
+            console.log(`✅ [checkContractFunction] ${description} existe via RPC ${rpcUrl}`);
+            return true;
+          } catch (error) {
+            if (!error.message.includes("function") && !error.message.includes("method")) {
+              console.log(`✅ [checkContractFunction] ${description} provavelmente existe via RPC ${rpcUrl}`);
+              return true;
+            }
+            console.warn(`❌ [checkContractFunction] ${description} não existe via RPC ${rpcUrl}: ${error.message}`);
+            continue;
+          }
+        }
+
+        console.error(`❌ [checkContractFunction] Falha total ao verificar ${description}`);
+        return false;
+      }
+
+      async function detectContractInformation() {
+        console.log("🔍 [detectContractInformation] Iniciando detecção de informações do contrato");
+
+        try {
+          const contractAddressEl = document.getElementById("deployedContractAddress");
+          const tokenAddressEl = document.getElementById("contractTokenAddress");
+
+          if (!contractAddressEl || !tokenAddressEl) {
+            const errorMsg = "Campos de endereço não encontrados na UI";
+            console.error(`❌ [detectContractInformation] ${errorMsg}`);
+            alert(errorMsg);
+            return;
+          }
+
+          const contractAddress = contractAddressEl.value.trim();
+          const tokenAddress = tokenAddressEl.value.trim();
+
+          if (!contractAddress) {
+            const errorMsg = "Por favor, informe o endereço do contrato de venda deployado";
+            console.warn(`⚠️ [detectContractInformation] ${errorMsg}`);
+            alert(errorMsg);
+            return;
+          }
+
+          // Validar formato dos endereços
+          if (!isValidEthereumAddress(contractAddress)) {
+            const errorMsg = "Endereço do contrato inválido";
+            console.error(`❌ [detectContractInformation] ${errorMsg}: ${contractAddress}`);
+            alert(errorMsg);
+            return;
+          }
+
+          // Inicializar provider (MetaMask se disponível, senão RPC público)
+          if (!provider) {
+            console.log("🔗 [detectContractInformation] Provider não inicializado, tentando inicializar...");
+            await initializeProvider(true).catch((err) => console.warn(`⚠️ [detectContractInformation] Falha ao inicializar provider: ${err.message}`));
+            if (!provider) {
+              console.log("🔄 [detectContractInformation] Tentando fallback para RPC público...");
+              await initializeProvider(false).catch((err) => console.error(`❌ [detectContractInformation] Fallback de provider falhou: ${err.message}`));
+            }
+            if (!provider) {
+              throw new Error("Não foi possível inicializar nenhum provider");
+            }
+          }
+
+          // Mostrar status de carregamento
+          const statusEl = document.getElementById("contract-validation-status");
+          if (statusEl) {
+            statusEl.innerHTML = '<div class="alert alert-info">🔍 Verificando existência do contrato...</div>';
+          }
+
+          // Verificar se o contrato existe com função melhorada
+          console.log("🔍 [detectContractInformation] Verificando existência do contrato...");
+          const contractExists = await checkContractExists(contractAddress, "contrato de venda");
+
+          if (!contractExists) {
+            const errorMsg = "Contrato não encontrado no endereço informado. Verifique se o endereço está correto e se o contrato foi deployado.";
+            console.error(`❌ [detectContractInformation] ${errorMsg}`);
+            if (statusEl) {
+              statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
+            }
+            return;
+          }
+
+          console.log("✅ [detectContractInformation] Contrato existe, prosseguindo com detecção...");
+          if (statusEl) {
+            statusEl.innerHTML = '<div class="alert alert-info">🔍 Detectando informações do contrato...</div>';
+          }
+
+          // Se não tiver endereço do token, tentar detectar automaticamente
+          if (!tokenAddress) {
+            try {
+              const detectedTokenAddress = await retryWithProviders(
+                async (currentProvider) => {
+                  // Tentar múltiplas assinaturas comuns para endereço de token
                   try {
-                    const cTokenAddr = new ethers.Contract(contractAddress, ["function tokenAddress() view returns (address)"], currentProvider);
-                    return await cTokenAddr.tokenAddress();
+                    const cSaleToken = new ethers.Contract(contractAddress, ["function saleToken() view returns (address)"], currentProvider);
+                    return await cSaleToken.saleToken();
                   } catch (_) {
                     try {
-                      const cPaymentToken = new ethers.Contract(contractAddress, ["function paymentToken() view returns (address)"], currentProvider);
-                      return await cPaymentToken.paymentToken();
+                      const cToken = new ethers.Contract(contractAddress, ["function token() view returns (address)"], currentProvider);
+                      return await cToken.token();
                     } catch (_) {
-                      const cGetToken = new ethers.Contract(contractAddress, ["function getToken() view returns (address)"], currentProvider);
-                      return await cGetToken.getToken();
+                      try {
+                        const cTokenAddr = new ethers.Contract(contractAddress, ["function tokenAddress() view returns (address)"], currentProvider);
+                        return await cTokenAddr.tokenAddress();
+                      } catch (_) {
+                        try {
+                          const cPaymentToken = new ethers.Contract(contractAddress, ["function paymentToken() view returns (address)"], currentProvider);
+                          return await cPaymentToken.paymentToken();
+                        } catch (_) {
+                          const cGetToken = new ethers.Contract(contractAddress, ["function getToken() view returns (address)"], currentProvider);
+                          return await cGetToken.getToken();
+                        }
+                      }
                     }
                   }
+                },
+                8,
+                true,
+              );
+
+              if (detectedTokenAddress && detectedTokenAddress !== "0x0000000000000000000000000000000000000000") {
+                tokenAddressEl.value = detectedTokenAddress;
+
+                if (statusEl) {
+                  statusEl.innerHTML = '<div class="alert alert-info">🔍 Detectando informações do token...</div>';
                 }
-              }
-            }, 8, true);
-            
-            if (detectedTokenAddress && detectedTokenAddress !== '0x0000000000000000000000000000000000000000') {
-              tokenAddressEl.value = detectedTokenAddress;
-              
-              if (statusEl) {
-                statusEl.innerHTML = '<div class="alert alert-info">🔍 Detectando informações do token...</div>';
-              }
-              
-              // Detectar informações do token automaticamente com retry
-              const tokenInfo = await retryWithProviders(async (currentProvider) => {
-                const tokenContract = new ethers.Contract(detectedTokenAddress, [
-                  "function name() view returns (string)",
-                  "function symbol() view returns (string)",
-                  "function decimals() view returns (uint8)"
-                ], currentProvider);
-                
-                const [name, symbol, decimals] = await Promise.all([
-                  tokenContract.name(),
-                  tokenContract.symbol(),
-                  tokenContract.decimals()
-                ]);
-                
-                return { name, symbol, decimals };
-              });
-              
-              if (statusEl) {
-                statusEl.innerHTML = `
+
+                // Detectar informações do token automaticamente com retry
+                const tokenInfo = await retryWithProviders(async (currentProvider) => {
+                  const tokenContract = new ethers.Contract(detectedTokenAddress, ["function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)"], currentProvider);
+
+                  const [name, symbol, decimals] = await Promise.all([tokenContract.name(), tokenContract.symbol(), tokenContract.decimals()]);
+
+                  return { name, symbol, decimals };
+                });
+
+                if (statusEl) {
+                  statusEl.innerHTML = `
                   <div class="alert alert-success">
                     ✅ Informações detectadas automaticamente:<br>
                     <strong>Token:</strong> ${tokenInfo.name} (${tokenInfo.symbol})<br>
@@ -434,283 +426,273 @@
                     <strong>Decimais:</strong> ${tokenInfo.decimals}
                   </div>
                 `;
+                }
+              } else {
+                throw new Error("Endereço do token não encontrado no contrato");
               }
-            } else {
-              throw new Error('Endereço do token não encontrado no contrato');
+            } catch (error) {
+              console.error("Erro ao detectar token:", error);
+              if (statusEl) {
+                const errorMsg = error.message.includes("missing trie node") ? "Problema temporário de sincronização da rede. Tente novamente em alguns segundos." : "Não foi possível detectar automaticamente o endereço do token. Por favor, informe manualmente.";
+                statusEl.innerHTML = `<div class="alert alert-warning">⚠️ ${errorMsg}</div>`;
+              }
             }
-          } catch (error) {
-            console.error('Erro ao detectar token:', error);
-            if (statusEl) {
-              const errorMsg = error.message.includes('missing trie node') 
-                ? 'Problema temporário de sincronização da rede. Tente novamente em alguns segundos.'
-                : 'Não foi possível detectar automaticamente o endereço do token. Por favor, informe manualmente.';
-              statusEl.innerHTML = `<div class="alert alert-warning">⚠️ ${errorMsg}</div>`;
-            }
-          }
-        } else {
-          // Se já tem o endereço do token, apenas validar
-          try {
-            if (statusEl) {
-              statusEl.innerHTML = '<div class="alert alert-info">🔍 Validando informações do token...</div>';
-            }
-            
-            const tokenInfo = await retryWithProviders(async (currentProvider) => {
-              const tokenContract = new ethers.Contract(tokenAddress, [
-                "function name() view returns (string)",
-                "function symbol() view returns (string)",
-                "function decimals() view returns (uint8)"
-              ], currentProvider);
-              
-              const [name, symbol, decimals] = await Promise.all([
-                tokenContract.name(),
-                tokenContract.symbol(),
-                tokenContract.decimals()
-              ]);
-              
-              return { name, symbol, decimals };
-            });
-            
-            if (statusEl) {
-              statusEl.innerHTML = `
+          } else {
+            // Se já tem o endereço do token, apenas validar
+            try {
+              if (statusEl) {
+                statusEl.innerHTML = '<div class="alert alert-info">🔍 Validando informações do token...</div>';
+              }
+
+              const tokenInfo = await retryWithProviders(async (currentProvider) => {
+                const tokenContract = new ethers.Contract(tokenAddress, ["function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)"], currentProvider);
+
+                const [name, symbol, decimals] = await Promise.all([tokenContract.name(), tokenContract.symbol(), tokenContract.decimals()]);
+
+                return { name, symbol, decimals };
+              });
+
+              if (statusEl) {
+                statusEl.innerHTML = `
                 <div class="alert alert-success">
                   ✅ Token validado:<br>
                   <strong>Nome:</strong> ${tokenInfo.name} (${tokenInfo.symbol})<br>
                   <strong>Decimais:</strong> ${tokenInfo.decimals}
                 </div>
               `;
-            }
-          } catch (error) {
-            console.error('Erro ao validar token:', error);
-            if (statusEl) {
-              const errorMsg = error.message.includes('missing trie node') 
-                ? 'Problema temporário de sincronização da rede. Tente novamente em alguns segundos.'
-                : 'Erro ao validar o token. Verifique o endereço.';
-              statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
-            }
-          }
-        }
-        
-      } catch (error) {
-        console.error('Erro ao detectar informações do contrato:', error);
-        const statusEl = document.getElementById('contract-validation-status');
-        if (statusEl) {
-          let errorMsg = error.message;
-          if (error.message.includes('missing trie node') || error.message.includes('Internal JSON-RPC error')) {
-            errorMsg = 'Problema temporário de sincronização da rede. Tente novamente em alguns segundos.';
-          }
-          statusEl.innerHTML = `<div class="alert alert-danger">❌ Erro: ${errorMsg}</div>`;
-        }
-      }
-    }
-    
-    // Função melhorada para validar o contrato de venda
-    async function validateContractFunction() {
-      console.log('🔧 [validateContractFunction] Iniciando validação do contrato');
-      
-      try {
-        const contractAddressEl = document.getElementById('deployedContractAddress');
-        const tokenAddressEl = document.getElementById('contractTokenAddress');
-        
-        if (!contractAddressEl || !tokenAddressEl) {
-          const errorMsg = 'Campos de endereço não encontrados na UI';
-          console.error(`❌ [validateContractFunction] ${errorMsg}`);
-          alert(errorMsg);
-          return;
-        }
-        
-        const contractAddress = contractAddressEl.value.trim();
-        const tokenAddress = tokenAddressEl.value.trim();
-        
-        if (!contractAddress || !tokenAddress) {
-          const errorMsg = 'Por favor, informe os endereços do contrato e do token';
-          console.warn(`⚠️ [validateContractFunction] ${errorMsg}`);
-          alert(errorMsg);
-          return;
-        }
-        
-        // Validar formato dos endereços
-        if (!isValidEthereumAddress(contractAddress)) {
-          const errorMsg = 'Endereço do contrato inválido';
-          console.error(`❌ [validateContractFunction] ${errorMsg}: ${contractAddress}`);
-          alert(errorMsg);
-          return;
-        }
-        
-        if (!isValidEthereumAddress(tokenAddress)) {
-          const errorMsg = 'Endereço do token inválido';
-          console.error(`❌ [validateContractFunction] ${errorMsg}: ${tokenAddress}`);
-          alert(errorMsg);
-          return;
-        }
-        
-        // Não obrigar conexão de carteira para validação de leitura
-        if (!provider) {
-          console.warn('🔗 [validateContractFunction] Provider padrão indisponível, usando RPCs públicos para validar');
-        }
-        
-        const statusEl = document.getElementById('contract-validation-status');
-        if (statusEl) {
-          statusEl.innerHTML = '<div class="alert alert-info">🔍 Validando contrato...</div>';
-        }
-        
-        // Verificar existência do contrato primeiro
-        console.log('🔍 [validateContractFunction] Verificando existência do contrato...');
-        const contractExists = await checkContractExists(contractAddress, 'contrato de venda');
-        
-        if (!contractExists) {
-          const errorMsg = 'Contrato não encontrado ou sem código na BSC Testnet (97)';
-          console.error(`❌ [validateContractFunction] ${errorMsg}`);
-          if (statusEl) {
-            statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
-          }
-          return;
-        }
-        
-        // Verificar existência do token
-        console.log('🔍 [validateContractFunction] Verificando existência do token...');
-        const tokenExists = await checkContractExists(tokenAddress, 'token');
-        
-        if (!tokenExists) {
-          const errorMsg = 'Token não encontrado no endereço informado';
-          console.error(`❌ [validateContractFunction] ${errorMsg}`);
-          if (statusEl) {
-            statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
-          }
-          return;
-        }
-        
-        console.log('✅ [validateContractFunction] Ambos os contratos existem, validando funções...');
-        
-        // Validar informações do contrato usando fallback robusto
-        const { contractToken, tokenPrice, owner, isPaused } = await retryWithProviders(async (currentProvider) => {
-
-          // Resgatar endereço do token: tentar várias assinaturas comuns
-          let ct;
-          try {
-            const scSaleToken = new ethers.Contract(contractAddress, ["function saleToken() view returns (address)"], currentProvider);
-            ct = await scSaleToken.saleToken();
-          } catch (_) {
-            try {
-              const scToken = new ethers.Contract(contractAddress, ["function token() view returns (address)"], currentProvider);
-              ct = await scToken.token();
-            } catch (_) {
-              try {
-                const scTokenAddr = new ethers.Contract(contractAddress, ["function tokenAddress() view returns (address)"], currentProvider);
-                ct = await scTokenAddr.tokenAddress();
-              } catch (_) {
-                try {
-                  const scPaymentToken = new ethers.Contract(contractAddress, ["function paymentToken() view returns (address)"], currentProvider);
-                  ct = await scPaymentToken.paymentToken();
-                } catch (_) {
-                  const scGetToken = new ethers.Contract(contractAddress, ["function getToken() view returns (address)"], currentProvider);
-                  ct = await scGetToken.getToken();
-                }
+              }
+            } catch (error) {
+              console.error("Erro ao validar token:", error);
+              if (statusEl) {
+                const errorMsg = error.message.includes("missing trie node") ? "Problema temporário de sincronização da rede. Tente novamente em alguns segundos." : "Erro ao validar o token. Verifique o endereço.";
+                statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
               }
             }
           }
-
-          // Resgatar preço (BNB) preferencialmente; fallback para tokenPrice()
-          let tp;
-          try {
-            const scBnbPrice = new ethers.Contract(contractAddress, ["function bnbPrice() view returns (uint256)"], currentProvider);
-            tp = await scBnbPrice.bnbPrice();
-          } catch (_) {
-            const scTokenPrice = new ethers.Contract(contractAddress, ["function tokenPrice() view returns (uint256)"], currentProvider);
-            tp = await scTokenPrice.tokenPrice();
-          }
-
-          // Owner
-          let ow;
-          try {
-            const scOwner = new ethers.Contract(contractAddress, ["function owner() view returns (address)"], currentProvider);
-            ow = await scOwner.owner();
-          } catch (_) {
-            const scGetOwner = new ethers.Contract(contractAddress, ["function getOwner() view returns (address)"], currentProvider);
-            ow = await scGetOwner.getOwner();
-          }
-
-          // Pausa (opcional). Se não existir, assume false
-          let ps = false;
-          try {
-            const scPaused = new ethers.Contract(contractAddress, ["function paused() view returns (bool)"], currentProvider);
-            ps = await scPaused.paused();
-          } catch (_) {
-            try {
-              const scIsPaused = new ethers.Contract(contractAddress, ["function isPaused() view returns (bool)"], currentProvider);
-              ps = await scIsPaused.isPaused();
-            } catch (_) {
-              ps = false;
+        } catch (error) {
+          console.error("Erro ao detectar informações do contrato:", error);
+          const statusEl = document.getElementById("contract-validation-status");
+          if (statusEl) {
+            let errorMsg = error.message;
+            if (error.message.includes("missing trie node") || error.message.includes("Internal JSON-RPC error")) {
+              errorMsg = "Problema temporário de sincronização da rede. Tente novamente em alguns segundos.";
             }
+            statusEl.innerHTML = `<div class="alert alert-danger">❌ Erro: ${errorMsg}</div>`;
+          }
+        }
+      }
+
+      // Função melhorada para validar o contrato de venda
+      async function validateContractFunction() {
+        console.log("🔧 [validateContractFunction] Iniciando validação do contrato");
+
+        try {
+          const contractAddressEl = document.getElementById("deployedContractAddress");
+          const tokenAddressEl = document.getElementById("contractTokenAddress");
+
+          if (!contractAddressEl || !tokenAddressEl) {
+            const errorMsg = "Campos de endereço não encontrados na UI";
+            console.error(`❌ [validateContractFunction] ${errorMsg}`);
+            alert(errorMsg);
+            return;
           }
 
-          return { contractToken: ct, tokenPrice: tp, owner: ow, isPaused: ps };
-        }, 8, true);
-        
-        // Verificar se o token do contrato corresponde ao informado
-        if (contractToken.toLowerCase() !== tokenAddress.toLowerCase()) {
-          throw new Error(`Token do contrato (${contractToken}) não corresponde ao informado (${tokenAddress})`);
-        }
-        
-        // Obter informações do token via fallback
-        const { tokenName, tokenSymbol, tokenDecimals } = await retryWithProviders(async (currentProvider) => {
-          const tc = new ethers.Contract(tokenAddress, [
-            "function name() view returns (string)",
-            "function symbol() view returns (string)",
-            "function decimals() view returns (uint8)"
-          ], currentProvider);
-          const [tn, ts, td] = await Promise.all([
-            tc.name(),
-            tc.symbol(),
-            tc.decimals()
-          ]);
-          return { tokenName: tn, tokenSymbol: ts, tokenDecimals: td };
-        }, 8, true);
-        
-        const priceInBNB = ethers.utils.formatEther(tokenPrice);
-        
-        if (statusEl) {
-          statusEl.innerHTML = `
+          const contractAddress = contractAddressEl.value.trim();
+          const tokenAddress = tokenAddressEl.value.trim();
+
+          if (!contractAddress || !tokenAddress) {
+            const errorMsg = "Por favor, informe os endereços do contrato e do token";
+            console.warn(`⚠️ [validateContractFunction] ${errorMsg}`);
+            alert(errorMsg);
+            return;
+          }
+
+          // Validar formato dos endereços
+          if (!isValidEthereumAddress(contractAddress)) {
+            const errorMsg = "Endereço do contrato inválido";
+            console.error(`❌ [validateContractFunction] ${errorMsg}: ${contractAddress}`);
+            alert(errorMsg);
+            return;
+          }
+
+          if (!isValidEthereumAddress(tokenAddress)) {
+            const errorMsg = "Endereço do token inválido";
+            console.error(`❌ [validateContractFunction] ${errorMsg}: ${tokenAddress}`);
+            alert(errorMsg);
+            return;
+          }
+
+          // Não obrigar conexão de carteira para validação de leitura
+          if (!provider) {
+            console.warn("🔗 [validateContractFunction] Provider padrão indisponível, usando RPCs públicos para validar");
+          }
+
+          const statusEl = document.getElementById("contract-validation-status");
+          if (statusEl) {
+            statusEl.innerHTML = '<div class="alert alert-info">🔍 Validando contrato...</div>';
+          }
+
+          // Verificar existência do contrato primeiro
+          console.log("🔍 [validateContractFunction] Verificando existência do contrato...");
+          const contractExists = await checkContractExists(contractAddress, "contrato de venda");
+
+          if (!contractExists) {
+            const errorMsg = "Contrato não encontrado ou sem código na BSC Testnet (97)";
+            console.error(`❌ [validateContractFunction] ${errorMsg}`);
+            if (statusEl) {
+              statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
+            }
+            return;
+          }
+
+          // Verificar existência do token
+          console.log("🔍 [validateContractFunction] Verificando existência do token...");
+          const tokenExists = await checkContractExists(tokenAddress, "token");
+
+          if (!tokenExists) {
+            const errorMsg = "Token não encontrado no endereço informado";
+            console.error(`❌ [validateContractFunction] ${errorMsg}`);
+            if (statusEl) {
+              statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
+            }
+            return;
+          }
+
+          console.log("✅ [validateContractFunction] Ambos os contratos existem, validando funções...");
+
+          // Validar informações do contrato usando fallback robusto
+          const { contractToken, tokenPrice, owner, isPaused } = await retryWithProviders(
+            async (currentProvider) => {
+              // Resgatar endereço do token: tentar várias assinaturas comuns
+              let ct;
+              try {
+                const scSaleToken = new ethers.Contract(contractAddress, ["function saleToken() view returns (address)"], currentProvider);
+                ct = await scSaleToken.saleToken();
+              } catch (_) {
+                try {
+                  const scToken = new ethers.Contract(contractAddress, ["function token() view returns (address)"], currentProvider);
+                  ct = await scToken.token();
+                } catch (_) {
+                  try {
+                    const scTokenAddr = new ethers.Contract(contractAddress, ["function tokenAddress() view returns (address)"], currentProvider);
+                    ct = await scTokenAddr.tokenAddress();
+                  } catch (_) {
+                    try {
+                      const scPaymentToken = new ethers.Contract(contractAddress, ["function paymentToken() view returns (address)"], currentProvider);
+                      ct = await scPaymentToken.paymentToken();
+                    } catch (_) {
+                      const scGetToken = new ethers.Contract(contractAddress, ["function getToken() view returns (address)"], currentProvider);
+                      ct = await scGetToken.getToken();
+                    }
+                  }
+                }
+              }
+
+              // Resgatar preço (BNB) preferencialmente; fallback para tokenPrice()
+              let tp;
+              try {
+                const scBnbPrice = new ethers.Contract(contractAddress, ["function bnbPrice() view returns (uint256)"], currentProvider);
+                tp = await scBnbPrice.bnbPrice();
+              } catch (_) {
+                const scTokenPrice = new ethers.Contract(contractAddress, ["function tokenPrice() view returns (uint256)"], currentProvider);
+                tp = await scTokenPrice.tokenPrice();
+              }
+
+              // Owner
+              let ow;
+              try {
+                const scOwner = new ethers.Contract(contractAddress, ["function owner() view returns (address)"], currentProvider);
+                ow = await scOwner.owner();
+              } catch (_) {
+                const scGetOwner = new ethers.Contract(contractAddress, ["function getOwner() view returns (address)"], currentProvider);
+                ow = await scGetOwner.getOwner();
+              }
+
+              // Pausa (opcional). Se não existir, assume false
+              let ps = false;
+              try {
+                const scPaused = new ethers.Contract(contractAddress, ["function paused() view returns (bool)"], currentProvider);
+                ps = await scPaused.paused();
+              } catch (_) {
+                try {
+                  const scIsPaused = new ethers.Contract(contractAddress, ["function isPaused() view returns (bool)"], currentProvider);
+                  ps = await scIsPaused.isPaused();
+                } catch (_) {
+                  ps = false;
+                }
+              }
+
+              return {
+                contractToken: ct,
+                tokenPrice: tp,
+                owner: ow,
+                isPaused: ps,
+              };
+            },
+            8,
+            true,
+          );
+
+          // Verificar se o token do contrato corresponde ao informado
+          if (contractToken.toLowerCase() !== tokenAddress.toLowerCase()) {
+            throw new Error(`Token do contrato (${contractToken}) não corresponde ao informado (${tokenAddress})`);
+          }
+
+          // Obter informações do token via fallback
+          const { tokenName, tokenSymbol, tokenDecimals } = await retryWithProviders(
+            async (currentProvider) => {
+              const tc = new ethers.Contract(tokenAddress, ["function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)"], currentProvider);
+              const [tn, ts, td] = await Promise.all([tc.name(), tc.symbol(), tc.decimals()]);
+              return { tokenName: tn, tokenSymbol: ts, tokenDecimals: td };
+            },
+            8,
+            true,
+          );
+
+          const priceInBNB = ethers.utils.formatEther(tokenPrice);
+
+          if (statusEl) {
+            statusEl.innerHTML = `
             <div class="alert alert-success">
               ✅ <strong>Contrato validado com sucesso!</strong><br><br>
               <strong>Token:</strong> ${tokenName} (${tokenSymbol})<br>
               <strong>Preço:</strong> ${priceInBNB} BNB por token<br>
               <strong>Owner:</strong> ${owner}<br>
-              <strong>Status:</strong> ${isPaused ? '⏸️ Pausado' : '▶️ Ativo'}<br>
+              <strong>Status:</strong> ${isPaused ? "⏸️ Pausado" : "▶️ Ativo"}<br>
               <strong>Decimais:</strong> ${tokenDecimals}
             </div>
           `;
-        }
-        
-        // Habilitar o botão "Testar Sistema"
-        const goToStep5Btn = document.getElementById('goToStep5');
-        if (goToStep5Btn) {
-          goToStep5Btn.disabled = false;
-          goToStep5Btn.classList.remove('btn-secondary');
-          goToStep5Btn.classList.add('btn-primary');
-        }
-        
-      } catch (error) {
-        console.error('Erro ao validar contrato:', error);
-        const statusEl = document.getElementById('contract-validation-status');
-        if (statusEl) {
-          let msg = error && error.message ? error.message : String(error);
-          if (msg.includes('Internal JSON-RPC error') || msg.includes('-32603')) {
-            msg = 'Falha no RPC (MetaMask). Validando via RPCs públicos da BSC Testnet. Tente novamente.';
-          } else if (msg.includes('CALL_EXCEPTION') || msg.includes('token()')) {
-            msg = 'A chamada token() reverteu. Verifique se o endereço é do contrato de venda correto e se a função token() existe no ABI.';
           }
-          statusEl.innerHTML = `<div class="alert alert-danger">❌ Erro na validação: ${msg}</div>`;
-        }
-        
-        // Desabilitar o botão "Testar Sistema"
-        const goToStep5Btn = document.getElementById('goToStep5');
-        if (goToStep5Btn) {
-          goToStep5Btn.disabled = true;
-          goToStep5Btn.classList.remove('btn-primary');
-          goToStep5Btn.classList.add('btn-secondary');
+
+          // Habilitar o botão "Testar Sistema"
+          const goToStep5Btn = document.getElementById("goToStep5");
+          if (goToStep5Btn) {
+            goToStep5Btn.disabled = false;
+            goToStep5Btn.classList.remove("btn-secondary");
+            goToStep5Btn.classList.add("btn-outline-primary");
+          }
+        } catch (error) {
+          console.error("Erro ao validar contrato:", error);
+          const statusEl = document.getElementById("contract-validation-status");
+          if (statusEl) {
+            let msg = error && error.message ? error.message : String(error);
+            if (msg.includes("Internal JSON-RPC error") || msg.includes("-32603")) {
+              msg = "Falha no RPC (MetaMask). Validando via RPCs públicos da BSC Testnet. Tente novamente.";
+            } else if (msg.includes("CALL_EXCEPTION") || msg.includes("token()")) {
+              msg = "A chamada token() reverteu. Verifique se o endereço é do contrato de venda correto e se a função token() existe no ABI.";
+            }
+            statusEl.innerHTML = `<div class="alert alert-danger">❌ Erro na validação: ${msg}</div>`;
+          }
+
+          // Desabilitar o botão "Testar Sistema"
+          const goToStep5Btn = document.getElementById("goToStep5");
+          if (goToStep5Btn) {
+            goToStep5Btn.disabled = true;
+            goToStep5Btn.classList.remove("btn-outline-primary");
+            goToStep5Btn.classList.add("btn-secondary");
+          }
         }
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

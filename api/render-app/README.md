@@ -30,4 +30,3 @@ npm start
 - CORS liberado para testes; ajuste origens se necessário em produção.
 - Compilação usa `solc` via Standard JSON com optimizer runs=200.
 - Nomes de contrato são sanitizados para compatibilidade do compilador.
-

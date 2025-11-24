@@ -1,4 +1,5 @@
 # 🗄️ DATABASE SCHEMA ANALYSIS
+
 ## Baseado nos Mock Data para Migração Futura
 
 > **Estratégia:** Desenvolver com mock-data.js → Analisar campos usados → Criar schema otimizado → Migrar
@@ -6,6 +7,7 @@
 ## 📊 TABELAS IDENTIFICADAS
 
 ### **1. 👥 TABELA: users**
+
 ```sql
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -30,6 +32,7 @@ CREATE INDEX idx_users_active ON users(is_active);
 ```
 
 ### **2. 🔐 TABELA: user_permissions**
+
 ```sql
 -- Separar permissions em tabela própria (normalização)
 CREATE TABLE user_permissions (
@@ -44,6 +47,7 @@ CREATE TABLE user_permissions (
 ```
 
 ### **3. 🎛️ TABELA: widgets**
+
 ```sql
 CREATE TABLE widgets (
     id VARCHAR(50) PRIMARY KEY, -- 'w1', 'w2', etc.
@@ -62,6 +66,7 @@ CREATE INDEX idx_widgets_active ON widgets(is_active);
 ```
 
 ### **4. 📈 TABELA: analytics_data**
+
 ```sql
 -- Para dados históricos de analytics
 CREATE TABLE analytics_snapshots (
@@ -79,6 +84,7 @@ CREATE INDEX idx_analytics_date ON analytics_snapshots(snapshot_date);
 ```
 
 ### **5. 📊 TABELA: user_growth_history**
+
 ```sql
 -- Para tracking do crescimento mensal
 CREATE TABLE user_growth_history (
@@ -95,6 +101,7 @@ CREATE TABLE user_growth_history (
 ## 🔄 PLANO DE MIGRAÇÃO
 
 ### **FASE 1: Setup Inicial**
+
 ```bash
 # Instalar dependências
 npm install sequelize pg bcryptjs
@@ -105,55 +112,61 @@ npx sequelize-cli init
 ```
 
 ### **FASE 2: Criar Models**
+
 ```javascript
 // models/User.js
-const User = sequelize.define('User', {
-    name: DataTypes.STRING,
-    email: { type: DataTypes.STRING, unique: true },
-    password: DataTypes.STRING,
-    role: { 
-        type: DataTypes.ENUM('admin', 'user', 'moderator'),
-        defaultValue: 'user'
-    },
-    wallet: { type: DataTypes.STRING(42), unique: true },
-    isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
-    lastLogin: DataTypes.DATE,
-    widgetsCount: { type: DataTypes.INTEGER, defaultValue: 0 },
-    totalVolume: { type: DataTypes.BIGINT, defaultValue: 0 }
+const User = sequelize.define("User", {
+  name: DataTypes.STRING,
+  email: { type: DataTypes.STRING, unique: true },
+  password: DataTypes.STRING,
+  role: {
+    type: DataTypes.ENUM("admin", "user", "moderator"),
+    defaultValue: "user",
+  },
+  wallet: { type: DataTypes.STRING(42), unique: true },
+  isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+  lastLogin: DataTypes.DATE,
+  widgetsCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  totalVolume: { type: DataTypes.BIGINT, defaultValue: 0 },
 });
 ```
 
 ### **FASE 3: Substituição Sistemática**
+
 ```javascript
 // ❌ Antes (mock):
-const { mockUsers, findUserByEmail } = require('../shared/data/mock-data');
+const { mockUsers, findUserByEmail } = require("../shared/data/mock-data");
 const user = findUserByEmail(email);
 
 // ✅ Depois (database):
-const { User } = require('../models');
+const { User } = require("../models");
 const user = await User.findOne({ where: { email } });
 ```
 
 ### **FASE 4: Data Seeding**
+
 ```javascript
 // seeders/demo-users.js - Usar os dados do mock como seed inicial
-const mockData = require('../shared/data/mock-data');
+const mockData = require("../shared/data/mock-data");
 await User.bulkCreate(mockData.mockUsers);
 ```
 
 ## 🎯 BENEFÍCIOS DESTA ABORDAGEM
 
 ### ✅ **Desenvolvimento Rápido:**
+
 - Sem setup complexo inicial
 - Foco nas funcionalidades
 - Testes imediatos
 
 ### ✅ **Schema Otimizado:**
+
 - Campos realmente necessários
 - Relacionamentos testados
 - Tipos de dados corretos
 
 ### ✅ **Migração Segura:**
+
 - Dados de teste prontos
 - Estrutura validada
 - Rollback possível

@@ -1,33 +1,12 @@
 // js/shared/link-index-core.js
 // Centraliza toda a lógica de gerAção de link de token para todas as telas
-import { fetchAllNetworks, showAutocomplete, copyToClipboard, shareLink, showCopyAndShareButtons } from './token-link-utils.js';
-import { fetchTokenData } from './token-global.js';
+import { fetchAllNetworks, showAutocomplete, copyToClipboard, shareLink, showCopyAndShareButtons } from "./token-link-utils.js";
+import { fetchTokenData } from "./token-global.js";
 
-export function setupLinkGenerator({
-  networkSearchId = 'networkSearch',
-  networkAutocompleteId = 'networkAutocomplete',
-  rpcUrlId = 'rpcUrl',
-  blockExplorerId = 'blockExplorer',
-  nativeCurrencyId = 'nativeCurrency',
-  nativeDecimalsId = 'nativeDecimals',
-  tokenAddressId = 'tokenAddress',
-  tokenNameId = 'tokenName',
-  tokenSymbolId = 'tokenSymbol',
-  tokenDecimalsId = 'tokenDecimals',
-  tokenImageId = 'tokenImage',
-  btnTokenSearchId = 'btnTokenSearch',
-  btnGenerateLinkId = 'btnGenerateLink',
-  btnCopyLinkId = 'btnCopyLink',
-  btnShareLinkId = 'btnShareLink',
-  btnClearId = 'btnClear',
-  generatedLinkId = 'generatedLink',
-  tokenLoadingId = 'tokenLoading',
-  generatedLinkContainerId = 'generatedLinkContainer',
-  onLinkGenerated = null
-} = {}) {
+export function setupLinkGenerator({ networkSearchId = "networkSearch", networkAutocompleteId = "networkAutocomplete", rpcUrlId = "rpcUrl", blockExplorerId = "blockExplorer", nativeCurrencyId = "nativeCurrency", nativeDecimalsId = "nativeDecimals", tokenAddressId = "tokenAddress", tokenNameId = "tokenName", tokenSymbolId = "tokenSymbol", tokenDecimalsId = "tokenDecimals", tokenImageId = "tokenImage", btnTokenSearchId = "btnTokenSearch", btnGenerateLinkId = "btnGenerateLink", btnCopyLinkId = "btnCopyLink", btnShareLinkId = "btnShareLink", btnClearId = "btnClear", generatedLinkId = "generatedLink", tokenLoadingId = "tokenLoading", generatedLinkContainerId = "generatedLinkContainer", onLinkGenerated = null } = {}) {
   let allNetworks = [];
   let selectedNetwork = null;
-  
+
   // Tornar selectedNetwork globalmente acessível
   window.selectedNetwork = null;
 
@@ -35,34 +14,34 @@ export function setupLinkGenerator({
     selectedNetwork = network;
     window.selectedNetwork = network; // Atualizar variável global também
     document.getElementById(rpcUrlId).value = network.rpc[0];
-    document.getElementById(blockExplorerId).value = network.explorers ? network.explorers[0].url : '';
-    
+    document.getElementById(blockExplorerId).value = network.explorers ? network.explorers[0].url : "";
+
     // Verifica se os campos de moeda nativa existem antes de tentar definir valores
     const nativeCurrencyEl = document.getElementById(nativeCurrencyId);
     if (nativeCurrencyEl) {
       nativeCurrencyEl.value = network.nativeCurrency.symbol;
     }
-    
+
     const nativeDecimalsEl = document.getElementById(nativeDecimalsId);
     if (nativeDecimalsEl) {
       nativeDecimalsEl.value = network.nativeCurrency.decimals;
     }
-    
+
     document.getElementById(networkSearchId).value = `${network.name} (${network.chainId})`;
-    document.getElementById(networkAutocompleteId).style.display = 'none';
+    document.getElementById(networkAutocompleteId).style.display = "none";
   }
 
   async function fetchTokenDataAndFill() {
     const tokenAddress = document.getElementById(tokenAddressId).value.trim();
     if (!tokenAddress) {
-      alert('⚠️ Informe o endereço do token.');
+      alert("⚠️ Informe o endereço do token.");
       return;
     }
     if (!selectedNetwork || !selectedNetwork.rpc || selectedNetwork.rpc.length === 0) {
-      alert('⚠️ Nenhuma rede selecionada.');
+      alert("⚠️ Nenhuma rede selecionada.");
       return;
     }
-    document.getElementById(tokenLoadingId).style.display = 'block';
+    document.getElementById(tokenLoadingId).style.display = "block";
     let provider = new ethers.providers.JsonRpcProvider(selectedNetwork.rpc[0]);
     try {
       const data = await fetchTokenData(tokenAddress, provider);
@@ -70,55 +49,55 @@ export function setupLinkGenerator({
       document.getElementById(tokenSymbolId).value = data.symbol;
       document.getElementById(tokenDecimalsId).value = data.decimals;
       // Imagem TrustWallet
-      let networkSlug = selectedNetwork.slug || selectedNetwork.name.toLowerCase().replace(/\s+/g, '');
+      let networkSlug = selectedNetwork.slug || selectedNetwork.name.toLowerCase().replace(/\s+/g, "");
       const imageUrl = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${networkSlug}/assets/${tokenAddress}/logo.png`;
       try {
-        const resp = await fetch(imageUrl, { method: 'HEAD' });
-        document.getElementById(tokenImageId).value = resp.ok ? imageUrl : '';
+        const resp = await fetch(imageUrl, { method: "HEAD" });
+        document.getElementById(tokenImageId).value = resp.ok ? imageUrl : "";
       } catch {
-        document.getElementById(tokenImageId).value = '';
+        document.getElementById(tokenImageId).value = "";
       }
     } catch (err) {
-      alert('❌ Erro ao buscar dados do token. Verifique se o contrato está na rede selecionada.');
+      alert("❌ Erro ao buscar dados do token. Verifique se o contrato está na rede selecionada.");
     }
-    document.getElementById(tokenLoadingId).style.display = 'none';
+    document.getElementById(tokenLoadingId).style.display = "none";
   }
 
   function generateLink() {
     if (!selectedNetwork || !selectedNetwork.chainId || !selectedNetwork.name) {
-      alert('Selecione uma rede válida antes de gerar o link!');
+      alert("Selecione uma rede válida antes de gerar o link!");
       return;
     }
-    
+
     // Validar campos obrigatórios
     const tokenAddress = document.getElementById(tokenAddressId).value.trim();
     const tokenSymbol = document.getElementById(tokenSymbolId).value.trim();
     const tokenDecimals = document.getElementById(tokenDecimalsId).value.trim();
     const tokenName = document.getElementById(tokenNameId)?.value.trim() || tokenSymbol;
-    
+
     if (!tokenAddress) {
-      alert('⚠️ Informe o endereço do token.');
+      alert("⚠️ Informe o endereço do token.");
       return;
     }
-    
+
     if (!tokenSymbol) {
-      alert('⚠️ Informe o símbolo do token.');
+      alert("⚠️ Informe o símbolo do token.");
       return;
     }
-    
+
     if (!tokenDecimals) {
-      alert('⚠️ Informe os decimais do token.');
+      alert("⚠️ Informe os decimais do token.");
       return;
     }
-    
+
     // Gerar link simples para add-token.html
-    const baseUrl = window.location.origin + window.location.pathname.replace('link-index.html', '');
+    const baseUrl = window.location.origin + window.location.pathname.replace("link-index.html", "");
     const shareableLink = `${baseUrl}add-token.html?address=${encodeURIComponent(tokenAddress)}&symbol=${encodeURIComponent(tokenSymbol)}&decimals=${encodeURIComponent(tokenDecimals)}&chainId=${encodeURIComponent(selectedNetwork.chainId)}&name=${encodeURIComponent(tokenName)}`;
-    
+
     // Exibir o link
     const linkField = document.getElementById(generatedLinkId);
     linkField.value = shareableLink;
-    
+
     // Mostrar container de resultado
     const linkContainer = document.getElementById(generatedLinkContainerId);
     if (linkContainer) {
@@ -130,7 +109,7 @@ export function setupLinkGenerator({
             <label class="form-label text-primary">
               <i class="bi bi-1-circle"></i> <strong>Método 1: Botão Direto (Recomendado)</strong>
             </label>
-            <button class="btn btn-primary w-100 mb-2" onclick="addTokenToMetaMask('${tokenAddress}', '${tokenSymbol}', ${parseInt(tokenDecimals)}, '${tokenData.image || ''}')">
+            <button class="btn btn-outline-primary w-100 mb-2" onclick="addTokenToMetaMask('${tokenAddress}', '${tokenSymbol}', ${parseInt(tokenDecimals)}, '${tokenData.image || ""}')">
               <i class="bi bi-fox"></i> Adicionar Token ao MetaMask 
               <small class="d-block">⚡ Adiciona automaticamente a rede ${selectedNetwork.name} se necessário</small>
             </button>
@@ -159,7 +138,7 @@ export function setupLinkGenerator({
             
             <!-- Botão de tentativa automática -->
             <div class="mb-3">
-              <button class="btn btn-primary w-100" onclick="tryAddTokenMobile('${tokenAddress}', '${tokenSymbol}', '${tokenDecimals}', '${tokenName}', ${selectedNetwork.chainId})" type="button">
+              <button class="btn btn-outline-primary w-100" onclick="tryAddTokenMobile('${tokenAddress}', '${tokenSymbol}', '${tokenDecimals}', '${tokenName}', ${selectedNetwork.chainId})" type="button">
                 <i class="bi bi-phone"></i> Tentar Adicionar no Mobile (Auto)
               </button>
               <small class="text-muted">Tenta vários métodos automaticamente até encontrar um que funcione</small>
@@ -167,7 +146,7 @@ export function setupLinkGenerator({
             
             <!-- QR Code para escanear do celular -->
             <div class="mb-3">
-              <button class="btn btn-primary w-100" onclick="generateTokenQR('${tokenAddress}', '${tokenSymbol}', '${tokenDecimals}', '${tokenName}', ${selectedNetwork.chainId})" type="button">
+              <button class="btn btn-outline-primary w-100" onclick="generateTokenQR('${tokenAddress}', '${tokenSymbol}', '${tokenDecimals}', '${tokenName}', ${selectedNetwork.chainId})" type="button">
                 <i class="bi bi-qr-code"></i> Gerar QR Code para Escanear
               </button>
               <div id="qrCodeContainer" class="text-center mt-2" style="display:none;">
@@ -266,91 +245,90 @@ export function setupLinkGenerator({
           </div>
         </div>
       `;
-      linkContainer.style.display = 'block';
+      linkContainer.style.display = "block";
     }
     showCopyAndShareButtons(btnCopyLinkId, btnShareLinkId, true);
-    
+
     // Trocar o Botão "Gerar Link" por "Limpar Informações"
     const generateBtn = document.getElementById(btnGenerateLinkId);
     if (generateBtn) {
       generateBtn.innerHTML = '<i class="bi bi-trash me-2"></i>Limpar Informações';
-      generateBtn.className = 'btn btn-outline-danger w-100';
+      generateBtn.className = "btn btn-outline-danger w-100";
       // Remover o listener antigo e adicionar o novo
-      generateBtn.removeEventListener('click', generateLink);
-      generateBtn.addEventListener('click', function() {
+      generateBtn.removeEventListener("click", generateLink);
+      generateBtn.addEventListener("click", function () {
         clearForm();
         // Restaurar o Botão original
         generateBtn.innerHTML = '<i class="bi bi-link-45deg"></i> Gerar Link';
-        generateBtn.className = 'btn btn-primary w-100';
+        generateBtn.className = "btn btn-outline-primary w-100";
         // Restaurar o listener original
-        generateBtn.removeEventListener('click', arguments.callee);
-        generateBtn.addEventListener('click', generateLink);
+        generateBtn.removeEventListener("click", arguments.callee);
+        generateBtn.addEventListener("click", generateLink);
       });
     }
-    
-    if (onLinkGenerated) onLinkGenerated(link, {
-      tokenAddress: tokenAddress,
-      tokenSymbol: tokenSymbol,
-      tokenDecimals: tokenDecimals,
-      network: selectedNetwork
-    });
+
+    if (onLinkGenerated)
+      onLinkGenerated(link, {
+        tokenAddress: tokenAddress,
+        tokenSymbol: tokenSymbol,
+        tokenDecimals: tokenDecimals,
+        network: selectedNetwork,
+      });
   }
 
   function clearForm() {
-    document.getElementById(networkSearchId).value = '';
-    document.getElementById(rpcUrlId).value = '';
-    document.getElementById(blockExplorerId).value = '';
-    
+    document.getElementById(networkSearchId).value = "";
+    document.getElementById(rpcUrlId).value = "";
+    document.getElementById(blockExplorerId).value = "";
+
     // Verifica se os campos de moeda nativa existem antes de limpar
     const nativeCurrencyEl = document.getElementById(nativeCurrencyId);
     if (nativeCurrencyEl) {
-      nativeCurrencyEl.value = '';
+      nativeCurrencyEl.value = "";
     }
-    
+
     const nativeDecimalsEl = document.getElementById(nativeDecimalsId);
     if (nativeDecimalsEl) {
-      nativeDecimalsEl.value = '';
+      nativeDecimalsEl.value = "";
     }
-    
-    document.getElementById(tokenAddressId).value = '';
-    document.getElementById(tokenSymbolId).value = '';
-    document.getElementById(tokenDecimalsId).value = '';
-    document.getElementById(tokenImageId).value = '';
-    if (document.getElementById(tokenNameId)) document.getElementById(tokenNameId).value = '';
-    document.getElementById(generatedLinkId).value = '';
+
+    document.getElementById(tokenAddressId).value = "";
+    document.getElementById(tokenSymbolId).value = "";
+    document.getElementById(tokenDecimalsId).value = "";
+    document.getElementById(tokenImageId).value = "";
+    if (document.getElementById(tokenNameId)) document.getElementById(tokenNameId).value = "";
+    document.getElementById(generatedLinkId).value = "";
     showCopyAndShareButtons(btnCopyLinkId, btnShareLinkId, false);
-    document.getElementById(networkAutocompleteId).style.display = 'none';
-    document.getElementById(tokenLoadingId).style.display = 'none';
+    document.getElementById(networkAutocompleteId).style.display = "none";
+    document.getElementById(tokenLoadingId).style.display = "none";
     if (generatedLinkContainerId && document.getElementById(generatedLinkContainerId)) {
-      document.getElementById(generatedLinkContainerId).style.display = 'none';
+      document.getElementById(generatedLinkContainerId).style.display = "none";
     }
     selectedNetwork = null;
     window.selectedNetwork = null; // Limpar variável global também
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  document.addEventListener("DOMContentLoaded", async () => {
     allNetworks = await fetchAllNetworks();
-    document.getElementById(networkSearchId).addEventListener('input', () =>
-      showAutocomplete(networkSearchId, networkAutocompleteId, allNetworks, selectNetwork)
-    );
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('#' + networkAutocompleteId) && e.target.id !== networkSearchId) {
-        document.getElementById(networkAutocompleteId).style.display = 'none';
+    document.getElementById(networkSearchId).addEventListener("input", () => showAutocomplete(networkSearchId, networkAutocompleteId, allNetworks, selectNetwork));
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest("#" + networkAutocompleteId) && e.target.id !== networkSearchId) {
+        document.getElementById(networkAutocompleteId).style.display = "none";
       }
     });
-    document.getElementById(btnTokenSearchId)?.addEventListener('click', fetchTokenDataAndFill);
-    document.getElementById(btnGenerateLinkId)?.addEventListener('click', generateLink);
-    document.getElementById(btnCopyLinkId)?.addEventListener('click', () => copyToClipboard(generatedLinkId));
-    document.getElementById(btnShareLinkId)?.addEventListener('click', () => shareLink(generatedLinkId));
-    document.getElementById(btnClearId)?.addEventListener('click', clearForm);
-    document.querySelectorAll('input, textarea, select').forEach(function(el) {
+    document.getElementById(btnTokenSearchId)?.addEventListener("click", fetchTokenDataAndFill);
+    document.getElementById(btnGenerateLinkId)?.addEventListener("click", generateLink);
+    document.getElementById(btnCopyLinkId)?.addEventListener("click", () => copyToClipboard(generatedLinkId));
+    document.getElementById(btnShareLinkId)?.addEventListener("click", () => shareLink(generatedLinkId));
+    document.getElementById(btnClearId)?.addEventListener("click", clearForm);
+    document.querySelectorAll("input, textarea, select").forEach(function (el) {
       if (el.value) {
-        el.classList.add('filled');
+        el.classList.add("filled");
       }
     });
     showCopyAndShareButtons(btnCopyLinkId, btnShareLinkId, false);
     const linkField = document.getElementById(generatedLinkId);
-    linkField.addEventListener('input', function() {
+    linkField.addEventListener("input", function () {
       if (!linkField.value) {
         showCopyAndShareButtons(btnCopyLinkId, btnShareLinkId, false);
       }
@@ -359,132 +337,143 @@ export function setupLinkGenerator({
 }
 
 // função global para copiar links individuais
-window.copyToClipboard = function(elementId) {
+window.copyToClipboard = function (elementId) {
   const el = document.getElementById(elementId);
   if (el) {
     el.select();
     el.setSelectionRange(0, 99999); // Para dispositivos móveis
-    navigator.clipboard.writeText(el.value).then(() => {
-      // Feedback visual
-      const button = el.nextElementSibling;
-      if (button) {
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="bi bi-check"></i>';
-        button.classList.add('btn-primary');
-        button.classList.remove('btn-outline-secondary');
-        
-        setTimeout(() => {
-          button.innerHTML = originalHTML;
-          button.classList.remove('btn-primary');
-          button.classList.add('btn-outline-secondary');
-        }, 1500);
-      }
-    }).catch(() => {
-      // Fallback para navegadores mais antigos
-      try {
-        document.execCommand('copy');
-      } catch (err) {
-        alert('Não foi possível copiar automaticamente. Selecione e copie manualmente.');
-      }
-    });
+    navigator.clipboard
+      .writeText(el.value)
+      .then(() => {
+        // Feedback visual
+        const button = el.nextElementSibling;
+        if (button) {
+          const originalHTML = button.innerHTML;
+          button.innerHTML = '<i class="bi bi-check"></i>';
+          button.classList.add("btn-outline-primary");
+          button.classList.remove("btn-outline-secondary");
+
+          setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove("btn-outline-primary");
+            button.classList.add("btn-outline-secondary");
+          }, 1500);
+        }
+      })
+      .catch(() => {
+        // Fallback para navegadores mais antigos
+        try {
+          document.execCommand("copy");
+        } catch (err) {
+          alert("Não foi possível copiar automaticamente. Selecione e copie manualmente.");
+        }
+      });
   }
 };
 
 // função global para adicionar token diretamente ao MetaMask
-window.addTokenToMetaMask = async function(address, symbol, decimals, image = '') {
-  if (typeof window.ethereum !== 'undefined') {
+window.addTokenToMetaMask = async function (address, symbol, decimals, image = "") {
+  if (typeof window.ethereum !== "undefined") {
     try {
       // Verificar se temos uma rede selecionada
       if (!window.selectedNetwork) {
-        alert('❌ Por favor, selecione uma rede primeiro.');
+        alert("❌ Por favor, selecione uma rede primeiro.");
         return;
       }
-      
+
       // Primeiro: verificar/adicionar a rede se necessário
-      const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+      const currentChainId = await window.ethereum.request({
+        method: "eth_chainId",
+      });
       const requiredChainId = `0x${window.selectedNetwork.chainId.toString(16)}`;
-      
+
       if (currentChainId !== requiredChainId) {
         console.log(`Rede atual: ${currentChainId}, Rede necessária: ${requiredChainId}`);
-        
+
         try {
           // Tentar mudar para a rede necessária
           await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
+            method: "wallet_switchEthereumChain",
             params: [{ chainId: requiredChainId }],
           });
-          
-          console.log('✅ Rede alterada com sucesso');
+
+          console.log("✅ Rede alterada com sucesso");
         } catch (switchError) {
           // Se a rede não existe, adicionar ela
           if (switchError.code === 4902) {
-            console.log('🔗 Rede não encontrada, adicionando...');
-            
+            console.log("🔗 Rede não encontrada, adicionando...");
+
             try {
               await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: requiredChainId,
-                  chainName: window.selectedNetwork.name,
-                  nativeCurrency: {
-                    name: window.selectedNetwork.nativeCurrency.symbol,
-                    symbol: window.selectedNetwork.nativeCurrency.symbol,
-                    decimals: window.selectedNetwork.nativeCurrency.decimals
+                method: "wallet_addEthereumChain",
+                params: [
+                  {
+                    chainId: requiredChainId,
+                    chainName: window.selectedNetwork.name,
+                    nativeCurrency: {
+                      name: window.selectedNetwork.nativeCurrency.symbol,
+                      symbol: window.selectedNetwork.nativeCurrency.symbol,
+                      decimals: window.selectedNetwork.nativeCurrency.decimals,
+                    },
+                    rpcUrls: window.selectedNetwork.rpc,
+                    blockExplorerUrls: window.selectedNetwork.explorers ? [window.selectedNetwork.explorers[0].url] : null,
                   },
-                  rpcUrls: window.selectedNetwork.rpc,
-                  blockExplorerUrls: window.selectedNetwork.explorers ? [window.selectedNetwork.explorers[0].url] : null
-                }]
+                ],
               });
-              
-              console.log('✅ Rede adicionada e selecionada com sucesso');
+
+              console.log("✅ Rede adicionada e selecionada com sucesso");
             } catch (addError) {
-              console.error('❌ Erro ao adicionar rede:', addError);
+              console.error("❌ Erro ao adicionar rede:", addError);
               alert(`❌ Erro ao adicionar rede ${window.selectedNetwork.name}: ${addError.message}`);
               return;
             }
           } else {
-            console.error('❌ Erro ao trocar rede:', switchError);
+            console.error("❌ Erro ao trocar rede:", switchError);
             alert(`❌ Erro ao trocar para rede ${window.selectedNetwork.name}: ${switchError.message}`);
             return;
           }
         }
       }
-      
+
       // Aguardar um pouco para a rede se estabilizar
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Segundo: adicionar o token
-      console.log('🪙 Adicionando token...');
+      console.log("🪙 Adicionando token...");
       const wasAdded = await window.ethereum.request({
-        method: 'wallet_watchAsset',
+        method: "wallet_watchAsset",
         params: {
-          type: 'ERC20',
+          type: "ERC20",
           options: {
             address: address,
             symbol: symbol,
             decimals: decimals,
-            image: image
-          }
-        }
+            image: image,
+          },
+        },
       });
 
       if (wasAdded) {
         alert(`✅ Token ${symbol} adicionado ao MetaMask com sucesso na rede ${window.selectedNetwork.name}!`);
       } else {
-        alert('❌ Token não foi adicionado. Verifique se você confirmou a Ação no MetaMask.');
+        alert("❌ Token não foi adicionado. Verifique se você confirmou a Ação no MetaMask.");
       }
     } catch (error) {
-      console.error('Erro ao adicionar token:', error);
+      console.error("Erro ao adicionar token:", error);
       if (error.code === 4001) {
-        alert('❌ Usuário rejeitou a solicitAção.');
+        alert("❌ Usuário rejeitou a solicitAção.");
       } else {
-        alert('❌ Erro ao adicionar token: ' + error.message);
+        alert("❌ Erro ao adicionar token: " + error.message);
       }
     }
   } else {
-    alert('❌ MetaMask não foi detectado! Instale o MetaMask ou use outro método.');
+    alert("❌ MetaMask não foi detectado! Instale o MetaMask ou use outro método.");
     // Fallback: mostrar instruções manuais
-    const networkInfo = window.selectedNetwork || { name: 'Desconhecida', chainId: '?', rpc: ['?'] };
+    const networkInfo = window.selectedNetwork || {
+      name: "Desconhecida",
+      chainId: "?",
+      rpc: ["?"],
+    };
     const tokenInfo = `
 Adicione manualmente:
 Rede: ${networkInfo.name} (Chain ID: ${networkInfo.chainId})
@@ -492,75 +481,78 @@ RPC: ${networkInfo.rpc[0]}
 Endereço do Token: ${address}
 Símbolo: ${symbol}
 Decimais: ${decimals}
-${image ? 'Imagem: ' + image : ''}
+${image ? "Imagem: " + image : ""}
     `;
-    if (confirm('MetaMask não detectado. Copiar informações completas?')) {
-      navigator.clipboard.writeText(tokenInfo).then(() => {
-        alert('✅ Informações copiadas! Cole no seu aplicativo de carteira.');
-      }).catch(() => {
-        alert(tokenInfo);
-      });
+    if (confirm("MetaMask não detectado. Copiar informações completas?")) {
+      navigator.clipboard
+        .writeText(tokenInfo)
+        .then(() => {
+          alert("✅ Informações copiadas! Cole no seu aplicativo de carteira.");
+        })
+        .catch(() => {
+          alert(tokenInfo);
+        });
     }
   }
 };
 
 // função para tentar múltiplos métodos de adição de token no mobile
-window.tryAddTokenMobile = async function(tokenAddress, tokenSymbol, tokenDecimals, tokenName, chainId) {
+window.tryAddTokenMobile = async function (tokenAddress, tokenSymbol, tokenDecimals, tokenName, chainId) {
   const userAgent = navigator.userAgent;
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-  
+
   if (!isMobile) {
-    alert('⚠️ Esta função foi otimizada para dispositivos móveis. Use o Método 1 (MetaMask Desktop) em computadores.');
+    alert("⚠️ Esta função foi otimizada para dispositivos móveis. Use o Método 1 (MetaMask Desktop) em computadores.");
     return;
   }
-  
+
   // Lista de tentativas em ordem de prioridade
   const attempts = [
     {
-      name: 'TrustWallet Nativo',
-      url: `trust://add_asset?asset=c${chainId}_t${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}`
+      name: "TrustWallet Nativo",
+      url: `trust://add_asset?asset=c${chainId}_t${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}`,
     },
     {
-      name: 'MetaMask Mobile Direto',
-      url: `https://metamask.app.link/send/?address=${tokenAddress}&uint256=0&chainId=${chainId}`
+      name: "MetaMask Mobile Direto",
+      url: `https://metamask.app.link/send/?address=${tokenAddress}&uint256=0&chainId=${chainId}`,
     },
     {
-      name: 'MetaMask com Network',
-      url: `metamask://addToken?address=${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}`
+      name: "MetaMask com Network",
+      url: `metamask://addToken?address=${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}`,
     },
     {
-      name: 'SafePal Wallet',
-      url: `safepal://add_asset?contract=${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}&chainId=${chainId}`
+      name: "SafePal Wallet",
+      url: `safepal://add_asset?contract=${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}&chainId=${chainId}`,
     },
     {
-      name: 'TokenPocket',
-      url: `tokenpocket://add_asset?contract=${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}&chainId=${chainId}`
-    }
+      name: "TokenPocket",
+      url: `tokenpocket://add_asset?contract=${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}&chainId=${chainId}`,
+    },
   ];
-  
+
   let currentAttempt = 0;
-  
+
   function tryNext() {
     if (currentAttempt >= attempts.length) {
       // Todas as tentativas falharam, mostrar opções manuais
       showManualOptions();
       return;
     }
-    
+
     const attempt = attempts[currentAttempt];
-    
+
     // Mostrar qual método está sendo tentado
-    const resultDiv = document.createElement('div');
-    resultDiv.className = 'alert alert-info';
+    const resultDiv = document.createElement("div");
+    resultDiv.className = "alert alert-info";
     resultDiv.innerHTML = `
       🔄 Tentando: ${attempt.name}<br>
       <small>Se não abrir nenhum app em 3 segundos, tentaremos o próximo método...</small>
     `;
     document.body.appendChild(resultDiv);
-    
+
     // Tentar abrir o deep link
     window.location.href = attempt.url;
-    
+
     // Aguardar 3 segundos e tentar próximo se não funcionou
     setTimeout(() => {
       resultDiv.remove();
@@ -568,7 +560,7 @@ window.tryAddTokenMobile = async function(tokenAddress, tokenSymbol, tokenDecima
       tryNext();
     }, 3000);
   }
-  
+
   function showManualOptions() {
     const tokenInfo = `
 INFORMAÇÕES DO TOKEN
@@ -585,76 +577,79 @@ INSTRUÇÕES MANUAIS:
 3. Cole o endereço: ${tokenAddress}
 4. Preencha os outros campos se necessário
 `;
-    
-    if (confirm('❌ Nenhum método automático funcionou. Deseja copiar as informações para adicionar manualmente?')) {
-      navigator.clipboard.writeText(tokenInfo).then(() => {
-        alert('✅ Informações copiadas! Cole na sua carteira e adicione manualmente.');
-      }).catch(() => {
-        alert(tokenInfo);
-      });
+
+    if (confirm("❌ Nenhum método automático funcionou. Deseja copiar as informações para adicionar manualmente?")) {
+      navigator.clipboard
+        .writeText(tokenInfo)
+        .then(() => {
+          alert("✅ Informações copiadas! Cole na sua carteira e adicione manualmente.");
+        })
+        .catch(() => {
+          alert(tokenInfo);
+        });
     }
   }
-  
+
   // Iniciar tentativas
-  alert('🚀 Iniciando tentativas automáticas...\n\nVários apps de carteira podem abrir. Escolha o que você deseja usar!');
+  alert("🚀 Iniciando tentativas automáticas...\n\nVários apps de carteira podem abrir. Escolha o que você deseja usar!");
   tryNext();
 };
 
 // função para gerar QR Code com informações do token
-window.generateTokenQR = async function(tokenAddress, tokenSymbol, tokenDecimals, tokenName, chainId) {
-  const container = document.getElementById('qrCodeContainer');
-  const qrDiv = document.getElementById('qrCodeDiv');
-  
+window.generateTokenQR = async function (tokenAddress, tokenSymbol, tokenDecimals, tokenName, chainId) {
+  const container = document.getElementById("qrCodeContainer");
+  const qrDiv = document.getElementById("qrCodeDiv");
+
   if (!container || !qrDiv) {
-    alert('❌ Elementos do QR Code não encontrados no HTML!');
+    alert("❌ Elementos do QR Code não encontrados no HTML!");
     return;
   }
-  
+
   // Limpar QR Code anterior
   qrDiv.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split"></i> Gerando QR Code...</div>';
-  
+
   // Dados do token em formato estruturado para wallets
   const tokenData = {
-    method: 'wallet_watchAsset',
+    method: "wallet_watchAsset",
     params: {
-      type: 'ERC20',
+      type: "ERC20",
       options: {
         address: tokenAddress,
         symbol: tokenSymbol,
         decimals: parseInt(tokenDecimals),
-        image: document.getElementById('tokenImage')?.value || ''
-      }
+        image: document.getElementById("tokenImage")?.value || "",
+      },
     },
     chainId: chainId,
-    chainName: window.selectedNetwork?.name || 'Unknown',
+    chainName: window.selectedNetwork?.name || "Unknown",
     rpcUrls: window.selectedNetwork?.rpc || [],
-    blockExplorerUrls: window.selectedNetwork?.explorers?.map(e => e.url) || []
+    blockExplorerUrls: window.selectedNetwork?.explorers?.map((e) => e.url) || [],
   };
-  
+
   const qrText = JSON.stringify(tokenData);
-  
-  console.log('� Dados do QR:', qrText);
-  
+
+  console.log("� Dados do QR:", qrText);
+
   // Mostrar container
-  container.style.display = 'block';
-  
+  container.style.display = "block";
+
   // Usar sempre API externa (mais confiável que bibliotecas externas)
-  console.log('🌐 Usando API externa para QR Code personalizado XCafe');
-  
+  console.log("🌐 Usando API externa para QR Code personalizado XCafe");
+
   // Converter para formato EIP-681 se necessário
   let finalQRText = qrText;
-  
+
   // Se qrText parece ser JSON, extrair informações e criar formato EIP-681
-  if (qrText.includes('wallet_watchAsset') || qrText.includes('"method"')) {
+  if (qrText.includes("wallet_watchAsset") || qrText.includes('"method"')) {
     finalQRText = `ethereum:${tokenAddress}@${chainId}/transfer?symbol=${tokenSymbol}&decimals=${tokenDecimals}&name=${encodeURIComponent(tokenName)}`;
-    console.log('🔄 Usando formato EIP-681 para compatibilidade:', finalQRText);
+    console.log("🔄 Usando formato EIP-681 para compatibilidade:", finalQRText);
   }
-  
+
   generateFallbackQR(qrDiv, finalQRText, tokenSymbol, tokenName, chainId);
-  
+
   // Rolar até o QR Code
   setTimeout(() => {
-    container.scrollIntoView({ behavior: 'smooth' });
+    container.scrollIntoView({ behavior: "smooth" });
   }, 500);
 };
 
@@ -663,37 +658,41 @@ async function generateCanvasQR(qrDiv, qrText, tokenSymbol, tokenName, chainId) 
   return new Promise((resolve, reject) => {
     try {
       // Limpar conteúdo
-      qrDiv.innerHTML = '';
-      
+      qrDiv.innerHTML = "";
+
       // Criar canvas
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       qrDiv.appendChild(canvas);
-      
-      QRCode.toCanvas(canvas, qrText, {
-        width: 256,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
+
+      QRCode.toCanvas(
+        canvas,
+        qrText,
+        {
+          width: 256,
+          margin: 2,
+          color: {
+            dark: "#000000",
+            light: "#FFFFFF",
+          },
+          errorCorrectionLevel: "M",
         },
-        errorCorrectionLevel: 'M'
-      }, function (error) {
-        if (error) {
-          console.error('❌ Erro ao gerar QR Code:', error);
-          generateFallbackQR(qrDiv, qrText, tokenSymbol, tokenName, chainId);
-          reject(error);
-        } else {
-          console.log('✅ QR Code gerado com sucesso via canvas!');
-          canvas.style.border = '2px solid #28a745';
-          canvas.style.borderRadius = '8px';
-          canvas.style.maxWidth = '100%';
-          addQRInfo(qrDiv, qrText, tokenSymbol, tokenName, chainId);
-          resolve();
-        }
-      });
-      
+        function (error) {
+          if (error) {
+            console.error("❌ Erro ao gerar QR Code:", error);
+            generateFallbackQR(qrDiv, qrText, tokenSymbol, tokenName, chainId);
+            reject(error);
+          } else {
+            console.log("✅ QR Code gerado com sucesso via canvas!");
+            canvas.style.border = "2px solid #28a745";
+            canvas.style.borderRadius = "8px";
+            canvas.style.maxWidth = "100%";
+            addQRInfo(qrDiv, qrText, tokenSymbol, tokenName, chainId);
+            resolve();
+          }
+        },
+      );
     } catch (error) {
-      console.error('❌ Erro na biblioteca QRCode:', error);
+      console.error("❌ Erro na biblioteca QRCode:", error);
       generateFallbackQR(qrDiv, qrText, tokenSymbol, tokenName, chainId);
       reject(error);
     }
@@ -703,178 +702,173 @@ async function generateCanvasQR(qrDiv, qrText, tokenSymbol, tokenName, chainId) 
 // função para gerar QR Code usando API externa (fallback)
 // função para gerar QR Code usando API externa (método confiável)
 function generateFallbackQR(qrDiv, qrText, tokenSymbol, tokenName, chainId) {
-  console.log('🌐 Gerando QR Code personalizado via API externa');
-  
+  console.log("🌐 Gerando QR Code personalizado via API externa");
+
   const qrSize = 350;
-  
+
   // Criar QR Code customizado com logo XCafe
   generateCustomQRWithLogo(qrDiv, qrText, qrSize, tokenSymbol, tokenName, chainId);
 }
 
 // função para gerar QR Code customizado com logo XCafe
 async function generateCustomQRWithLogo(qrDiv, qrText, size, tokenSymbol, tokenName, chainId) {
-  
   // Corrigir formato do QR Code para ser reconhecido pelas wallets
   // Usar formato EIP-681 ao invés de JSON complexo
   let correctedQRText = qrText;
-  
+
   // Se qrText for JSON, converter para formato EIP-681
-  if (qrText.startsWith('{')) {
+  if (qrText.startsWith("{")) {
     try {
       const tokenData = JSON.parse(qrText);
-      const address = tokenData.params?.options?.address || '';
+      const address = tokenData.params?.options?.address || "";
       const symbol = tokenData.params?.options?.symbol || tokenSymbol;
       const decimals = tokenData.params?.options?.decimals || 18;
       const name = tokenName || symbol;
-      
+
       correctedQRText = `ethereum:${address}@${chainId}/transfer?symbol=${symbol}&decimals=${decimals}&name=${encodeURIComponent(name)}`;
-      console.log('🔄 Convertido de JSON para EIP-681:', correctedQRText);
+      console.log("🔄 Convertido de JSON para EIP-681:", correctedQRText);
     } catch (e) {
-      console.warn('⚠️ Erro ao converter JSON, usando formato original');
+      console.warn("⚠️ Erro ao converter JSON, usando formato original");
     }
   }
-  
+
   // APIs para QR Code base (sem logo ainda)
-  const apiUrls = [
-    `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(correctedQRText)}&format=png&margin=5&bgcolor=FFFFFF&color=000000&ecc=M`,
-    `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(correctedQRText)}&chld=M|2`,
-    `https://quickchart.io/qr?text=${encodeURIComponent(correctedQRText)}&size=${size}&margin=5&format=png`
-  ];
-  
+  const apiUrls = [`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(correctedQRText)}&format=png&margin=5&bgcolor=FFFFFF&color=000000&ecc=M`, `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(correctedQRText)}&chld=M|2`, `https://quickchart.io/qr?text=${encodeURIComponent(correctedQRText)}&size=${size}&margin=5&format=png`];
+
   let currentAPI = 0;
-  
+
   function tryNextAPI() {
     if (currentAPI >= apiUrls.length) {
       // Se todas as APIs falharam, mostrar dados em texto
       showTextFallback(qrDiv, correctedQRText, tokenSymbol, tokenName, chainId);
       return;
     }
-    
+
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = "anonymous";
     img.src = apiUrls[currentAPI];
-    
-    img.onload = function() {
+
+    img.onload = function () {
       console.log(`✅ QR Code base carregado via API ${currentAPI + 1}`);
-      
+
       // Criar canvas para adicionar logo
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
       canvas.width = size;
       canvas.height = size;
-      
+
       // Desenhar QR Code de base
       ctx.drawImage(img, 0, 0, size, size);
-      
+
       // Carregar e adicionar logo XCafe
       addLogoToQR(canvas, ctx, size, qrDiv, correctedQRText, tokenSymbol, tokenName, chainId);
     };
-    
-    img.onerror = function() {
+
+    img.onerror = function () {
       console.warn(`❌ API ${currentAPI + 1} falhou, tentando próxima...`);
       currentAPI++;
       tryNextAPI();
     };
   }
-  
+
   tryNextAPI();
 }
 
 // função para adicionar logo XCafe ao centro do QR Code
 function addLogoToQR(canvas, ctx, qrSize, qrDiv, qrText, tokenSymbol, tokenName, chainId) {
   const logo = new Image();
-  logo.crossOrigin = 'anonymous';
-  
+  logo.crossOrigin = "anonymous";
+
   // Tentar carregar o logo do XCafe
-  logo.src = './imgs/xcafe-192x192.png';
-  
-  logo.onload = function() {
-    console.log('✅ Logo XCafe carregado com sucesso');
-    
+  logo.src = "./imgs/xcafe-192x192.png";
+
+  logo.onload = function () {
+    console.log("✅ Logo XCafe carregado com sucesso");
+
     // Calcular tamanho e posição do logo (cerca de 20% do QR Code)
     const logoSize = Math.round(qrSize * 0.18);
     const logoX = (qrSize - logoSize) / 2;
     const logoY = (qrSize - logoSize) / 2;
-    
+
     // Criar fundo branco circular para o logo
     const bgSize = logoSize + 16;
     const bgX = (qrSize - bgSize) / 2;
     const bgY = (qrSize - bgSize) / 2;
-    
+
     // Desenhar fundo circular branco com sombra
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
     ctx.shadowBlur = 8;
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
-    
-    ctx.fillStyle = '#FFFFFF';
+
+    ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
-    ctx.arc(qrSize/2, qrSize/2, bgSize/2, 0, 2 * Math.PI);
+    ctx.arc(qrSize / 2, qrSize / 2, bgSize / 2, 0, 2 * Math.PI);
     ctx.fill();
-    
+
     // Remover sombra
-    ctx.shadowColor = 'transparent';
-    
+    ctx.shadowColor = "transparent";
+
     // Desenhar borda verde ao redor do logo
-    ctx.strokeStyle = '#28a745';
+    ctx.strokeStyle = "#28a745";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(qrSize/2, qrSize/2, bgSize/2 - 2, 0, 2 * Math.PI);
+    ctx.arc(qrSize / 2, qrSize / 2, bgSize / 2 - 2, 0, 2 * Math.PI);
     ctx.stroke();
-    
+
     // Desenhar logo XCafe no centro
     ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
-    
-    console.log('🎨 Logo XCafe adicionado ao QR Code');
-    
+
+    console.log("🎨 Logo XCafe adicionado ao QR Code");
+
     // Finalizar QR Code customizado
     finalizeCustomQR(canvas, qrDiv, qrText, tokenSymbol, tokenName, chainId);
   };
-  
-  logo.onerror = function() {
-    console.warn('⚠️ Não foi possível carregar logo XCafe, tentando caminho alternativo...');
-    
+
+  logo.onerror = function () {
+    console.warn("⚠️ Não foi possível carregar logo XCafe, tentando caminho alternativo...");
+
     // Tentar caminho alternativo
-    logo.src = 'imgs/xcafe.png';
-    
-    logo.onload = function() {
-      console.log('✅ Logo XCafe carregado (caminho alternativo)');
-      
+    logo.src = "imgs/xcafe.png";
+
+    logo.onload = function () {
+      console.log("✅ Logo XCafe carregado (caminho alternativo)");
+
       // Mesmo processo de adicionar logo
       const logoSize = Math.round(qrSize * 0.18);
       const logoX = (qrSize - logoSize) / 2;
       const logoY = (qrSize - logoSize) / 2;
       const bgSize = logoSize + 16;
-      
+
       // Fundo circular branco
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
-      
-      ctx.fillStyle = '#FFFFFF';
+
+      ctx.fillStyle = "#FFFFFF";
       ctx.beginPath();
-      ctx.arc(qrSize/2, qrSize/2, bgSize/2, 0, 2 * Math.PI);
+      ctx.arc(qrSize / 2, qrSize / 2, bgSize / 2, 0, 2 * Math.PI);
       ctx.fill();
-      
-      ctx.shadowColor = 'transparent';
-      
+
+      ctx.shadowColor = "transparent";
+
       // Borda verde
-      ctx.strokeStyle = '#28a745';
+      ctx.strokeStyle = "#28a745";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(qrSize/2, qrSize/2, bgSize/2 - 2, 0, 2 * Math.PI);
+      ctx.arc(qrSize / 2, qrSize / 2, bgSize / 2 - 2, 0, 2 * Math.PI);
       ctx.stroke();
-      
+
       // Logo
       ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
-      
+
       finalizeCustomQR(canvas, qrDiv, qrText, tokenSymbol, tokenName, chainId);
     };
-    
-    logo.onerror = function() {
-      console.error('❌ Não foi possível carregar nenhuma versão do logo XCafe');
+
+    logo.onerror = function () {
+      console.error("❌ Não foi possível carregar nenhuma versão do logo XCafe");
       // Usar QR Code sem logo
       finalizeCustomQR(canvas, qrDiv, qrText, tokenSymbol, tokenName, chainId);
     };
@@ -883,19 +877,19 @@ function addLogoToQR(canvas, ctx, qrSize, qrDiv, qrText, tokenSymbol, tokenName,
 
 // função para finalizar e exibir o QR Code customizado
 function finalizeCustomQR(canvas, qrDiv, qrText, tokenSymbol, tokenName, chainId) {
-  qrDiv.innerHTML = '';
-  
+  qrDiv.innerHTML = "";
+
   // Container principal
-  const wrapper = document.createElement('div');
-  wrapper.className = 'text-center';
-  
+  const wrapper = document.createElement("div");
+  wrapper.className = "text-center";
+
   // Adicionar canvas estilizado
-  canvas.style.cssText = 'max-width: 100%; height: auto; border: 3px solid #28a745; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);';
+  canvas.style.cssText = "max-width: 100%; height: auto; border: 3px solid #28a745; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);";
   wrapper.appendChild(canvas);
-  
+
   // Adicionar marca XCafe
-  const brandDiv = document.createElement('div');
-  brandDiv.className = 'mt-2 mb-2';
+  const brandDiv = document.createElement("div");
+  brandDiv.className = "mt-2 mb-2";
   brandDiv.innerHTML = `
     <small class="text-success fw-bold">
       <img src="imgs/xcafe-32x32.png" alt="XCafe" style="width: 16px; height: 16px; margin-right: 5px;">
@@ -903,13 +897,13 @@ function finalizeCustomQR(canvas, qrDiv, qrText, tokenSymbol, tokenName, chainId
     </small>
   `;
   wrapper.appendChild(brandDiv);
-  
+
   qrDiv.appendChild(wrapper);
-  
+
   // Adicionar informações e botões
   addQRInfo(qrDiv, qrText, tokenSymbol, tokenName, chainId);
-  
-  console.log('🎨 QR Code personalizado com logo XCafe criado com sucesso!');
+
+  console.log("🎨 QR Code personalizado com logo XCafe criado com sucesso!");
 }
 
 // função fallback para mostrar dados em texto
@@ -925,7 +919,7 @@ function showTextFallback(qrDiv, qrText, tokenSymbol, tokenName, chainId) {
       <p class="small">APIs externas indisponíveis. Use os dados abaixo:</p>
       <textarea class="form-control font-monospace small" rows="6" readonly style="font-size: 11px;">${qrText}</textarea>
       <div class="mt-3">
-        <button class="btn btn-primary btn-sm" onclick="copyToClipboard('qrFallbackTextarea')">
+        <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard('qrFallbackTextarea')">
           <i class="bi bi-clipboard"></i> Copiar Dados JSON
         </button>
         <small class="text-muted d-block mt-2">
@@ -939,8 +933,8 @@ function showTextFallback(qrDiv, qrText, tokenSymbol, tokenName, chainId) {
 
 // função para adicionar informações e botões ao QR Code
 function addQRInfo(qrDiv, qrText, tokenSymbol, tokenName, chainId) {
-  const infoDiv = document.createElement('div');
-  infoDiv.className = 'mt-3';
+  const infoDiv = document.createElement("div");
+  infoDiv.className = "mt-3";
   infoDiv.innerHTML = `
     <div class="text-center">
       <small class="text-muted">
@@ -958,71 +952,69 @@ function addQRInfo(qrDiv, qrText, tokenSymbol, tokenName, chainId) {
       <textarea id="qrDataTextarea" style="display:none;">${qrText}</textarea>
     </div>
   `;
-  
+
   qrDiv.appendChild(infoDiv);
 }
 
 // função para baixar o QR Code como imagem
-window.downloadQRCode = function(filename) {
-  const canvas = document.querySelector('#qrCodeDiv canvas');
-  const img = document.querySelector('#qrCodeDiv img');
-  
+window.downloadQRCode = function (filename) {
+  const canvas = document.querySelector("#qrCodeDiv canvas");
+  const img = document.querySelector("#qrCodeDiv img");
+
   if (canvas) {
     // Se foi gerado via canvas personalizado (com logo XCafe)
-    console.log('📥 Baixando QR Code personalizado XCafe');
-    const link = document.createElement('a');
-    link.download = filename + '_xcafe.png';
-    link.href = canvas.toDataURL('image/png', 1.0);
+    console.log("📥 Baixando QR Code personalizado XCafe");
+    const link = document.createElement("a");
+    link.download = filename + "_xcafe.png";
+    link.href = canvas.toDataURL("image/png", 1.0);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Mostrar feedback visual
     const button = document.querySelector('button[onclick*="downloadQRCode"]');
     if (button) {
       const originalText = button.innerHTML;
       button.innerHTML = '<i class="bi bi-check-circle"></i> Baixado!';
-      button.className = 'btn btn-sm btn-primary';
+      button.className = "btn btn-sm btn-outline-primary";
       setTimeout(() => {
         button.innerHTML = originalText;
-        button.className = 'btn btn-sm btn-outline-primary';
+        button.className = "btn btn-sm btn-outline-primary";
       }, 2000);
     }
-    
   } else if (img) {
     // Se foi gerado via API externa (imagem simples)
-    console.log('📥 Baixando QR Code da imagem');
-    
+    console.log("📥 Baixando QR Code da imagem");
+
     // Criar canvas temporário para adicionar marca XCafe
-    const tempCanvas = document.createElement('canvas');
-    const ctx = tempCanvas.getContext('2d');
-    
+    const tempCanvas = document.createElement("canvas");
+    const ctx = tempCanvas.getContext("2d");
+
     tempCanvas.width = img.naturalWidth || 300;
     tempCanvas.height = (img.naturalHeight || 300) + 40; // Espaço extra para marca
-    
+
     // Fundo branco
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-    
+
     // Desenhar QR Code
     ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.width);
-    
+
     // Adicionar texto "Gerado por XCafe.app"
-    ctx.fillStyle = '#28a745';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Gerado por XCafe.app', tempCanvas.width / 2, tempCanvas.height - 15);
-    
+    ctx.fillStyle = "#28a745";
+    ctx.font = "bold 14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Gerado por XCafe.app", tempCanvas.width / 2, tempCanvas.height - 15);
+
     // Fazer download
-    const link = document.createElement('a');
-    link.download = filename + '_xcafe.png';
-    link.href = tempCanvas.toDataURL('image/png', 1.0);
+    const link = document.createElement("a");
+    link.download = filename + "_xcafe.png";
+    link.href = tempCanvas.toDataURL("image/png", 1.0);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
   } else {
-    alert('❌ QR Code não encontrado. Gere um QR Code primeiro.');
+    alert("❌ QR Code não encontrado. Gere um QR Code primeiro.");
   }
 };
 
@@ -1030,57 +1022,57 @@ window.downloadQRCode = function(filename) {
 
 // função principal para gerar QR Codes e links MOBILE
 function generateMultiWalletQRCodes(qrDiv, tokenAddress, tokenSymbol, tokenDecimals, tokenName, chainId) {
-  console.log('📱 MODO MOBILE CORRIGIDO: Gerando formatos que realmente funcionam');
-  
+  console.log("📱 MODO MOBILE CORRIGIDO: Gerando formatos que realmente funcionam");
+
   // Armazenar informações do token globalmente para usar nas funções auxiliares
   window.currentTokenAddress = tokenAddress;
   window.currentTokenSymbol = tokenSymbol;
   window.currentTokenDecimals = tokenDecimals;
   window.currentTokenName = tokenName;
   window.currentChainId = chainId;
-  
+
   // Formatos MOBILE TESTADOS (baseados em pesquisa real 2024)
   const mobileFormats = [
     {
-      name: 'TrustWallet Oficial',
-      description: '🛡️ Link oficial TrustWallet - SEMPRE FUNCIONA',
+      name: "TrustWallet Oficial",
+      description: "🛡️ Link oficial TrustWallet - SEMPRE FUNCIONA",
       data: `https://link.trustwallet.com/add_asset?asset=c${chainId}_t${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}`,
-      type: 'browser',
+      type: "browser",
       priority: 1,
-      icon: '🛡️'
+      icon: "🛡️",
     },
     {
-      name: 'Página de Token',
-      description: '🌐 Página web para adicionar token - UNIVERSAL',
+      name: "Página de Token",
+      description: "🌐 Página web para adicionar token - UNIVERSAL",
       data: `${window.location.origin}/add-token.html?address=${tokenAddress}&symbol=${tokenSymbol}&decimals=${tokenDecimals}&chainId=${chainId}&name=${encodeURIComponent(tokenName)}`,
-      type: 'browser',
+      type: "browser",
       priority: 1,
-      icon: '🌐'
+      icon: "🌐",
     },
     {
-      name: 'QR Code Simples',
-      description: '📱 QR com endereço do contrato - SIMPLES E FUNCIONA',
+      name: "QR Code Simples",
+      description: "📱 QR com endereço do contrato - SIMPLES E FUNCIONA",
       data: tokenAddress,
-      type: 'qrcode',
+      type: "qrcode",
       priority: 1,
-      icon: '📱'
+      icon: "📱",
     },
     {
-      name: 'QR Code Universal',
-      description: '� QR Code Padrão para todas as wallets',
+      name: "QR Code Universal",
+      description: "� QR Code Padrão para todas as wallets",
       data: `ethereum:${tokenAddress}@${chainId}?symbol=${tokenSymbol}&decimals=${tokenDecimals}&name=${encodeURIComponent(tokenName)}`,
-      type: 'qrcode',
+      type: "qrcode",
       priority: 1,
-      icon: '�'
+      icon: "�",
     },
     {
-      name: 'Coinbase Wallet',
-      description: '🅾️ Link direto para Coinbase Wallet',
-      data: `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(window.location.origin + '/add-token.html?address=' + tokenAddress + '&symbol=' + tokenSymbol + '&decimals=' + tokenDecimals)}`,
-      type: 'deeplink',
+      name: "Coinbase Wallet",
+      description: "🅾️ Link direto para Coinbase Wallet",
+      data: `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(window.location.origin + "/add-token.html?address=" + tokenAddress + "&symbol=" + tokenSymbol + "&decimals=" + tokenDecimals)}`,
+      type: "deeplink",
       priority: 2,
-      icon: '🅾️'
-    }
+      icon: "🅾️",
+    },
   ];
 
   // Criar interface MOBILE OTIMIZADA
@@ -1094,8 +1086,11 @@ function generateMultiWalletQRCodes(qrDiv, tokenAddress, tokenSymbol, tokenDecim
       
       <!-- BOTÕES GRANDES PARA MOBILE -->
       <div class="mobile-wallet-buttons d-grid gap-3 mb-4">
-        ${mobileFormats.filter(f => f.priority === 1).map(format => `
-          <button class="btn btn-primary btn-lg mobile-wallet-btn" onclick="handleMobileWalletAction('${format.type}', '${format.data.replace(/'/g, "\\'")}', '${format.name}')">
+        ${mobileFormats
+          .filter((f) => f.priority === 1)
+          .map(
+            (format) => `
+          <button class="btn btn-outline-primary btn-lg mobile-wallet-btn" onclick="handleMobileWalletAction('${format.type}', '${format.data.replace(/'/g, "\\'")}', '${format.name}')">
             <div class="d-flex align-items-center justify-content-between">
               <div class="text-start">
                 <div class="mobile-wallet-icon">${format.icon}</div>
@@ -1105,7 +1100,9 @@ function generateMultiWalletQRCodes(qrDiv, tokenAddress, tokenSymbol, tokenDecim
               <i class="bi bi-arrow-right-circle fs-3"></i>
             </div>
           </button>
-        `).join('')}
+        `,
+          )
+          .join("")}
       </div>
       
       <!-- QR CODE MOBILE -->
@@ -1150,11 +1147,16 @@ function generateMultiWalletQRCodes(qrDiv, tokenAddress, tokenSymbol, tokenDecim
           </summary>
           <div class="mt-3">
             <div class="d-grid gap-2">
-              ${mobileFormats.filter(f => f.priority === 2).map(format => `
+              ${mobileFormats
+                .filter((f) => f.priority === 2)
+                .map(
+                  (format) => `
                 <button class="btn btn-outline-primary btn-sm" onclick="handleMobileWalletAction('${format.type}', '${format.data.replace(/'/g, "\\'")}', '${format.name}')">
                   ${format.icon} ${format.name}
                 </button>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </div>
           </div>
         </details>
@@ -1163,27 +1165,27 @@ function generateMultiWalletQRCodes(qrDiv, tokenAddress, tokenSymbol, tokenDecim
   `;
 
   // Gerar QR Code principal otimizado para mobile
-  generateMobileOptimizedQR(mobileFormats.find(f => f.type === 'qrcode'), tokenSymbol, tokenName);
+  generateMobileOptimizedQR(
+    mobileFormats.find((f) => f.type === "qrcode"),
+    tokenSymbol,
+    tokenName,
+  );
 }
 
 // função para gerar QR Code otimizado para mobile
 async function generateMobileOptimizedQR(format, tokenSymbol, tokenName) {
-  const container = document.getElementById('mobileQRDisplay');
+  const container = document.getElementById("mobileQRDisplay");
   if (!container || !format) return;
-  
+
   container.innerHTML = '<div class="text-center text-muted"><i class="bi bi-hourglass-split"></i> Gerando QR Mobile...</div>';
-  
+
   const qrSize = 280; // Tamanho maior para mobile
-  
+
   // APIs otimizadas para mobile
-  const mobileQRApis = [
-    `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(format.data)}&format=png&margin=15&bgcolor=FFFFFF&color=000000&ecc=H`,
-    `https://chart.googleapis.com/chart?chs=${qrSize}x${qrSize}&cht=qr&chl=${encodeURIComponent(format.data)}&chld=H|5`,
-    `https://quickchart.io/qr?text=${encodeURIComponent(format.data)}&size=${qrSize}&margin=15&format=png&ecLevel=H`
-  ];
-  
+  const mobileQRApis = [`https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(format.data)}&format=png&margin=15&bgcolor=FFFFFF&color=000000&ecc=H`, `https://chart.googleapis.com/chart?chs=${qrSize}x${qrSize}&cht=qr&chl=${encodeURIComponent(format.data)}&chld=H|5`, `https://quickchart.io/qr?text=${encodeURIComponent(format.data)}&size=${qrSize}&margin=15&format=png&ecLevel=H`];
+
   let apiIndex = 0;
-  
+
   function tryMobileQRAPI() {
     if (apiIndex >= mobileQRApis.length) {
       container.innerHTML = `
@@ -1195,12 +1197,12 @@ async function generateMobileOptimizedQR(format, tokenSymbol, tokenName) {
       `;
       return;
     }
-    
+
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = "anonymous";
     img.src = mobileQRApis[apiIndex];
-    
-    img.onload = function() {
+
+    img.onload = function () {
       container.innerHTML = `
         <div class="mobile-qr-display">
           <div class="qr-container-mobile">
@@ -1226,76 +1228,80 @@ async function generateMobileOptimizedQR(format, tokenSymbol, tokenName) {
         </div>
       `;
     };
-    
-    img.onerror = function() {
+
+    img.onerror = function () {
       console.warn(`Mobile QR API ${apiIndex + 1} falhou, tentando próxima...`);
       apiIndex++;
       tryMobileQRAPI();
     };
   }
-  
+
   tryMobileQRAPI();
 }
 
 // função para tratar ações das wallets no mobile - VERSÃO CORRIGIDA
-window.handleMobileWalletAction = function(type, data, walletName) {
+window.handleMobileWalletAction = function (type, data, walletName) {
   console.log(`📱 Ação mobile CORRIGIDA: ${type} para ${walletName}`);
   console.log(`🔗 Dados:`, data);
-  
+
   // Feedback visual imediato
-  const button = event.target.closest('button');
+  const button = event.target.closest("button");
   const originalHtml = button.innerHTML;
   button.innerHTML = '<i class="bi bi-hourglass-split"></i> Abrindo...';
   button.disabled = true;
-  
-  switch(type) {
-    case 'browser':
+
+  switch (type) {
+    case "browser":
       // Links que abrem no navegador (sempre funcionam)
-      console.log('🌐 Abrindo no navegador:', data);
+      console.log("🌐 Abrindo no navegador:", data);
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile: abrir na mesma aba
         window.location.href = data;
       } else {
         // Desktop: nova aba
-        window.open(data, '_blank');
+        window.open(data, "_blank");
       }
       break;
-      
-    case 'qrcode':
+
+    case "qrcode":
       // Mostrar QR Code simples
-      console.log('📱 Gerando QR Code simples');
-      const qrSection = document.getElementById('mobileQRDisplay');
+      console.log("📱 Gerando QR Code simples");
+      const qrSection = document.getElementById("mobileQRDisplay");
       if (qrSection) {
         // Gerar QR Code apenas com o endereço do contrato
         generateSimpleMobileQR(data, qrSection);
-        qrSection.scrollIntoView({ behavior: 'smooth' });
+        qrSection.scrollIntoView({ behavior: "smooth" });
       }
       break;
-      
-    case 'copy':
+
+    case "copy":
       // Copiar endereço do contrato
-      console.log('� Copiando endereço:', data);
+      console.log("� Copiando endereço:", data);
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(data).then(() => {
-          button.innerHTML = '<i class="bi bi-check"></i> Copiado!';
-          button.className = 'btn btn-primary btn-lg mobile-wallet-btn';
-        }).catch(() => {
-          prompt('Copie o endereço do contrato:', data);
-        });
+        navigator.clipboard
+          .writeText(data)
+          .then(() => {
+            button.innerHTML = '<i class="bi bi-check"></i> Copiado!';
+            button.className = "btn btn-outline-primary btn-lg mobile-wallet-btn";
+          })
+          .catch(() => {
+            prompt("Copie o endereço do contrato:", data);
+          });
       } else {
-        prompt('Copie o endereço do contrato:', data);
+        prompt("Copie o endereço do contrato:", data);
       }
       break;
-      
-    case 'manual':
+
+    case "manual":
       // Mostrar instruções manuais
       showManualInstructions(walletName);
       break;
   }
-  
+
   // Restaurar Botão após 3 segundos
   setTimeout(() => {
-    if (type !== 'copy') { // Não restaurar se foi cópia bem-sucedida
+    if (type !== "copy") {
+      // Não restaurar se foi cópia bem-sucedida
       button.innerHTML = originalHtml;
       button.disabled = false;
     }
@@ -1303,9 +1309,9 @@ window.handleMobileWalletAction = function(type, data, walletName) {
 };
 
 // função para baixar QR Code mobile
-window.downloadMobileQR = function(imageSrc, filename) {
-  const link = document.createElement('a');
-  link.download = filename + '.png';
+window.downloadMobileQR = function (imageSrc, filename) {
+  const link = document.createElement("a");
+  link.download = filename + ".png";
   link.href = imageSrc;
   document.body.appendChild(link);
   link.click();
@@ -1313,42 +1319,44 @@ window.downloadMobileQR = function(imageSrc, filename) {
 };
 
 // função para compartilhar QR Code mobile
-window.shareMobileQR = async function(qrData) {
+window.shareMobileQR = async function (qrData) {
   if (navigator.share) {
     // API nativa de compartilhamento do mobile
     try {
       await navigator.share({
-        title: 'Adicionar Token à Wallet',
-        text: 'Use este link para adicionar o token à sua wallet:',
-        url: qrData.startsWith('http') ? qrData : window.location.href
+        title: "Adicionar Token à Wallet",
+        text: "Use este link para adicionar o token à sua wallet:",
+        url: qrData.startsWith("http") ? qrData : window.location.href,
       });
-    } catch(error) {
-      console.log('Compartilhamento cancelado');
+    } catch (error) {
+      console.log("Compartilhamento cancelado");
     }
   } else {
     // Fallback: copiar para clipboard
     try {
       await navigator.clipboard.writeText(qrData);
-      alert('✅ Link copiado para a área de transferência!');
-    } catch(error) {
+      alert("✅ Link copiado para a área de transferência!");
+    } catch (error) {
       // Último fallback: mostrar o texto
-      prompt('Copie este link:', qrData);
+      prompt("Copie este link:", qrData);
     }
   }
 };
 
 // função para gerar links diretos para wallets
 function generateWalletLinks(qrFormats, tokenSymbol, tokenName, chainId) {
-  const walletLinksDiv = document.getElementById('walletLinks');
-  
-  const walletButtons = qrFormats.map(format => `
+  const walletLinksDiv = document.getElementById("walletLinks");
+
+  const walletButtons = qrFormats
+    .map(
+      (format) => `
     <div class="d-flex align-items-center justify-content-between p-2 border rounded">
       <div class="flex-grow-1">
         <strong class="text-primary">${format.name}</strong><br>
         <small class="text-muted">${format.description}</small>
       </div>
       <div class="btn-group btn-group-sm">
-        <button class="btn btn-primary" onclick="openWalletLink('${format.data.replace(/'/g, "\\'")}')">
+        <button class="btn btn-outline-primary" onclick="openWalletLink('${format.data.replace(/'/g, "\\'")}')">
           <i class="bi bi-box-arrow-up-right"></i> Abrir
         </button>
         <button class="btn btn-outline-secondary" onclick="copyWalletLink('${format.data.replace(/'/g, "\\'")}')">
@@ -1356,81 +1364,79 @@ function generateWalletLinks(qrFormats, tokenSymbol, tokenName, chainId) {
         </button>
       </div>
     </div>
-  `).join('');
-  
+  `,
+    )
+    .join("");
+
   walletLinksDiv.innerHTML = walletButtons;
 }
 
 // função para gerar QR Code individual
-async function generateSingleQR(containerId, qrData, size = 200, title = '') {
+async function generateSingleQR(containerId, qrData, size = 200, title = "") {
   const container = document.getElementById(containerId);
   if (!container) return;
-  
+
   container.innerHTML = '<div class="text-center text-muted"><i class="bi bi-hourglass-split"></i> Gerando...</div>';
-  
+
   // APIs para QR Code com fallback
-  const qrApis = [
-    `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qrData)}&format=png&margin=10&bgcolor=FFFFFF&color=000000&ecc=M`,
-    `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(qrData)}&chld=M|4`,
-    `https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=${size}&margin=10&format=png`
-  ];
-  
+  const qrApis = [`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(qrData)}&format=png&margin=10&bgcolor=FFFFFF&color=000000&ecc=M`, `https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encodeURIComponent(qrData)}&chld=M|4`, `https://quickchart.io/qr?text=${encodeURIComponent(qrData)}&size=${size}&margin=10&format=png`];
+
   let apiIndex = 0;
-  
+
   function tryNextAPI() {
     if (apiIndex >= qrApis.length) {
       container.innerHTML = `
         <div class="alert alert-warning">
           <i class="bi bi-exclamation-triangle"></i><br>
           Erro ao gerar QR Code.<br>
-          <small>Dados: ${qrData.length > 50 ? qrData.substring(0, 50) + '...' : qrData}</small>
+          <small>Dados: ${qrData.length > 50 ? qrData.substring(0, 50) + "..." : qrData}</small>
         </div>
       `;
       return;
     }
-    
+
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = "anonymous";
     img.src = qrApis[apiIndex];
-    
-    img.onload = function() {
+
+    img.onload = function () {
       // Criar canvas para adicionar logo XCafe
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
       canvas.width = size;
       canvas.height = size;
-      
+
       // Desenhar QR Code base
       ctx.drawImage(img, 0, 0, size, size);
-      
+
       // Adicionar logo XCafe pequeno no canto
       addXCafeMark(ctx, size);
-      
+
       // Mostrar resultado
       container.innerHTML = `
         <div class="qr-result">
           <canvas width="${size}" height="${size}" style="max-width: 100%; border: 2px solid #28a745; border-radius: 10px;"></canvas>
           <div class="mt-2">
-            <button class="btn btn-sm btn-outline-primary" onclick="downloadQR(this.parentNode.parentNode.querySelector('canvas'), '${title || 'qrcode'}_xcafe')">
+            <button class="btn btn-sm btn-outline-primary" onclick="downloadQR(this.parentNode.parentNode.querySelector('canvas'), '${title || "qrcode"}_xcafe')">
               <i class="bi bi-download"></i> Download
             </button>
           </div>
         </div>
       `;
-      
+
       // Copiar canvas gerado para o canvas no HTML
-      const displayCanvas = container.querySelector('canvas');
-      const displayCtx = displayCanvas.getContext('2d');
+      const displayCanvas = container.querySelector("canvas");
+      const displayCtx = displayCanvas.getContext("2d");
       displayCtx.drawImage(canvas, 0, 0);
     };
-    
-    img.onerror = function() {
+
+    img.onerror = function () {
       apiIndex++;
       tryNextAPI();
     };
   }
-  
+
   tryNextAPI();
 }
 
@@ -1439,28 +1445,30 @@ function addXCafeMark(ctx, qrSize) {
   const markSize = qrSize * 0.15;
   const markX = qrSize - markSize - 5;
   const markY = qrSize - markSize - 5;
-  
+
   // Fundo semi-transparente
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
   ctx.fillRect(markX - 3, markY - 3, markSize + 6, markSize + 6);
-  
+
   // Borda verde
-  ctx.strokeStyle = '#28a745';
+  ctx.strokeStyle = "#28a745";
   ctx.lineWidth = 1;
   ctx.strokeRect(markX - 3, markY - 3, markSize + 6, markSize + 6);
-  
+
   // Texto XCafe
-  ctx.fillStyle = '#28a745';
-  ctx.font = `bold ${markSize/4}px Arial`;
-  ctx.textAlign = 'center';
-  ctx.fillText('XCafe', markX + markSize/2, markY + markSize/2 + 2);
+  ctx.fillStyle = "#28a745";
+  ctx.font = `bold ${markSize / 4}px Arial`;
+  ctx.textAlign = "center";
+  ctx.fillText("XCafe", markX + markSize / 2, markY + markSize / 2 + 2);
 }
 
 // função para gerar QR Codes alternativos
 function generateAllAlternativeQRs(formats, tokenSymbol, tokenName, chainId) {
-  const allQRDiv = document.getElementById('allQRCodes');
-  
-  const qrCards = formats.map((format, index) => `
+  const allQRDiv = document.getElementById("allQRCodes");
+
+  const qrCards = formats
+    .map(
+      (format, index) => `
     <div class="col-12 col-md-6 mb-3">
       <div class="card">
         <div class="card-header bg-light">
@@ -1478,41 +1486,46 @@ function generateAllAlternativeQRs(formats, tokenSymbol, tokenName, chainId) {
         </div>
       </div>
     </div>
-  `).join('');
-  
+  `,
+    )
+    .join("");
+
   allQRDiv.innerHTML = qrCards;
 }
 
 // Funções auxiliares para interAção
-window.openWalletLink = function(url) {
-  console.log('🔗 Abrindo link da wallet:', url);
-  window.open(url, '_blank');
+window.openWalletLink = function (url) {
+  console.log("🔗 Abrindo link da wallet:", url);
+  window.open(url, "_blank");
 };
 
-window.copyWalletLink = function(url) {
-  navigator.clipboard.writeText(url).then(() => {
-    // Feedback visual
-    const button = event.target.closest('button');
-    const originalHtml = button.innerHTML;
-    button.innerHTML = '<i class="bi bi-check"></i>';
-    button.classList.add('btn-primary');
-    button.classList.remove('btn-outline-secondary');
-    
-    setTimeout(() => {
-      button.innerHTML = originalHtml;
-      button.classList.remove('btn-primary');
-      button.classList.add('btn-outline-secondary');
-    }, 1500);
-  }).catch(err => {
-    console.error('Erro ao copiar:', err);
-    alert('Link copiado: ' + url);
-  });
+window.copyWalletLink = function (url) {
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      // Feedback visual
+      const button = event.target.closest("button");
+      const originalHtml = button.innerHTML;
+      button.innerHTML = '<i class="bi bi-check"></i>';
+      button.classList.add("btn-outline-primary");
+      button.classList.remove("btn-outline-secondary");
+
+      setTimeout(() => {
+        button.innerHTML = originalHtml;
+        button.classList.remove("btn-outline-primary");
+        button.classList.add("btn-outline-secondary");
+      }, 1500);
+    })
+    .catch((err) => {
+      console.error("Erro ao copiar:", err);
+      alert("Link copiado: " + url);
+    });
 };
 
-window.downloadQR = function(canvas, filename) {
-  const link = document.createElement('a');
-  link.download = filename + '.png';
-  link.href = canvas.toDataURL('image/png', 1.0);
+window.downloadQR = function (canvas, filename) {
+  const link = document.createElement("a");
+  link.download = filename + ".png";
+  link.href = canvas.toDataURL("image/png", 1.0);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -1522,21 +1535,17 @@ window.downloadQR = function(canvas, filename) {
 
 // função para gerar QR Code simples (apenas endereço do contrato)
 function generateSimpleMobileQR(contractAddress, container) {
-  console.log('📱 Gerando QR Code simples com endereço:', contractAddress);
-  
+  console.log("📱 Gerando QR Code simples com endereço:", contractAddress);
+
   container.innerHTML = '<div class="text-center text-muted"><i class="bi bi-hourglass-split"></i> Gerando QR simples...</div>';
-  
+
   const qrSize = 300;
-  
+
   // Usar apenas o endereço do contrato (mais simples e sempre funciona)
-  const apiUrls = [
-    `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(contractAddress)}&format=png&margin=20&bgcolor=FFFFFF&color=000000&ecc=H`,
-    `https://chart.googleapis.com/chart?chs=${qrSize}x${qrSize}&cht=qr&chl=${encodeURIComponent(contractAddress)}&chld=H|4`,
-    `https://quickchart.io/qr?text=${encodeURIComponent(contractAddress)}&size=${qrSize}&margin=20&format=png&ecLevel=H`
-  ];
-  
+  const apiUrls = [`https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(contractAddress)}&format=png&margin=20&bgcolor=FFFFFF&color=000000&ecc=H`, `https://chart.googleapis.com/chart?chs=${qrSize}x${qrSize}&cht=qr&chl=${encodeURIComponent(contractAddress)}&chld=H|4`, `https://quickchart.io/qr?text=${encodeURIComponent(contractAddress)}&size=${qrSize}&margin=20&format=png&ecLevel=H`];
+
   let apiIndex = 0;
-  
+
   function trySimpleQRAPI() {
     if (apiIndex >= apiUrls.length) {
       container.innerHTML = `
@@ -1554,13 +1563,13 @@ function generateSimpleMobileQR(contractAddress, container) {
       `;
       return;
     }
-    
+
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    img.crossOrigin = "anonymous";
     img.src = apiUrls[apiIndex];
-    
-    img.onload = function() {
-      console.log('✅ QR Code simples gerado com sucesso');
+
+    img.onload = function () {
+      console.log("✅ QR Code simples gerado com sucesso");
       container.innerHTML = `
         <div class="mobile-qr-display">
           <div class="qr-container-mobile">
@@ -1587,20 +1596,20 @@ function generateSimpleMobileQR(contractAddress, container) {
         </div>
       `;
     };
-    
-    img.onerror = function() {
+
+    img.onerror = function () {
       console.warn(`QR API ${apiIndex + 1} falhou, tentando próxima...`);
       apiIndex++;
       trySimpleQRAPI();
     };
   }
-  
+
   trySimpleQRAPI();
 }
 
 // função para mostrar instruções manuais
 function showManualInstructions(walletName) {
-  const modal = document.createElement('div');
+  const modal = document.createElement("div");
   modal.style.cssText = `
     position: fixed;
     top: 0;
@@ -1614,8 +1623,8 @@ function showManualInstructions(walletName) {
     z-index: 9999;
     padding: 20px;
   `;
-  
-  const content = document.createElement('div');
+
+  const content = document.createElement("div");
   content.style.cssText = `
     background: white;
     border-radius: 15px;
@@ -1626,7 +1635,7 @@ function showManualInstructions(walletName) {
     overflow-y: auto;
     color: #333;
   `;
-  
+
   content.innerHTML = `
     <div class="text-center mb-3">
       <h4 style="color: #28a745;">📖 Como Adicionar Token Manualmente</h4>
@@ -1669,26 +1678,25 @@ function showManualInstructions(walletName) {
       </div>
     </div>
   `;
-  
+
   modal.appendChild(content);
   document.body.appendChild(modal);
-  
+
   // Preencher as informações do token
   setTimeout(() => {
-    const addressEl = document.getElementById('modalContractAddress');
-    const symbolEl = document.getElementById('modalSymbol');
-    const decimalsEl = document.getElementById('modalDecimals');
-    
+    const addressEl = document.getElementById("modalContractAddress");
+    const symbolEl = document.getElementById("modalSymbol");
+    const decimalsEl = document.getElementById("modalDecimals");
+
     if (addressEl && window.currentTokenAddress) addressEl.textContent = window.currentTokenAddress;
     if (symbolEl && window.currentTokenSymbol) symbolEl.textContent = window.currentTokenSymbol;
     if (decimalsEl && window.currentTokenDecimals) decimalsEl.textContent = window.currentTokenDecimals;
   }, 100);
-  
+
   // Fechar ao clicar fora
-  modal.addEventListener('click', function(e) {
+  modal.addEventListener("click", function (e) {
     if (e.target === modal) {
       modal.remove();
     }
   });
 }
-

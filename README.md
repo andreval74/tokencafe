@@ -16,30 +16,35 @@ TokenCafe é uma plataforma Web3 completa que democratiza a criação, gestão e
 ## ✨ Funcionalidades Principais
 
 ### 🚀 Criação No-Code de Tokens
+
 - **ERC-20 & ERC-721**: Crie tokens e NFTs sem programar
 - **Templates Prontos**: Modelos pré-auditados para diferentes casos de uso
 - **Deploy Instantâneo**: Publique seu token em minutos
 - **Multi-blockchain**: Suporte a Ethereum, BSC, Polygon e mais
 
 ### 🎨 Landing Pages Automáticas
+
 - **Geração Automática**: Páginas profissionais criadas automaticamente
 - **Widget de Compra**: Sistema integrado de vendas
 - **Personalização**: Customize cores, textos e imagens
 - **SEO Otimizado**: Páginas otimizadas para buscadores
 
 ### 🤝 Marketplace Social
+
 - **Descoberta de Projetos**: Explore tokens criados na comunidade
 - **Interação Social**: Curtir, comentar e compartilhar projetos
 - **Reputação**: Sistema de avaliação baseado em comunidade
 - **Trending**: Acompanhe projetos em alta
 
 ### 🧠 IA Assistiva
+
 - **Orientação Personalizada**: Suporte inteligente em todas as etapas
 - **Análise de Mercado**: Insights sobre tendências e oportunidades
 - **Otimização Automática**: Sugestões para melhorar seu projeto
 - **Suporte 24/7**: Assistente sempre disponível
 
 ### 🔐 Segurança & Web3
+
 - **Carteiras Conectadas**: MetaMask, Trust Wallet, WalletConnect
 - **Custódia do Usuário**: Você mantém controle total dos seus ativos
 - **Contratos Auditados**: Smart contracts verificados e seguros
@@ -48,24 +53,28 @@ TokenCafe é uma plataforma Web3 completa que democratiza a criação, gestão e
 ## 🏗️ Arquitetura Técnica
 
 ### Frontend
+
 - **JavaScript ES6 Vanilla**: Performance otimizada
 - **Bootstrap 5**: Interface responsiva e moderna
 - **Sistema Modular**: Arquitetura escalável e manutenível
 - **PWA Ready**: Funciona como aplicativo nativo
 
 ### Backend
-- **Flask Python**: API robusta e escalável  
+
+- **Flask Python**: API robusta e escalável
 - **Node.js Opcional**: Suporte dual de backend
 - **WebSocket**: Atualizações em tempo real
 - **RESTful APIs**: Integração com sistemas externos
 
 ### Blockchain
+
 - **Web3.js**: Integração direta com blockchains
 - **Multi-chain**: Ethereum, BSC, Polygon, Solana
 - **Smart Contracts**: Solidity auditado e otimizado
 - **Oráculos**: Dados do mundo real via Chainlink
 
 ### Dados
+
 - **JSON Estruturado**: Sistema de dados flexível
 - **IPFS**: Armazenamento descentralizado
 - **Caching Inteligente**: Performance otimizada
@@ -74,6 +83,7 @@ TokenCafe é uma plataforma Web3 completa que democratiza a criação, gestão e
 ## 🚀 Como Começar
 
 ### Pré-requisitos
+
 - Python 3.8+ ou Node.js 16+
 - MetaMask ou carteira Web3
 - Conexão com internet
@@ -114,7 +124,7 @@ tokencafe/
 ├── css/                 # Estilos unificados
 ├── js/                  # JavaScript modular
 │   ├── core/           # Sistemas centrais
-│   ├── shared/         # Módulos compartilhados  
+│   ├── shared/         # Módulos compartilhados
 │   ├── modules/        # Funcionalidades específicas
 │   └── systems/        # Lógica de negócio
 ├── pages/              # Páginas HTML
@@ -133,7 +143,7 @@ tokencafe/
 # Servidor de desenvolvimento
 python server_flask.py
 
-# Testes automatizados  
+# Testes automatizados
 npm test
 
 # Build para produção
@@ -153,9 +163,11 @@ npm run lint
 ## 🧩 Módulo de Links (RPC unificada)
 
 Use o Gerador de Links para validar RPCs, integração com carteiras e chamadas ERC-20 em produção:
+
 - Página principal: `pages/modules/link/link-index.html`
 
 Funcionalidades principais:
+
 - Checagem de `chainId` e troca de rede
 - Conexão com carteiras (MetaMask/WalletConnect)
 - Geração de links para `wallet_watchAsset`

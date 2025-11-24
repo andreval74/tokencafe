@@ -14,7 +14,7 @@
 .logo-standard {
   width: 48px;
   height: 48px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .logo-large {
@@ -230,8 +230,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* ============================================================================
@@ -250,6 +255,24 @@
   height: 32px;
   border-radius: 50%;
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-circle-lg {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-circle-xl {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
@@ -491,18 +514,18 @@
   .feature-card {
     margin-bottom: 20px;
   }
-  
+
   .toast {
     right: 10px;
     left: 10px;
     min-width: auto;
   }
-  
+
   .logo-standard {
     width: 40px;
     height: 40px;
   }
-  
+
   .logo-large {
     width: 60px;
     height: 60px;

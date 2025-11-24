@@ -13,16 +13,16 @@ Baseado no header.html do TokenCafe com tema TokenCafe
       <a class="navbar-brand d-flex align-items-center" href="index.html">
         <img src="../../../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 tokencafe-logo logo-standard" />
         <div>
-          <span class="fw-bold fs-4 text-white">Token<span class="text-warning">Cafe</span></span>
-          <small class="d-block text-white-50 text-small">
-            Plataforma Web3
-          </small>
+          <span class="fw-bold fs-4 text-white">
+            Token
+            <span class="text-warning">Cafe</span>
+          </span>
+          <small class="d-block text-white-50 text-small">Plataforma Web3</small>
         </div>
       </a>
 
       <!-- Mobile Toggle -->
-      <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse"
-        data-bs-target="#navbarNav">
+      <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -32,32 +32,38 @@ Baseado no header.html do TokenCafe com tema TokenCafe
         <ul class="navbar-nav ms-auto me-3">
           <li class="nav-item">
             <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#token">
-              <i class="fas fa-coins me-1"></i>Token
+              <i class="fas fa-coins me-1"></i>
+              Token
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#comofunciona">
-              <i class="fas fa-cogs me-1"></i>Como Funciona
+              <i class="fas fa-cogs me-1"></i>
+              Como Funciona
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#ecosistema">
-              <i class="fas fa-globe me-1"></i>EcoSistema
+              <i class="fas fa-globe me-1"></i>
+              EcoSistema
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#precos">
-              <i class="fas fa-dollar-sign me-1"></i>Preços
+              <i class="fas fa-dollar-sign me-1"></i>
+              Preços
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#social">
-              <i class="fas fa-users me-1"></i>Social
+              <i class="fas fa-users me-1"></i>
+              Social
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#suporte">
-              <i class="fas fa-headset me-1"></i>Suporte
+              <i class="fas fa-headset me-1"></i>
+              Suporte
             </a>
           </li>
         </ul>
@@ -73,8 +79,9 @@ Baseado no header.html do TokenCafe com tema TokenCafe
           </button>
 
           <!-- Conectar MetaMask -->
-          <button id="connect-metamask-btn" class="btn btn-sm btn-warning fw-bold" type="button" title="Conectar MetaMask">
-            <i class="bi bi-wallet2 me-1"></i>Conectar
+          <button id="connect-metamask-btn" class="btn btn-sm btn-outline-primary fw-bold" type="button" title="Conectar MetaMask">
+            <i class="bi bi-wallet2 me-1"></i>
+            Conectar
           </button>
         </div>
       </div>
@@ -85,22 +92,26 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 <div class="section-divider"></div>
 
 <script>
-  (function(){
-    function log(msg){ try{ console.log('[Header] ', msg); }catch(_){} }
-    const btn = document.getElementById('connect-metamask-btn');
+  (function () {
+    function log(msg) {
+      try {
+        console.log("[Header] ", msg);
+      } catch (_) {}
+    }
+    const btn = document.getElementById("connect-metamask-btn");
     if (!btn) return;
 
-    function updateStatusByStatus(){
+    function updateStatusByStatus() {
       if (!btn) return;
       const status = window.walletConnector?.getStatus?.() || {};
       const connected = !!status.account && !!status.sessionAuthorized;
-      if (connected){
-        btn.classList.remove('btn-warning');
-        btn.classList.add('btn-success');
+      if (connected) {
+        btn.classList.remove("btn-outline-warning");
+        btn.classList.add("btn-outline-success");
         btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Conectado';
       } else {
-        btn.classList.add('btn-warning');
-        btn.classList.remove('btn-success');
+        btn.classList.add("btn-outline-warning");
+        btn.classList.remove("btn-outline-success");
         btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Conectar';
       }
     }
@@ -108,20 +119,29 @@ Baseado no header.html do TokenCafe com tema TokenCafe
     // Estado inicial via WalletConnector
     try {
       updateStatusByStatus();
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
 
     // Eventos globais para manter UI sincronizada
     const refresh = () => updateStatusByStatus();
-    document.addEventListener('wallet:connected', refresh);
-    document.addEventListener('wallet:disconnected', refresh);
-    document.addEventListener('wallet:accountChanged', refresh);
+    document.addEventListener("wallet:connected", refresh);
+    document.addEventListener("wallet:disconnected", refresh);
+    document.addEventListener("wallet:accountChanged", refresh);
 
     // Clique de conectar — usa a página de login de conexão (com cancelamento)
-    btn.addEventListener('click', () => {
-      try{
-        const current = window.location.pathname + window.location.search + window.location.hash;
-        window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
-      }catch(e){ console.error('Erro ao abrir página de conexão via header:', e); alert('Erro ao conectar: ' + (e.message || e)); }
-    }, { capture: true });
+    btn.addEventListener(
+      "click",
+      () => {
+        try {
+          const current = window.location.pathname + window.location.search + window.location.hash;
+          window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+        } catch (e) {
+          console.error("Erro ao abrir página de conexão via header:", e);
+          alert("Erro ao conectar: " + (e.message || e));
+        }
+      },
+      { capture: true },
+    );
   })();
 </script>

@@ -5,6 +5,7 @@ Este módulo é responsável pela gestão de carteiras e conexões blockchain no
 ## Estrutura de Arquivos
 
 ### `script.js`
+
 - **Função**: Módulo principal de gerenciamento de carteira
 - **Funcionalidades**:
   - Conexão e desconexão de carteiras (MetaMask, TrustWallet, WalletConnect)
@@ -14,12 +15,14 @@ Este módulo é responsável pela gestão de carteiras e conexões blockchain no
   - Cache de dados para melhor performance
 
 ### `rpcs.json` (movido para shared/data/)
+
 - **Função**: Configuração de redes blockchain suportadas
 - **Conteúdo**: Dados das chains incluindo Chain ID, RPC URLs, exploradores de bloco, moedas nativas
 
 ## Páginas Relacionadas
 
 ### `pages/modules/wallet-index.html`
+
 - **Função**: Interface principal do módulo wallet
 - **Localização**: Correta - dentro do diretório de páginas de módulos
 
@@ -37,8 +40,9 @@ Este módulo é responsável pela gestão de carteiras e conexões blockchain no
 
 3. **Troca de Redes**
    - Suporte a múltiplas redes
+
 - Configuração dinâmica via shared/data/rpcs.json
-   - Validação de redes suportadas
+  - Validação de redes suportadas
 
 ## Dependências
 
@@ -49,6 +53,7 @@ Este módulo é responsável pela gestão de carteiras e conexões blockchain no
 ## Localização
 
 Todos os arquivos estão corretamente organizados:
+
 - Módulo principal: `js/modules/wallet/`
 - Páginas: `pages/modules/`
 - Configurações: Dentro do módulo

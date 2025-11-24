@@ -27,15 +27,7 @@
   "releaseDate": "2025-01-01",
   "screenshot": "https://tokencafe.app/imgs/tokencafe-screenshot.png",
   "downloadUrl": "https://tokencafe.app",
-  "featureList": [
-    "Criação de tokens ERC-20 e BEP-20",
-    "Deploy instantâneo sem código",
-    "Marketplace integrado",
-    "IA assistiva para criação",
-    "Suporte multi-blockchain",
-    "Templates prontos",
-    "Dashboard completo"
-  ],
+  "featureList": ["Criação de tokens ERC-20 e BEP-20", "Deploy instantâneo sem código", "Marketplace integrado", "IA assistiva para criação", "Suporte multi-blockchain", "Templates prontos", "Dashboard completo"],
   "inLanguage": "pt-BR",
   "permissions": "Acesso à carteira Web3",
   "storageRequirements": "Mínimo"

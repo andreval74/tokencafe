@@ -5,7 +5,7 @@
   "main": "api/server.js",
   "scripts": {
     "dev": "node api/server.js",
-    "build": "webpack --mode production",
+    "build": "node -e \"console.log('Build não necessário para páginas estáticas; pulando.')\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "start": "node api/server.js",
@@ -15,7 +15,7 @@
     "format:check": "prettier --check \"**/*.{js,html,css,json,md}\"",
     "docs": "jsdoc -c jsdoc.conf.json",
     "setup:dev": "npm install && npm run build",
-    "deploy": "npm run build && npm run test && node setup/deploy.js"
+    "deploy": "npm run test && node -e \"console.log('Pronto para deploy: servir com node api/server.js ou infraestrutura estática.')\""
   },
   "keywords": [
     "tokencafe",

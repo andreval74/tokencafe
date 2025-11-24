@@ -22,7 +22,7 @@ BSC_TESTNET_RPC=https://data-seed-prebsc-1-s1.binance.org:8545/
 {
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5", 
+    "cors": "^2.8.5",
     "express-rate-limit": "^6.7.0",
     "solc": "^0.8.26",
     "helmet": "^6.1.5",
@@ -37,20 +37,20 @@ BSC_TESTNET_RPC=https://data-seed-prebsc-1-s1.binance.org:8545/
 
 ## 🚀 **RENDER.COM - 10 CONFIGURAÇÕES**
 
-| Configuração | Valor |
-|--------------|--------|
-| **Name** | `xcafe-token-api` |
-| **Environment** | `Node` |
-| **Root Directory** | `api` |
-| **Build Command** | `npm install` |
-| **Start Command** | `npm start` |
-| **NODE_ENV** | `production` |
-| **PORT** | `10000` |
-| **TRUST_PROXY** | `true` |
-| **DEBUG** | `false` |
-| **SOLC_VERSION** | `0.8.26` |
-| **OPTIMIZATION_RUNS** | `200` |
-| **BSC_TESTNET_RPC** | `https://data-seed-prebsc-1-s1.binance.org:8545/` |
+| Configuração          | Valor                                             |
+| --------------------- | ------------------------------------------------- |
+| **Name**              | `xcafe-token-api`                                 |
+| **Environment**       | `Node`                                            |
+| **Root Directory**    | `api`                                             |
+| **Build Command**     | `npm install`                                     |
+| **Start Command**     | `npm start`                                       |
+| **NODE_ENV**          | `production`                                      |
+| **PORT**              | `10000`                                           |
+| **TRUST_PROXY**       | `true`                                            |
+| **DEBUG**             | `false`                                           |
+| **SOLC_VERSION**      | `0.8.26`                                          |
+| **OPTIMIZATION_RUNS** | `200`                                             |
+| **BSC_TESTNET_RPC**   | `https://data-seed-prebsc-1-s1.binance.org:8545/` |
 
 ## ✅ **COMANDOS ESSENCIAIS**
 
@@ -59,7 +59,7 @@ BSC_TESTNET_RPC=https://data-seed-prebsc-1-s1.binance.org:8545/
 cd api
 npm install
 
-# 2. Verificar configuração  
+# 2. Verificar configuração
 node check-config.js
 
 # 3. Testar local (opcional)
@@ -77,7 +77,7 @@ Arquivo: `js/xcafe-hybrid-api.js`
 
 ```javascript
 // Linha ~5 - SUBSTITUIR pela URL do Render
-this.apiBaseUrl = 'https://SEU-SERVICE.onrender.com';
+this.apiBaseUrl = "https://SEU-SERVICE.onrender.com";
 ```
 
 ## 🧪 **TESTE FINAL**
@@ -95,7 +95,7 @@ this.apiBaseUrl = 'https://SEU-SERVICE.onrender.com';
 cd api
 npm install solc@0.8.26
 git add package*.json
-git commit -m "fix: update solc version" 
+git commit -m "fix: update solc version"
 git push
 ```
 

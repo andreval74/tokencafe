@@ -6,16 +6,16 @@ graph TD
     B --> C[Web3.js/Ethers.js]
     C --> D[MetaMask Provider]
     D --> E[Ethereum Network]
-    
+
     subgraph "Frontend Layer"
         B
     end
-    
+
     subgraph "Web3 Layer"
         C
         D
     end
-    
+
     subgraph "Blockchain Layer"
         E
     end
@@ -23,15 +23,15 @@ graph TD
 
 ## 2.Technology Description
 
-* Frontend: React\@18 + tailwindcss\@3 + vite
+- Frontend: React\@18 + tailwindcss\@3 + vite
 
-* Initialization Tool: vite-init
+- Initialization Tool: vite-init
 
-* Web3 Library: ethers.js\@6
+- Web3 Library: ethers.js\@6
 
-* Backend: None (interação direta com blockchain)
+- Backend: None (interação direta com blockchain)
 
-* Wallet Provider: MetaMask e Web3Modal
+- Wallet Provider: MetaMask e Web3Modal
 
 ## 3.Route definitions
 
@@ -53,7 +53,7 @@ interface WidgetSimplesProps {
 }
 
 interface TransactionState {
-  status: 'idle' | 'connecting' | 'pending' | 'success' | 'error';
+  status: "idle" | "connecting" | "pending" | "success" | "error";
   hash?: string;
   error?: string;
 }
@@ -65,9 +65,9 @@ interface TransactionState {
 
 ```typescript
 async function connectWallet(): Promise<string> {
-  if (!window.ethereum) throw new Error('MetaMask não detectado');
+  if (!window.ethereum) throw new Error("MetaMask não detectado");
   const provider = new ethers.BrowserProvider(window.ethereum);
-  const accounts = await provider.send('eth_requestAccounts', []);
+  const accounts = await provider.send("eth_requestAccounts", []);
   return accounts[0];
 }
 ```
@@ -75,20 +75,16 @@ async function connectWallet(): Promise<string> {
 **Executar Compra de Tokens:**
 
 ```typescript
-async function buyTokens(
-  contractAddress: string,
-  tokenValue: bigint,
-  quantity: bigint
-): Promise<string> {
+async function buyTokens(contractAddress: string, tokenValue: bigint, quantity: bigint): Promise<string> {
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
-  
+
   // Para contratos ERC-20 simples, enviar Ether diretamente
   const tx = await signer.sendTransaction({
     to: contractAddress,
-    value: tokenValue * quantity
+    value: tokenValue * quantity,
   });
-  
+
   await tx.wait();
   return tx.hash;
 }
@@ -130,15 +126,15 @@ widget-simples/
 
 ### Estados do Widget:
 
-* **Desconectado**: Formulário visível, botão de conectar carteira
+- **Desconectado**: Formulário visível, botão de conectar carteira
 
-* **Conectado**: Formulário ativo, mostra saldo e endereço
+- **Conectado**: Formulário ativo, mostra saldo e endereço
 
-* **Processando**: Loading durante transação
+- **Processando**: Loading durante transação
 
-* **Sucesso**: Mostra hash e link do explorador
+- **Sucesso**: Mostra hash e link do explorador
 
-* **Erro**: Mensagem de erro com opção de retry
+- **Erro**: Mensagem de erro com opção de retry
 
 ### Ciclo de Transação:
 
@@ -156,15 +152,15 @@ graph TD
 
 **Erros Comuns e Mensagens:**
 
-* MetaMask não detectado: "Por favor, instale o MetaMask"
+- MetaMask não detectado: "Por favor, instale o MetaMask"
 
-* Saldo insuficiente: "Saldo insuficiente para esta transação"
+- Saldo insuficiente: "Saldo insuficiente para esta transação"
 
-* Transação rejeitada: "Transação cancelada pelo usuário"
+- Transação rejeitada: "Transação cancelada pelo usuário"
 
-* Contrato inválido: "Endereço do contrato inválido"
+- Contrato inválido: "Endereço do contrato inválido"
 
-* Rede incorreta: "Por favor, conecte-se à rede Ethereum"
+- Rede incorreta: "Por favor, conecte-se à rede Ethereum"
 
 **Fallback para erros:**
 
@@ -172,13 +168,13 @@ graph TD
 try {
   // Operação Web3
 } catch (error: any) {
-  if (error.code === 'INSUFFICIENT_FUNDS') {
-    return { error: 'Saldo insuficiente' };
+  if (error.code === "INSUFFICIENT_FUNDS") {
+    return { error: "Saldo insuficiente" };
   }
-  if (error.code === 'USER_REJECTED') {
-    return { error: 'Transação cancelada' };
+  if (error.code === "USER_REJECTED") {
+    return { error: "Transação cancelada" };
   }
-  return { error: 'Erro desconhecido: ' + error.message };
+  return { error: "Erro desconhecido: " + error.message };
 }
 ```
 
@@ -186,21 +182,20 @@ try {
 
 **Reutilização de Componentes:**
 
-* Wallet connector do sistema principal
+- Wallet connector do sistema principal
 
-* Funções de formatação de valores
+- Funções de formatação de valores
 
-* Estilos e tema existente
+- Estilos e tema existente
 
-* Configuração de redes e RPC
+- Configuração de redes e RPC
 
 **Interface com Sistema Principal:**
 
 ```typescript
 interface WidgetIntegration {
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
   onComplete?: (hash: string) => void;
   onError?: (error: string) => void;
 }
 ```
-

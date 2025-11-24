@@ -16,19 +16,20 @@
 <div class="network-search-component">
   <div id="network-search-root" class="mt-4">
     <div class="d-flex align-items-center mb-2">
-      <div class="me-2"> <i class="bi bi-globe section-icon fs-6"></i></div>
+      <div class="me-2"><i class="bi bi-globe section-icon fs-2"></i></div>
       <div class="flex-grow-1">
-        <h6 class="mb-0 small fw-semibold">Buscar Rede Blockchain</h6>
+        <h5 class="mb-0 fw-semibold">Buscar Rede Blockchain</h5>
         <p class="text-muted mb-0 small">Busca por nome, chainId ou símbolo</p>
       </div>
     </div>
     <div class="input-group">
-      <input type="text" id="networkSearch" class="form-control" placeholder="Buscar por nome, chainId ou símbolo"
-        autocomplete="off">
-      <button type="button" id="nsInfoBtn" class="btn btn-outline-info" title="Mostrar informações"><i
-          class="bi bi-info-circle"></i></button>
-      <button type="button" id="nsClearBtn" class="btn btn-outline-danger" title="Limpar campo"><i
-          class="bi bi-x-circle"></i></button>
+      <input type="text" id="networkSearch" class="form-control" placeholder="Buscar por nome, chainId ou símbolo" autocomplete="off" />
+      <button type="button" id="nsInfoBtn" class="btn btn-outline-info" title="Mostrar informações">
+        <i class="bi bi-info-circle"></i>
+      </button>
+      <button type="button" id="nsClearBtn" class="btn btn-outline-danger" title="Limpar campo">
+        <i class="bi bi-x-circle"></i>
+      </button>
     </div>
   </div>
   <div id="networkAutocomplete" class="network-autocomplete list-group d-none"></div>
@@ -69,7 +70,8 @@
         <div class="row g-2 mb-2">
           <div class="col-md-6">
             <div class="d-flex align-items-baseline gap-2">
-              <span>URL RPC:
+              <span>
+                URL RPC:
                 <a id="rpcUrlText" href="#" target="_blank" rel="noopener" class="text-decoration-none text-tokencafe">
                   <span class="text-tokencafe" id="rpcUrlCode"></span>
                 </a>
@@ -78,9 +80,9 @@
           </div>
           <div class="col-md-6">
             <div class="d-flex align-items-baseline gap-2">
-              <span>Block Explorer:
-                <a id="explorerUrlText" href="#" target="_blank" rel="noopener"
-                  class="text-decoration-none text-tokencafe">
+              <span>
+                Block Explorer:
+                <a id="explorerUrlText" href="#" target="_blank" rel="noopener" class="text-decoration-none text-tokencafe">
                   <span class="text-tokencafe" id="explorerUrlCode"></span>
                 </a>
               </span>

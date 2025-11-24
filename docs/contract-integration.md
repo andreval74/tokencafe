@@ -13,7 +13,7 @@ Para configurar o widget para usar o contrato de venda, edite o arquivo `pages/m
 ```javascript
 const CONFIG = {
   // ... outras configurações ...
-  saleContractAddress: '0xENDERECO_DO_CONTRATO_IMPLANTADO', // Endereço do contrato TokenSale implantado
+  saleContractAddress: "0xENDERECO_DO_CONTRATO_IMPLANTADO", // Endereço do contrato TokenSale implantado
   // O widget chama automaticamente 'buy(quantity)' (TBNB) ou 'buyWithUSDT(quantity)' (USDT)
   // baseado na moeda selecionada, quando 'saleContractAddress' está definido corretamente.
   // ... outras configurações ...

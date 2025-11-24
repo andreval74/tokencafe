@@ -59,17 +59,17 @@ node check-config.js
 
 **Clique em "Environment" e adicione:**
 
-| Key | Value |
-|-----|-------|
-| `NODE_ENV` | `production` |
-| `PORT` | `10000` |
-| `SOLC_VERSION` | `0.8.26` |
-| `OPTIMIZATION_ENABLED` | `true` |
-| `OPTIMIZATION_RUNS` | `200` |
-| `RATE_LIMIT_WINDOW` | `60000` |
-| `RATE_LIMIT_MAX_REQUESTS` | `10` |
-| `BSC_MAINNET_RPC` | `https://bsc-dataseed1.binance.org/` |
-| `BSC_TESTNET_RPC` | `https://data-seed-prebsc-1-s1.binance.org:8545/` |
+| Key                       | Value                                             |
+| ------------------------- | ------------------------------------------------- |
+| `NODE_ENV`                | `production`                                      |
+| `PORT`                    | `10000`                                           |
+| `SOLC_VERSION`            | `0.8.26`                                          |
+| `OPTIMIZATION_ENABLED`    | `true`                                            |
+| `OPTIMIZATION_RUNS`       | `200`                                             |
+| `RATE_LIMIT_WINDOW`       | `60000`                                           |
+| `RATE_LIMIT_MAX_REQUESTS` | `10`                                              |
+| `BSC_MAINNET_RPC`         | `https://bsc-dataseed1.binance.org/`              |
+| `BSC_TESTNET_RPC`         | `https://data-seed-prebsc-1-s1.binance.org:8545/` |
 
 ### 2.4 Deploy
 
@@ -107,7 +107,7 @@ curl -X POST https://seu-service.onrender.com/api/generate-token \
 Linha ~5, alterar:
 
 ```javascript
-this.apiBaseUrl = 'https://SEU-SERVICE-NAME.onrender.com';
+this.apiBaseUrl = "https://SEU-SERVICE-NAME.onrender.com";
 ```
 
 ### 4.2 Testar integração
@@ -131,7 +131,7 @@ this.apiBaseUrl = 'https://SEU-SERVICE-NAME.onrender.com';
 cd api
 npm install
 git add .
-git commit -m "fix: add dependencies"  
+git commit -m "fix: add dependencies"
 git push
 ```
 
@@ -150,7 +150,7 @@ git push
 ## ✅ **CHECKLIST FINAL**
 
 - [ ] ✅ Health check funcionando
-- [ ] ✅ API generate-token funcionando  
+- [ ] ✅ API generate-token funcionando
 - [ ] ✅ Frontend conectando à API
 - [ ] ✅ Deploy de token funcionando
 - [ ] ✅ Verificação no BSCScan funcionando

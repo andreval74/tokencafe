@@ -57,7 +57,7 @@ Verifique se o `package.json` tem todas as dependências:
   },
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5", 
+    "cors": "^2.8.5",
     "express-rate-limit": "^6.7.0",
     "solc": "^0.8.26",
     "helmet": "^6.1.5",
@@ -80,7 +80,7 @@ Verifique se o `package.json` tem todas as dependências:
 ```text
 Name: xcafe-token-api-hybrid
 Environment: Node
-Region: Oregon (US West) 
+Region: Oregon (US West)
 Branch: main
 Root Directory: api/
 Build Command: npm install
@@ -157,11 +157,7 @@ URL: `https://sua-api.onrender.com/health`
   "message": "xcafe Token API - Deploy Híbrido",
   "version": "3.0.0",
   "timestamp": "2025-09-01T...",
-  "features": [
-    "Compilação Solidity",
-    "Deploy via MetaMask (usuário paga)",
-    "Sem private keys necessárias"
-  ]
+  "features": ["Compilação Solidity", "Deploy via MetaMask (usuário paga)", "Sem private keys necessárias"]
 }
 ```
 
@@ -275,7 +271,7 @@ class XcafeHybridAPI {
 ### **Testes Realizados:**
 
 - [ ] Health check: ✅
-- [ ] Compilação: ✅  
+- [ ] Compilação: ✅
 - [ ] Deploy via frontend: ✅
 - [ ] Verificação no BSCScan: ✅
 

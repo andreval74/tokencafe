@@ -28,6 +28,7 @@ Inclua o componente via `data-component`:
 ## Integração na página RPC
 
 O `rpc-logic.js` agora:
+
 - Escuta `network:selected` para preencher o formulário da rede e avançar para a seção de configuração (`rpc-config-section`), sem exibir detalhes automaticamente.
 - Escuta `network:toggleInfo` para mostrar/ocultar o card `selected-network-info` usando `showNetworkDetails(network)` e `hideNetworkDetails()`.
 - Escuta `network:clear` para limpar o formulário e ocultar seções.
