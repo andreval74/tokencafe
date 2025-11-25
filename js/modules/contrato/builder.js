@@ -552,6 +552,23 @@ async function checkApiEndpoints(apiBase) {
 }
 
 const API_BASE = getApiBase();
+function getVerifyApiKey() {
+  try {
+    const sp = new URLSearchParams(window.location.search || "");
+    const fromQuery = sp.get("bscapi");
+    if (fromQuery) return fromQuery;
+  } catch (_) {}
+  try {
+    if (typeof window.TOKENCAFE_BSCSCAN_API_KEY !== "undefined" && window.TOKENCAFE_BSCSCAN_API_KEY) {
+      return window.TOKENCAFE_BSCSCAN_API_KEY;
+    }
+  } catch (_) {}
+  try {
+    return window.localStorage ? window.localStorage.getItem("bscscan_api_key") : null;
+  } catch (_) {
+    return null;
+  }
+}
 async function compileContract() {
   // Validação visual inline dos campos
   const ok = runAllFieldValidation() && validateForm();
@@ -1185,60 +1202,16 @@ async function deployPlaceholder() {
     }
 
     const autoToggle = document.getElementById("autoVerifyToggle");
-    if (autoToggle && autoToggle.checked) {
-      try {
-        const addrVerify = state.deployed?.address;
-        const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
-        const src = state.compilation?.sourceCode;
-        const cname = state.compilation?.contractName;
-        if (addrVerify && chainIdVerify && src && cname) {
-          log("Iniciando verificação automática do contrato no BscScan...");
-          const respV = await fetch(`${API_BASE}/api/verify-bscscan`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chainId: chainIdVerify,
-              contractAddress: addrVerify,
-              sourceCode: src,
-              contractName: cname,
-              optimizationUsed: true,
-              runs: 200,
-            }),
-          });
-          if (respV.ok) {
-            const dataV = await respV.json();
-            const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(addrVerify, chainIdVerify);
-            const ok = !!dataV?.success;
-            if (ok) {
-              log(`✅ Verificação concluída. Explorer: ${vUrl}`);
-            } else {
-              log(`📤 Verificação enviada (${dataV?.message || "pending"}). Acompanhe: ${vUrl}`);
-            }
-            updateVerificationBadges({ bscUrl: vUrl, bscOk: ok });
-          } else {
-            const txtV = await respV.text();
-            log(`Falha ao iniciar verificação no BscScan: ${txtV}`);
-            updateVerificationBadges({
-              bscUrl: getExplorerVerificationUrl(addrVerify, chainIdVerify),
-              bscOk: false,
-            });
-          }
-        } else {
-          log("Verificação automática não iniciada: dados insuficientes (addr/chainId/source/contractName).");
-        }
-      } catch (verErr) {
-        log(`Erro na verificação automática: ${verErr?.message || verErr}`);
-      }
-
+    const autoEnabled = false;
+    if (autoEnabled) {
       try {
         const addrVerify = state.deployed?.address;
         const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
         const src = state.compilation?.sourceCode;
         const cname = state.compilation?.contractName;
         const meta = state.compilation?.metadata;
-        if (addrVerify && chainIdVerify && src && cname && meta) {
-          log("Tentando verificação aberta via Sourcify...");
-          const respS = await fetch(`${API_BASE}/api/verify-sourcify`, {
+        if (addrVerify && chainIdVerify && src && cname) {
+          const resp = await fetch(`${API_BASE}/api/verify-auto`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1246,41 +1219,92 @@ async function deployPlaceholder() {
               contractAddress: addrVerify,
               contractName: cname,
               sourceCode: src,
-              metadata: JSON.stringify(meta),
+              metadata: meta ? JSON.stringify(meta) : undefined,
+              compilerVersion: meta?.compiler?.version || null,
+              optimizationUsed: true,
+              runs: 200,
+              codeformat: "solidity-single-file",
+              contractNameFQN: `${cname}.sol:${cname}`,
+              apiKey: getVerifyApiKey(),
             }),
           });
-          if (respS.ok) {
-            const dataS = await respS.json();
-            const lookup = dataS?.lookupUrl;
-            const status = (dataS?.status || "").toLowerCase();
-            const ok = status === "perfect" || status === "partial" || !!dataS?.success;
-            if (ok) {
-              const repoAny = dataS?.repoFilesAny;
-              const repoFull = dataS?.repoFull;
-              const repoPartial = dataS?.repoPartial;
-              log(`✅ Sourcify status: ${status || "desconhecido"} | Conferir: ${lookup}`);
-              if (repoAny) log(`📁 Repositório (any): ${repoAny}`);
-              if (repoFull) log(`📁 Repositório (full): ${repoFull}`);
-              if (repoPartial) log(`📁 Repositório (partial): ${repoPartial}`);
+          if (resp.ok) {
+            const data = await resp.json();
+            const link = data?.link || data?.lookupUrl || data?.explorerUrl || null;
+            const ok = !!data?.success || !!data?.verified;
+            const hasFilesErr = typeof data?.error === "string" && data.error.toLowerCase().includes("files have not been found");
+            const needFallback = !ok || hasFilesErr || !link;
+            if (!needFallback) {
+              updateVerificationBadges({ bscUrl: link || getExplorerVerificationUrl(addrVerify, chainIdVerify) });
+              log(ok ? `✅ Verificação concluída. ${link || ""}` : `📤 Verificação enviada/pendente. ${link || ""}`);
             } else {
-              const msg = dataS?.error || `Sourcify status: ${status || "desconhecido"}`;
-              log(`Falha na verificação via Sourcify: ${msg}`);
+              log("Sourcify/auto-verificação não disponível. Iniciando fallback no explorer...");
+              const respV = await fetch(`${API_BASE}/api/verify-bscscan`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chainId: chainIdVerify,
+                  contractAddress: addrVerify,
+                  sourceCode: src,
+                  contractName: cname,
+                  compilerVersion: meta?.compiler?.version || null,
+                  optimizationUsed: true,
+                  runs: 200,
+                  codeformat: "solidity-single-file",
+                  contractNameFQN: `${cname}.sol:${cname}`,
+                  apiKey: getVerifyApiKey(),
+                }),
+              });
+              if (respV.ok) {
+                const dataV = await respV.json();
+                const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(addrVerify, chainIdVerify);
+                const okV = !!dataV?.success;
+                updateVerificationBadges({ bscUrl: vUrl });
+                log(okV ? `✅ Verificação concluída (explorer). ${vUrl}` : `📤 Verificação enviada (explorer). ${vUrl}`);
+              } else {
+                const txtV = await respV.text();
+                const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
+                updateVerificationBadges({ bscUrl: vUrl });
+                log(`Falha no fallback de verificação: ${txtV}. Abra manualmente: ${vUrl}`);
+              }
             }
-            updateVerificationBadges({
-              sourUrl: lookup,
-              sourOk: ok,
-              sourStatus: status,
-            });
           } else {
-            const txtS = await respS.text();
-            log(`Erro HTTP no Sourcify: ${txtS}`);
-            updateVerificationBadges({ sourUrl: null, sourOk: false });
+            const txt = await resp.text();
+            log(`Falha ao iniciar verificação automática: ${txt}. Iniciando fallback no explorer...`);
+            const respV = await fetch(`${API_BASE}/api/verify-bscscan`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chainId: chainIdVerify,
+                contractAddress: addrVerify,
+                sourceCode: src,
+                contractName: cname,
+                compilerVersion: meta?.compiler?.version || null,
+                optimizationUsed: true,
+                runs: 200,
+                codeformat: "solidity-single-file",
+                contractNameFQN: `${cname}.sol:${cname}`,
+                apiKey: getVerifyApiKey(),
+              }),
+            });
+            if (respV.ok) {
+              const dataV = await respV.json();
+              const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(addrVerify, chainIdVerify);
+              const okV = !!dataV?.success;
+              updateVerificationBadges({ bscUrl: vUrl });
+              log(okV ? `✅ Verificação concluída (explorer). ${vUrl}` : `📤 Verificação enviada (explorer). ${vUrl}`);
+            } else {
+              const txtV = await respV.text();
+              const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
+              updateVerificationBadges({ bscUrl: vUrl });
+              log(`Falha no fallback de verificação: ${txtV}. Abra manualmente: ${vUrl}`);
+            }
           }
         } else {
-          log("Verificação Sourcify não iniciada: faltam metadata/source/addr/chainId/contractName.");
+          log("Verificação automática não iniciada: dados insuficientes (addr/chainId/source/contractName).");
         }
-      } catch (sErr) {
-        log(`Erro na verificação Sourcify: ${sErr?.message || sErr}`);
+      } catch (verErr) {
+        log(`Erro na verificação automática: ${verErr?.message || verErr}`);
       }
     } else {
       log("Verificação automática desabilitada.");
@@ -1491,6 +1515,12 @@ async function bindUI() {
   const btnAddMM = document.getElementById("btnAddToMetaMask");
   if (btnCompile)
     btnCompile.addEventListener("click", async () => {
+      try {
+        const sp = document.getElementById("compileSpinner");
+        const tx = document.getElementById("compileBtnText");
+        if (sp) sp.classList.remove("d-none");
+        if (tx) tx.textContent = "Compilando...";
+      } catch (_) {}
       await compileContract();
       try {
         btnCompile.disabled = true;
@@ -1501,9 +1531,21 @@ async function bindUI() {
       try {
         if (window.bootstrap?.Tooltip) new bootstrap.Tooltip(btnDeploy);
       } catch (_) {}
+      try {
+        const sp = document.getElementById("compileSpinner");
+        const tx = document.getElementById("compileBtnText");
+        if (sp) sp.classList.add("d-none");
+        if (tx) tx.textContent = "Compilar";
+      } catch (_) {}
     });
   if (btnDeploy)
     btnDeploy.addEventListener("click", async () => {
+      try {
+        const sp = document.getElementById("deploySpinner");
+        const tx = document.getElementById("deployBtnText");
+        if (sp) sp.classList.remove("d-none");
+        if (tx) tx.textContent = "Publicando...";
+      } catch (_) {}
       await deployPlaceholder();
       try {
         btnDeploy.disabled = true;
@@ -1515,11 +1557,29 @@ async function bindUI() {
         const mm = document.getElementById("btnAddToMetaMask");
         if (mm) mm.disabled = false;
       } catch (_) {}
+      try {
+        const vc = document.getElementById("verifyLaunchContainer");
+        const vb = document.getElementById("erc20VerifyLaunch");
+        if (vc) vc.classList.remove("d-none");
+        if (vb) vb.disabled = false;
+      } catch (_) {}
+      try {
+        const sp = document.getElementById("deploySpinner");
+        const tx = document.getElementById("deployBtnText");
+        if (sp) sp.classList.add("d-none");
+        if (tx) tx.textContent = "Deploy";
+      } catch (_) {}
     });
   if (btnBuildDeploy)
     btnBuildDeploy.addEventListener("click", async () => {
       try {
         btnBuildDeploy.disabled = true;
+        try {
+          const sp = document.getElementById("buildSpinner");
+          const tx = document.getElementById("buildBtnText");
+          if (sp) sp.classList.remove("d-none");
+          if (tx) tx.textContent = "Construindo e publicando...";
+        } catch (_) {}
         await compileContract();
         await deployPlaceholder();
         btnBuildDeploy.classList.remove("btn-outline-success");
@@ -1528,9 +1588,27 @@ async function bindUI() {
           const mm = document.getElementById("btnAddToMetaMask");
           if (mm) mm.disabled = false;
         } catch (_) {}
+        try {
+          const vc = document.getElementById("verifyLaunchContainer");
+          const vb = document.getElementById("erc20VerifyLaunch");
+          if (vc) vc.classList.remove("d-none");
+          if (vb) vb.disabled = false;
+        } catch (_) {}
+        try {
+          const sp = document.getElementById("buildSpinner");
+          const tx = document.getElementById("buildBtnText");
+          if (sp) sp.classList.add("d-none");
+          if (tx) tx.textContent = "Compilar e Deploy";
+        } catch (_) {}
       } catch (e) {
         btnBuildDeploy.classList.remove("btn-outline-success");
         btnBuildDeploy.classList.add("btn-used-error");
+        try {
+          const sp = document.getElementById("buildSpinner");
+          const tx = document.getElementById("buildBtnText");
+          if (sp) sp.classList.add("d-none");
+          if (tx) tx.textContent = "Compilar e Deploy";
+        } catch (_) {}
       }
     });
   if (btnAddMM)
@@ -1561,6 +1639,10 @@ async function bindUI() {
       if (vname) vname.textContent = net.name || "-";
     } catch (_) {}
     try {
+      const ns = document.getElementById("networkStatus");
+      if (ns) ns.classList.remove("d-none");
+    } catch (_) {}
+    try {
       if (state.wallet?.provider && window.ethereum) {
         const hexChain = "0x" + Number(net.chainId).toString(16);
         window.ethereum
@@ -1572,9 +1654,17 @@ async function bindUI() {
             const after = await state.wallet.provider.getNetwork();
             state.wallet.chainId = after.chainId;
             log(`Carteira alterada para chainId ${after.chainId}.`);
+            try {
+              const ns = document.getElementById("networkStatus");
+              if (ns) ns.classList.add("d-none");
+            } catch (_) {}
           })
           .catch((e) => {
             log(`Falha ao trocar rede da carteira: ${e?.message || e}`);
+            try {
+              const ns = document.getElementById("networkStatus");
+              if (ns) ns.classList.add("d-none");
+            } catch (_) {}
           });
       }
     } catch (_) {}
@@ -2194,6 +2284,41 @@ async function bindUI() {
       } catch (_) {}
     });
   if (privBtn) privBtn.addEventListener("click", () => showVerifyModal("priv"));
+  try {
+    const launch = document.getElementById("erc20VerifyLaunch");
+    if (launch) {
+      launch.addEventListener("click", async () => {
+        try {
+          launch.disabled = true;
+        } catch (_) {}
+        try {
+          const sp = document.getElementById("verifySpinner");
+          const tx = document.getElementById("verifyBtnText");
+          if (sp) sp.classList.remove("d-none");
+          if (tx) tx.textContent = "Verificando...";
+        } catch (_) {}
+        try {
+          const payload = buildVerifyPayloadFromState();
+          if (!payload?.contractAddress || !payload?.chainId) {
+            log("Verificação: endereço/chainId ausentes. Faça o deploy primeiro.");
+          } else {
+            await runVerifyDirect(payload);
+          }
+        } catch (e) {
+          log("Falha na verificação: " + (e?.message || e));
+        }
+        try {
+          launch.disabled = false;
+        } catch (_) {}
+        try {
+          const sp = document.getElementById("verifySpinner");
+          const tx = document.getElementById("verifyBtnText");
+          if (sp) sp.classList.add("d-none");
+          if (tx) tx.textContent = "Verificar Contrato";
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
 }
 
 document.addEventListener("DOMContentLoaded", bindUI);
@@ -2243,5 +2368,96 @@ function computeVerifyKind() {
     return state?.compilation?.metadata ? "sour" : "bsc";
   } catch (_) {
     return "bsc";
+  }
+}
+
+function buildVerifyPayloadFromState() {
+  try {
+    const addrVerify = state.deployed?.address;
+    const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+    const src = state.compilation?.sourceCode;
+    const cname = state.compilation?.contractName;
+    const meta = state.compilation?.metadata;
+    const payload = {
+      chainId: chainIdVerify,
+      contractAddress: addrVerify,
+      contractName: cname,
+      sourceCode: src,
+      metadata: meta ? JSON.stringify(meta) : undefined,
+      compilerVersion: meta?.compiler?.version || null,
+      optimizationUsed: true,
+      runs: 200,
+      codeformat: "solidity-single-file",
+      contractNameFQN: cname ? `${cname}.sol:${cname}` : null,
+      apiKey: getVerifyApiKey(),
+    };
+    return payload;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function runVerifyDirect(p) {
+  const addrVerify = p?.contractAddress;
+  const chainIdVerify = p?.chainId;
+  const src = p?.sourceCode;
+  const cname = p?.contractName;
+  const meta = p?.metadata ? JSON.parse(p.metadata) : null;
+  if (!addrVerify || !chainIdVerify || !src || !cname) {
+    log("Verificação: dados insuficientes (addr/chainId/source/contractName).");
+    return;
+  }
+  try {
+    const resp = await fetch(`${API_BASE}/api/verify-auto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(p),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const link = data?.link || data?.lookupUrl || data?.explorerUrl || null;
+      const ok = !!data?.success || !!data?.verified;
+      const hasFilesErr = typeof data?.error === "string" && data.error.toLowerCase().includes("files have not been found");
+      const needFallback = !ok || hasFilesErr || !link;
+      if (!needFallback) {
+        updateVerificationBadges({ bscUrl: link });
+        log(ok ? `✅ Verificação concluída. ${link || ""}` : `📤 Verificação enviada/pendente. ${link || ""}`);
+        return;
+      }
+    }
+  } catch (_) {}
+  try {
+    const respV = await fetch(`${API_BASE}/api/verify-bscscan`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chainId: chainIdVerify,
+        contractAddress: addrVerify,
+        sourceCode: src,
+        contractName: cname,
+        compilerVersion: meta?.compiler?.version || null,
+        optimizationUsed: true,
+        runs: 200,
+        codeformat: "solidity-single-file",
+        contractNameFQN: `${cname}.sol:${cname}`,
+        apiKey: getVerifyApiKey(),
+      }),
+    });
+    if (respV.ok) {
+      const dataV = await respV.json();
+      const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(addrVerify, chainIdVerify);
+      const okV = !!dataV?.success;
+      updateVerificationBadges({ bscUrl: vUrl });
+      log(okV ? `✅ Verificação concluída (explorer). ${vUrl}` : `📤 Verificação enviada (explorer). ${vUrl}`);
+    } else {
+      const txtV = await respV.text();
+      const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
+      updateVerificationBadges({ bscUrl: vUrl });
+      log(`Falha no fallback de verificação: ${txtV}. Abra manualmente: ${vUrl}`);
+    }
+  } catch (e) {
+    const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
+    updateVerificationBadges({ bscUrl: vUrl });
+    log(`Erro na verificação: ${e?.message || e}. Abra manualmente: ${vUrl}`);
   }
 }

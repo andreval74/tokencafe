@@ -34,7 +34,7 @@
   } catch (_) {
     originDefault = null;
   }
-  var chosen = (isUrl(override) ? override : null) || existing || stored || originDefault || "http://localhost:3000";
+  var chosen = (isUrl(override) ? override : null) || existing || stored || "http://localhost:3000";
   try {
     var pageProto = String(window.location.protocol || "");
     var chosenUrl = new URL(chosen);

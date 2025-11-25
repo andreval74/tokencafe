@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Verificação de Contrato</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="../../../css/styles.css" rel="stylesheet" />
+  </head>
+  <body class="bg-page-black">
+    <div data-component="tools-header.html" data-icon="fa-shield" data-icon-alt="Verificação" data-title="Verificação de Contrato" data-subtitle="Publicar código e validar"></div>
+
+    <div class="container mt-3">
+      <div class="border rounded p-3 bg-dark-elevated">
+        <div class="small mb-2 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Esta página verifica o contrato automaticamente usando os dados enviados pela criação.</div>
+        <div id="verifyStatus" class="small">Preparando verificação...</div>
+        <div class="mt-3">
+          <div class="small text-muted mb-1">Detalhes do contrato a verificar</div>
+          <pre id="verifyDetails" class="small code-display">-</pre>
+        </div>
+        <div class="mt-3">
+          <div class="small text-muted mb-1">Comparação de bytecode</div>
+          <div id="bytecodeSummary" class="small">-</div>
+          <pre id="bytecodeDetails" class="small code-display d-none">-</pre>
+        </div>
+        <div class="mt-3">
+          <div class="small text-muted mb-1">Formulário de verificação (visível para teste)</div>
+          <div class="row g-2">
+            <div class="col-md-4"><input id="f_address" class="form-control form-control-sm" placeholder="Endereço 0x..." /></div>
+            <div class="col-md-2"><input id="f_chainId" class="form-control form-control-sm" placeholder="ChainId" /></div>
+            <div class="col-md-3"><input id="f_contractName" class="form-control form-control-sm" placeholder="Nome do contrato" /></div>
+            <div class="col-md-3"><input id="f_compilerVersion" class="form-control form-control-sm" placeholder="Compilador" /></div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-md-2"><select id="f_codeformat" class="form-select form-select-sm"><option value="solidity-single-file">solidity-single-file</option><option value="standard-json">standard-json</option></select></div>
+            <div class="col-md-3"><input id="f_contractNameFQN" class="form-control form-control-sm" placeholder="FQN" /></div>
+            <div class="col-md-2"><select id="f_optimizationUsed" class="form-select form-select-sm"><option value="1">optimizer=1</option><option value="0">optimizer=0</option></select></div>
+            <div class="col-md-2"><input id="f_runs" class="form-control form-control-sm" placeholder="runs" /></div>
+            <div class="col-md-3 d-flex align-items-center gap-2">
+              <input id="f_apiKey" type="password" class="form-control form-control-sm" placeholder="API Key BscScan" />
+              <button id="f_toggleApiKey" class="btn btn-sm btn-outline-secondary">Mostrar</button>
+            </div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-md-6"><input id="f_constructorArgs" class="form-control form-control-sm" placeholder="Constructor Arguments (hex)" /></div>
+          </div>
+          <div class="mt-2">
+            <textarea id="f_sourceCode" class="form-control form-control-sm" rows="4" placeholder="sourceCode"></textarea>
+          </div>
+          <div class="mt-2">
+            <textarea id="f_metadata" class="form-control form-control-sm" rows="4" placeholder="metadata.json"></textarea>
+          </div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <button id="runVerify" class="btn btn-outline-success">
+            <span id="verifySpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+            <i class="bi bi-shield-check me-1"></i>
+            <span id="verifyBtnText">Verificar automaticamente</span>
+          </button>
+          <a id="verifyExplorerLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-primary disabled">Abrir verificação no explorer</a>
+          <button id="runExplorerDirect" class="btn btn-outline-warning">Verificar no explorer (direto)</button>
+          <button id="runSourcifyDirect" class="btn btn-outline-info">Verificar no Sourcify</button>
+        </div>
+        <form id="sourcifyForm" class="d-none">
+          <input type="text" id="sf_chainId" />
+          <input type="text" id="sf_address" />
+          <textarea id="sf_metadata"></textarea>
+          <textarea id="sf_source"></textarea>
+        </form>
+        <div class="mt-3">
+          <div class="small text-muted mb-1">Debug</div>
+          <div class="row g-2">
+            <div class="col-md-6"><div class="small">Auto (repo status)</div><pre id="dbgAuto" class="small code-display">-</pre></div>
+            <div class="col-md-6"><div class="small">Bytecode compare</div><pre id="dbgBytecode" class="small code-display">-</pre></div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-md-6"><div class="small">Sourcify Upload</div><pre id="dbgSourcify" class="small code-display">-</pre></div>
+            <div class="col-md-6"><div class="small">Explorer Verify</div><pre id="dbgExplorer" class="small code-display">-</pre></div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-md-12"><div class="small">Explorer Status</div><pre id="dbgExplorerStatus" class="small code-display">-</pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html"></div>
+    </div>
+
+    <script type="module" src="../../../js/shared/base-system.js"></script>
+    <div data-component="shared/layouts/scripts-base.html"></div>
+    <script src="../../../js/modules/contrato/api-config.js"></script>
+    <script type="module">
+      import { getExplorerVerificationUrl } from "../../../js/modules/contrato/explorer-utils.js";
+
+      const statusEl = document.getElementById("verifyStatus");
+      const runBtn = document.getElementById("runVerify");
+      const openBtn = document.getElementById("verifyExplorerLink");
+      const spinner = document.getElementById("verifySpinner");
+      const btnText = document.getElementById("verifyBtnText");
+      const API_BASE = (window.TOKENCAFE_API_BASE || (window.localStorage?.getItem("api_base") || "http://localhost:3000"));
+      function setPre(id, txt){ try { const el=document.getElementById(id); if (el) el.textContent = typeof txt === "string" ? txt : JSON.stringify(txt, null, 2); } catch(_){} }
+      function bodyPreview(b){ try { const s = typeof b === "string" ? b : JSON.stringify(b); return s.length>2000 ? (s.slice(0,2000)+"\n...[truncated]...") : s; } catch(_) { return String(b); } }
+      function pickDebugId(url){ try { const u=String(url); if(u.includes("/api/verify-auto")) return "dbgAuto"; if(u.includes("/api/verify-private")) return "dbgBytecode"; if(u.includes("/api/verify-sourcify-upload")) return "dbgSourcify"; if(u.includes("/api/verify-bscscan-status")) return "dbgExplorerStatus"; if(u.includes("/api/verify-bscscan")) return "dbgExplorer"; return null; } catch(_) { return null; } }
+      (function(){ try { const origFetch = window.fetch; window.fetch = async function(url, opts){ const id = pickDebugId(url); if (id) setPre(id, `Request ${url}\n${bodyPreview(opts?.body||null)}`); const resp = await origFetch(url, opts); try { const clone = resp.clone(); const ct = String(clone.headers.get("content-type")||""); if (id) { if (ct.includes("application/json")) { const data = await clone.json(); setPre(id, `Response ${url} status=${resp.status}\n${JSON.stringify(data, null, 2)}`); } else { const text = await clone.text(); setPre(id, `Response ${url} status=${resp.status}\n${text}`); } } } catch(_){} return resp; } } catch(_){} })();
+
+      function logStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+      function getPayload() { try { const raw = localStorage.getItem("tokencafe_contract_verify_payload"); return raw ? JSON.parse(raw) : null; } catch(_) { return null; } }
+      function getVerifyApiKey(){ try { const sp=new URLSearchParams(window.location.search||""); const q=sp.get("bscapi"); if(q) return q; }catch(_){} try { if (typeof window.TOKENCAFE_BSCSCAN_API_KEY!=="undefined" && window.TOKENCAFE_BSCSCAN_API_KEY) return window.TOKENCAFE_BSCSCAN_API_KEY; } catch(_){} try { return localStorage.getItem("bscscan_api_key"); } catch(_){ return null; } }
+      function completePayload(p){ const meta = p?.metadata ? JSON.parse(p.metadata) : null; return { ...p, compilerVersion: p?.compilerVersion || (meta?.compiler?.version || null), optimizationUsed: p?.optimizationUsed ?? true, runs: p?.runs ?? 200, codeformat: p?.codeformat || "solidity-single-file", contractNameFQN: p?.contractNameFQN || (p?.contractName ? `${p.contractName}.sol:${p.contractName}` : null), apiKey: p?.apiKey || getVerifyApiKey() }; }
+      function showDetails(p){ try { const d = { contractName: p?.contractName || null, contractAddress: p?.contractAddress || null, chainId: p?.chainId || null, compilerVersion: p?.compilerVersion || null, optimizationUsed: p?.optimizationUsed ?? null, runs: p?.runs ?? null, hasMetadata: !!p?.metadata }; const pre = document.getElementById("verifyDetails"); if (pre) pre.textContent = JSON.stringify(d, null, 2); } catch(_){} }
+
+      function fillSourcifyHiddenForm(p){ try { const f=document.getElementById("sourcifyForm"); if(!f) return; const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value = v != null ? String(v) : ""; }; set("sf_chainId", p?.chainId || ""); set("sf_address", p?.contractAddress || ""); set("sf_metadata", p?.metadata || ""); set("sf_source", p?.sourceCode || ""); } catch(_){}}
+
+      function fillVisibleForm(p){ try { const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.value = v != null ? String(v) : ""; }; set("f_address", p?.contractAddress || ""); set("f_chainId", p?.chainId || ""); set("f_contractName", p?.contractName || ""); set("f_compilerVersion", p?.compilerVersion || ""); const cf=document.getElementById("f_codeformat"); if (cf) cf.value = p?.codeformat || "solidity-single-file"; set("f_contractNameFQN", p?.contractNameFQN || (p?.contractName ? `${p.contractName}.sol:${p.contractName}` : "")); const opt=document.getElementById("f_optimizationUsed"); if (opt) opt.value = (p?.optimizationUsed===false?"0":"1"); set("f_runs", p?.runs ?? 200); set("f_sourceCode", p?.sourceCode || ""); set("f_metadata", p?.metadata || ""); set("f_apiKey", p?.apiKey || ""); set("f_constructorArgs", p?.constructorArguments || ""); } catch(_){}}
+
+      function buildPayloadFromForm(){ try { const get=(id)=>{ const el=document.getElementById(id); return el ? el.value : ""; }; const chainId = parseInt(get("f_chainId") || "0", 10); return { chainId, contractAddress: get("f_address") || null, contractName: get("f_contractName") || null, compilerVersion: get("f_compilerVersion") || null, codeformat: get("f_codeformat") || "solidity-single-file", contractNameFQN: get("f_contractNameFQN") || null, optimizationUsed: get("f_optimizationUsed") === "0" ? 0 : 1, runs: parseInt(get("f_runs") || "200", 10), sourceCode: get("f_sourceCode") || null, metadata: get("f_metadata") || null, apiKey: get("f_apiKey") || getVerifyApiKey() || null, constructorArguments: get("f_constructorArgs") || null }; } catch(_) { return null; } }
+
+      async function runBytecodeComparison(p){
+        const summaryEl = document.getElementById("bytecodeSummary");
+        const detailsEl = document.getElementById("bytecodeDetails");
+        if (summaryEl) summaryEl.textContent = "Comparando bytecode...";
+        try {
+          const resp = await fetch(`${API_BASE}/api/verify-private`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ chainId: p.chainId, contractAddress: p.contractAddress, sourceCode: p.sourceCode, contractName: p.contractName }) });
+          if (resp.ok) {
+            const data = await resp.json();
+            const msg = data?.match ? "MATCH" : "DIVERGENTE";
+            if (summaryEl) summaryEl.textContent = `Bytecode: ${msg} (on-chain=${data?.onChainLen||0}, compilado=${data?.compiledLen||0})`;
+            try { console.log("[verify] bytecode-compare", data); } catch(_){}
+            if (detailsEl) { detailsEl.textContent = JSON.stringify(data, null, 2); detailsEl.classList.remove("d-none"); }
+          } else {
+            const txt = await resp.text();
+            if (summaryEl) summaryEl.textContent = "Falha na comparação de bytecode";
+            try { console.log("[verify] bytecode-compare error", txt); } catch(_){}
+          }
+        } catch(e) {
+          if (summaryEl) summaryEl.textContent = "Erro ao comparar bytecode";
+          try { console.log("[verify] bytecode-compare exception", e?.message || e); } catch(_){}
+        }
+      }
+
+      async function runVerify(){
+        try { runBtn.disabled = true; spinner.classList.remove("d-none"); btnText.textContent = "Verificando..."; } catch(_){}
+        const p0 = getPayload() || buildPayloadFromForm();
+        if (!p0 || !p0.contractAddress || !p0.chainId || !p0.sourceCode || !p0.contractName) { logStatus("Dados insuficientes. Volte e gere o contrato."); try { runBtn.disabled=false; spinner.classList.add("d-none"); btnText.textContent="Verificar automaticamente"; } catch(_){} return; }
+        const p = completePayload(p0);
+        showDetails(p);
+        fillSourcifyHiddenForm(p);
+        fillVisibleForm(p);
+        try { console.log("[verify] start verify-auto", { address: p.contractAddress, chainId: p.chainId, compilerVersion: p.compilerVersion, hasMetadata: !!p.metadata }); } catch(_){}
+        const explorerUrl = getExplorerVerificationUrl(p.contractAddress, p.chainId);
+        if (openBtn) { openBtn.href = explorerUrl || "#"; openBtn.classList.toggle("disabled", !explorerUrl); }
+        try {
+          logStatus("Tentando verificação automática...");
+          const resp = await fetch(`${API_BASE}/api/verify-auto`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(p) });
+          if (resp.ok) {
+            const data = await resp.json();
+            try { console.log("[verify] verify-auto response", data); } catch(_){}
+            const ok = !!data?.success || !!data?.verified;
+            const hasFilesErr = typeof data?.error === "string" && data.error.toLowerCase().includes("files have not been found");
+            const link = data?.link || data?.lookupUrl || data?.explorerUrl || explorerUrl;
+            if (ok) { logStatus("Verificação concluída."); if (openBtn) { openBtn.href = link || explorerUrl; openBtn.classList.remove("disabled"); } }
+            else {
+              try {
+                logStatus("Publicando no Sourcify...");
+                const up = await fetch(`${API_BASE}/api/verify-sourcify-upload`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(p) });
+                if (up.ok) {
+                  const uj = await up.json();
+                  if (uj?.success) {
+                    const ulink = uj?.link || link || explorerUrl;
+                    logStatus("Verificado no Sourcify.");
+                    if (openBtn) { openBtn.href = ulink; openBtn.classList.remove("disabled"); }
+                    return;
+                  }
+                }
+              } catch(_){ }
+              logStatus("Auto indisponível. Enviando ao explorer...");
+              try {
+                const respV = await fetch(`${API_BASE}/api/verify-bscscan`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(p) });
+                if (respV.ok) {
+                  const dataV = await respV.json();
+                  const vUrl = dataV?.explorerUrl || explorerUrl;
+                  const okV = !!dataV?.success;
+                  logStatus(okV?"Verificação concluída (explorer).":"Verificação enviada/pendente. Acompanhe no explorer.");
+                  if (openBtn) { openBtn.href = vUrl; openBtn.classList.remove("disabled"); }
+                  const guid = dataV?.guid || null;
+                  if (!okV && guid) {
+                    try {
+                      let tries = 0;
+                      const interval = setInterval(async () => {
+                        tries++;
+                        try {
+                          const st = await fetch(`${API_BASE}/api/verify-bscscan-status`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ chainId: p.chainId, guid, apiKey: p.apiKey }) });
+                          if (st.ok) {
+                            const js = await st.json();
+                            if (js?.success) {
+                              clearInterval(interval);
+                              logStatus("Verificação concluída (explorer).");
+                              if (openBtn) { openBtn.href = vUrl; openBtn.classList.remove("disabled"); }
+                            }
+                          }
+                        } catch(_){ }
+                        if (tries >= 20) clearInterval(interval);
+                      }, 5000);
+                    } catch(_){ }
+                  }
+                } else {
+                  const txtV = await respV.text();
+                  logStatus(`Falha no envio ao explorer: ${txtV}`);
+                }
+              } catch(_) { logStatus("Falha ao enviar ao explorer"); }
+            }
+          } else throw new Error("verify-auto falhou");
+        } catch(e) {
+          try { console.log("[verify] auto failed, starting fallback", e?.message || e); } catch(_){}
+          logStatus("Auto indisponível. Iniciando fallback no explorer...");
+          try {
+            const respV = await fetch(`${API_BASE}/api/verify-bscscan`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(p) });
+            if (respV.ok) {
+              const dataV = await respV.json();
+              const vUrl = dataV?.explorerUrl || explorerUrl;
+              const okV = !!dataV?.success;
+              logStatus(okV?"Verificação concluída (explorer).":"Verificação enviada/pendente. Acompanhe no explorer.");
+              if (openBtn) { openBtn.href = vUrl; openBtn.classList.remove("disabled"); }
+              const guid = dataV?.guid || null;
+              if (!okV && guid) {
+                try {
+                  let tries = 0;
+                  const interval = setInterval(async () => {
+                    tries++;
+                    try {
+                      const st = await fetch(`${API_BASE}/api/verify-bscscan-status`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ chainId: p.chainId, guid, apiKey: p.apiKey }) });
+                      if (st.ok) {
+                        const js = await st.json();
+                        if (js?.success) {
+                          clearInterval(interval);
+                          logStatus("Verificação concluída (explorer).");
+                          if (openBtn) { openBtn.href = vUrl; openBtn.classList.remove("disabled"); }
+                        }
+                      }
+                    } catch(_){}
+                    if (tries >= 10) clearInterval(interval);
+                  }, 4000);
+                } catch(_){}
+              }
+            }
+            else { const txtV = await respV.text(); logStatus(`Falha no fallback: ${txtV}. Abra manualmente o explorer.`); try { console.log("[verify] fallback error", txtV); } catch(_){} }
+          } catch(e) { logStatus(`Erro na verificação: ${e?.message||e}. Abra manualmente o explorer.`); }
+        }
+        try { await runBytecodeComparison(p); } catch(_){}
+        try { runBtn.disabled=false; spinner.classList.add("d-none"); btnText.textContent="Verificar automaticamente"; } catch(_){}
+      }
+
+      async function runExplorerDirect(){
+        try {
+          const p = completePayload(buildPayloadFromForm());
+          if (!p || !p.contractAddress || !p.chainId || !p.sourceCode || !p.contractName) {
+            logStatus("Preencha o formulário acima com todos os campos.");
+            return;
+          }
+          logStatus("Enviando verificação ao explorer (direto)...");
+          const respV = await fetch(`${API_BASE}/api/verify-bscscan`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(p) });
+          if (respV.ok) {
+            const dataV = await respV.json();
+            const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(p.contractAddress, p.chainId);
+            const okV = !!dataV?.success;
+            if (openBtn) { openBtn.href = vUrl || "#"; openBtn.classList.remove("disabled"); }
+            logStatus(okV?"Verificação concluída (explorer).":"Verificação enviada/pendente. Acompanhe no explorer.");
+            const guid = dataV?.guid || null;
+            if (!okV && guid) {
+              let tries = 0;
+              const maxTries = 20;
+              const interval = setInterval(async () => {
+                tries++;
+                try {
+                  const st = await fetch(`${API_BASE}/api/verify-bscscan-status`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ chainId: p.chainId, guid, apiKey: p.apiKey }) });
+                  if (st.ok) {
+                    const js = await st.json();
+                    if (js?.success) {
+                      clearInterval(interval);
+                      logStatus("Verificação concluída (explorer).");
+                    }
+                  }
+                } catch(_){}
+                if (tries >= maxTries) clearInterval(interval);
+              }, 5000);
+            }
+          } else {
+            const txtV = await respV.text();
+            logStatus(`Falha no envio ao explorer: ${txtV}`);
+          }
+        } catch(e) {
+          logStatus(`Erro: ${e?.message || e}`);
+        }
+      }
+
+      async function runSourcifyDirect(){
+        try {
+          const p = completePayload(buildPayloadFromForm());
+          if (!p || !p.contractAddress || !p.chainId || !p.contractName) {
+            logStatus("Preencha endereço, chainId e nome do contrato.");
+            return;
+          }
+          if (!p.metadata && !p.sourceCode) {
+            logStatus("Informe metadata.json ou sourceCode.");
+            return;
+          }
+          logStatus("Publicando no Sourcify...");
+          const up = await fetch(`${API_BASE}/api/verify-sourcify-upload`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(p) });
+          if (up.ok) {
+            const uj = await up.json();
+            const ok = !!uj?.success;
+            const status = uj?.status || "none";
+            const link = uj?.link || null;
+            logStatus(ok ? `Verificado no Sourcify (${status}).` : `Falha no Sourcify (${status}).`);
+            if (openBtn && link) { openBtn.href = link; openBtn.classList.remove("disabled"); }
+          } else {
+            const txt = await up.text();
+            logStatus(`Falha Sourcify: ${txt}`);
+          }
+        } catch(e) {
+          logStatus(`Erro Sourcify: ${e?.message || e}`);
+        }
+      }
+
+      runBtn.addEventListener("click", runVerify);
+      document.getElementById("runExplorerDirect")?.addEventListener("click", runExplorerDirect);
+      document.getElementById("runSourcifyDirect")?.addEventListener("click", runSourcifyDirect);
+      document.getElementById("f_toggleApiKey")?.addEventListener("click", (e)=>{ e.preventDefault(); const i=document.getElementById("f_apiKey"); if (!i) return; i.type = i.type === "password" ? "text" : "password"; e.target.textContent = i.type === "password" ? "Mostrar" : "Ocultar"; });
+      document.addEventListener("DOMContentLoaded", () => { const p = getPayload(); if (p) { const pp = completePayload(p); showDetails(pp); fillVisibleForm(pp); logStatus("Dados carregados da criação. Pronto para verificar."); try { console.log("[verify] payload loaded", pp); } catch(_){} } });
+    </script>
+  </body>
+</html>
