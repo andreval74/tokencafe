@@ -13,6 +13,11 @@
 
     <div class="container mt-3">
       <div class="border rounded p-3 bg-dark-elevated">
+        <div id="apiHelp" class="alert alert-warning d-none" role="alert">
+          Detectamos um problema ao chamar a API. Clique em
+          <button id="apiFixBtn" class="btn btn-sm btn-outline-dark ms-1 me-1">Usar API de produção</button>
+          ou ajuste manualmente o parâmetro <code>?api=</code> na URL.
+        </div>
         <div class="small mb-2 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Esta página verifica o contrato automaticamente usando os dados enviados pela criação.</div>
         <div id="verifyStatus" class="small">Preparando verificação...</div>
         <div class="mt-3">
@@ -89,11 +94,11 @@
       <div data-component="shared/components/section-footer.html"></div>
     </div>
 
-    <script type="module" src="../../../js/shared/base-system.js"></script>
-    <div data-component="shared/layouts/scripts-base.html"></div>
-    <script src="../../../js/modules/contrato/api-config.js"></script>
-    <script type="module">
-      import { getExplorerVerificationUrl } from "../../../js/modules/contrato/explorer-utils.js";
+      <script type="module" src="../../../js/shared/base-system.js"></script>
+      <div data-component="shared/layouts/scripts-base.html"></div>
+      <script src="../../../js/modules/contrato/api-config.js"></script>
+      <script type="module">
+        import { getExplorerVerificationUrl } from "../../../js/modules/contrato/explorer-utils.js";
 
       const statusEl = document.getElementById("verifyStatus");
       const runBtn = document.getElementById("runVerify");
@@ -104,7 +109,9 @@
       function setPre(id, txt){ try { const el=document.getElementById(id); if (el) el.textContent = typeof txt === "string" ? txt : JSON.stringify(txt, null, 2); } catch(_){} }
       function bodyPreview(b){ try { const s = typeof b === "string" ? b : JSON.stringify(b); return s.length>2000 ? (s.slice(0,2000)+"\n...[truncated]...") : s; } catch(_) { return String(b); } }
       function pickDebugId(url){ try { const u=String(url); if(u.includes("/api/verify-auto")) return "dbgAuto"; if(u.includes("/api/verify-private")) return "dbgBytecode"; if(u.includes("/api/verify-sourcify-upload")) return "dbgSourcify"; if(u.includes("/api/verify-bscscan-status")) return "dbgExplorerStatus"; if(u.includes("/api/verify-bscscan")) return "dbgExplorer"; return null; } catch(_) { return null; } }
-      (function(){ try { const origFetch = window.fetch; window.fetch = async function(url, opts){ const id = pickDebugId(url); if (id) setPre(id, `Request ${url}\n${bodyPreview(opts?.body||null)}`); const resp = await origFetch(url, opts); try { const clone = resp.clone(); const ct = String(clone.headers.get("content-type")||""); if (id) { if (ct.includes("application/json")) { const data = await clone.json(); setPre(id, `Response ${url} status=${resp.status}\n${JSON.stringify(data, null, 2)}`); } else { const text = await clone.text(); setPre(id, `Response ${url} status=${resp.status}\n${text}`); } } } catch(_){} return resp; } } catch(_){} })();
+      (function(){ try { const origFetch = window.fetch; window.fetch = async function(url, opts){ const id = pickDebugId(url); if (id) setPre(id, `Request ${url}\n${bodyPreview(opts?.body||null)}`); const resp = await origFetch(url, opts); try { const clone = resp.clone(); const ct = String(clone.headers.get("content-type")||""); if (id) { if (ct.includes("application/json")) { const data = await clone.json(); setPre(id, `Response ${url} status=${resp.status}\n${JSON.stringify(data, null, 2)}`); } else { const text = await clone.text(); setPre(id, `Response ${url} status=${resp.status}\n${text}`); } } if (String(url).includes('/api/verify-sourcify-upload') && resp.status === 404) { try { const el = document.getElementById('apiHelp'); if (el) el.classList.remove('d-none'); } catch(_){} } } catch(_){} return resp; } } catch(_){} })();
+
+      function ensureApiBase(){ try { const el = document.getElementById('apiHelp'); const base = window.TOKENCAFE_API_BASE || (window.localStorage?.getItem('api_base') || null); const siteHost = String(window.location.hostname||''); let baseHost = null; try { if (base) baseHost = new URL(base).hostname; } catch(_){} const sameHost = !!baseHost && baseHost === siteHost; if (sameHost) { if (el) el.classList.remove('d-none'); } const btn = document.getElementById('apiFixBtn'); if (btn) btn.onclick = function(){ try { window.localStorage && window.localStorage.setItem('api_base','https://tokencafe-api.onrender.com'); } catch(_){} window.location.reload(); }; } catch(_){} }
 
       function logStatus(msg) { if (statusEl) statusEl.textContent = msg; }
       function getPayload() { try { const raw = localStorage.getItem("tokencafe_contract_verify_payload"); return raw ? JSON.parse(raw) : null; } catch(_) { return null; } }
@@ -329,7 +336,7 @@
       document.getElementById("runExplorerDirect")?.addEventListener("click", runExplorerDirect);
       document.getElementById("runSourcifyDirect")?.addEventListener("click", runSourcifyDirect);
       document.getElementById("f_toggleApiKey")?.addEventListener("click", (e)=>{ e.preventDefault(); const i=document.getElementById("f_apiKey"); if (!i) return; i.type = i.type === "password" ? "text" : "password"; e.target.textContent = i.type === "password" ? "Mostrar" : "Ocultar"; });
-      document.addEventListener("DOMContentLoaded", () => { const p = getPayload(); if (p) { const pp = completePayload(p); showDetails(pp); fillVisibleForm(pp); logStatus("Dados carregados da criação. Pronto para verificar."); try { console.log("[verify] payload loaded", pp); } catch(_){} } });
-    </script>
-  </body>
-</html>
+      document.addEventListener("DOMContentLoaded", () => { ensureApiBase(); const p = getPayload(); if (p) { const pp = completePayload(p); showDetails(pp); fillVisibleForm(pp); logStatus("Dados carregados da criação. Pronto para verificar."); try { console.log("[verify] payload loaded", pp); } catch(_){} } });
+      </script>
+    </body>
+  </html>
