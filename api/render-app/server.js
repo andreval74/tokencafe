@@ -226,7 +226,7 @@ app.post("/api/verify-bscscan", async (req, res) => {
     params.append("codeformat", String(codeformat || "solidity-single-file"));
     params.append("contractname", String(contractNameFQN || contractName));
     params.append("compilerversion", normalizeCompilerVersion(compilerVersion));
-    params.append("optimizationUsed", String((optimizationUsed === true || optimizationUsed === 1 || String(optimizationUsed) === "1") ? 1 : 0));
+    params.append("optimizationUsed", String(optimizationUsed === true || optimizationUsed === 1 || String(optimizationUsed) === "1" ? 1 : 0));
     params.append("runs", String(Number(runs || 200)));
     if (evmVersion) params.append("evmVersion", String(evmVersion));
     if (constructorArguments) params.append("constructorArguments", String(constructorArguments).replace(/^0x/, ""));
@@ -372,7 +372,11 @@ app.post("/api/verify-sourcify-upload", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing chainId or contractAddress" });
     }
     let meta = null;
-    try { meta = typeof metadata === "string" ? JSON.parse(metadata) : metadata; } catch { meta = null; }
+    try {
+      meta = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+    } catch {
+      meta = null;
+    }
     if (!meta && sourceCode && contractName) {
       const nameSan = sanitizeContractName(contractName);
       const { metadata: compiledMeta } = compileSolidity(String(sourceCode), nameSan);

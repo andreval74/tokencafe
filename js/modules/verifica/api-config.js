@@ -1,7 +1,3 @@
-// Config de API do TokenCafe (frontend)
-// Por padrão usa localhost. Em produção, defina window.TOKENCAFE_API_BASE antes deste script
-// ou altere abaixo para sua URL no Render.
-
 (function () {
   var existing = typeof window.TOKENCAFE_API_BASE !== "undefined" ? window.TOKENCAFE_API_BASE : null;
   var stored = null;
@@ -24,18 +20,19 @@
       return false;
     }
   }
-  var pageProto = String(window.location.protocol || "");
-  var pageHost = String(window.location.hostname || "");
-  var isHttps = pageProto === "https:";
-  var isLocalHost = pageHost === "localhost" || pageHost === "127.0.0.1";
+  var proto = String(window.location.protocol || "");
+  var host = String(window.location.hostname || "");
+  var isHttps = proto === "https:";
+  var isLocalHost = host === "localhost" || host === "127.0.0.1";
   var prodDefault = "https://tokencafe-api.onrender.com";
   var chosen = (isUrl(override) ? override : null) || existing || stored || (isHttps && !isLocalHost ? prodDefault : "http://localhost:3000");
   try {
+    var pageProto = String(window.location.protocol || "");
     var chosenUrl = new URL(chosen);
     var isHttpChosen = chosenUrl.protocol === "http:";
-    var chosenIsLocalHost = ["localhost", "127.0.0.1"].indexOf(chosenUrl.hostname) !== -1;
+    var isLocalHostChosen = ["localhost", "127.0.0.1"].indexOf(chosenUrl.hostname) !== -1;
     if (pageProto === "https:" && isHttpChosen) {
-      if (!chosenIsLocalHost) {
+      if (!isLocalHostChosen) {
         chosenUrl.protocol = "https:";
         chosen = chosenUrl.toString();
       } else {

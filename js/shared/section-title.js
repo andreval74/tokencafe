@@ -1,6 +1,6 @@
 function init(el) {
   if (!el || el.getAttribute("data-st-initialized") === "true") return;
-  const icon = el.getAttribute("data-st-icon") || "bi-globe";
+  const icon = el.getAttribute("data-st-icon") || "";
   const title = el.getAttribute("data-st-title") || "";
   const subtitle = el.getAttribute("data-st-subtitle") || "";
   const note = el.getAttribute("data-st-note") || "";

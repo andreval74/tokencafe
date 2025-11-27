@@ -38,14 +38,12 @@
     <!-- Header padrão com status de carteira (componente) -->
     <div data-component="tools-header.html" data-icon="fa-network-wired" data-icon-alt="RPC Manager" data-title="Gerenciador de RPCs" data-subtitle="Adicione redes blockchain personalizadas"></div>
     <!-- corpo do html -->
-    <div class="container-fluid py-3 mb-1">
-      <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-6">
-          <!-- Seção 1: Conexão da Carteira -->
-          <div id="network-section" class="mb-2">
-            <!-- Campo de busca unificado (componente compartilhado) -->
-            <div data-component="shared/components/network-search.html" data-ns-placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, Polygon, 1, 137)" data-ns-min-chars="1" data-ns-show-popular="true" data-ns-show-details-on-select="false"></div>
-            <!-- Informações da rede selecionada são renderizadas pelo componente compartilhado -->
+    <div class="container">
+      <div class="g-4">
+        <div class="col-12">
+          <!-- Seleção da Rede -->
+          <div class="mb-4" id="network-section">
+            <div data-component="shared/components/network-search.html"></div>
           </div>
 
           <!-- ===== SEÇÃO 2: INSERIR RPC PERSONALIZADA===== -->

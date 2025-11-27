@@ -1,497 +1,124 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Testes do Wallet Manager - TokenCafe</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-    <link href="../../../css/styles.css" rel="stylesheet" />
-    <style>
-      .badge-wallet {
-        font-size: 0.9rem;
-      }
-      .monospace-input {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      }
-    </style>
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';" />
-    <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
-  </head>
-  <body class="bg-page-black">
-    <!-- Header padrão -->
-    <div data-component="tools-header.html" data-icon="fa-wallet" data-icon-alt="Wallet Tests" data-title="Testes do Wallet Manager" data-subtitle="Checagem automática de conexão e carteiras instaladas"></div>
 
-    <div class="container py-4">
-      <div class="card bg-dark-elevated text-light">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-3">
-            <i class="fas fa-vial me-2"></i>
-            <div>
-              <h4 class="mb-0">Testes Automatizados do Módulo Wallet</h4>
-              <small class="text-muted">Executa checagens de conexão, rede e saldo</small>
-            </div>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Conecte e gerencie sua carteira Web3 com MetaMask, TrustWallet e outras carteiras" />
+  <meta name="keywords" content="wallet, MetaMask, TrustWallet, blockchain, crypto, Web3" />
+  <meta http-equiv="Content-Security-Policy"
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';" />
+  <title>Testes do Wallet Manager - TokenCafe</title>
 
-          <!-- Botões de ação (topo) -->
-          <div class="d-flex gap-2 mb-3">
-            <button id="btnTestConnect" class="btn btn-outline-primary">
-              <i class="fas fa-plug me-1"></i>
-              Testar Conexão
-            </button>
-            <button id="btnClearResults" class="btn btn-outline-secondary">
-              <i class="fas fa-trash me-1"></i>
-              Limpar Resultados
-            </button>
-          </div>
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
 
-          <!-- Sumário (opcional, oculto) -->
-          <div id="testSummary" class="alert alert-info d-none"></div>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
-          <!-- Tabela de resultados (padrão Link) -->
-          <div id="resultsSection" class="table-responsive d-none">
-            <table class="table table-sm table-dark align-middle" id="resultsTable">
-              <thead>
-                <tr>
-                  <th style="width: 25%">Teste</th>
-                  <th style="width: 30%">RPC / Endereço</th>
-                  <th style="width: 25%" class="ps-3">Resultado</th>
-                  <th class="text-end" style="width: 18%">Status</th>
-                </tr>
-              </thead>
-              <tbody id="resultsTbody"></tbody>
-            </table>
-          </div>
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-          <!-- Carteiras detectadas (mantida oculta; resultados irão para a tabela) -->
-          <div id="detectedSection" class="mb-3 d-none">
-            <h6 class="text-secondary mb-2">
-              <i class="fas fa-magnifying-glass me-2"></i>
-              Carteiras detectadas
-            </h6>
-            <div id="walletsDetected" class="d-flex flex-wrap gap-2"></div>
-          </div>
+  <!-- TokenCafe Global CSS -->
+  <link href="../../../css/styles.css" rel="stylesheet" />
+  <link href="/css/utility-classes.css?v=5" rel="stylesheet" />
+</head>
 
-          <!-- Detalhes da conexão (mantido oculto; dados irão para a tabela) -->
-          <div id="detailsSection" class="row g-3 mb-3 d-none">
-            <div class="col-md-6">
-              <label class="form-label">Conta</label>
-              <input id="testAccount" class="form-control monospace-input" readonly />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Carteira Conectada</label>
-              <input id="testWallet" class="form-control" readonly />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Rede</label>
-              <input id="testNetwork" class="form-control" readonly />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Chain ID</label>
-              <input id="testChainId" class="form-control" readonly />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Saldo (ETH)</label>
-              <input id="testBalance" class="form-control" readonly />
-            </div>
-          </div>
+<body class="bg-page-black">
+  <!-- Header padrão -->
+  <div data-component="tools-header.html" data-icon="fa-wallet" data-icon-alt="Wallet Tests"
+    data-title="Testes do Wallet Manager" data-subtitle="Checagem automática de conexão e carteiras instaladas"></div>
 
-          <!-- Relatório de Checkup (não usado; resultados em tabela) -->
-          <div id="checkupReport" class="d-none"></div>
+  <div class="container">
+    <div class="g-4">
+      <div class="col-12">
+        <!-- Seção 1: Conexão da Carteira -->
+        <div id="connection-section" class="mb-2">
+          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-wallet2 me-2"
+            data-st-title="Testes Automatizados do Módulo Wallet"
+            data-st-subtitle="Executa checagens de conexão, rede e saldo"></div>
+        </div>
+      
+      <!-- Sumário (opcional, oculto) -->
+      <div id="testSummary" class="alert alert-info d-none"></div>
 
-          <!-- Log -->
-          <div class="small text-secondary" id="testLog" style="min-height: 1.25rem"></div>
+      <!-- Tabela de resultados (padrão Link) -->
+      <div id="resultsSection" class="table-responsive d-none">
+        <table class="table table-sm table-dark align-middle" id="resultsTable">
+          <thead>
+            <tr>
+              <th style="width: 25%">Teste</th>
+              <th style="width: 30%">RPC / Endereço</th>
+              <th style="width: 25%" class="ps-3">Resultado</th>
+              <th class="text-end" style="width: 18%">Status</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Carteiras detectadas (mantida oculta; resultados irão para a tabela) -->
+      <div id="detectedSection" class="mb-3 d-none">
+        <h6 class="text-secondary mb-2">
+          <i class="fas fa-magnifying-glass me-2"></i>
+          Carteiras detectadas
+        </h6>
+        <div id="walletsDetected" class="d-flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- Detalhes da conexão (mantido oculto; dados irão para a tabela) -->
+      <div id="detailsSection" class="row g-3 mb-3 d-none">
+        <div class="col-md-6">
+          <label class="form-label">Conta</label>
+          <input id="testAccount" class="form-control monospace-input" readonly />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Carteira Conectada</label>
+          <input id="testWallet" class="form-control" readonly />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Rede</label>
+          <input id="testNetwork" class="form-control" readonly />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Chain ID</label>
+          <input id="testChainId" class="form-control" readonly />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Saldo (ETH)</label>
+          <input id="testBalance" class="form-control" readonly />
         </div>
       </div>
+
+      <!-- Relatório de Checkup (não usado; resultados em tabela) -->
+      <div id="checkupReport" class="d-none"></div>
+
+      <!-- Log -->
+      <div class="small text-secondary min-height-125" id="testLog"></div>
     </div>
 
-    <!-- BaseSystem inicializa componentes e expõe walletConnector globalmente -->
-    <script type="module" src="../../../js/shared/base-system.js"></script>
-    <script type="module">
-      const $el = (id) => document.getElementById(id);
+    <!-- Botões de ação (topo) -->
+    <div class="d-flex gap-2 mb-3">
+      <button id="btnTestConnect" class="btn btn-outline-primary">
+        <i class="fas fa-plug me-1"></i>
+        Testar Conexão
+      </button>
+      <button id="btnClearResults" class="btn btn-outline-secondary">
+        <i class="fas fa-trash me-1"></i>
+        Limpar Resultados
+      </button>
+    </div>
+  </div>
 
-      function log(msg, type = "info") {
-        const el = $el("testLog");
-        const icon = type === "error" ? "fa-circle-exclamation" : type === "success" ? "fa-check-circle" : "fa-info-circle";
-        el.innerHTML = `<i class="fas ${icon} me-1"></i>${msg}`;
-      }
 
-      function renderDetected(available = {}) {
-        const container = $el("walletsDetected");
-        container.innerHTML = "";
-        const labels = {
-          metamask: { text: "MetaMask", cls: "bg-warning text-dark" },
-          trust: { text: "Trust Wallet", cls: "bg-primary" },
-          coinbase: { text: "Coinbase Wallet", cls: "bg-info text-dark" },
-        };
-        const keys = Object.keys(available || {}).filter((k) => available[k]);
-        if (keys.length === 0) {
-          container.innerHTML = '<span class="text-secondary">Nenhuma carteira detectada</span>';
-          return;
-        }
-        keys.forEach((k) => {
-          const { text, cls } = labels[k] || { text: k, cls: "bg-secondary" };
-          const badge = document.createElement("span");
-          badge.className = `badge badge-wallet ${cls}`;
-          badge.textContent = text;
-          container.appendChild(badge);
-        });
-      }
 
-      function fillStatus(status) {
-        $el("testAccount").value = status?.account ? (window.formatAddress ? window.formatAddress(status.account) : status.account) : "-";
-        $el("testWallet").value = status?.wallet || "-";
-        $el("testNetwork").value = status?.network?.name || status?.network?.fullName || "-";
-        $el("testChainId").value = status?.chainId || "-";
-        $el("testBalance").value = status?.balance ?? "-";
-      }
+  <!-- BaseSystem inicializa componentes e expõe walletConnector globalmente -->
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+  <script type="module" src="../../../js/modules/wallet/wallet-tests.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 
-      function pickPreferredWallet(avail = {}) {
-        if (avail.metamask) return "metamask";
-        if (avail.trust) return "trust";
-        if (avail.coinbase) return "coinbase";
-        return null;
-      }
-
-      function getProviderName() {
-        if (!window.ethereum) return "Desconhecido";
-        if (window.ethereum.isMetaMask) return "MetaMask";
-        if (window.ethereum.isTrust || window.ethereum.isTrustWallet) return "Trust Wallet";
-        if (window.ethereum.isCoinbaseWallet || window.ethereum.isToshi) return "Coinbase Wallet";
-        if (window.ethereum.isBraveWallet) return "Brave Wallet";
-        if (window.ethereum.isRabby) return "Rabby Wallet";
-        return "Desconhecido";
-      }
-
-      async function detectWallets() {
-        try {
-          const available = await window.walletConnector.detectAvailableWallets();
-          renderDetected(available);
-          return available;
-        } catch (e) {
-          renderDetected({});
-          log(`Falha ao detectar carteiras: ${e?.message || e}`, "error");
-          return {};
-        }
-      }
-
-      async function runAutoTest() {
-        try {
-          window.walletConnector.setDebug(true);
-          // Garantir estado desconectado ao iniciar e limpar UI
-          try {
-            await window.walletConnector.disconnect();
-          } catch {}
-          const detectedSection = $el("detectedSection");
-          const detailsSection = $el("detailsSection");
-          const report = $el("checkupReport");
-          const resultsSection = $el("resultsSection");
-          const resultsTbody = $el("resultsTbody");
-          if (detectedSection) detectedSection.classList.add("d-none");
-          if (detailsSection) detailsSection.classList.add("d-none");
-          if (report) report.classList.add("d-none");
-          if (resultsSection) resultsSection.classList.add("d-none");
-          if (resultsTbody) resultsTbody.innerHTML = "";
-          $el("walletsDetected").innerHTML = "";
-          fillStatus({});
-          log('Página pronta. Clique em "Testar Conexão".', "info");
-        } catch (e) {
-          log(e?.message || e, "error");
-        }
-      }
-
-      // (removido) Funções de teste manual de conexão/desconexão — fluxo padronizado usa runCompleteCheckup e clearResultsUI.
-
-      // Sistema de Checkup Completo (1 clique)
-      async function runCompleteCheckup() {
-        const btn = $el("btnTestConnect");
-        const resultsSection = $el("resultsSection");
-        const resultsTbody = $el("resultsTbody");
-        const testSummary = $el("testSummary");
-
-        // Preparar UI
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Executando checkup...';
-        }
-        if (resultsSection) resultsSection.classList.add("d-none");
-        if (resultsTbody) resultsTbody.innerHTML = "";
-
-        const checkResults = [];
-
-        try {
-          // 1) Suporte Web3
-          const hasProvider = typeof window.ethereum !== "undefined";
-          checkResults.push({
-            test: "Suporte Web3",
-            addr: "-",
-            result: hasProvider ? "Ethereum provider detectado" : "Provider não encontrado",
-            status: hasProvider ? "success" : "error",
-          });
-
-          // 2) Carteiras disponíveis
-          const available = await window.walletConnector.detectAvailableWallets();
-          const walletKeys = Object.keys(available || {}).filter((k) => available[k]);
-          checkResults.push({
-            test: "Carteiras Instaladas",
-            addr: "-",
-            result: walletKeys.length > 0 ? `${walletKeys.length} carteira(s) detectada(s)` : "Nenhuma carteira detectada",
-            status: walletKeys.length > 0 ? "success" : "warning",
-          });
-
-          // 3) Forçar solicitação de permissão/contas para abrir o popup (como wallet-index)
-          if (hasProvider) {
-            // Tentar revogar permissões para garantir novo prompt
-            try {
-              await window.ethereum.request({
-                method: "wallet_revokePermissions",
-                params: [{ eth_accounts: {} }],
-              });
-              checkResults.push({
-                test: "Permissões",
-                addr: "-",
-                result: "Permissões resetadas para forçar popup",
-                status: "info",
-              });
-            } catch (e) {
-              checkResults.push({
-                test: "Permissões",
-                addr: "-",
-                result: "Revogação não suportada ou já limpa",
-                status: "info",
-              });
-            }
-            // Solicitar explicitamente contas (deve abrir o Metamask e pedir senha se bloqueado)
-            try {
-              const accountsReq = await window.ethereum.request({
-                method: "eth_requestAccounts",
-              });
-              const addr = Array.isArray(accountsReq) && accountsReq.length ? accountsReq[0] : "-";
-              checkResults.push({
-                test: "Autorização de Contas",
-                addr,
-                result: addr !== "-" ? "Autorização concedida" : "Nenhuma conta retornada",
-                status: addr !== "-" ? "success" : "warning",
-              });
-            } catch (e) {
-              checkResults.push({
-                test: "Autorização de Contas",
-                addr: "-",
-                result: `Falha ao solicitar contas: ${e?.message || e}`,
-                status: "error",
-              });
-            }
-          }
-
-          // 4) Tentar conexão via WalletConnector
-          let currentStatus = window.walletConnector.getStatus();
-          let connectAttempted = false;
-          if (!currentStatus.isConnected && walletKeys.length > 0) {
-            try {
-              const preferred = pickPreferredWallet(available);
-              const res = await window.walletConnector.connect(preferred);
-              connectAttempted = true;
-              checkResults.push({
-                test: "Teste de Conexão",
-                addr: res.account,
-                result: `Conexão com ${preferred} bem-sucedida`,
-                status: "success",
-              });
-            } catch (e) {
-              connectAttempted = true;
-              checkResults.push({
-                test: "Teste de Conexão",
-                addr: "-",
-                result: `Falha: ${e.message}`,
-                status: "error",
-              });
-            }
-          }
-
-          // 5) Status de Conexão (após tentativa)
-          const finalStatus = window.walletConnector.getStatus();
-          checkResults.push({
-            test: "Status de Conexão",
-            addr: finalStatus.account || "-",
-            result: finalStatus.isConnected ? `Conectado: ${finalStatus.wallet}` : walletKeys.length === 0 ? "Nenhuma carteira instalada" : "Não conectado",
-            status: finalStatus.isConnected ? "success" : connectAttempted ? "error" : "info",
-          });
-
-          // 6) Informações da carteira, rede e saldo (detalhes semelhantes ao wallet-index)
-          if (finalStatus.isConnected) {
-            // Provider
-            checkResults.push({
-              test: "Provider",
-              addr: "-",
-              result: getProviderName(),
-              status: "success",
-            });
-            checkResults.push({
-              test: "Rede",
-              addr: finalStatus.chainId || "-",
-              result: finalStatus.network ? finalStatus.network.name : "Rede não identificada",
-              status: finalStatus.network ? "success" : "warning",
-            });
-            // Moeda nativa e símbolo
-            if (finalStatus.network?.nativeCurrency) {
-              checkResults.push({
-                test: "Moeda Nativa",
-                addr: "-",
-                result: `${finalStatus.network.nativeCurrency.name} (${finalStatus.network.nativeCurrency.symbol})`,
-                status: "success",
-              });
-            }
-            // RPC URL
-            if (Array.isArray(finalStatus.network?.rpc) && finalStatus.network.rpc.length) {
-              checkResults.push({
-                test: "RPC URL",
-                addr: "-",
-                result: finalStatus.network.rpc[0],
-                status: "info",
-              });
-            }
-            // Explorer URL
-            if (Array.isArray(finalStatus.network?.explorers) && finalStatus.network.explorers.length) {
-              const exp = finalStatus.network.explorers[0];
-              checkResults.push({
-                test: "Explorer",
-                addr: "-",
-                result: exp.url || "-",
-                status: "info",
-              });
-            }
-            // Versão da rede (net_version)
-            try {
-              const netVer = await window.ethereum.request({
-                method: "net_version",
-              });
-              checkResults.push({
-                test: "Versão da Rede",
-                addr: "-",
-                result: `${netVer}`,
-                status: "info",
-              });
-            } catch {}
-            checkResults.push({
-              test: "Saldo (ETH)",
-              addr: finalStatus.account || "-",
-              result: `${finalStatus.balance || "0"}`,
-              status: "success",
-            });
-          }
-
-          // 7) Módulos essenciais
-          checkResults.push({
-            test: "WalletConnector",
-            addr: "-",
-            result: window.walletConnector ? "Módulo carregado" : "Módulo não encontrado",
-            status: window.walletConnector ? "success" : "error",
-          });
-          checkResults.push({
-            test: "NetworkManager",
-            addr: "-",
-            result: window.networkManager ? "Módulo carregado" : "Módulo não encontrado",
-            status: window.networkManager ? "success" : "error",
-          });
-        } catch (error) {
-          checkResults.push({
-            test: "Erro Geral",
-            addr: "-",
-            result: error.message || "Erro desconhecido durante o checkup",
-            status: "error",
-          });
-        }
-
-        // Gerar tabela de resultados
-        const successCount = checkResults.filter((r) => r.status === "success").length;
-        const errorCount = checkResults.filter((r) => r.status === "error").length;
-        const warningCount = checkResults.filter((r) => r.status === "warning").length;
-
-        const statusText = (s) => (s === "success" ? "OK" : s === "warning" ? "Aviso" : s === "error" ? "Erro" : "Info");
-        const badgeClass = (s) => (s === "success" ? "bg-success" : s === "warning" ? "bg-warning" : s === "error" ? "bg-danger" : "bg-info");
-
-        resultsTbody.innerHTML = checkResults
-          .map(
-            (r) => `
-        <tr>
-          <td>${r.test}</td>
-          <td class="monospace-input">${r.addr || "-"}</td>
-          <td class="ps-3">${r.result || "-"}</td>
-          <td class="text-end"><span class="badge ${badgeClass(r.status)}">${statusText(r.status)}</span></td>
-        </tr>
-      `,
-          )
-          .join("");
-
-        testSummary.className = `alert ${errorCount ? "alert-danger" : warningCount ? "alert-warning" : "alert-success"} d-block`;
-        testSummary.textContent = `Checkup: ${successCount} OK, ${warningCount} avisos, ${errorCount} erros`;
-        resultsSection.classList.remove("d-none");
-
-        // Restaurar botão
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-plug me-1"></i> Testar Conexão';
-        }
-
-        log(`Checkup concluído: ${successCount} sucessos, ${warningCount} avisos, ${errorCount} erros`, errorCount > 0 ? "error" : warningCount > 0 ? "info" : "success");
-      }
-
-      // Atualiza UI quando eventos ocorrerem
-      document.addEventListener("wallet:connected", () => {
-        log("Evento: carteira conectada", "success");
-      });
-
-      document.addEventListener("wallet:disconnected", () => {
-        fillStatus(window.walletConnector.getStatus());
-        log("Evento: carteira desconectada", "info");
-      });
-
-      document.addEventListener("wallet:error", (ev) => {
-        const msg = ev.detail?.error || "Erro desconhecido";
-        log(`Evento de erro: ${msg}`, "error");
-      });
-
-      // Inicialização: sempre começar desconectado e ligar Testar Conexão ao checkup completo
-      function clearResultsUI() {
-        try {
-          window.walletConnector?.disconnect();
-        } catch {}
-        const resultsSection = $el("resultsSection");
-        const resultsTbody = $el("resultsTbody");
-        const testSummary = $el("testSummary");
-        if (resultsSection) resultsSection.classList.add("d-none");
-        if (resultsTbody) resultsTbody.innerHTML = "";
-        if (testSummary) {
-          testSummary.className = "alert alert-info d-none";
-          testSummary.textContent = "";
-        }
-
-        // Limpar demais elementos relacionados e campos
-        const detectedSection = $el("detectedSection");
-        const detailsSection = $el("detailsSection");
-        const report = $el("checkupReport");
-        if (detectedSection) detectedSection.classList.add("d-none");
-        if (detailsSection) detailsSection.classList.add("d-none");
-        if (report) report.classList.add("d-none");
-        const walletsDetected = $el("walletsDetected");
-        if (walletsDetected) walletsDetected.innerHTML = "";
-        // Limpa campos de detalhes
-        if (typeof fillStatus === "function") fillStatus({});
-      }
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        try {
-          await window.walletConnector.disconnect();
-        } catch {}
-        const btnTest = $el("btnTestConnect");
-        const btnClear = $el("btnClearResults");
-        if (btnTest) btnTest.addEventListener("click", runCompleteCheckup);
-        if (btnClear) btnClear.addEventListener("click", clearResultsUI);
-        // Removido botão de desconexão para padronização: manter apenas Executar e Limpar
-        runAutoTest();
-      });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
 </html>

@@ -28,16 +28,10 @@
 
     <div class="container">
       <div class="g-4">
-        <!-- Coluna principal: formulário -->
         <div class="col-12">
           <!-- Seleção da Rede -->
           <div class="mb-4" id="network-section">
-            <!-- Título da seção (padrão unificado) -->
-            <div data-component="shared/components/network-search.html" data-ns-placeholder="Digite o nome da rede ou Chain ID (ex: Ethereum, BNB, 1, 56)" data-ns-min-chars="1" data-ns-show-popular="true" data-ns-show-details-on-select="false"></div>
-            <small id="networkStatus" class="text-muted d-none mt-1">
-              <span id="networkSwitchSpinner" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-              Ajustando a carteira para a rede selecionada...
-            </small>
+            <div data-component="shared/components/network-search.html"></div>
           </div>
 
           <div class="mb-4">
@@ -157,6 +151,12 @@
                 <i class="bi bi-shield-check me-1"></i>
                 <span id="verifyBtnText">Verificar Contrato</span>
               </button>
+            </div>
+            <div class="mt-2 d-none" id="openVerificaContainer">
+              <a id="openVerificaModuleBtn" class="btn btn-outline-info" href="../verifica/verifica-index.html">
+                <i class="bi bi-box-arrow-up-right me-1"></i>
+                Abrir módulo Verificação
+              </a>
             </div>
             <!-- Links do Deploy movidos para detalhes do contrato -->
 

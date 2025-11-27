@@ -45,6 +45,12 @@ function initContainer(container) {
   const rpcAnchorEl = container.querySelector("#rpcUrlText");
   const explorerCodeEl = container.querySelector("#explorerUrlCode");
   const explorerAnchorEl = container.querySelector("#explorerUrlText");
+  const badgeName = container.querySelector("#nsBadgeName");
+  const badgeSymbol = container.querySelector("#nsBadgeSymbol");
+  const badgeChainId = container.querySelector("#nsBadgeChainId");
+  const apiFixBtn = container.querySelector("#apiFixBtn");
+  const inputGroupEl = container.querySelector(".input-group");
+  const inputEl = container.querySelector("#networkSearch");
 
   function updateDetailsCard(net) {
     if (!detailsCard) return;
@@ -52,6 +58,9 @@ function initContainer(container) {
     if (idEl) idEl.textContent = net?.chainId !== undefined ? String(net.chainId) : "";
     if (currencyNameEl) currencyNameEl.textContent = net?.nativeCurrency?.name || "";
     if (currencySymbolEl) currencySymbolEl.textContent = net?.nativeCurrency?.symbol || "";
+    if (badgeName) badgeName.textContent = net?.name || "-";
+    if (badgeSymbol) badgeSymbol.textContent = net?.nativeCurrency?.symbol || "-";
+    if (badgeChainId) badgeChainId.textContent = net?.chainId !== undefined ? String(net.chainId) : "-";
     const rpc = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc[0] : typeof net?.rpc === "string" ? net.rpc : "";
     const explorer = net?.explorers && net.explorers.length ? net.explorers[0].url || net.explorers[0] : "";
     if (rpcCodeEl) rpcCodeEl.textContent = rpc || "";
@@ -59,6 +68,76 @@ function initContainer(container) {
     if (explorerCodeEl) explorerCodeEl.textContent = explorer || "";
     if (explorerAnchorEl) explorerAnchorEl.href = explorer ? explorer : "#";
   }
+
+  try {
+    if (apiFixBtn) {
+      apiFixBtn.addEventListener("click", (e) => {
+        try {
+          e.preventDefault();
+          const prod = "https://tokencafe-api.onrender.com";
+          window.localStorage && window.localStorage.setItem("api_base", prod);
+          window.location.reload();
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
+
+  function applyPrefilledBehavior() {
+    try {
+      const hasPrefilledChain = !!(inputEl && inputEl.dataset && inputEl.dataset.chainId);
+      if (hasPrefilledChain && inputGroupEl) inputGroupEl.classList.add("d-none");
+    } catch (_) {}
+  }
+  applyPrefilledBehavior();
+  container.addEventListener("network:prefilled", () => {
+    applyPrefilledBehavior();
+  });
+  function applyMemoryPrefill() {
+    try {
+      const sp0 = new URLSearchParams(window.location.search || "");
+      const fromTools = (sp0.get("source") || "").toLowerCase() === "tools";
+      if (fromTools) return;
+      let rawCid = null;
+      try {
+        const sp = new URLSearchParams(window.location.search || "");
+        rawCid = sp.get("chainId") || sp.get("cid") || null;
+      } catch (_) {}
+      if (!rawCid) {
+        try {
+          rawCid = window.sessionStorage?.getItem("tokencafe_last_chain_id") || null;
+        } catch (_) {}
+      }
+      if (!rawCid) {
+        try {
+          rawCid = window.localStorage?.getItem("tokencafe_last_chain_id") || null;
+        } catch (_) {}
+      }
+      if (!rawCid) return;
+      inputEl && (inputEl.dataset.chainId = String(rawCid));
+      let net = null;
+      try {
+        if (networkManager?.getNetworkById) net = networkManager.getNetworkById(parseInt(rawCid, 10));
+      } catch (_) {}
+      if (net) {
+        updateDetailsCard(net);
+        try {
+          const testnet = networkManager?.isTestnet ? networkManager.isTestnet(net) : /test|sepolia|goerli|rinkeby|kovan|mumbai/i.test(String(net.name || ""));
+          const badgeWraps = [badgeName?.parentElement, badgeSymbol?.parentElement, badgeChainId?.parentElement].filter(Boolean);
+          badgeWraps.forEach((w) => {
+            w.classList.remove("bg-dark-elevated", "bg-success", "bg-warning");
+            w.classList.add(testnet ? "bg-warning" : "bg-success");
+          });
+        } catch (_) {}
+        const evt = new CustomEvent("network:selected", { detail: { network: net, source: "memory" }, bubbles: true });
+        container.dispatchEvent(evt);
+        inputEl && (inputEl.value = net.name || "");
+      } else {
+        if (badgeChainId) badgeChainId.textContent = String(rawCid);
+      }
+      applyPrefilledBehavior();
+    } catch (_) {}
+  }
+  applyMemoryPrefill();
 
   function hideList() {
     list.classList.add("d-none");
@@ -98,12 +177,26 @@ function initContainer(container) {
         if (net) {
           selectedNetwork = net;
           const evt = new CustomEvent("network:selected", {
-            detail: { network: net },
+            detail: { network: net, source: "user" },
             bubbles: true,
           });
           container.dispatchEvent(evt);
           input.value = net.name;
           input.dataset.chainId = String(net.chainId);
+          try {
+            window.sessionStorage && window.sessionStorage.setItem("tokencafe_last_chain_id", String(net.chainId));
+          } catch (_) {}
+          try {
+            window.localStorage && window.localStorage.setItem("tokencafe_last_chain_id", String(net.chainId));
+          } catch (_) {}
+          try {
+            const testnet = networkManager?.isTestnet ? networkManager.isTestnet(net) : /test|sepolia|goerli|rinkeby|kovan|mumbai/i.test(String(net.name || ""));
+            const badgeWraps = [badgeName?.parentElement, badgeSymbol?.parentElement, badgeChainId?.parentElement].filter(Boolean);
+            badgeWraps.forEach((w) => {
+              w.classList.remove("bg-dark-elevated", "bg-success", "bg-warning");
+              w.classList.add(testnet ? "bg-warning" : "bg-success");
+            });
+          } catch (_) {}
           // atualizar detalhes sem abrir automaticamente
           updateDetailsCard(net);
           hideList();
@@ -248,6 +341,16 @@ function initContainer(container) {
         if (rpcAnchorEl) rpcAnchorEl.href = "#";
         if (explorerCodeEl) explorerCodeEl.textContent = "";
         if (explorerAnchorEl) explorerAnchorEl.href = "#";
+        if (badgeName) badgeName.textContent = "-";
+        if (badgeSymbol) badgeSymbol.textContent = "-";
+        if (badgeChainId) badgeChainId.textContent = "-";
+        try {
+          const badgeWraps = [badgeName?.parentElement, badgeSymbol?.parentElement, badgeChainId?.parentElement].filter(Boolean);
+          badgeWraps.forEach((w) => {
+            w.classList.remove("bg-success", "bg-warning");
+            w.classList.add("bg-dark-elevated");
+          });
+        } catch (_) {}
       }
     });
   }

@@ -42,6 +42,8 @@ class BaseSystem {
     // Carregar componentes automaticamente
     this.loadComponents();
 
+    this.enforceAuthGuard();
+
     this.initialized = true;
     console.log("✅ Base System Unified inicializado");
   }
@@ -161,6 +163,27 @@ class BaseSystem {
     };
 
     console.log("🍞 Sistema de toast configurado");
+  }
+
+  enforceAuthGuard() {
+    try {
+      const path = String(window.location.pathname || "");
+      const requiresAuth = path.includes("/pages/modules/") || path.endsWith("/pages/tools.html");
+      if (!requiresAuth) return;
+      const status = window.walletConnector?.getStatus?.() || {};
+      const ok = !!status.account && !!status.sessionAuthorized;
+      if (!ok) {
+        const current = (window.location.pathname || "") + (window.location.search || "") + (window.location.hash || "");
+        window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+        return;
+      }
+      document.addEventListener("wallet:disconnected", () => {
+        try {
+          const current = (window.location.pathname || "") + (window.location.search || "") + (window.location.hash || "");
+          window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+        } catch (_) {}
+      });
+    } catch (_) {}
   }
 
   /**

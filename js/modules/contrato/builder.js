@@ -780,7 +780,7 @@ async function compileContract() {
 
 function unusedVerifyPlaceholder() {
   const contractAddr = state.deployed?.address;
-  const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+  const chainId = state.form?.network?.chainId;
   if (contractAddr && chainId) {
     const url = getExplorerVerificationUrl(contractAddr, chainId);
     log(`Abrindo verificação do contrato no explorer: ${url}`);
@@ -826,7 +826,7 @@ async function deployPlaceholder() {
         throw probeErr;
       }
       log("Iniciando deploy via servidor (chave segura, RPC configurado)...");
-      const reqChainId = state.form?.network?.chainId || state.wallet?.chainId || null;
+      const reqChainId = state.form?.network?.chainId || null;
       const resp = await fetch(`${API_BASE}/api/deploy-server`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -849,7 +849,7 @@ async function deployPlaceholder() {
       state.deployed.address = addr || null;
       state.deployed.transactionHash = txh || null;
       log(`Deploy concluído: contrato em ${addr} (tx ${txh || "–"})`);
-      const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+      const chainId = state.form?.network?.chainId;
       const explorerUrl = data.explorerUrl || getExplorerContractUrl(addr, chainId);
       const txUrl = txh ? getExplorerTxUrl(txh, chainId) : null;
       if (explorerUrl) log(`Explorer (Contrato): ${explorerUrl}`);
@@ -885,7 +885,7 @@ async function deployPlaceholder() {
       // Verificação privada on-chain
       try {
         const addrVerify = state.deployed?.address;
-        const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+        const chainIdVerify = state.form?.network?.chainId;
         const dep = state.compilation?.deployedBytecode;
         let payload = null;
         if (addrVerify && chainIdVerify) {
@@ -1024,7 +1024,7 @@ async function deployPlaceholder() {
     state.deployed.transactionHash = tx.hash || null;
     state.deployed.deployParams = {
       gasLimit: overrides?.gasLimit ? (overrides.gasLimit.toString ? overrides.gasLimit.toString() : String(overrides.gasLimit)) : undefined,
-      chainId: state.form?.network?.chainId || state.wallet?.chainId,
+      chainId: state.form?.network?.chainId,
       networkName: state.form?.network?.name || null,
     };
 
@@ -1099,7 +1099,7 @@ async function deployPlaceholder() {
       updateERC20Details(null, null, null, null, "Falha ao verificar bytecode", true);
     }
 
-    const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+    const chainId = state.form?.network?.chainId;
     const explorerUrl = getExplorerContractUrl(addr, chainId);
     const txUrl = tx.hash ? getExplorerTxUrl(tx.hash, chainId) : null;
     if (explorerUrl) log(`Explorer (Contrato): ${explorerUrl}`);
@@ -1157,7 +1157,7 @@ async function deployPlaceholder() {
 
     try {
       const addrVerify = state.deployed?.address;
-      const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+      const chainIdVerify = state.form?.network?.chainId;
       const dep = state.compilation?.deployedBytecode;
       let payload = null;
       if (addrVerify && chainIdVerify) {
@@ -1200,13 +1200,22 @@ async function deployPlaceholder() {
       updateVerificationBadges({ privOk: false });
       log(`Erro na verificação privada: ${perr?.message || perr}`);
     }
+    try {
+      const cont = document.getElementById("openVerificaContainer");
+      const btn = document.getElementById("openVerificaModuleBtn");
+      const ready = !!(state.deployed?.address && state.form?.network?.chainId);
+      if (cont && btn) {
+        cont.classList.toggle("d-none", !ready);
+        btn.classList.toggle("disabled", !ready);
+      }
+    } catch (_) {}
 
-    const autoToggle = document.getElementById("autoVerifyToggle");
+    const unusedAutoToggle = document.getElementById("autoVerifyToggle");
     const autoEnabled = false;
     if (autoEnabled) {
       try {
         const addrVerify = state.deployed?.address;
-        const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+        const chainIdVerify = state.form?.network?.chainId;
         const src = state.compilation?.sourceCode;
         const cname = state.compilation?.contractName;
         const meta = state.compilation?.metadata;
@@ -1392,7 +1401,7 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
   try {
     const link = document.getElementById("erc20VerifyLink");
     const addrVerify = state.deployed?.address;
-    const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+    const chainIdVerify = state.form?.network?.chainId;
     let url = null;
     url = bscUrl || sourUrl || (addrVerify && chainIdVerify ? getExplorerVerificationUrl(addrVerify, chainIdVerify) : null);
     if (link) {
@@ -1638,36 +1647,6 @@ async function bindUI() {
       const vname = document.getElementById("verifyNetworkName");
       if (vname) vname.textContent = net.name || "-";
     } catch (_) {}
-    try {
-      const ns = document.getElementById("networkStatus");
-      if (ns) ns.classList.remove("d-none");
-    } catch (_) {}
-    try {
-      if (state.wallet?.provider && window.ethereum) {
-        const hexChain = "0x" + Number(net.chainId).toString(16);
-        window.ethereum
-          .request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: hexChain }],
-          })
-          .then(async () => {
-            const after = await state.wallet.provider.getNetwork();
-            state.wallet.chainId = after.chainId;
-            log(`Carteira alterada para chainId ${after.chainId}.`);
-            try {
-              const ns = document.getElementById("networkStatus");
-              if (ns) ns.classList.add("d-none");
-            } catch (_) {}
-          })
-          .catch((e) => {
-            log(`Falha ao trocar rede da carteira: ${e?.message || e}`);
-            try {
-              const ns = document.getElementById("networkStatus");
-              if (ns) ns.classList.add("d-none");
-            } catch (_) {}
-          });
-      }
-    } catch (_) {}
   });
 
   try {
@@ -1677,7 +1656,7 @@ async function bindUI() {
         try {
           e.preventDefault();
           const addr = state.deployed?.address;
-          const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+          const chainId = state.form?.network?.chainId;
           if (!addr || !chainId) return;
           const kind = computeVerifyKind();
           if (kind === "sour" && state?.compilation?.sourceCode && state?.compilation?.metadata) {
@@ -1738,7 +1717,7 @@ async function bindUI() {
       mime = "application/json";
     } else if (type === "verifyjson") {
       filename = `${nameBase}.verify.json`;
-      const chainId = state.form?.network?.chainId || state.wallet?.chainId || null;
+      const chainId = state.form?.network?.chainId || null;
       const address = state.deployed?.address || null;
       const txHash = state.deployed?.transactionHash || null;
       const networkName = state.form?.network?.name || null;
@@ -1882,7 +1861,7 @@ async function bindUI() {
     const rec = {
       group: state.form?.group || "erc20-minimal",
       network: {
-        chainId: net?.chainId || state.wallet?.chainId || null,
+        chainId: net?.chainId || null,
         name: net?.name || null,
       },
       token: {
@@ -1961,7 +1940,7 @@ async function bindUI() {
       if (rec?.deployment) {
         state.deployed.address = rec.deployment.address || state.deployed.address || null;
         state.deployed.transactionHash = rec.deployment.tx || state.deployed.transactionHash || null;
-        const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+        const chainId = state.form?.network?.chainId;
         const explorerUrl = getExplorerContractUrl(state.deployed.address, chainId);
         const txUrl = getExplorerTxUrl(state.deployed.transactionHash, chainId);
         updateDeployLinks(explorerUrl, txUrl);
@@ -2013,7 +1992,7 @@ async function bindUI() {
         vLink.addEventListener("click", async (e) => {
           try {
             const addr = state.deployed?.address;
-            const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+            const chainId = state.form?.network?.chainId;
             const src = state.compilation?.sourceCode;
             const meta = state.compilation?.metadata;
             if (addr && chainId && src && meta) {
@@ -2105,8 +2084,8 @@ async function bindUI() {
       let unusedActionEnabled = false;
       let unusedActionHandler = null;
       let openHref = "#";
-      const addr = state.deployed?.address;
-      const chainId = state.form?.network?.chainId || state.wallet?.chainId;
+      const unusedAddr = state.deployed?.address;
+      const unusedChainId = state.form?.network?.chainId;
       if (kind === "bsc") {
         title = "Verificação no BscScan";
         html = `
@@ -2122,13 +2101,8 @@ async function bindUI() {
           </div>
           <p>Depois, abra a página de verificação do explorer e publique o código.</p>
         `;
-        unusedActionHandler = () => {
-          const url = getExplorerVerificationUrl(addr, chainId);
-          try {
-            window.open(url, "_blank");
-          } catch {}
-        };
-        openHref = getExplorerVerificationUrl(addr, chainId) || "#";
+        unusedActionHandler = () => {};
+        openHref = "../verifica/verifica-index.html";
       } else if (kind === "sour") {
         title = "Verificação via Sourcify";
         html = `
@@ -2140,12 +2114,8 @@ async function bindUI() {
             </div>
           </div>
         `;
-        unusedActionHandler = () => {
-          try {
-            window.open("https://sourcify.dev/#/", "_blank");
-          } catch {}
-        };
-        openHref = "https://sourcify.dev/#/";
+        unusedActionHandler = () => {};
+        openHref = "../verifica/verifica-index.html";
       } else {
         title = "Verificação TokenCafe";
         html = `
@@ -2159,7 +2129,7 @@ async function bindUI() {
         const unusedOk = document.getElementById("erc20VerifyPrivBtn")?.dataset?.verified === "true";
         unusedActionEnabled = false;
         unusedActionHandler = () => {};
-        openHref = "#";
+        openHref = "../verifica/verifica-index.html";
       }
       if (titleEl) titleEl.textContent = title;
       if (contentEl) contentEl.innerHTML = html;
@@ -2167,6 +2137,21 @@ async function bindUI() {
       if (openLink) {
         openLink.href = openHref || "#";
         openLink.classList.toggle("disabled", !openHref || openHref === "#");
+        openLink.onclick = () => {
+          try {
+            const payload = buildVerifyPayloadFromState();
+            if (payload) {
+              localStorage.setItem("tokencafe_contract_verify_payload", JSON.stringify(payload));
+              try {
+                const cid = payload?.chainId;
+                if (cid) {
+                  localStorage.setItem("tokencafe_last_chain_id", String(cid));
+                  sessionStorage.setItem("tokencafe_last_chain_id", String(cid));
+                }
+              } catch (_) {}
+            }
+          } catch (_) {}
+        };
       }
       // Bind downloads
       const dlSol = document.getElementById("verifyDlSol");
@@ -2198,7 +2183,7 @@ async function bindUI() {
         dlJson.onclick = () => {
           try {
             const name = (state?.compilation?.contractName || "MyToken").replace(/\s+/g, "");
-            const chainId = state.form?.network?.chainId || state.wallet?.chainId || null;
+            const chainId = state.form?.network?.chainId || null;
             const address = state.deployed?.address || null;
             const txHash = state.deployed?.transactionHash || null;
             const networkName = state.form?.network?.name || null;
@@ -2319,6 +2304,30 @@ async function bindUI() {
       });
     }
   } catch (_) {}
+
+  try {
+    const openBtn = document.getElementById("openVerificaModuleBtn");
+    const cont = document.getElementById("openVerificaContainer");
+    if (openBtn && cont) {
+      openBtn.addEventListener("click", () => {
+        try {
+          const payload = buildVerifyPayloadFromState();
+          if (payload) {
+            localStorage.setItem("tokencafe_contract_verify_payload", JSON.stringify(payload));
+            try {
+              const cid = payload?.chainId;
+              if (cid) {
+                localStorage.setItem("tokencafe_last_chain_id", String(cid));
+                sessionStorage.setItem("tokencafe_last_chain_id", String(cid));
+              }
+            } catch (_) {}
+          } else {
+            localStorage.removeItem("tokencafe_contract_verify_payload");
+          }
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
 }
 
 document.addEventListener("DOMContentLoaded", bindUI);
@@ -2374,7 +2383,7 @@ function computeVerifyKind() {
 function buildVerifyPayloadFromState() {
   try {
     const addrVerify = state.deployed?.address;
-    const chainIdVerify = state.form?.network?.chainId || state.wallet?.chainId;
+    const chainIdVerify = state.form?.network?.chainId;
     const src = state.compilation?.sourceCode;
     const cname = state.compilation?.contractName;
     const meta = state.compilation?.metadata;

@@ -99,6 +99,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
             addressEl: addrText,
             statusWrapperEl: addrEl,
             connectBtnEl: btnConnect,
+            logoutBtnEl: btnLogout,
           });
         }
 
@@ -120,7 +121,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
           );
         }
 
-        // Clique de sair → limpeza completa e retorno ao início
+        // Clique de sair → limpeza completa e retorno ao login com volta
         if (btnLogout) {
           btnLogout.addEventListener("click", async () => {
             try {
@@ -154,7 +155,8 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
               /* ignore */
             }
             try {
-              window.location.href = "/pages/index.html";
+              const current = (window.location.pathname || "") + (window.location.search || "") + (window.location.hash || "");
+              window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
             } catch (e) {
               /* ignore */
             }

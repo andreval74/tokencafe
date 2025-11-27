@@ -605,7 +605,7 @@ export class WalletConnector {
     const statusWrapperEl = resolve(config.statusWrapperEl);
     const connectBtnEl = resolve(config.connectBtnEl);
     const dashboardLinkEl = resolve(config.dashboardLinkEl);
-    const unusedLogoutBtnEl = resolve(config.logoutBtnEl);
+    const logoutBtnEl = resolve(config.logoutBtnEl);
 
     const isBadgeStyle = connectBtnEl ? connectBtnEl.classList.contains("badge") : false;
 
@@ -642,6 +642,10 @@ export class WalletConnector {
 
       if (dashboardLinkEl) {
         dashboardLinkEl.classList.toggle("d-none", !connected);
+      }
+
+      if (logoutBtnEl) {
+        logoutBtnEl.classList.toggle("d-none", !connected);
       }
     };
 
