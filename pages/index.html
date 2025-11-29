@@ -906,5 +906,84 @@
 
     <!-- Lógica centralizada de conexão de carteira -->
     <script src="../js/modules/wallet/wallet.js"></script>
+    
+    <!-- CTA inteligente: adapta texto e ação conforme status da carteira -->
+    <script type="module">
+      // Atualiza o botão principal da home conforme status da carteira
+      // Conectado (sessão autorizada e carteira desbloqueada) → Entrar no Dashboard
+      // Não conectado → Conectar Carteira (leva ao login com retorno)
+      document.addEventListener("DOMContentLoaded", async () => {
+        const btn = document.getElementById("connect-wallet-btn");
+        if (!btn) return;
+
+        function isWalletUiDisabled() {
+          try {
+            const url = new URL(window.location.href);
+            const q = url.searchParams.get("wallet");
+            if (q === "off") return true;
+            if (q === "on") return false;
+            const ls = localStorage.getItem("tokencafe_wallet_ui_disabled");
+            return ls === "true";
+          } catch (_) {
+            return false;
+          }
+        }
+
+        const setConnected = () => {
+          btn.classList.remove("btn-outline-primary");
+          btn.classList.add("btn-outline-success");
+          btn.innerHTML = '<i class="bi bi-speedometer2 me-1"></i> Entrar no Dashboard';
+          btn.onclick = () => {
+            window.location.href = "/pages/tools.html";
+          };
+        };
+
+        const setDisconnected = () => {
+          btn.classList.remove("btn-outline-success");
+          btn.classList.add("btn-outline-primary");
+          btn.innerHTML = '<i class="fas fa-sign-in-alt me-1"></i> Conectar Carteira';
+          btn.onclick = async () => {
+            try {
+              await window.walletConnector?.connect?.("metamask");
+              window.location.href = "/pages/tools.html";
+            } catch (e) {
+              alert("Conexão necessária: " + (e?.message || e));
+            }
+          };
+        };
+
+        let connected = false;
+        let unlocked = false;
+        try {
+          const status = window.walletConnector?.getStatus?.() || {};
+          let accounts = [];
+          if (window.ethereum && typeof window.ethereum.request === "function") {
+            try { accounts = await window.ethereum.request({ method: "eth_accounts" }); } catch (_) { accounts = []; }
+            try {
+              unlocked = !!(window.ethereum?._metamask?.isUnlocked ? await window.ethereum._metamask.isUnlocked() : (Array.isArray(accounts) && accounts.length > 0));
+            } catch (_) { unlocked = Array.isArray(accounts) && accounts.length > 0; }
+          }
+          const hasAccount = !!status.account || (Array.isArray(accounts) && accounts.length > 0);
+          connected = hasAccount && !!status.sessionAuthorized && unlocked;
+        } catch (_) {}
+
+        if (isWalletUiDisabled()) {
+          setDisconnected();
+        } else {
+          if (connected) setConnected();
+          else setDisconnected();
+        }
+
+        if (!isWalletUiDisabled()) {
+          document.addEventListener("wallet:connected", setConnected);
+          document.addEventListener("wallet:disconnected", setDisconnected);
+          document.addEventListener("wallet:accountChanged", (ev) => {
+            const acc = ev.detail?.account;
+            if (acc) setConnected();
+            else setDisconnected();
+          });
+        }
+      });
+    </script>
   </body>
 </html>

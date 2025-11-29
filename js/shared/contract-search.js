@@ -22,11 +22,6 @@ function initContainer(container) {
       const ns = document.getElementById("networkSearch");
       raw = ns?.dataset?.chainId || "";
     }
-    if (!raw) {
-      try {
-        raw = sessionStorage.getItem("tokencafe_last_chain_id") || localStorage.getItem("tokencafe_last_chain_id") || "";
-      } catch (_) {}
-    }
     return raw;
   }
 

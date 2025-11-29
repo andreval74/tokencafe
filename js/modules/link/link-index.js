@@ -21,18 +21,28 @@ const ids = {
   btnShareLink: "btnShareLink",
   btnPreviewLink: "btnPreviewLink",
   btnAddToMetaMask: "btnAddToMetaMask",
+  addToWalletButton: "addToWalletButton",
+  btnAddNetwork: "btnAddNetwork",
   btnOpenLink: "btnOpenLink",
   btnClearAll: "btnClearAll",
   generatedLink: "generatedLink",
+  btnShareWhatsAppSmall: "btnShareWhatsAppSmall",
+  btnShareTelegramSmall: "btnShareTelegramSmall",
+  btnShareEmailSmall: "btnShareEmailSmall",
 };
 
 let selectedNetwork = null;
 let tokenFetched = false;
+let readonlyLinkMode = false;
 
 function toast(msg, type = "info") {
   if (typeof window.showToast === "function") {
     window.showToast(msg, type);
-  } else {
+    return;
+  }
+  try {
+    alert(msg);
+  } catch (_) {
     console.log(`[${type}] ${msg}`);
   }
 }
@@ -118,6 +128,21 @@ function getFallbackExplorer(chainId) {
       return "https://etherscan.io";
     case 137:
       return "https://polygonscan.com";
+    default:
+      return "";
+  }
+}
+
+function getFallbackChainName(chainId) {
+  switch (Number(chainId)) {
+    case 56:
+      return "BNB Smart Chain";
+    case 97:
+      return "BNB Smart Chain Testnet";
+    case 1:
+      return "Ethereum Mainnet";
+    case 137:
+      return "Polygon Mainnet";
     default:
       return "";
   }
@@ -216,13 +241,15 @@ function buildLink() {
     rpc: selectedNetwork.rpc?.[0] || "",
     explorer: selectedNetwork.explorers?.[0]?.url || "",
   });
-  return `${location.origin}/pages/modules/link/link-token.html?${params.toString()}`;
+  const sharePath = "/pages/modules/link/link-token.html";
+  return `${location.origin}${sharePath}?${params.toString()}`;
 }
 
 function updateGeneratedLink() {
   const url = buildLink();
   setValue(ids.generatedLink, url);
   if (url && tokenFetched) show("generate-section");
+  if (tokenFetched) renderTokenView();
 }
 
 async function fetchTokenData() {
@@ -396,23 +423,106 @@ function copyLink() {
 }
 
 function shareLink() {
-  const url = document.getElementById(ids.generatedLink)?.value;
-  if (!url) return;
-  // Compartilhar sem bloquear a UI; fallback para copiar
+  let url = document.getElementById(ids.generatedLink)?.value;
+  if (!url) {
+    url = buildLink();
+    if (url) setValue(ids.generatedLink, url);
+  }
+  if (!url) {
+    toast("Nenhum link gerado. Informe rede e token.", "warning");
+    return;
+  }
   (async () => {
-    try {
-      if (navigator.share) {
+    const ua = String(navigator.userAgent || "");
+    const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(ua);
+    const secure = typeof window !== "undefined" && (window.isSecureContext || location.protocol === "https:" || location.hostname === "localhost");
+    const canWebShare = secure && typeof navigator.share === "function" && (typeof navigator.canShare !== "function" || navigator.canShare({ url }));
+    if (canWebShare && isMobile) {
+      try {
         await navigator.share({ title: "TokenCafe Link", url });
         toast("Link compartilhado com sucesso", "success");
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast("Compartilhamento indisponível. Link copiado para compartilhar.", "info");
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") {
+          toast("Compartilhamento cancelado", "info");
+          return;
+        }
       }
-    } catch (e) {
-      await navigator.clipboard.writeText(url);
-      toast("Não foi possível compartilhar. Link copiado.", "warning");
     }
+    openShareMenu(url);
   })();
+}
+
+function openShareMenu(url) {
+  let modalEl = document.getElementById("tcShareModal");
+  if (!modalEl) {
+    modalEl = document.createElement("div");
+    modalEl.id = "tcShareModal";
+    modalEl.className = "modal fade";
+    modalEl.innerHTML = `
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Compartilhar Link</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-grid gap-2">
+              <button id="tcShareWhatsApp" class="btn btn-outline-success">WhatsApp</button>
+              <button id="tcShareTelegram" class="btn btn-outline-info">Telegram</button>
+              <button id="tcShareEmail" class="btn btn-outline-primary">Email</button>
+              <button id="tcShareCopy" class="btn btn-outline-secondary">Copiar Link</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modalEl);
+    const wBtn = modalEl.querySelector("#tcShareWhatsApp");
+    const tBtn = modalEl.querySelector("#tcShareTelegram");
+    const eBtn = modalEl.querySelector("#tcShareEmail");
+    const cBtn = modalEl.querySelector("#tcShareCopy");
+    if (wBtn) wBtn.addEventListener("click", () => {
+      const u = modalEl.dataset.url || "";
+      try { window.open(`https://wa.me/?text=${encodeURIComponent(u)}`, "_blank"); } catch (_) {}
+    });
+    if (tBtn) tBtn.addEventListener("click", () => {
+      const u = modalEl.dataset.url || "";
+      try { window.open(`https://t.me/share/url?url=${encodeURIComponent(u)}&text=TokenCafe%20Link`, "_blank"); } catch (_) {}
+    });
+    if (eBtn) eBtn.addEventListener("click", () => {
+      const u = modalEl.dataset.url || "";
+      try { window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self"); } catch (_) {}
+    });
+    if (cBtn) cBtn.addEventListener("click", async () => {
+      const u = modalEl.dataset.url || "";
+      let copied = false;
+      try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(u);
+          copied = true;
+        }
+      } catch (_) {}
+      if (!copied) {
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = u;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+          copied = true;
+        } catch (_) {}
+      }
+      toast(copied ? "Link copiado" : "Falha ao copiar", copied ? "success" : "warning");
+    });
+  }
+  modalEl.dataset.url = url;
+  try {
+    const modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
+    modal.show();
+  } catch (_) {
+    toast("Compartilhamento indisponível", "warning");
+  }
 }
 
 function unusedPreviewLink() {
@@ -450,6 +560,50 @@ async function addTokenToMetaMask() {
       toast("Carteira não detectada", "warning");
       return;
     }
+    const net = selectedNetwork || (() => {
+      try {
+        const chainIdFromInput = document.getElementById(ids.networkSearch)?.dataset?.chainId;
+        if (chainIdFromInput) return networkManager.getNetworkById(chainIdFromInput);
+        const chainIdFromUrl = new URLSearchParams(location.search).get("chainId");
+        if (chainIdFromUrl) return networkManager.getNetworkById(chainIdFromUrl);
+        return null;
+      } catch (_) {
+        return null;
+      }
+    })();
+    if (net && net.chainId) {
+      try {
+        const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
+        const targetHex = "0x" + Number(net.chainId).toString(16);
+        if (!currentHex || String(parseInt(currentHex, 16)) !== String(net.chainId)) {
+          try {
+            await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: targetHex }] });
+          } catch (switchErr) {
+            if (switchErr && (switchErr.code === 4902 || /unrecognized|unknown/i.test(String(switchErr.message || "")))) {
+              const rpcUrls = Array.isArray(net.rpc) && net.rpc.length ? net.rpc : [getFallbackRpc(net.chainId)].filter(Boolean);
+              const explorerUrl = net.explorers?.[0]?.url || getFallbackExplorer(net.chainId);
+              const addParams = {
+                chainId: targetHex,
+                chainName: net.name || `Chain ${net.chainId}`,
+                nativeCurrency: {
+                  name: net.nativeCurrency?.name || "Unknown",
+                  symbol: net.nativeCurrency?.symbol || "TKN",
+                  decimals: net.nativeCurrency?.decimals || 18,
+                },
+                rpcUrls,
+                blockExplorerUrls: explorerUrl ? [explorerUrl] : [],
+              };
+              await window.ethereum.request({ method: "wallet_addEthereumChain", params: [addParams] });
+            } else {
+              throw switchErr;
+            }
+          }
+        }
+      } catch (e) {
+        toast(`Falha ao ajustar rede: ${e.message || e}`, "error");
+        return;
+      }
+    }
     await window.ethereum.request({
       method: "wallet_watchAsset",
       params: {
@@ -460,6 +614,45 @@ async function addTokenToMetaMask() {
     toast("Token enviado para a carteira", "success");
   } catch (e) {
     toast(`Erro ao adicionar token: ${e.message}`, "error");
+  }
+}
+
+async function addNetworkToWallet() {
+  try {
+    const chainIdFromInput = document.getElementById(ids.networkSearch)?.dataset?.chainId;
+    const urlParams = new URLSearchParams(location.search);
+    const chainIdParam = urlParams.get("chainId");
+    const chainIdRaw = chainIdFromInput || chainIdParam || (selectedNetwork ? selectedNetwork.chainId : null);
+    if (!chainIdRaw) {
+      toast("Selecione uma rede primeiro", "warning");
+      return;
+    }
+    const net = selectedNetwork || networkManager.getNetworkById(chainIdRaw);
+    if (!net) {
+      toast("Rede não encontrada", "error");
+      return;
+    }
+    const rpcUrls = Array.isArray(net.rpc) && net.rpc.length ? net.rpc : [getFallbackRpc(net.chainId)].filter(Boolean);
+    const explorerUrl = net.explorers?.[0]?.url || getFallbackExplorer(net.chainId);
+    const params = {
+      chainId: "0x" + Number(net.chainId).toString(16),
+      chainName: net.name || `Chain ${net.chainId}`,
+      nativeCurrency: {
+        name: net.nativeCurrency?.name || "Unknown",
+        symbol: net.nativeCurrency?.symbol || "TKN",
+        decimals: net.nativeCurrency?.decimals || 18,
+      },
+      rpcUrls,
+      blockExplorerUrls: explorerUrl ? [explorerUrl] : [],
+    };
+    if (!window.ethereum) {
+      toast("Carteira não detectada", "warning");
+      return;
+    }
+    await window.ethereum.request({ method: "wallet_addEthereumChain", params: [params] });
+    toast("Rede enviada para a carteira", "success");
+  } catch (e) {
+    toast(`Erro ao adicionar rede: ${e.message}`, "error");
   }
 }
 
@@ -482,9 +675,9 @@ function clearAll() {
   tokenFetched = false;
   selectedNetwork = null;
   hide("selected-network-info");
-  hide("token-section");
-  hide("generate-section");
-  hide("token-info");
+  show("token-section");
+  show("generate-section");
+  show("token-info");
   // Limpar busca de rede e autocomplete
   const search = document.getElementById(ids.networkSearch);
   if (search) {
@@ -534,38 +727,217 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (net) selectNetwork(net);
   });
   document.addEventListener("network:clear", () => {
+    if (readonlyLinkMode) return;
     selectedNetwork = null;
     tokenFetched = false;
     hide("selected-network-info");
-    hide("token-section");
-    hide("generate-section");
+  });
+  document.addEventListener("network:required", () => {
+    if (readonlyLinkMode) return;
+    selectedNetwork = null;
+    tokenFetched = false;
+    hide("selected-network-info");
   });
   document.addEventListener("network:toggleInfo", (ev) => {
+    if (readonlyLinkMode) return;
     const visible = !!ev?.detail?.visible;
     const card = document.getElementById("selected-network-info");
     if (card) {
-      // Apenas refletir visibilidade; conteúdo é atualizado pelo componente
       card.classList.toggle("d-none", !visible);
     }
   });
   document.getElementById(ids.btnTokenSearch)?.addEventListener("click", fetchTokenData);
+  document.getElementById("tokenForm")?.addEventListener("submit", (e) => {
+    try { e.preventDefault(); } catch {}
+    fetchTokenData();
+  });
   document.getElementById(ids.btnCopyLink)?.addEventListener("click", copyLink);
   // Pequenos: copiar - adicionar à carteira - ver contrato
   document.getElementById(ids.btnShareLink)?.addEventListener("click", addTokenToMetaMask);
   document.getElementById(ids.btnOpenLink)?.addEventListener("click", openGeneratedLink);
   // Grande: compartilhar link
   document.getElementById(ids.btnAddToMetaMask)?.addEventListener("click", shareLink);
+  // Pequenos: WhatsApp/Telegram/Email
+  document.getElementById(ids.btnShareWhatsAppSmall)?.addEventListener("click", shareWhatsAppSmall);
+  document.getElementById(ids.btnShareTelegramSmall)?.addEventListener("click", shareTelegramSmall);
+  document.getElementById(ids.btnShareEmailSmall)?.addEventListener("click", shareEmailSmall);
+  document.getElementById(ids.addToWalletButton)?.addEventListener("click", addTokenToMetaMask);
+  document.getElementById(ids.btnAddNetwork)?.addEventListener("click", addNetworkToWallet);
   document.getElementById(ids.btnClearAll)?.addEventListener("click", clearAll);
   document.getElementById(ids.btnClearToken)?.addEventListener("click", clearTokenOnly);
   // Atualizar link em tempo real
-  document.getElementById(ids.tokenAddress)?.addEventListener("input", updateGeneratedLink);
+  document.getElementById(ids.tokenAddress)?.addEventListener("input", () => {
+    const el = document.getElementById(ids.tokenAddress);
+    const v = el?.value?.trim() || "";
+    const ok = isValidAddress(v);
+    if (el) {
+      el.classList.toggle("is-invalid", !!v && !ok);
+      el.classList.toggle("is-valid", !!v && ok);
+    }
+    updateGeneratedLink();
+  });
   document.getElementById(ids.tokenName)?.addEventListener("input", updateGeneratedLink);
   document.getElementById(ids.tokenSymbol)?.addEventListener("input", updateGeneratedLink);
-  document.getElementById(ids.tokenDecimals)?.addEventListener("input", updateGeneratedLink);
+  document.getElementById(ids.tokenDecimals)?.addEventListener("input", () => {
+    const el = document.getElementById(ids.tokenDecimals);
+    const v = parseInt(el?.value || "", 10);
+    const ok = Number.isFinite(v) && v >= 0 && v <= 36;
+    if (el) {
+      el.classList.toggle("is-invalid", !ok);
+      el.classList.toggle("is-valid", ok);
+    }
+    updateGeneratedLink();
+  });
   document.getElementById(ids.tokenImage)?.addEventListener("input", updateGeneratedLink);
 
   // Ações de verificação: abrir páginas de verificação com rede e endereço
   // Seção de verificação removida desta página
+
+  try {
+    const p = new URLSearchParams(location.search);
+    const addr = p.get("address");
+    const cId = p.get("chainId");
+    const name = p.get("name");
+    const sym = p.get("symbol");
+    const dec = p.get("decimals");
+    const img = p.get("image");
+    const rpc = p.get("rpc");
+    const explorer = p.get("explorer");
+    if (cId) {
+      const net = networkManager.getNetworkById(cId);
+      if (net) {
+        if (rpc && (!Array.isArray(net.rpc) || net.rpc.length === 0)) net.rpc = [rpc];
+        if (explorer && (!Array.isArray(net.explorers) || net.explorers.length === 0)) net.explorers = [{ url: explorer }];
+        selectNetwork(net);
+      }
+    }
+    if (addr) {
+      readonlyLinkMode = true;
+      setValue(ids.tokenAddress, addr);
+      if (name) setValue(ids.tokenName, name);
+      if (sym) setValue(ids.tokenSymbol, sym);
+      if (dec) setValue(ids.tokenDecimals, String(dec));
+      if (img) setValue(ids.tokenImage, img);
+      show("token-info");
+      tokenFetched = true;
+      updateGeneratedLink();
+      const ns = document.getElementById(ids.networkSearch);
+      if (ns) {
+        ns.readOnly = true;
+        ns.classList.add("form-control-plaintext");
+      }
+      [ids.tokenAddress, ids.tokenName, ids.tokenSymbol, ids.tokenDecimals, ids.tokenImage].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.readOnly = true;
+          el.classList.add("form-control-plaintext");
+        }
+      });
+      [ids.btnTokenSearch, ids.btnCopyLink, ids.btnShareLink, ids.btnOpenLink, ids.btnAddToMetaMask, ids.btnShareWhatsAppSmall, ids.btnShareTelegramSmall, ids.btnShareEmailSmall, ids.btnClearAll, ids.btnClearToken, ids.addToWalletButton].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add("d-none");
+          el.setAttribute("disabled", "disabled");
+          el.classList.add("disabled");
+        }
+      });
+      show("generate-section");
+      const linkGroup = document.getElementById("generatedLinkGroup");
+      if (linkGroup) linkGroup.classList.add("d-none");
+      const genTitle = document.getElementById("generateSectionTitle");
+      if (genTitle) genTitle.classList.add("d-none");
+      const netSection = document.getElementById("network-section");
+      if (netSection) netSection.classList.add("d-none");
+      const tokenSection = document.getElementById("token-section");
+      if (tokenSection) tokenSection.classList.add("d-none");
+      const addTokBtn = document.getElementById(ids.addToWalletButton);
+      if (addTokBtn) {
+        addTokBtn.classList.remove("d-none", "disabled");
+        addTokBtn.removeAttribute("disabled");
+      }
+      renderTokenView();
+      const addNetBtn = document.getElementById(ids.btnAddNetwork);
+      if (addNetBtn) {
+        addNetBtn.classList.add("d-none");
+        addNetBtn.setAttribute("disabled", "disabled");
+        addNetBtn.classList.add("disabled");
+      }
+      if (!name || !sym || !dec) {
+        try {
+          await fetchTokenData();
+        } catch {}
+      }
+    }
+  } catch {}
 });
 
 // Funções de verificação removidas nesta página
+function ensureGeneratedLink() {
+  let url = document.getElementById(ids.generatedLink)?.value;
+  if (!url) {
+    url = buildLink();
+    if (url) setValue(ids.generatedLink, url);
+  }
+  return url || "";
+}
+
+function shareWhatsAppSmall() {
+  const u = ensureGeneratedLink();
+  if (!u) {
+    toast("Nenhum link gerado. Informe rede e token.", "warning");
+    return;
+  }
+  try { window.open(`https://wa.me/?text=${encodeURIComponent(u)}`, "_blank"); } catch (_) {}
+}
+
+function shareTelegramSmall() {
+  const u = ensureGeneratedLink();
+  if (!u) {
+    toast("Nenhum link gerado. Informe rede e token.", "warning");
+    return;
+  }
+  try { window.open(`https://t.me/share/url?url=${encodeURIComponent(u)}&text=TokenCafe%20Link`, "_blank"); } catch (_) {}
+}
+
+function shareEmailSmall() {
+  const u = ensureGeneratedLink();
+  if (!u) {
+    toast("Nenhum link gerado. Informe rede e token.", "warning");
+    return;
+  }
+  try { window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self"); } catch (_) {}
+}
+function renderTokenView() {
+  try {
+    const address = document.getElementById(ids.tokenAddress)?.value?.trim() || "";
+    const name = document.getElementById(ids.tokenName)?.value?.trim() || "";
+    const symbol = document.getElementById(ids.tokenSymbol)?.value?.trim() || "";
+    const decimals = document.getElementById(ids.tokenDecimals)?.value?.trim() || "";
+    const urlParams = new URLSearchParams(location.search);
+    const chainIdParam = urlParams.get("chainId");
+    const explorerParam = urlParams.get("explorer");
+    const explorer = selectedNetwork?.explorers?.[0]?.url || explorerParam || getFallbackExplorer(selectedNetwork?.chainId || chainIdParam);
+    const tv = document.getElementById("tokenView");
+    if (!tv) return;
+    const chainName = selectedNetwork?.name || (chainIdParam ? (networkManager.getNetworkById(chainIdParam)?.name || getFallbackChainName(chainIdParam)) : "");
+    const chainId = selectedNetwork?.chainId || chainIdParam || "";
+    const addrEl = document.getElementById("viewAddress");
+    const chainNameEl = document.getElementById("viewChainName");
+    const chainIdEl = document.getElementById("viewChainId");
+    const nameEl = document.getElementById("viewName");
+    const symbolEl = document.getElementById("viewSymbol");
+    const decEl = document.getElementById("viewDecimals");
+    const expA = document.getElementById("viewExplorer");
+    if (addrEl) addrEl.textContent = address;
+    if (chainNameEl) chainNameEl.textContent = chainName;
+    if (chainIdEl) chainIdEl.textContent = String(chainId || "");
+    if (nameEl) nameEl.textContent = name;
+    if (symbolEl) symbolEl.textContent = symbol;
+    if (decEl) decEl.textContent = String(decimals || "");
+    if (expA) {
+      expA.href = explorer ? `${String(explorer).replace(/\/$/, "")}/address/${address}` : "#";
+      expA.classList.toggle("disabled", !explorer || !isValidAddress(address));
+    }
+    tv.classList.remove("d-none");
+  } catch {}
+}

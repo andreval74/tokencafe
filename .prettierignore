@@ -1,0 +1,12 @@
+# Ignora arquivos que não devem ser formatados pelo Prettier
+# Pastas de cache e build
+node_modules/
+dist/
+coverage/
+.cache/
+
+# Arquivos arquivados (código legado)
+olds/
+
+# Logs e artefatos
+*.log

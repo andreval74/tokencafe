@@ -48,9 +48,51 @@ function initContainer(container) {
   const badgeName = container.querySelector("#nsBadgeName");
   const badgeSymbol = container.querySelector("#nsBadgeSymbol");
   const badgeChainId = container.querySelector("#nsBadgeChainId");
+  const badgeAccount = container.querySelector("#nsBadgeAccount");
   const apiFixBtn = container.querySelector("#apiFixBtn");
   const inputGroupEl = container.querySelector(".input-group");
   const inputEl = container.querySelector("#networkSearch");
+  const networkStatusEl = container.querySelector("#networkStatus");
+
+  async function handleCopyAccount() {
+    try {
+      const status = window.walletConnector?.getStatus?.() || {};
+      const full = status.account || (badgeAccount && badgeAccount.dataset ? badgeAccount.dataset.full : "") || "";
+      const addr = String(full || (badgeAccount ? badgeAccount.textContent : "")).trim();
+      if (!addr || addr === "-") {
+        return;
+      }
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        await navigator.clipboard.writeText(addr);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = addr;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (_) {}
+        ta.remove();
+      }
+      try {
+        const target = (badgeAccount && badgeAccount.parentElement) || badgeAccount;
+        const iconEl = target ? target.querySelector("i") : null;
+        const prevClass = iconEl ? iconEl.className : null;
+        if (iconEl) {
+          iconEl.className = "bi bi-check2 me-1";
+          setTimeout(() => {
+            if (prevClass) iconEl.className = prevClass;
+          }, 2000);
+        }
+      } catch (_) {}
+    } catch (_) {
+    }
+  }
+
+  try {
+    const target = (badgeAccount && badgeAccount.parentElement) || badgeAccount;
+    if (target) {
+      target.addEventListener("click", handleCopyAccount);
+    }
+  } catch (_) {}
 
   function updateDetailsCard(net) {
     if (!detailsCard) return;
@@ -69,6 +111,36 @@ function initContainer(container) {
     if (explorerAnchorEl) explorerAnchorEl.href = explorer ? explorer : "#";
   }
 
+  async function updateFromWallet() {
+    try {
+      const status = window.walletConnector?.getStatus?.() || {};
+      let chainHex = status.chainId || null;
+      let account = status.account || null;
+      if (!chainHex && window.ethereum && typeof window.ethereum.request === "function") {
+        try {
+          chainHex = await window.ethereum.request({ method: "eth_chainId" });
+        } catch (_) {}
+      }
+      if (!account && window.ethereum && typeof window.ethereum.request === "function") {
+        try {
+          const accs = await window.ethereum.request({ method: "eth_accounts" });
+          account = Array.isArray(accs) && accs[0] ? accs[0] : null;
+        } catch (_) {}
+      }
+      const chainDec = chainHex && String(chainHex).startsWith("0x") ? parseInt(chainHex, 16) : chainHex ? parseInt(chainHex, 10) : null;
+      const unusedNet = chainDec ? networkManager?.getNetworkById?.(chainDec) : null;
+      // Não alterar seleção nem badges de rede com estado da carteira; apenas atualizar conta
+      if (badgeAccount) {
+        const formatted = window.walletConnector?.formatAddress?.(account) || account || "-";
+        badgeAccount.textContent = account ? formatted : "-";
+        try {
+          if (badgeAccount.dataset) badgeAccount.dataset.full = account || "";
+          badgeAccount.title = account || "";
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
   try {
     if (apiFixBtn) {
       apiFixBtn.addEventListener("click", (e) => {
@@ -84,7 +156,7 @@ function initContainer(container) {
 
   function applyPrefilledBehavior() {
     try {
-      const hasPrefilledChain = !!(inputEl && inputEl.dataset && inputEl.dataset.chainId);
+      const hasPrefilledChain = false;
       if (hasPrefilledChain && inputGroupEl) inputGroupEl.classList.add("d-none");
     } catch (_) {}
   }
@@ -102,42 +174,13 @@ function initContainer(container) {
         const sp = new URLSearchParams(window.location.search || "");
         rawCid = sp.get("chainId") || sp.get("cid") || null;
       } catch (_) {}
-      if (!rawCid) {
-        try {
-          rawCid = window.sessionStorage?.getItem("tokencafe_last_chain_id") || null;
-        } catch (_) {}
-      }
-      if (!rawCid) {
-        try {
-          rawCid = window.localStorage?.getItem("tokencafe_last_chain_id") || null;
-        } catch (_) {}
-      }
+      // Não selecionar automaticamente nem disparar eventos; usuário deve escolher manualmente
       if (!rawCid) return;
-      inputEl && (inputEl.dataset.chainId = String(rawCid));
-      let net = null;
-      try {
-        if (networkManager?.getNetworkById) net = networkManager.getNetworkById(parseInt(rawCid, 10));
-      } catch (_) {}
-      if (net) {
-        updateDetailsCard(net);
-        try {
-          const testnet = networkManager?.isTestnet ? networkManager.isTestnet(net) : /test|sepolia|goerli|rinkeby|kovan|mumbai/i.test(String(net.name || ""));
-          const badgeWraps = [badgeName?.parentElement, badgeSymbol?.parentElement, badgeChainId?.parentElement].filter(Boolean);
-          badgeWraps.forEach((w) => {
-            w.classList.remove("bg-dark-elevated", "bg-success", "bg-warning");
-            w.classList.add(testnet ? "bg-warning" : "bg-success");
-          });
-        } catch (_) {}
-        const evt = new CustomEvent("network:selected", { detail: { network: net, source: "memory" }, bubbles: true });
-        container.dispatchEvent(evt);
-        inputEl && (inputEl.value = net.name || "");
-      } else {
-        if (badgeChainId) badgeChainId.textContent = String(rawCid);
-      }
       applyPrefilledBehavior();
     } catch (_) {}
   }
   applyMemoryPrefill();
+  updateFromWallet();
 
   function hideList() {
     list.classList.add("d-none");
@@ -181,6 +224,9 @@ function initContainer(container) {
             bubbles: true,
           });
           container.dispatchEvent(evt);
+          try {
+            window.__selectedNetwork = net;
+          } catch (_) {}
           input.value = net.name;
           input.dataset.chainId = String(net.chainId);
           try {
@@ -200,6 +246,44 @@ function initContainer(container) {
           // atualizar detalhes sem abrir automaticamente
           updateDetailsCard(net);
           hideList();
+          const setSwitching = (active) => {
+            if (networkStatusEl) networkStatusEl.classList.toggle("d-none", !active);
+            input.disabled = !!active;
+            if (infoBtn) infoBtn.disabled = !!active;
+            if (clearBtn) clearBtn.disabled = !!active;
+          };
+          const switchToChain = async (chainId) => {
+            try {
+              setSwitching(true);
+              const status = window.walletConnector?.getStatus?.() || {};
+              const connected = !!status.account && !!status.sessionAuthorized;
+              if (window.walletConnector && typeof window.walletConnector.switchNetwork === "function" && connected) {
+                await window.walletConnector.switchNetwork(chainId);
+              } else if (window.ethereum && typeof window.ethereum.request === "function") {
+                const hex = typeof chainId === "string" && chainId.startsWith("0x") ? chainId : "0x" + Number(chainId).toString(16);
+                try {
+                  await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+                } catch (err) {
+                  if (err && err.code === 4902) {
+                    const nd = networkManager?.getNetworkById?.(typeof chainId === "string" && chainId.startsWith("0x") ? parseInt(chainId, 16) : chainId);
+                    if (nd && window.walletConnector && typeof window.walletConnector.addNetwork === "function") {
+                      await window.walletConnector.addNetwork(nd);
+                      await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+                    }
+                  } else {
+                    throw err;
+                  }
+                }
+              }
+            } catch (_) {
+            } finally {
+              setSwitching(false);
+              updateFromWallet();
+              const evtRes = new CustomEvent("network:switchResult", { detail: { chainId }, bubbles: true });
+              container.dispatchEvent(evtRes);
+            }
+          };
+          switchToChain(net.chainId);
           // se configurado, exibir detalhes imediatamente
           if (showOnSelect) {
             infoVisible = true;
@@ -326,6 +410,11 @@ function initContainer(container) {
       hideList();
       const evt = new CustomEvent("network:clear", { bubbles: true });
       container.dispatchEvent(evt);
+      try {
+        window.__selectedNetwork = null;
+      } catch (_) {}
+      const evtReq = new CustomEvent("network:required", { detail: { reason: "cleared" }, bubbles: true });
+      container.dispatchEvent(evtReq);
       const evt2 = new CustomEvent("network:toggleInfo", {
         detail: { visible: false, network: null },
         bubbles: true,
@@ -379,6 +468,33 @@ function initContainer(container) {
   try {
     console.debug("NetworkSearch: container marcado como data-ns-initialized=true");
   } catch {}
+
+  try {
+    const hasSelection = !!(inputEl && inputEl.dataset && inputEl.dataset.chainId);
+    if (!hasSelection) {
+      const evtReq = new CustomEvent("network:required", { detail: { reason: "init" }, bubbles: true });
+      container.dispatchEvent(evtReq);
+    }
+  } catch (_) {}
+
+  document.addEventListener("wallet:chainChanged", () => {
+    updateFromWallet();
+  });
+  document.addEventListener("wallet:connected", () => {
+    updateFromWallet();
+  });
+  document.addEventListener("wallet:accountChanged", () => {
+    updateFromWallet();
+  });
+  document.addEventListener("wallet:disconnected", () => {
+    updateFromWallet();
+  });
+  try {
+    if (window.ethereum && typeof window.ethereum.on === "function") {
+      window.ethereum.on("chainChanged", () => updateFromWallet());
+      window.ethereum.on("accountsChanged", () => updateFromWallet());
+    }
+  } catch (_) {}
 }
 
 function findContainers() {

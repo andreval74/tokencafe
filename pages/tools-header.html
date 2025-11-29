@@ -18,7 +18,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
       <div>
         <h3 class="mb-0 text-white">
           <!-- Ícone dinâmico por página -->
-          <i id="tools-system-icon" class="fas me-2" aria-label=""></i>
+          <!-- <i id="tools-system-icon" class="fas me-2" aria-label=""></i> -->
           <span id="tools-header-title">TokenCafe Tools</span>
         </h3>
         <p class="text-white-50 mb-0 small" id="tools-header-subtitle">Hub Central de Ferramentas Web3</p>
@@ -103,25 +103,24 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
           });
         }
 
-        // Clique de conectar → redireciona para a página de login de conexão
+        // Clique de conectar → solicita conexão direta via walletConnector
         if (btnConnect) {
           btnConnect.addEventListener(
             "click",
-            (e) => {
+            async (e) => {
               e.preventDefault();
               try {
-                const current = window.location.pathname + window.location.search + window.location.hash;
-                window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+                await window.walletConnector?.connect?.("metamask");
               } catch (err) {
-                console.warn("tools-header: falha ao redirecionar para login", err);
-                alert("Erro ao abrir a página de conexão: " + (err?.message || err));
+                console.warn("tools-header: falha ao conectar", err);
+                alert("Erro ao conectar: " + (err?.message || err));
               }
             },
             { capture: true },
           );
         }
 
-        // Clique de sair → limpeza completa e retorno ao login com volta
+        // Clique de sair → limpeza completa e retorno ao login sem auto-redirect
         if (btnLogout) {
           btnLogout.addEventListener("click", async () => {
             try {
@@ -155,8 +154,12 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
               /* ignore */
             }
             try {
-              const current = (window.location.pathname || "") + (window.location.search || "") + (window.location.hash || "");
-              window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+              if (window.ethereum && typeof window.ethereum.request === "function") {
+                await window.ethereum.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] });
+              }
+            } catch (_) {}
+            try {
+              window.location.href = `/pages/index.html`;
             } catch (e) {
               /* ignore */
             }

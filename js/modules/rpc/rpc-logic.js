@@ -74,6 +74,11 @@ function setupEventListeners() {
       fillNetworkForm(net);
     }
   });
+  document.addEventListener("network:required", () => {
+    hideNetworkDetails();
+    clearNetworkForm();
+    showNextSection("network-section");
+  });
   document.addEventListener("network:clear", () => {
     clearNetworkForm();
   });

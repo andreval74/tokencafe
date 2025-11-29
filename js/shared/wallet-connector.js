@@ -28,6 +28,7 @@ export class WalletConnector {
     this.currentChainId = null;
     this.currentNetwork = null;
     this.balance = "0";
+    this.isUnlocked = false;
 
     // Configurações suportadas
     this.supportedWallets = ["metamask", "trust", "walletconnect", "coinbase"];
@@ -190,6 +191,7 @@ export class WalletConnector {
       this.currentNetwork = null;
       this.connectedWallet = null;
       this.balance = "0";
+      this.isUnlocked = false;
 
       // Limpar cache e selo de sessão
       this.clearCache();
@@ -611,7 +613,7 @@ export class WalletConnector {
 
     const applyState = (state) => {
       const account = state && typeof state.account === "string" && state.account ? state.account : null;
-      const connected = !!account && !!this.sessionAuthorized;
+      const connected = !!account && !!this.sessionAuthorized && !!this.isUnlocked;
 
       // Atualiza texto/visibilidade do endereço
       if (addressEl) {
@@ -652,19 +654,24 @@ export class WalletConnector {
     // Estado inicial: verificar provider para evitar falso positivo
     const refreshFromProvider = async () => {
       try {
-        // Evita chamadas RPC quando não há sessão autorizada
-        if (!this.sessionAuthorized) {
-          applyState({ account: null });
-          return;
-        }
         const accounts = await (window.ethereum?.request?.({
           method: "eth_accounts",
         }) || Promise.resolve([]));
-        const authorized = this.sessionAuthorized && Array.isArray(accounts) && accounts.length > 0;
+        // Detectar estado de bloqueio (MetaMask)
+        try {
+          if (window.ethereum && window.ethereum._metamask && typeof window.ethereum._metamask.isUnlocked === "function") {
+            this.isUnlocked = await window.ethereum._metamask.isUnlocked();
+          } else {
+            this.isUnlocked = Array.isArray(accounts) && accounts.length > 0;
+          }
+        } catch (_) {
+          this.isUnlocked = Array.isArray(accounts) && accounts.length > 0;
+        }
+        const authorized = Array.isArray(accounts) && accounts.length > 0;
         const account = authorized ? accounts[0] : null;
         if (account) {
           this.currentAccount = account;
-          this.isConnected = true;
+          this.isConnected = !!this.sessionAuthorized && !!this.isUnlocked;
         } else {
           this.currentAccount = null;
           this.isConnected = false;

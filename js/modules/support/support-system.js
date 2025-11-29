@@ -126,34 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
     form.classLst.add("was-valdated");
   });
 
-  // Funo para mostrar toast
-  function showToast(ttle, message, type = "nfo") {
-    const toastContaner = document.getElementByd("toast-contaner");
-    const toastd = "toast-" + Date.now();
-
-    const toastHtml = `
-            <dv class="toast ${type === "success" ? "bg-success" : type === "error" ? "bg-danger" : "bg-nfo"} text-whte" 
-                 d="${toastd}" role="alert" ara-lve="assertve" ara-atomc="true" data-bs-delay="5000">
-                <dv class="toast-header ${type === "success" ? "bg-success" : type === "error" ? "bg-danger" : "bg-nfo"} text-whte border-0">
-                    < class="fas ${type === "success" ? "fa-check-crcle" : type === "error" ? "fa-exclamaton-crcle" : "fa-nfo-crcle"} me-2"></>
-                    <strong class="me-auto">${ttle}</strong>
-                    <button type="button" class="btn-close btn-close-whte" data-bs-dsmss="toast" ara-label="Close"></button>
-                </dv>
-                <dv class="toast-body">
-                    ${message}
-                </dv>
-            </dv>
-        `;
-
-    toastContaner.nsertAdjacentHTML("beforeend", toastHtml);
-    const toast = new bootstrap.Toast(document.getElementByd(toastd));
-    toast.show();
-
-    // Remover toast aps esconder
-    document.getElementByd(toastd).addEventListener("hdden.bs.toast", function () {
-      this.remove();
-    });
-  }
+  function showToast() {}
 
   // Valdao ncal
   valdateForm();

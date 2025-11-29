@@ -384,9 +384,14 @@ class RPCInterface {
       const isConn = wc && typeof wc.isConnected === "function" ? await wc.isConnected() : false;
       if (isConn) return true;
 
-      // Não redirecionar automaticamente; deixar apenas header indicar estado
-      this.showMessage("warning", "Conecte sua carteira pelo botão no topo.");
-      return false;
+      // Tentar conexão direta via WalletConnector
+      try {
+        await wc.connect("metamask");
+        return true;
+      } catch (e) {
+        this.showMessage("warning", "Conexão necessária. Autorize no MetaMask.");
+        return false;
+      }
     } catch (error) {
       console.error("Erro ao verificar conexão do MetaMask:", error);
       this.showMessage("error", "Erro ao verificar conexão do MetaMask");

@@ -42,7 +42,9 @@ class BaseSystem {
     // Carregar componentes automaticamente
     this.loadComponents();
 
-    this.enforceAuthGuard();
+    await this.enforceAuthGuard();
+
+    await this.bindWalletInfoSection();
 
     this.initialized = true;
     console.log("✅ Base System Unified inicializado");
@@ -118,71 +120,142 @@ class BaseSystem {
    * Configurar sistema de toast
    */
   setupToastSystem() {
-    // Mostrar notificação toast
-    window.showToast = (message, type = "info") => {
-      // Criar elemento do toast
-      const toastHTML = `
-                <div class="toast align-items-center text-white bg-${type === "error" ? "danger" : type === "success" ? "success" : "primary"} border-0" role="alert">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            ${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                </div>
-            `;
-
-      // Container de toasts
-      if (!this.toastContainer) {
-        this.toastContainer = document.createElement("div");
-        this.toastContainer.id = "toast-container";
-        this.toastContainer.className = "toast-container position-fixed top-0 end-0 p-3";
-        this.toastContainer.style.zIndex = "9999";
-        document.body.appendChild(this.toastContainer);
-      }
-
-      // Adicionar toast
-      const toastElement = document.createElement("div");
-      toastElement.innerHTML = toastHTML;
-      const toast = toastElement.firstElementChild;
-
-      this.toastContainer.appendChild(toast);
-
-      // Mostrar toast usando Bootstrap
-      const bsToast = new bootstrap.Toast(toast, {
-        autohide: true,
-        delay: type === "error" ? 5000 : 3000,
-      });
-
-      bsToast.show();
-
-      // Remover após esconder
-      toast.addEventListener("hidden.bs.toast", () => {
-        toast.remove();
-      });
-    };
-
-    console.log("🍞 Sistema de toast configurado");
+    window.showToast = () => {};
+    console.log("🍞 Toasts desativados");
   }
 
-  enforceAuthGuard() {
+  async enforceAuthGuard() {
     try {
       const path = String(window.location.pathname || "");
       const requiresAuth = path.includes("/pages/modules/") || path.endsWith("/pages/tools.html");
       if (!requiresAuth) return;
+
       const status = window.walletConnector?.getStatus?.() || {};
-      const ok = !!status.account && !!status.sessionAuthorized;
+      let ok = !!status.account;
+
+      if (!ok && window.ethereum && typeof window.ethereum.request === "function") {
+        try {
+          const accounts = await window.ethereum.request({ method: "eth_accounts" });
+          ok = Array.isArray(accounts) && accounts.length > 0;
+        } catch (_) {
+          ok = false;
+        }
+      }
+
+      if (!ok && window.walletConnector && typeof window.walletConnector.connect === "function") {
+        try {
+          await window.walletConnector.connect("metamask");
+          ok = true;
+        } catch (e) {
+          ok = false;
+        }
+      }
+
       if (!ok) {
-        const current = (window.location.pathname || "") + (window.location.search || "") + (window.location.hash || "");
-        window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+        window.showToast?.("Conecte sua carteira para continuar", "error");
         return;
       }
-      document.addEventListener("wallet:disconnected", () => {
+
+      document.addEventListener("wallet:disconnected", async () => {
         try {
-          const current = (window.location.pathname || "") + (window.location.search || "") + (window.location.hash || "");
-          window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+          try {
+            await window.walletConnector?.connect?.("metamask");
+          } catch (_) {
+            window.showToast?.("Carteira desconectada. Conecte para continuar", "error");
+          }
         } catch (_) {}
       });
+    } catch (_) {}
+  }
+
+  async bindWalletInfoSection() {
+    try {
+      const addressEl = document.getElementById("walletAddress");
+      const chainIdEl = document.getElementById("chainId");
+      const nameEl = document.getElementById("networkName");
+      const nativeNameEl = document.getElementById("nativeCurrency");
+      const symbolEl = document.getElementById("currencySymbol");
+      const balanceEl = document.getElementById("balance");
+      const rpcEl = document.getElementById("rpcUrl");
+      const expEl = document.getElementById("explorerUrl");
+      const section = document.getElementById("wallet-info-section");
+      const statusBox = document.getElementById("connectionStatus");
+      const statusMsg = document.getElementById("statusMessage");
+
+      if (!addressEl && !chainIdEl && !nameEl && !nativeNameEl && !symbolEl && !balanceEl && !rpcEl && !expEl) return;
+
+      const refresh = async () => {
+        try {
+          const status = window.walletConnector?.getStatus?.() || {};
+          let account = status.account;
+          let chainId = null;
+          if (window.ethereum && typeof window.ethereum.request === "function") {
+            try {
+              const accounts = await window.ethereum.request({ method: "eth_accounts" }).catch(() => []);
+              account = Array.isArray(accounts) && accounts.length ? accounts[0] : account || null;
+            } catch (_) {}
+            try {
+              const hex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
+              chainId = hex ? parseInt(hex, 16) : null;
+            } catch (_) {}
+          } else {
+            chainId = status.chainId != null ? status.chainId : null;
+          }
+          if (!window.ethereum) {
+            if (statusBox && statusMsg) {
+              statusBox.className = "alert alert-warning d-block mb-3";
+              statusMsg.textContent = "Carteira não detectada. Instale MetaMask.";
+            }
+          } else if (!account) {
+            if (statusBox && statusMsg) {
+              statusBox.className = "alert alert-warning d-block mb-3";
+              statusMsg.textContent = "Carteira bloqueada ou não autorizada. Autorize no MetaMask.";
+            }
+          } else {
+            if (statusBox && statusMsg) {
+              statusBox.className = "alert alert-success d-block mb-3";
+              statusMsg.textContent = "Carteira conectada com sucesso.";
+            }
+          }
+
+          if (addressEl) addressEl.value = account || "-";
+          if (chainIdEl) chainIdEl.value = chainId != null ? String(chainId) : "-";
+
+          try {
+            if (window.networkManager?.getAllNetworks) {
+              await window.networkManager.getAllNetworks();
+            }
+          } catch (_) {}
+          const net = chainId != null ? window.networkManager?.getNetworkById?.(chainId) : null;
+          if (nameEl) nameEl.value = net?.name || "-";
+          if (nativeNameEl) nativeNameEl.value = net?.nativeCurrency?.name || "-";
+          if (symbolEl) symbolEl.value = net?.nativeCurrency?.symbol || "-";
+          const rpc = Array.isArray(net?.rpc) ? net.rpc[0] || "-" : typeof net?.rpc === "string" ? net.rpc : "-";
+          if (rpcEl) rpcEl.value = rpc;
+          const exp = Array.isArray(net?.explorers) && net.explorers.length ? net.explorers[0].url || net.explorers[0] : "-";
+          if (expEl) expEl.value = exp;
+
+          try {
+            await window.walletConnector?.updateBalance?.();
+          } catch {}
+          if (balanceEl) balanceEl.value = window.walletConnector?.balance || "-";
+
+          if (section) section.classList.remove("d-none");
+        } catch (_) {}
+      };
+
+      await refresh();
+      if (window.ethereum && typeof window.ethereum.on === "function") {
+        window.ethereum.on("chainChanged", refresh);
+        window.ethereum.on("accountsChanged", refresh);
+      }
+      try {
+        document.addEventListener("wallet:chainChanged", refresh);
+        document.addEventListener("wallet:connected", refresh);
+        document.addEventListener("wallet:accountChanged", refresh);
+        document.addEventListener("wallet:disconnected", refresh);
+        document.addEventListener("network:switchResult", refresh);
+      } catch (_) {}
     } catch (_) {}
   }
 

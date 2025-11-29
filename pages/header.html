@@ -99,10 +99,41 @@ Baseado no header.html do TokenCafe com tema TokenCafe
     const btn = document.getElementById("connect-metamask-btn");
     if (!btn) return;
 
-    function updateStatusByStatus() {
+    function isWalletUiDisabled() {
+      try {
+        const url = new URL(window.location.href);
+        const q = url.searchParams.get("wallet");
+        if (q === "off") return true;
+        if (q === "on") return false;
+        const ls = localStorage.getItem("tokencafe_wallet_ui_disabled");
+        return ls === "true";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    async function updateStatusByStatus() {
       if (!btn) return;
+      if (isWalletUiDisabled()) {
+        btn.classList.add("btn-outline-warning");
+        btn.classList.remove("btn-outline-success");
+        btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Conectar';
+        return;
+      }
       const status = window.walletConnector?.getStatus?.() || {};
-      const connected = !!status.account && !!status.sessionAuthorized;
+      let connected = false;
+      let unlocked = false;
+      let accounts = [];
+      if (window.ethereum && typeof window.ethereum.request === "function") {
+        try {
+          accounts = await window.ethereum.request({ method: "eth_accounts" });
+        } catch (_) { accounts = []; }
+        try {
+          unlocked = !!(window.ethereum?._metamask?.isUnlocked ? await window.ethereum._metamask.isUnlocked() : (Array.isArray(accounts) && accounts.length > 0));
+        } catch (_) { unlocked = Array.isArray(accounts) && accounts.length > 0; }
+      }
+      const hasAccount = !!status.account || (Array.isArray(accounts) && accounts.length > 0);
+      connected = hasAccount && !!status.sessionAuthorized && unlocked;
       if (connected) {
         btn.classList.remove("btn-outline-warning");
         btn.classList.add("btn-outline-success");
@@ -123,19 +154,20 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 
     // Eventos globais para manter UI sincronizada
     const refresh = () => updateStatusByStatus();
-    document.addEventListener("wallet:connected", refresh);
-    document.addEventListener("wallet:disconnected", refresh);
-    document.addEventListener("wallet:accountChanged", refresh);
+    if (!isWalletUiDisabled()) {
+      document.addEventListener("wallet:connected", refresh);
+      document.addEventListener("wallet:disconnected", refresh);
+      document.addEventListener("wallet:accountChanged", refresh);
+    }
 
     // Clique de conectar — usa a página de login de conexão (com cancelamento)
     btn.addEventListener(
       "click",
-      () => {
+      async () => {
         try {
-          const current = window.location.pathname + window.location.search + window.location.hash;
-          window.location.href = `/pages/login.html?return=${encodeURIComponent(current)}`;
+          await window.walletConnector?.connect?.("metamask");
         } catch (e) {
-          console.error("Erro ao abrir página de conexão via header:", e);
+          console.error("Erro ao conectar via header:", e);
           alert("Erro ao conectar: " + (e.message || e));
         }
       },

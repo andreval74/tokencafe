@@ -8,7 +8,8 @@
       </div>
     </div>
     <div class="input-group">
-      <input type="text" id="networkSearch" class="form-control" placeholder="Buscar por nome, chainId ou símbolo" autocomplete="off" />
+      <input type="text" id="networkSearch" class="form-control" placeholder="Buscar por nome, chainId ou símbolo"
+        autocomplete="off" />
       <button type="button" id="nsInfoBtn" class="btn btn-outline-info" title="Mostrar informações">
         <i class="bi bi-info-circle"></i>
       </button>
@@ -17,7 +18,8 @@
       </button>
     </div>
     <small id="networkStatus" class="text-muted d-none mt-1">
-      <span id="networkSwitchSpinner" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+      <span id="networkSwitchSpinner" class="spinner-border spinner-border-sm me-1" role="status"
+        aria-hidden="true"></span>
       Ajustando a carteira para a rede selecionada...
     </small>
     <div id="nsBadges" class="mt-2 d-flex align-items-center gap-2">
@@ -31,8 +33,11 @@
       </span>
       <span class="badge bg-dark-elevated">
         <i class="bi bi-hash me-1"></i>
-        # ChainId
         <span id="nsBadgeChainId">-</span>
+      </span>
+      <span class="badge bg-success" title="Copiar carteira" style="cursor: pointer;">
+        <i class="bi bi-person-badge me-1"></i>
+        <span id="nsBadgeAccount">-</span>
       </span>
     </div>
   </div>
@@ -83,7 +88,8 @@
             <div class="d-flex align-items-baseline gap-2">
               <span>
                 Block Explorer:
-                <a id="explorerUrlText" href="#" target="_blank" rel="noopener" class="text-decoration-none text-tokencafe">
+                <a id="explorerUrlText" href="#" target="_blank" rel="noopener"
+                  class="text-decoration-none text-tokencafe">
                   <span class="text-tokencafe" id="explorerUrlCode"></span>
                 </a>
               </span>

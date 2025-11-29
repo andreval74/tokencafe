@@ -1,0 +1,39 @@
+/**
+ * Backup de js/modules/wallet/script.js
+ */
+// CHUNK-1
+/**
+ * TokenCafe Wallet Manager - Script Consolidado
+ * Gerencia conexões de carteira (MetaMask, Trust Wallet, WalletConnect)
+ * Versão: 2.0
+ * Autor: TokenCafe
+ * Data: 2024
+ */
+// Configurações globais
+const WALLET_CONFIG = {
+  projectId: "b8b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4",
+  chains: [1, 56, 137, 42161, 10, 43114, 250, 25, 100, 8453],
+  metadata: {
+    name: "TokenCafe",
+    description: "TokenCafe Wallet Integration",
+    url: "https://tokencafe.io",
+    icons: ["https://tokencafe.io/favicon.ico"],
+  },
+};
+// Configurações de redes populares
+const NETWORK_CONFIGS = {
+  1: { chainId: "0x1", chainName: "Ethereum Mainnet", rpcUrl: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, blockExplorerUrls: "https://etherscan.io" },
+  56: { chainId: "0x38", chainName: "BNB Smart Chain", rpcUrl: "https://bsc-dataseed.binance.org", nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 }, blockExplorerUrls: "https://bscscan.com" },
+  137: { chainId: "0x89", chainName: "Polygon Mainnet", rpcUrl: "https://polygon-rpc.com", nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 }, blockExplorerUrls: "https://polygonscan.com" },
+  42161: { chainId: "0xa4b1", chainName: "Arbitrum One", rpcUrl: "https://arb1.arbitrum.io/rpc", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, blockExplorerUrls: "https://arbiscan.io" },
+  10: { chainId: "0xa", chainName: "Optimism", rpcUrl: "https://mainnet.optimism.io", nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, blockExplorerUrls: "https://optimistic.etherscan.io" },
+  43114: { chainId: "0xa86a", chainName: "Avalanche C-Chain", rpcUrl: "https://api.avax.network/ext/bc/C/rpc", nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 }, blockExplorerUrls: "https://snowtrace.io" },
+  97: { chainId: "0x61", chainName: "BNB Smart Chain Testnet", rpcUrl: "https://data-seed-prebsc-1-s1.bnbchain.org:8545", nativeCurrency: { name: "BNB Chain Native Token", symbol: "tBNB", decimals: 18 }, blockExplorerUrls: "https://testnet.bscscan.com", faucets: ["https://testnet.bnbchain.org/faucet-smart"], infoURL: "https://www.bnbchain.org/en", shortName: "bnbt" },
+};
+class ChainListIntegration { constructor() { this.apiUrl = "https://chainlist.org/rpcs.json"; this.cache = null; this.cacheExpiry = null; this.cacheTimeout = 30 * 60 * 1000; } async fetchChains() { try { if (this.cache && this.cacheExpiry && Date.now() < this.cacheExpiry) { return this.cache; } const response = await fetch(this.apiUrl); if (!response.ok) { throw new Error(`Erro HTTP: ${response.status}`); } const chains = await response.json(); this.cache = chains; this.cacheExpiry = Date.now() + this.cacheTimeout; return chains; } catch (error) { if (this.cache) { return this.cache; } throw error; } } async searchChains(searchTerm) { const chains = await this.fetchChains(); const term = searchTerm.toLowerCase(); return chains.filter((chain) => chain.name.toLowerCase().includes(term) || chain.chain.toLowerCase().includes(term) || chain.shortName.toLowerCase().includes(term)); } async getChainById(chainId) { const chains = await this.fetchChains(); return chains.find((chain) => chain.chainId === chainId) || null; } async getWorkingRpcs(chainId) { const chain = await this.getChainById(chainId); if (!chain || !chain.rpc) return []; return chain.rpc.filter((rpc) => { const url = typeof rpc === "string" ? rpc : rpc.url; return url && url.startsWith("https://") && !url.includes("${") && !url.includes("API_KEY"); }).map((rpc) => (typeof rpc === "string" ? rpc : rpc.url)); } }
+// CHUNK-2
+console.log("🔄 Carregando TokenCafe Wallet Manager...");
+class TokenCafeWalletManager { constructor() { this.isConnected = false; this.currentAccount = null; this.provider = null; this.ethersProvider = null; this.signer = null; this.web3Modal = null; this.walletType = null; this.networkInfo = null; this.balance = "0"; this.tokenBalance = "0"; this.balanceCache = { value: "0", timestamp: 0, ttl: 30000 }; this.updateBalanceTimeout = null; this.isUpdatingBalance = false; this.connectButton = null; this.disconnectButton = null; this.walletInfo = null; this.accountDisplay = null; this.balanceDisplay = null; this.networkDisplay = null; this.statusDisplay = null; this.chainList = new ChainListIntegration(); this.sessionRpcs = {}; this.init(); } copyToClipboard(text, successMessage = "Copiado!") { if (text) { navigator.clipboard.writeText(text).then(() => { this.showStatus(successMessage, "success"); }).catch((err) => { this.showStatus("Erro ao copiar", "error"); }); } } clearHeaderElements() { const headerElements = ["header-wallet-address", "header-wallet-balance", "header-network-info"]; headerElements.forEach((id) => { const element = document.getElementById(id); if (element) element.textContent = ""; }); } clearSidebarElements() { const sidebarElements = ["sidebar-wallet-address", "sidebar-wallet-balance", "sidebar-network-info"]; sidebarElements.forEach((id) => { const element = document.getElementById(id); if (element) { element.textContent = ""; } }); const sidebarStatus = document.getElementById("sidebar-wallet-status"); if (sidebarStatus) { sidebarStatus.textContent = "Desconectado"; sidebarStatus.className = "wallet-status disconnected"; } } async init() { this.initWeb3Modal(); this.setupEventListeners(); this.initNetworkSearch(); await this.checkExistingSession(); } initWeb3Modal() { if (typeof window.Web3Modal !== "undefined") { this.web3Modal = new window.Web3Modal.default({ cacheProvider: false, providerOptions: {}, }); } } async checkExistingSession() { try { if (typeof window.ethereum !== "undefined") { const accounts = await window.ethereum.request({ method: "eth_accounts", }); if (accounts && accounts.length > 0) { this.currentAccount = accounts[0]; this.provider = window.ethereum; this.isConnected = true; if (typeof ethers !== "undefined") { this.ethersProvider = new ethers.providers.Web3Provider(window.ethereum); this.signer = this.ethersProvider.getSigner(); } await this.updateWalletInfo(); this.updateUI(); return true; } else { return false; } } } catch (error) { return false; } } async connectWallet() { try { if (!this.isMetaMaskAvailable()) { throw new Error("MetaMask não está instalado. Por favor, instale o MetaMask para continuar."); } if (this.web3Modal) { await this.web3Modal.clearCachedProvider(); } this.disconnect(false); try { await window.ethereum.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }], }); } catch (revokeError) {} try { await window.ethereum.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }], }); } catch (permError) {} const accounts = await window.ethereum.request({ method: "eth_requestAccounts", }); if (!accounts || accounts.length === 0) { throw new Error("Nenhuma conta foi selecionada no MetaMask"); } this.currentAccount = accounts[0]; this.provider = window.ethereum; this.isConnected = true; this.walletType = "metamask"; if (typeof ethers !== "undefined") { this.ethersProvider = new ethers.providers.Web3Provider(window.ethereum); this.signer = this.ethersProvider.getSigner(); } this.setupProviderListeners(); await this.updateWalletInfo(); setTimeout(() => { this.updateUI(); }, 100); this.saveSession(); return { success: true, account: this.currentAccount, walletType: this.walletType, }; } catch (error) { throw error; } }
+// CHUNK-3
+function initializeWalletManager() { window.TokenCafeWallet = new TokenCafeWalletManager(); window.walletManager = window.TokenCafeWallet; window.connectWallet = () => window.walletManager.connectWallet(); }
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", initializeWalletManager); } else { initializeWalletManager(); }

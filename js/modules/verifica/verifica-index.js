@@ -428,20 +428,7 @@ async function runExplorerDirect() {
 
 function clearForm() {
   try {
-    const ids = [
-      "f_address",
-      "f_chainId",
-      "f_contractName",
-      "f_compilerVersion",
-      "f_codeformat",
-      "f_contractNameFQN",
-      "f_optimizationUsed",
-      "f_runs",
-      "f_sourceCode",
-      "f_metadata",
-      "f_apiKey",
-      "f_constructorArgs",
-    ];
+    const ids = ["f_address", "f_chainId", "f_contractName", "f_compilerVersion", "f_codeformat", "f_contractNameFQN", "f_optimizationUsed", "f_runs", "f_sourceCode", "f_metadata", "f_apiKey", "f_constructorArgs"];
     for (const id of ids) {
       const el = document.getElementById(id);
       if (!el) continue;
@@ -776,3 +763,15 @@ document.addEventListener("contract:found", (e) => {
     checkVerifiedStatus();
   } catch (_) {}
 });
+
+try {
+  document.addEventListener("network:required", () => {
+    try {
+      const cidEl = document.getElementById("f_chainId");
+      if (cidEl) cidEl.value = "";
+      const statusEl = document.getElementById("verifyStatus");
+      if (statusEl) statusEl.textContent = "Selecione uma rede antes de verificar.";
+      computeReadiness();
+    } catch (_) {}
+  });
+} catch (_) {}
