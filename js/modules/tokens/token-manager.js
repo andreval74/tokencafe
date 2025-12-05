@@ -41,11 +41,46 @@ class TokenManager {
       });
     });
 
+    // Ações do cabeçalho do módulo (delegadas)
+    document.addEventListener("click", (e) => {
+      const createBtn = e.target.closest('[data-action="tm-create-token"]');
+      if (createBtn) {
+        e.preventDefault();
+        try {
+          location.href = "token-add.html";
+        } catch (_) {}
+        return;
+      }
+      const refreshBtn = e.target.closest('[data-action="tm-refresh-tokens"]');
+      if (refreshBtn) {
+        e.preventDefault();
+        this.refreshTokens();
+        return;
+      }
+    });
+
     const editForm = document.getElementById("edit-token-form");
     if (editForm) {
       editForm.addEventListener("submit", (e) => {
         e.preventDefault();
         this.saveTokenChanges();
+      });
+    }
+    const grid = document.getElementById("tokens-grid");
+    if (grid) {
+      grid.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const card = btn.closest(".token-card");
+        const tokenId = card?.dataset?.tokenId;
+        if (!tokenId) return;
+        if (action === "view") this.viewDetails(tokenId);
+        else if (action === "edit") this.editToken(tokenId);
+        else if (action === "copy") {
+          const t = this.tokens.find((x) => x.id === tokenId);
+          if (t?.contractAddress) this.copyAddress(t.contractAddress);
+        }
       });
     }
   }
@@ -211,9 +246,9 @@ class TokenManager {
                     <div class="stat"><span class="stat-label">Network:</span><span class="stat-value">${token.network}</span></div>
                 </div>
                 <div class="token-actions">
-                    <button class="btn btn-sm btn-outline-primary" onclick="tokenManager.viewDetails('${tokenId}')">Ver Detalhes</button>
-            <button class="btn btn-sm btn-outline-secondary" onclick="tokenManager.editToken('${tokenId}')">Editar</button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="tokenManager.copyAddress('${token.contractAddress}')">Copiar</button>
+                    <button class="btn btn-sm btn-outline-primary" data-action="view">Ver Detalhes</button>
+                    <button class="btn btn-sm btn-outline-secondary" data-action="edit">Editar</button>
+                    <button class="btn btn-sm btn-outline-secondary" data-action="copy">Copiar</button>
                 </div>
             </div>
         `;

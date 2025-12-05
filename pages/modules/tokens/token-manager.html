@@ -37,11 +37,11 @@
                 <div data-component="shared/components/section-title.html" data-st-icon="bi-coin" data-st-title="Meus Tokens" data-st-subtitle="Gerencie todos os seus tokens criados"></div>
               </div>
               <div class="module-actions">
-                <button class="btn btn-outline-primary" onclick="quickAction('create-token')">
+                <button class="btn btn-outline-primary" data-action="tm-create-token">
                   <i class="bi bi-plus-lg"></i>
                   Criar Novo Token
                 </button>
-                <button class="btn btn-outline-secondary" onclick="refreshTokens()">
+                <button class="btn btn-outline-secondary" data-action="tm-refresh-tokens">
                   <i class="bi bi-arrow-clockwise"></i>
                   Atualizar
                 </button>
@@ -73,7 +73,7 @@
               <div class="empty-state-icon mb-3">🪙</div>
               <h3 class="mb-2">Nenhum token encontrado</h3>
               <p class="text-secondary mb-3">Você ainda não criou nenhum token. Que tal começar agora?</p>
-              <button class="btn btn-outline-primary" onclick="quickAction('create-token')">
+              <button class="btn btn-outline-primary" data-action="tm-create-token">
                 <i class="bi bi-plus-lg"></i>
                 Criar Meu Primeiro Token
               </button>

@@ -76,6 +76,29 @@ class AnalytcsReports {
         this.sortTable(e.target.value);
       });
     }
+    document.addEventListener("click", (e) => {
+      const exportBtn = e.target.closest('[data-action="export-report"]');
+      if (exportBtn) {
+        this.exportReport?.();
+        return;
+      }
+      const refreshBtn = e.target.closest('[data-action="refresh-analytics"]');
+      if (refreshBtn) {
+        this.refreshAnalytcs?.();
+        return;
+      }
+      const detailBtn = e.target.closest('[data-action="view-advanced-analytics"]');
+      if (detailBtn) {
+        const sym = detailBtn.getAttribute("data-token-symbol") || detailBtn.dataset.tokenSymbol;
+        this.vewAdvancedAnalytcs?.(sym);
+      }
+    });
+    const closeBtn = document.getElementById("close-advanced-analytics");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        this.closeModal("advanced-analytics-modal");
+      });
+    }
   }
 
   /**
@@ -374,7 +397,7 @@ class AnalytcsReports {
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-outlne" onclick="analytcsReports.vewAdvancedAnalytcs('${token.symbol}')">
+                    <button class="btn btn-sm btn-outlne" data-action="view-advanced-analytics" data-token-symbol="${token.symbol}">
                         <i class="bi bi-graph-up"></i> Detalhes
                     </button>
                 </td>

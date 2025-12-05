@@ -6,7 +6,7 @@
 
 class SEOManager {
   constructor() {
-    this.structuredDataPath = "./shared/data/structured-data.json";
+    this.structuredDataPath = "/shared/data/structured-data.json";
   }
 
   /**
@@ -14,8 +14,22 @@ class SEOManager {
    */
   async loadStructuredData() {
     try {
-      const response = await fetch(this.structuredDataPath);
-      const structuredData = await response.json();
+      const candidatePaths = [
+        this.structuredDataPath,
+        "../shared/data/structured-data.json",
+        "../../shared/data/structured-data.json",
+      ];
+      let structuredData = null;
+      for (const p of candidatePaths) {
+        try {
+          const resp = await fetch(p);
+          if (resp && resp.ok) {
+            structuredData = await resp.json();
+            break;
+          }
+        } catch (_) {}
+      }
+      if (!structuredData) throw new Error("structured-data.json não encontrado");
 
       // Remove script existente se houver
       const existingScript = document.querySelector('script[type="application/ld+json"]');

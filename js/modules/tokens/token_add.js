@@ -33,12 +33,6 @@ function setupInputs() {
   });
 }
 
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch (_) {}
-}
-
 function getExplorerBase() {
   const explorers = selectedNetwork?.explorers || [];
   return explorers.length ? explorers[0].url : "https://etherscan.io";
@@ -85,7 +79,7 @@ function setupResultActions() {
   if (copyContractBtn) {
     copyContractBtn.addEventListener("click", () => {
       const val = qs("contract-address-display")?.value || "";
-      copyToClipboard(val);
+      window.copyToClipboard?.(val);
     });
   }
 
@@ -117,7 +111,7 @@ function setupResultActions() {
   const copyHashBtn = qs("copy-hash-btn");
   if (copyHashBtn) {
     copyHashBtn.addEventListener("click", () => {
-      copyToClipboard(qs("transaction-hash-display")?.value || "");
+      window.copyToClipboard?.(qs("transaction-hash-display")?.value || "");
     });
   }
 
@@ -129,6 +123,46 @@ function setupResultActions() {
       if (hash) window.open(`${base}/tx/${hash}`, "_blank");
     });
   }
+}
+
+function bindDelegatedActions() {
+  document.addEventListener("click", (e) => {
+    const act = (sel) => e.target.closest(sel);
+    const copyModalBtn = act('[data-action="copy-modal-code"]');
+    if (copyModalBtn) {
+      const code = qs("contract-modal-code")?.textContent || "";
+      window.copyToClipboard?.(code);
+      return;
+    }
+    const downloadModalBtn = act('[data-action="download-modal-code"]');
+    if (downloadModalBtn) {
+      const code = qs("contract-modal-code")?.textContent || "";
+      const blob = new Blob([code], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "ContractCode.txt";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      return;
+    }
+    const copyContractBtn2 = act('[data-action="copy-contract-code"]');
+    if (copyContractBtn2) {
+      const code = qs("preview-contract-code")?.textContent || "";
+      window.copyToClipboard?.(code);
+      return;
+    }
+    const downloadSolBtn = act('[data-action="download-solidity-file"]');
+    if (downloadSolBtn) {
+      const code = qs("preview-contract-code")?.textContent || "";
+      const name = (qs("contractName")?.value?.trim() || qs("tokenSymbol")?.value?.trim() || "Token") + ".sol";
+      const blob = new Blob([code], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+  });
 }
 
 function getCompilerSettings() {
@@ -295,6 +329,7 @@ function init() {
   setupContractPreview();
   setupVerifyAction();
   setupAutoVerifyButton();
+  bindDelegatedActions();
 }
 
 document.addEventListener("DOMContentLoaded", init);
@@ -332,6 +367,8 @@ async function autoVerifyContract() {
     const totalSupply = qs("totalSupply")?.value?.trim();
     const decimals = parseInt(qs("decimals")?.value || "18", 10);
     const chainId = selectedNetwork?.chainId || 97;
+    const apiKey = window.TOKENCAFE_BSCSCAN_API_KEY || "";
+    const compilerVersion = "v0.8.30+commit.8a97fa7a";
 
     if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
       if (window.showToast) window.showToast("Endereço de contrato inválido para verificação.", "warning");
@@ -370,6 +407,7 @@ async function autoVerifyContract() {
       contractAddress: address,
       contractName,
       sourceCode,
+      metadata: gen?.compilation?.metadata || "",
       optimizationUsed: true,
       runs: 200,
     };
@@ -396,20 +434,26 @@ async function autoVerifyContract() {
       sourceCode,
       optimizationUsed: true,
       runs: 200,
+      apiKey,
+      compilerVersion,
     };
-    const bscResp = await fetch(`${API_BASE}/api/verify-bscscan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bscBody),
-    });
-    const bscJson = await bscResp.json().catch(() => ({}));
-    if (bscJson?.success) {
-      updateStatus("bscscan-status", "BscScan: OK", "success");
-      const url = bscJson.explorerUrl || getExplorerVerificationUrl(address, chainId);
-      setLink("bscscan-link", url);
+    if (!apiKey) {
+      updateStatus("bscscan-status", "BscScan: API key ausente", "warning");
     } else {
-      const msg = bscJson?.message || "falhou";
-      updateStatus("bscscan-status", `BscScan: ${msg}`, "danger");
+      const bscResp = await fetch(`${API_BASE}/api/verify-bscscan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bscBody),
+      });
+      const bscJson = await bscResp.json().catch(() => ({}));
+      if (bscJson?.success) {
+        updateStatus("bscscan-status", "BscScan: OK", "success");
+        const url = bscJson.explorerUrl || getExplorerVerificationUrl(address, chainId);
+        setLink("bscscan-link", url);
+      } else {
+        const msg = bscJson?.message || "falhou";
+        updateStatus("bscscan-status", `BscScan: ${msg}`, "danger");
+      }
     }
 
     if (window.showToast) window.showToast("Verificação concluída.", "success");

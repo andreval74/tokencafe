@@ -99,6 +99,22 @@ class BaseSystem {
       }
     };
 
+    window.copyToClipboard = async (text) => {
+      try {
+        return await utilsInstance.copyToClipboard(text);
+      } catch (_) {
+        return false;
+      }
+    };
+
+    window.closeModalById = (id) => {
+      try {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = "none";
+      } catch (_) {}
+    };
+
     // Helper: delega binding de status da carteira ao módulo wallet
     window.bindWalletStatusUI = (config = {}) => {
       try {
@@ -114,6 +130,23 @@ class BaseSystem {
     };
 
     console.log("🛠️ Utilitários globais configurados");
+
+    document.addEventListener("click", async (e) => {
+      const connectBtn = e.target.closest('[data-action="connect-wallet"]');
+      if (connectBtn) {
+        e.preventDefault();
+        try {
+          await window.walletConnector?.connect?.("metamask");
+          window.location.href = "/pages/tools.html";
+        } catch (_) {}
+        return;
+      }
+      const scrollBtn = e.target.closest('[data-action="scroll-to-top"]');
+      if (scrollBtn) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    });
   }
 
   /**
@@ -142,18 +175,10 @@ class BaseSystem {
         }
       }
 
-      if (!ok && window.walletConnector && typeof window.walletConnector.connect === "function") {
-        try {
-          await window.walletConnector.connect("metamask");
-          ok = true;
-        } catch (e) {
-          ok = false;
-        }
-      }
-
-      if (!ok) {
-        window.showToast?.("Conecte sua carteira para continuar", "error");
-        return;
+      if (ok) {
+        await this.applyConnectedNetworkDefault();
+      } else {
+        await this.applyNetworkSelectionMode();
       }
 
       document.addEventListener("wallet:disconnected", async () => {
@@ -165,6 +190,53 @@ class BaseSystem {
           }
         } catch (_) {}
       });
+    } catch (_) {}
+  }
+
+  async applyConnectedNetworkDefault() {
+    try {
+      let chainId = null;
+      let account = null;
+      const st = window.walletConnector?.getStatus?.() || {};
+      account = st.account || null;
+      chainId = st.chainId || null;
+      if (!chainId && window.ethereum && typeof window.ethereum.request === "function") {
+        try {
+          const hex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
+          chainId = hex ? parseInt(hex, 16) : null;
+        } catch (_) {}
+      }
+      // Não preencher automaticamente campos de busca de rede nem bloquear readOnly
+      // Mantém apenas status visual de conexão geral
+      const statusBox = document.getElementById("connectionStatus");
+      const statusMsg = document.getElementById("statusMessage");
+      if (statusBox && statusMsg && account) {
+        statusBox.className = "alert alert-success d-block mb-3";
+        statusMsg.textContent = `Conectado: ${window.formatAddress?.(account)}`;
+      }
+    } catch (_) {}
+  }
+
+  async applyNetworkSelectionMode() {
+    try {
+      const ns = document.getElementById("networkSearch");
+      if (ns) {
+        ns.readOnly = false;
+        try { delete ns.dataset.chainId; } catch (_) {}
+        const ac = document.getElementById("networkAutocomplete");
+        if (ac) ac.classList.remove("d-none");
+        if (!ns.placeholder) ns.placeholder = "Buscar por nome, chainId ou símbolo";
+      }
+      const nd = document.getElementById("network-display");
+      if (nd) {
+        nd.readOnly = false;
+      }
+      const statusBox = document.getElementById("connectionStatus");
+      const statusMsg = document.getElementById("statusMessage");
+      if (statusBox && statusMsg) {
+        statusBox.className = "alert alert-warning d-block mb-3";
+        statusMsg.textContent = "Carteira não conectada. Selecione uma rede.";
+      }
     } catch (_) {}
   }
 

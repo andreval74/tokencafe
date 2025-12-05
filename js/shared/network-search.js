@@ -91,7 +91,10 @@ function initContainer(container) {
   try {
     const target = (badgeAccount && badgeAccount.parentElement) || badgeAccount;
     if (target) {
-      target.addEventListener("click", handleCopyAccount);
+      // Ocultar badge de conta; não faz sentido no campo de rede
+      target.classList.add("d-none");
+      // Remover qualquer handler de cópia
+      target.removeEventListener && target.removeEventListener("click", handleCopyAccount);
     }
   } catch (_) {}
 
@@ -130,14 +133,10 @@ function initContainer(container) {
       }
       const chainDec = chainHex && String(chainHex).startsWith("0x") ? parseInt(chainHex, 16) : chainHex ? parseInt(chainHex, 10) : null;
       const unusedNet = chainDec ? networkManager?.getNetworkById?.(chainDec) : null;
-      // Não alterar seleção nem badges de rede com estado da carteira; apenas atualizar conta
+      // Não exibir a conta no componente de rede; manter oculto
       if (badgeAccount) {
-        const formatted = window.walletConnector?.formatAddress?.(account) || account || "-";
-        badgeAccount.textContent = account ? formatted : "-";
-        try {
-          if (badgeAccount.dataset) badgeAccount.dataset.full = account || "";
-          badgeAccount.title = account || "";
-        } catch (_) {}
+        const target = badgeAccount.parentElement || badgeAccount;
+        target.classList.add("d-none");
       }
     } catch (_) {}
   }

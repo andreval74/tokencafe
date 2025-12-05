@@ -90,6 +90,102 @@ function renderSummary(params, network) {
   }
 }
 
+function decodeString(hex) {
+  const h = String(hex || "").replace(/^0x/, "");
+  if (!h) return null;
+  try {
+    const b32 = h.slice(0, 64);
+    const buf = b32.match(/.{1,2}/g) || [];
+    let s = buf.map((x) => String.fromCharCode(parseInt(x, 16))).join("");
+    s = Array.from(s)
+      .filter((ch) => ch.charCodeAt(0) !== 0)
+      .join("");
+    if (s.trim()) return s.trim();
+    const lenHex = h.slice(64, 128);
+    const len = parseInt(lenHex, 16);
+    const start = 128;
+    const strHex = h.slice(start, start + len * 2);
+    const b = strHex.match(/.{1,2}/g) || [];
+    return (
+      b
+        .map((x) => String.fromCharCode(parseInt(x, 16)))
+        .join("")
+        .trim() || null
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+function toBigInt(hex) {
+  try {
+    const h = String(hex || "").replace(/^0x/, "");
+    if (!h) return 0n;
+    return BigInt("0x" + h);
+  } catch (_) {
+    return 0n;
+  }
+}
+
+function formatUnits(hex, d) {
+  try {
+    const v = toBigInt(hex);
+    const dec = Number.isFinite(d) ? d : 18;
+    const base = 10n ** BigInt(dec);
+    const whole = v / base;
+    const frac = v % base;
+    const fracStr = frac.toString().padStart(dec, "0").replace(/0+$/, "");
+    return fracStr ? `${whole.toString()}.${fracStr}` : whole.toString();
+  } catch (_) {
+    return "0";
+  }
+}
+
+async function enrichFromRpc(params, network) {
+  try {
+    const address = params.get("address") || "";
+    const chainId = params.get("chainId") || network?.chainId || "";
+    if (!isValidAddress(address) || !chainId) return;
+    let rpc = Array.isArray(network?.rpc) && network.rpc.length ? network.rpc[0] : getFallbackRpc(chainId);
+    if (!rpc) return;
+    const bodies = [
+      { jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to: String(address), data: "0x95d89b41" }, "latest"] },
+      { jsonrpc: "2.0", id: 2, method: "eth_call", params: [{ to: String(address), data: "0x06fdde03" }, "latest"] },
+      { jsonrpc: "2.0", id: 3, method: "eth_call", params: [{ to: String(address), data: "0x313ce567" }, "latest"] },
+      { jsonrpc: "2.0", id: 4, method: "eth_getBalance", params: [String(address), "latest"] },
+    ];
+    const resp = await fetch(rpc, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(bodies),
+    }).then((r) => r.json()).catch(() => null);
+    if (!Array.isArray(resp)) return;
+    const symHex = (resp.find((x) => x && x.id === 1) || {}).result || null;
+    const namHex = (resp.find((x) => x && x.id === 2) || {}).result || null;
+    const decHex = (resp.find((x) => x && x.id === 3) || {}).result || null;
+    const natHex = (resp.find((x) => x && x.id === 4) || {}).result || null;
+    const name = decodeString(namHex) || "";
+    const symbol = decodeString(symHex) || "";
+    let decimals = null;
+    try {
+      const h = String(decHex || "").replace(/^0x/, "");
+      decimals = h ? parseInt(h, 16) : null;
+    } catch (_) {}
+    const vName = document.getElementById("viewName");
+    const vSymbol = document.getElementById("viewSymbol");
+    const vDec = document.getElementById("viewDecimals");
+    const vNat = document.getElementById("viewNativeBalance");
+    if (vName && name) vName.textContent = name;
+    if (vSymbol && symbol) vSymbol.textContent = symbol;
+    if (vDec && decimals != null) vDec.textContent = String(decimals);
+    if (vNat && natHex) vNat.textContent = formatUnits(natHex, 18);
+    const sParam = params.get("symbol") || "";
+    const dParam = params.get("decimals") || "";
+    if (!sParam && symbol) params.set("symbol", symbol);
+    if (!dParam && decimals != null) params.set("decimals", String(decimals));
+  } catch (_) {}
+}
+
 async function addToWallet(params, network) {
   try {
     if (!window.ethereum) {
@@ -159,6 +255,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   renderSummary(params, network);
+  (async () => {
+    const n = params.get("name");
+    const s = params.get("symbol");
+    const d = params.get("decimals");
+    if (!n || !s || !d) {
+      await enrichFromRpc(params, network);
+    }
+  })();
   const addBtn = document.getElementById("addToWalletButton");
   if (addBtn) {
     addBtn.addEventListener("click", () => addToWallet(params, network));

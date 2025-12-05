@@ -641,6 +641,16 @@ function initContainer(container) {
             container.dispatchEvent(evt3);
           } catch (_) {}
         }
+        try {
+          const vTokBal2 = container.querySelector("#cs_viewTokenBalance") || document.querySelector("#cs_viewTokenBalance");
+          const vNatBal2 = container.querySelector("#cs_viewNativeBalance") || document.querySelector("#cs_viewNativeBalance");
+          if (vTokBal2) vTokBal2.textContent = upd.contractTokenBalance || "";
+          if (vNatBal2) vNatBal2.textContent = upd.contractNativeBalance || "";
+        } catch (e) {
+          try {
+            log("error", e);
+          } catch {}
+        }
       } catch (e) {
         try {
           log("error", e);

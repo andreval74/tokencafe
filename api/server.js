@@ -118,7 +118,7 @@ async function compileContract(sourceCode, contractName, optimization = true) {
         },
         outputSelection: {
           "*": {
-            "*": ["abi", "evm.bytecode", "evm.deployedBytecode"],
+            "*": ["abi", "evm.bytecode", "evm.deployedBytecode", "metadata"],
           },
         },
       },
@@ -146,6 +146,7 @@ async function compileContract(sourceCode, contractName, optimization = true) {
       abi: contract.abi,
       bytecode: contract.evm.bytecode.object,
       deployedBytecode: contract.evm.deployedBytecode.object,
+      metadata: contract.metadata,
     };
   } catch (error) {
     throw new Error(`Erro na compilação: ${error.message}`);
@@ -197,12 +198,13 @@ app.post("/api/compile-only", async (req, res) => {
     // Compilar (não custa gas, só processamento)
     const compiled = await compileContract(sourceCode, contractName, optimization);
 
-    res.json({
+  res.json({
       success: true,
       compilation: {
         abi: compiled.abi,
         bytecode: compiled.bytecode,
         contractName: contractName,
+        metadata: compiled.metadata,
       },
       deployInstructions: {
         message: "Contrato compilado com sucesso!",
@@ -321,6 +323,7 @@ contract ${contractName} {
       compilation: {
         abi: compiled.abi,
         bytecode: compiled.bytecode,
+        metadata: compiled.metadata,
       },
       deployInstructions: {
         message: `Token ${name} (${symbol}) gerado e compilado!`,
@@ -379,6 +382,43 @@ app.post("/api/verify-auto", async (req, res) => {
 });
 
 app.post("/api/verify-sourcify-upload", async (req, res) => {
+  try {
+    const p = req.body || {};
+    const chainId = parseInt(p.chainId || 0, 10);
+    const address = String(p.contractAddress || "").toLowerCase();
+    const metadata = p.metadata || "";
+    const sourceCode = p.sourceCode || "";
+    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address) || (!metadata && !sourceCode)) return res.status(400).json({ success: false, error: "Dados inválidos" });
+    const form = new FormData();
+    form.append("chain", String(chainId));
+    form.append("address", address);
+    if (metadata) form.append("files", new Blob([metadata], { type: "application/json" }), "metadata.json");
+    if (sourceCode) {
+      let fn = "contract.sol";
+      const fqn = p.contractNameFQN || "";
+      const cName = p.contractName || "";
+      if (fqn && fqn.includes(":")) {
+        const pathPart = fqn.split(":")[0];
+        fn = pathPart.endsWith(".sol") ? pathPart : `${pathPart}.sol`;
+      } else if (cName) {
+        fn = `${cName}.sol`;
+      }
+      form.append("files", new Blob([sourceCode], { type: "text/plain" }), fn);
+    }
+    const resp = await fetch("https://sourcify.dev/server/verify", { method: "POST", body: form });
+    const ok = resp.ok;
+    const link = `https://sourcify.dev/server/files/${chainId}/${address}`;
+    if (!ok) {
+      const txt = await resp.text();
+      return res.status(502).json({ success: false, error: txt });
+    }
+    return res.json({ success: true, link });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e?.message || String(e) });
+  }
+});
+
+app.post("/api/verify-sourcify", async (req, res) => {
   try {
     const p = req.body || {};
     const chainId = parseInt(p.chainId || 0, 10);
