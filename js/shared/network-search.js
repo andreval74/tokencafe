@@ -10,7 +10,7 @@ function initContainer(container) {
   const input = container.querySelector("#networkSearch");
   const list = container.querySelector("#networkAutocomplete");
   const infoBtn = container.querySelector("#nsInfoBtn");
-  const clearBtn = container.querySelector("#nsClearBtn");
+  // Padronização: remover botão limpar do componente; comportamento de limpar ocorre ao apagar o input
   if (!input || !list) return;
 
   const placeholder = container.getAttribute("data-ns-placeholder") || "Buscar por nome, chainId ou símbolo";
@@ -69,7 +69,9 @@ function initContainer(container) {
         ta.value = addr;
         document.body.appendChild(ta);
         ta.select();
-        try { document.execCommand("copy"); } catch (_) {}
+        try {
+          document.execCommand("copy");
+        } catch (_) {}
         ta.remove();
       }
       try {
@@ -83,8 +85,7 @@ function initContainer(container) {
           }, 2000);
         }
       } catch (_) {}
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
   try {
@@ -250,7 +251,6 @@ function initContainer(container) {
             if (networkStatusEl) networkStatusEl.classList.toggle("d-none", !active);
             input.disabled = !!active;
             if (infoBtn) infoBtn.disabled = !!active;
-            if (clearBtn) clearBtn.disabled = !!active;
           };
           const switchToChain = async (chainId) => {
             try {
@@ -399,50 +399,7 @@ function initContainer(container) {
     });
   }
 
-  // Botão X para limpar campo e estado
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      input.value = "";
-      selectedNetwork = null;
-      infoVisible = false;
-      delete input.dataset.chainId;
-      list.innerHTML = "";
-      hideList();
-      const evt = new CustomEvent("network:clear", { bubbles: true });
-      container.dispatchEvent(evt);
-      try {
-        window.__selectedNetwork = null;
-      } catch (_) {}
-      const evtReq = new CustomEvent("network:required", { detail: { reason: "cleared" }, bubbles: true });
-      container.dispatchEvent(evtReq);
-      const evt2 = new CustomEvent("network:toggleInfo", {
-        detail: { visible: false, network: null },
-        bubbles: true,
-      });
-      container.dispatchEvent(evt2);
-      if (detailsCard) {
-        detailsCard.classList.add("d-none");
-        if (nameEl) nameEl.textContent = "";
-        if (idEl) idEl.textContent = "";
-        if (currencyNameEl) currencyNameEl.textContent = "";
-        if (currencySymbolEl) currencySymbolEl.textContent = "";
-        if (rpcCodeEl) rpcCodeEl.textContent = "";
-        if (rpcAnchorEl) rpcAnchorEl.href = "#";
-        if (explorerCodeEl) explorerCodeEl.textContent = "";
-        if (explorerAnchorEl) explorerAnchorEl.href = "#";
-        if (badgeName) badgeName.textContent = "-";
-        if (badgeSymbol) badgeSymbol.textContent = "-";
-        if (badgeChainId) badgeChainId.textContent = "-";
-        try {
-          const badgeWraps = [badgeName?.parentElement, badgeSymbol?.parentElement, badgeChainId?.parentElement].filter(Boolean);
-          badgeWraps.forEach((w) => {
-            w.classList.remove("bg-success", "bg-warning");
-            w.classList.add("bg-dark-elevated");
-          });
-        } catch (_) {}
-      }
-    });
-  }
+  // Padrão de manutenção: sem botão "limpar" — limpar estado quando input fica vazio
 
   // Esconder ao perder foco (tempo curto para permitir clique)
   input.addEventListener("blur", () => {

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ================================================================================
  * MOCK DATA - DADOS CENTRALIZADOS
  * ================================================================================
@@ -177,24 +177,7 @@ function findUserByWallet(wallet) {
   return mockUsers.find((user) => user.wallet.toLowerCase() === wallet.toLowerCase());
 }
 
-/**
- * Obter usuários ativos
- */
-function getActiveUsers() {
-  return mockUsers.filter((user) => user.isActive);
-}
-
-/**
- * Obter estatísticas gerais
- */
-function getGeneralStats() {
-  return {
-    totalUsers: mockUsers.length,
-    activeUsers: getActiveUsers().length,
-    totalVolume: mockUsers.reduce((sum, user) => sum + user.totalVolume, 0),
-    totalWidgets: mockUsers.reduce((sum, user) => sum + user.widgets, 0),
-  };
-}
+// Removido: helpers não utilizados (getActiveUsers, getGeneralStats)
 
 // ================================================================================
 // EXPORTAÇÕES

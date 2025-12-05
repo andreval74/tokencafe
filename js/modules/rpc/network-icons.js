@@ -84,7 +84,7 @@ class NetworkIconManager {
    * @returns {string} HTML do elemento img
    */
   createImageIcon(iconUrl, networkName) {
-    return `<img src="${iconUrl}" alt="${networkName}" class="network-icon" style="width: 20px; height: 20px; border-radius: 50%; vertical-align: middle;">`;
+    return `<img src="${iconUrl}" alt="${networkName}" class="network-icon rounded-circle align-middle" width="20" height="20">`;
   }
 
   /**

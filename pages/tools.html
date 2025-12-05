@@ -13,7 +13,7 @@
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css" rel="stylesheet" />
 
     <!-- Custom CSS -->
     <link href="/css/styles.css?v=5" rel="stylesheet" />
@@ -22,7 +22,7 @@
 
   <body class="bg-page-black">
     <!-- Header Unificado -->
-    <div data-component="tools-header.html" data-icon="fa-tools" data-icon-alt="TokenCafe" data-title="TokenCafe Tools" data-subtitle="Hub Central de Ferramentas Web3"></div>
+    <div data-component="tools-header.html" data-icon="bi-tools" data-icon-alt="TokenCafe" data-title="TokenCafe Tools" data-subtitle="Hub Central de Ferramentas Web3"></div>
 
     <!-- Main Content -->
     <div class="container py-4 bg-page-black min-vh-100">
@@ -33,19 +33,19 @@
             <!-- System Status -->
             <a href="#" class="tool-tile tool-link" aria-label="Verificar Status do Sistema" id="systemStatusTile">
               <span class="tool-tile-status badge bg-success">Finalizado</span>
-              <div class="tool-tile-icon"><i class="fas fa-heartbeat"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-heart-pulse"></i></div>
               <div class="tool-tile-title">System Status</div>
               <div class="tool-tile-desc">Verificar saúde do sistema, se todas as funcionalidades estão operacionais e atualizadas.</div>
             </a>
 
             <div class="tool-tile" aria-label="Guia de Estilos">
               <span class="tool-tile-status badge bg-success">Finalizado</span>
-              <div class="tool-tile-icon"><i class="fas fa-palette"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-palette"></i></div>
               <div class="tool-tile-title">Guia de Estilos</div>
               <div class="tool-tile-desc">Referência de padrões de UI e CSS</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="style-guide.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Guia de Estilos">
-                  <i class="fas fa-book-open me-1"></i>
+                  <i class="bi bi-book me-1"></i>
                   Abrir Guia
                 </a>
               </div>
@@ -54,12 +54,12 @@
             <!-- Wallet Manager -->
             <div class="tool-tile" aria-label="Gerenciador de Carteira">
               <span class="tool-tile-status badge bg-success">Finalizado</span>
-              <div class="tool-tile-icon"><i class="fas fa-wallet"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-wallet2"></i></div>
               <div class="tool-tile-title">Gerenciador de Carteira</div>
               <div class="tool-tile-desc">Vizualize as informações da sua carteira conectada.</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/wallet/wallet-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Wallet Manager">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
               </div>
@@ -69,13 +69,13 @@
             <div class="tool-tile" aria-label="RPC Manager">
               <span class="tool-tile-status badge bg-success">Finalizado</span>
               <div class="tool-tile-icon">
-                <i class="fas fa-network-wired"></i>
+                <i class="bi bi-diagram-3"></i>
               </div>
               <div class="tool-tile-title">RPC Manager</div>
               <div class="tool-tile-desc">Conexões RPC e redes</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/rpc/rpc-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir RPC Manager">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
               </div>
@@ -84,12 +84,12 @@
             <!-- Link Generator -->
             <div class="tool-tile" aria-label="Link Generator">
               <span class="tool-tile-status badge bg-success">Finalizado</span>
-              <div class="tool-tile-icon"><i class="fas fa-link"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-link-45deg"></i></div>
               <div class="tool-tile-title">Link Generator</div>
               <div class="tool-tile-desc">Links para adicionar tokens</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/link/link-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Link Generator">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
               </div>
@@ -99,17 +99,17 @@
             <div class="tool-tile" aria-label="Gerador de Contratos">
               <span class="tool-tile-status badge bg-success">Finalizado</span>
               <div class="tool-tile-icon">
-                <i class="fas fa-file-contract"></i>
+                <i class="bi bi-file-earmark-code"></i>
               </div>
               <div class="tool-tile-title">Gerador de Contratos</div>
               <div class="tool-tile-desc">Crie, valide, verifique e faça o deploy de contratos</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/contrato/contrato-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Contracts Builder">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
                 <button id="importRecipeBtn" class="btn btn-sm btn-outline-warning rounded-3 w-100" aria-label="Importar Receita .json">
-                  <i class="fas fa-upload me-1"></i>
+                  <i class="bi bi-upload me-1"></i>
                   Importar .json
                 </button>
                 <input type="file" id="importRecipeInput" accept="application/json" class="d-none" />
@@ -119,12 +119,12 @@
             <!-- Verificação de Contratos -->
             <div class="tool-tile" aria-label="Verificação de Contratos">
               <span class="tool-tile-status badge bg-success">Finalizado</span>
-              <div class="tool-tile-icon"><i class="fas fa-shield-alt"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-shield-check"></i></div>
               <div class="tool-tile-title">Verificação de Contratos</div>
               <div class="tool-tile-desc">Publicar código e validar no Sourcify/Explorer</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/verifica/verifica-index.html?source=tools" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Verificação de Contratos">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
               </div>
@@ -133,12 +133,12 @@
             <!-- Mini Widget -->
             <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
               <span class="tool-tile-status badge bg-warning">Em Breve</span>
-              <div class="tool-tile-icon"><i class="fas fa-rocket"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-rocket"></i></div>
               <div class="tool-tile-title">Mini Widget</div>
               <div class="tool-tile-desc">Venda de tokens plug & play</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/widget/widget-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Widget de Compra">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Widget
                 </a>
               </div>
@@ -147,16 +147,16 @@
             <!-- Gerenciador de Token -->
             <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
               <span class="tool-tile-status badge bg-warning">Em Breve</span>
-              <div class="tool-tile-icon"><i class="fas fa-coins"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-coin"></i></div>
               <div class="tool-tile-title">Gerenciador de Token</div>
               <div class="tool-tile-desc">Criação e gestão de tokens</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/tokens/token-add.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Add">
-                  <i class="fas fa-plus me-1"></i>
+                  <i class="bi bi-plus-lg me-1"></i>
                   Cadastro
                 </a>
                 <a href="modules/tokens/token-manager.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Manager">
-                  <i class="fas fa-list me-1"></i>
+                  <i class="bi bi-list-ul me-1"></i>
                   Gerenciador
                 </a>
               </div>
@@ -166,13 +166,13 @@
             <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
               <span class="tool-tile-status badge bg-warning">Em Breve</span>
               <div class="tool-tile-icon">
-                <i class="fas fa-chart-line"></i>
+                <i class="bi bi-graph-up"></i>
               </div>
               <div class="tool-tile-title">Analytics</div>
               <div class="tool-tile-desc">Relatórios e métricas</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/analytics/analytics-reports.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Analytics">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
               </div>
@@ -182,13 +182,13 @@
             <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
               <span class="tool-tile-status badge bg-warning">Em Breve</span>
               <div class="tool-tile-icon">
-                <i class="fas fa-layer-group"></i>
+                <i class="bi bi-layers"></i>
               </div>
               <div class="tool-tile-title">Template Gallery</div>
               <div class="tool-tile-desc">Explore e gerencie templates</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/templates/template-gallery.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Template Gallery">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
               </div>
@@ -197,12 +197,12 @@
             <!-- System Settings -->
             <div class="tool-tile admin-disabled" aria-label="System Settings" aria-disabled="true">
               <span class="tool-tile-status badge bg-info">Admin</span>
-              <div class="tool-tile-icon"><i class="fas fa-cog"></i></div>
+              <div class="tool-tile-icon"><i class="bi bi-gear"></i></div>
               <div class="tool-tile-title">System Settings</div>
               <div class="tool-tile-desc">Preferências e configurações do sistema</div>
               <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
                 <a href="modules/settings/system-settings.html" class="btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir System Settings">
-                  <i class="fas fa-door-open me-1"></i>
+                  <i class="bi bi-door-open me-1"></i>
                   Abrir Módulo
                 </a>
               </div>
@@ -212,12 +212,12 @@
             <div class="tool-tile admin-disabled" aria-label="Dashboard (Admin)" aria-disabled="true">
               <span class="tool-tile-status badge bg-info">Admin</span>
               <div class="tool-tile-icon">
-                <i class="fas fa-tachometer-alt"></i>
+                <i class="bi bi-speedometer2"></i>
               </div>
               <div class="tool-tile-title">Dashboard</div>
               <div class="tool-tile-desc">Sistema integrado</div>
               <div class="tool-tile-footer small d-flex align-items-center gap-2 mt-2 text-secondary">
-                <i class="fas fa-user-shield"></i>
+                <i class="bi bi-shield-lock"></i>
                 <span>Somente Admin (temporariamente desativado)</span>
               </div>
             </div>
@@ -229,39 +229,39 @@
               <div class="card border-0 shadow-lg card-glass">
                 <div class="card-body">
                   <h5 class="text-white mb-4">
-                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                    <i class="bi bi-info-circle me-2 text-primary"></i>
                     Status do Sistema Unificado
                   </h5>
 
                   <div class="row g-3">
                     <div class="col-md-6">
                       <h6 class="text-success mb-3">
-                        <i class="fas fa-check-circle me-2"></i>
+                        <i class="bi bi-check-circle me-2"></i>
                         Módulos Finalizados (Sistema Unificado)
                       </h6>
                       <ul class="list-unstyled text-light">
                         <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
+                          <i class="bi bi-check text-success me-2"></i>
                           RPC Manager - 100% Finalizado
                         </li>
                         <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
+                          <i class="bi bi-check text-success me-2"></i>
                           Link Generator - 100% Finalizado
                         </li>
                         <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
+                          <i class="bi bi-check text-success me-2"></i>
                           Sistema Base Unificado
                         </li>
                         <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
+                          <i class="bi bi-check text-success me-2"></i>
                           PageManager Unificado
                         </li>
                         <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
+                          <i class="bi bi-check text-success me-2"></i>
                           Wallet Manager - 100% Finalizado
                         </li>
                         <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
+                          <i class="bi bi-check text-success me-2"></i>
                           Token Manager - 100% Finalizado
                         </li>
                       </ul>
@@ -269,16 +269,16 @@
 
                     <div class="col-md-6">
                       <h6 class="text-warning mb-3">
-                        <i class="fas fa-clock me-2"></i>
+                        <i class="bi bi-clock me-2"></i>
                         Próximas Migrações
                       </h6>
                       <ul class="list-unstyled text-light">
                         <li class="mb-2">
-                          <i class="fas fa-hourglass-half text-warning me-2"></i>
+                          <i class="bi bi-hourglass-split text-warning me-2"></i>
                           Analytics Reports
                         </li>
                         <li class="mb-2">
-                          <i class="fas fa-hourglass-half text-warning me-2"></i>
+                          <i class="bi bi-hourglass-split text-warning me-2"></i>
                           Templates Gallery
                         </li>
                       </ul>
@@ -287,7 +287,7 @@
 
                   <div class="alert alert-primary mt-4 mb-0 alert-soft-primary">
                     <h6 class="text-primary mb-3">
-                      <i class="fas fa-rocket me-2"></i>
+                      <i class="bi bi-rocket me-2"></i>
                       Como Usar as Ferramentas
                     </h6>
                     <ul class="mb-0 text-light">

@@ -1097,8 +1097,8 @@ class WidgetSimple {
                         <span class="tc-total-value" id="previewTotal">-- ${currency}</span>
                     </div>
                     <!-- Seletor de semântica de preço -->
-                    <div class="tc-input-group" style="margin-top:8px;">
-                        <label for="priceSemanticsSelect" class="tc-input-label" style="margin-bottom:4px;">Semântica de Preço</label>
+                    <div class="tc-input-group mt-2">
+                        <label for="priceSemanticsSelect" class="tc-input-label mb-1">Semântica de Preço</label>
                         <select id="priceSemanticsSelect" class="tc-input">
                             <option value="auto">Auto (detectar)</option>
                             <option value="A">Por token inteiro (A)</option>
@@ -1111,7 +1111,7 @@ class WidgetSimple {
                         <span class="tc-connected-text">Carteira não conectada</span>
                     </div>
                     <!-- Contêiner para mensagens dentro do widget -->
-                    <div id="alertContainer" class="tc-alert-container" style="margin-top:8px;"></div>
+                    <div id="alertContainer" class="tc-alert-container mt-2"></div>
                     <div class="tc-purchase-status" id="purchaseStatus"></div>
 
                     <button id="previewBuyBtn" type="button" class="tc-btn-primary">
@@ -1119,14 +1119,14 @@ class WidgetSimple {
                         <span>${config.ui.texts.buyButton}</span>
                     </button>
 
-                    <div class="tc-receipt" id="purchaseReceipt" style="display:none; margin-top: 12px;">
+                    <div class="tc-receipt d-none mt-3" id="purchaseReceipt">
                         <!-- Preenchido após compra -->
                     </div>
 
                     <!-- Painel de debug detalhado -->
-                    <div class="tc-debug" id="purchaseDebug" style="display:none; margin-top: 12px;">
+                    <div class="tc-debug d-none mt-3" id="purchaseDebug">
                         <div class="tc-debug-title"><strong>Debug da Compra</strong></div>
-                        <div class="tc-debug-content" id="purchaseDebugContent" style="font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 240px; overflow:auto; border: 1px dashed #ccc; padding: 8px; border-radius: 6px;"></div>
+                        <div class="tc-debug-content font-monospace small code-display max-height-240 overflow-auto border rounded p-2" id="purchaseDebugContent"></div>
                     </div>
 
                     <div class="tc-footer-note">
@@ -1144,7 +1144,7 @@ class WidgetSimple {
    */
   createWidgetPreviewHTML(config) {
     return `
-            <div class="card-body" style="border-radius: 8px; padding: 1rem;">
+            <div class="card-body rounded p-3">
                 ${this.createFinalWidgetHTML(config)}
             </div>
         `;

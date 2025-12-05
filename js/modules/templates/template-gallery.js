@@ -320,10 +320,10 @@ contract YeldToken s ERC20 {
                     <dv class="template-overlay">
                         <dv class="template-actons">
                             <button class="acton-btn" ttle="Ver Detalhes">
-                                < class="fas fa-eye"></>
+                                < class="bi bi-eye"></>
                             </button>
                             <button class="acton-btn" ttle="Usar Template">
-                                < class="fas fa-rocket"></>
+                                < class="bi bi-rocket"></>
                             </button>
                         </dv>
                     </dv>
@@ -356,7 +356,7 @@ contract YeldToken s ERC20 {
                             </dv>
                         </dv>
                         <dv class="stat">
-                            < class="fas fa-download"></>
+                            < class="bi bi-download"></>
                             <span>${this.formatNumber(template.uses)} usos</span>
                         </dv>
                     </dv>
@@ -371,11 +371,11 @@ contract YeldToken s ERC20 {
     let stars = "";
 
     for (let i = 0; i < fullStars; i++) {
-      stars += '<i class="fas fa-star"></i>';
+      stars += '<i class="bi bi-star-fill"></i>';
     }
 
     if (hasHalfStar) {
-      stars += '<i class="fas fa-star-half-alt"></i>';
+      stars += '<i class="bi bi-star-half"></i>';
     }
 
     const emptyStars = 5 - Math.ceil(ratng);
@@ -617,11 +617,11 @@ contract YeldToken s ERC20 {
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
             <div class="notification-content">
-                <i class="fas fa-${type === "success" ? "check-circle" : type === "error" ? "exclamation-circle" : "info-circle"}"></i>
+                <i class="bi bi-${type === "success" ? "check-circle" : type === "error" ? "exclamation-circle" : "info-circle"}"></i>
                 <span>${message}</span>
             </div>
             <button class="notification-close">
-                <i class="fas fa-times"></i>
+                <i class="bi bi-x"></i>
             </button>
         `;
 

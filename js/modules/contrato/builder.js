@@ -1474,20 +1474,7 @@ async function initWalletIfConnected() {
     const { chainId } = await provider.getNetwork();
     state.wallet = { provider, signer, address, chainId };
     log(`Carteira detectada: ${address} (chainId ${chainId}).`);
-    try {
-      const nm = window.networkManager;
-      const net = nm?.getNetworkById?.(chainId) || null;
-      if (net) {
-        state.form.network = net;
-        const vname = document.getElementById("verifyNetworkName");
-        if (vname) vname.textContent = net.name || "-";
-        const nsInput = document.getElementById("networkSearch");
-        if (nsInput) {
-          nsInput.value = net.name;
-          nsInput.dataset.chainId = String(net.chainId);
-        }
-      }
-    } catch (_) {}
+    // Não ajustar automaticamente a seleção de rede ou campo de busca
   } catch (err) {
     // silencioso
   }
@@ -1573,6 +1560,12 @@ async function bindUI() {
         if (vb) vb.disabled = false;
       } catch (_) {}
       try {
+        const oc = document.getElementById("openVerificaContainer");
+        const ob = document.getElementById("openVerificaModuleBtn");
+        if (oc) oc.classList.remove("d-none");
+        if (ob) ob.classList.remove("disabled");
+      } catch (_) {}
+      try {
         const sp = document.getElementById("deploySpinner");
         const tx = document.getElementById("deployBtnText");
         if (sp) sp.classList.add("d-none");
@@ -1602,6 +1595,12 @@ async function bindUI() {
           const vb = document.getElementById("erc20VerifyLaunch");
           if (vc) vc.classList.remove("d-none");
           if (vb) vb.disabled = false;
+        } catch (_) {}
+        try {
+          const oc = document.getElementById("openVerificaContainer");
+          const ob = document.getElementById("openVerificaModuleBtn");
+          if (oc) oc.classList.remove("d-none");
+          if (ob) ob.classList.remove("disabled");
         } catch (_) {}
         try {
           const sp = document.getElementById("buildSpinner");
@@ -1652,42 +1651,14 @@ async function bindUI() {
   try {
     const vLink = document.getElementById("erc20VerifyLink");
     if (vLink) {
-      vLink.addEventListener("click", async (e) => {
+      vLink.addEventListener("click", (e) => {
         try {
           e.preventDefault();
           const addr = state.deployed?.address;
           const chainId = state.form?.network?.chainId;
           if (!addr || !chainId) return;
-          const kind = computeVerifyKind();
-          if (kind === "sour" && state?.compilation?.sourceCode && state?.compilation?.metadata) {
-            // Tenta verificação automática e abre o link retornado; se indisponível, abre o portal do Sourcify
-            try {
-              const resp = await fetch(`${API_BASE}/api/verify-auto`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  chainId,
-                  contractAddress: addr,
-                  contractName: state.compilation?.contractName,
-                  sourceCode: state.compilation?.sourceCode,
-                  metadata: JSON.stringify(state.compilation?.metadata),
-                }),
-              });
-              if (resp.ok) {
-                const data = await resp.json();
-                const link = data?.link || data?.lookupUrl || null;
-                if (link) {
-                  window.open(link, "_blank");
-                  return;
-                }
-              }
-            } catch (_) {}
-            window.open("https://sourcify.dev/#/", "_blank");
-          } else {
-            // Abrir verificação do explorer diretamente
-            const ex = getExplorerVerificationUrl(addr, chainId);
-            if (ex) window.open(ex, "_blank");
-          }
+          const ex = getExplorerVerificationUrl(addr, chainId);
+          if (ex) window.open(ex, "_blank");
         } catch (_) {}
       });
     }
@@ -2135,6 +2106,12 @@ async function bindUI() {
       if (contentEl) contentEl.innerHTML = html;
       // sem botão de ação no splash: apenas o link de verificação
       if (openLink) {
+        try {
+          const addr = state?.deployed?.address || "";
+          const cid = state?.form?.network?.chainId || state?.wallet?.chainId || null;
+          const qs = addr && cid ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&source=builder` : "";
+          openHref = `${openHref}${qs}`;
+        } catch (_) {}
         openLink.href = openHref || "#";
         openLink.classList.toggle("disabled", !openHref || openHref === "#");
         openLink.onclick = () => {
@@ -2372,14 +2349,6 @@ try {
   }
 } catch (_) {}
 
-function computeVerifyKind() {
-  try {
-    return state?.compilation?.metadata ? "sour" : "bsc";
-  } catch (_) {
-    return "bsc";
-  }
-}
-
 function buildVerifyPayloadFromState() {
   try {
     const addrVerify = state.deployed?.address;
@@ -2412,8 +2381,18 @@ async function runVerifyDirect(p) {
   const src = p?.sourceCode;
   const cname = p?.contractName;
   const meta = p?.metadata ? JSON.parse(p.metadata) : null;
+  const apikey = p?.apiKey || getVerifyApiKey();
   if (!addrVerify || !chainIdVerify || !src || !cname) {
     log("Verificação: dados insuficientes (addr/chainId/source/contractName).");
+    return;
+  }
+  if (!apikey) {
+    try {
+      const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
+      updateVerificationBadges({ bscUrl: vUrl });
+      log(`API Key não configurada. Abra manualmente: ${vUrl}`);
+      if (vUrl) window.open(vUrl, "_blank");
+    } catch (_) {}
     return;
   }
   try {

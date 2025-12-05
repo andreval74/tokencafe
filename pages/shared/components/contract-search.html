@@ -1,9 +1,113 @@
 <div class="contract-search-component">
-  <div id="contract-search-root" class="mt-1 d-flex align-items-center gap-2">
-    <button type="button" id="contractSearchBtn" class="btn btn-sm btn-outline-primary" title="Buscar contrato">
-      <i class="bi bi-search"></i>
-    </button>
-    <small id="contractSearchStatus" class="text-muted d-none"></small>
+  <div id="contract-search-root" class="mt-4">
+    <div class="d-flex align-items-center mb-2">
+      <div class="me-2"><i class="bi bi-coin section-icon fs-2"></i></div>
+      <div class="flex-grow-1">
+        <h5 class="mb-0 fw-semibold">Buscar Contrato/Token</h5>
+        <p class="text-muted mb-0 small">Informe o endereço 0x... do contrato/token</p>
+      </div>
+    </div>
+    <form id="tokenForm" class="mt-1" novalidate>
+      <div class="input-group">
+        <input type="text" id="f_address" class="form-control" placeholder="Endereço 0x... do contrato/token" autocomplete="off" pattern="^0x[a-fA-F0-9]{40}$" />
+        <button type="submit" id="contractSearchBtn" class="btn btn-outline-primary" title="Buscar dados via RPC" aria-label="Buscar dados via RPC">
+          <i class="bi bi-search"></i>
+        </button>
+        <button type="button" id="csInfoBtn" class="btn btn-outline-info" title="Mostrar informações">
+          <i class="bi bi-info-circle"></i>
+        </button>        
+        
+      </div>
+      <input id="tokenAddress" type="hidden" class="d-none" />
+      <small id="contractSearchStatus" class="text-muted d-none mt-1">
+        <span id="contractSearchSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+        <span id="contractSearchStatusText"></span>
+      </small>
+    </form>
+    <div id="csBadges" class="mt-2 d-flex align-items-center gap-2">
+      <span class="badge bg-dark-elevated">
+        <i class="bi bi-hash me-1"></i>
+        <span id="csBadgeAddress">-</span>
+      </span>
+      <span class="badge bg-dark-elevated">
+        <i class="bi bi-currency-exchange me-1"></i>
+        <span id="csBadgeSymbol">-</span>
+      </span>
+      <span class="badge bg-dark-elevated">
+        <i class="bi bi-globe me-1"></i>
+        <span id="csBadgeName">-</span>
+      </span>
+      <span class="badge bg-dark-elevated">
+        <i class="bi bi-123 me-1"></i>
+        <span id="csBadgeDecimals">-</span>
+      </span>
+      <span class="badge bg-dark-elevated">
+        <i class="bi bi-hash me-1"></i>
+        <span id="csBadgeChainId">-</span>
+      </span>
+      
+    </div>
+  </div>
+  <div id="selected-contract-info" class="card mb-4 d-none">
+    <div class="card-body">
+      <h6 class="mb-2">Contrato/Token:</h6>
+      <div class="row g-2 small">
+        <div class="col-12">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Endereço:</span>
+            <span id="cs_viewAddress" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Rede (Chain ID):</span>
+            <span id="cs_viewChainId" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Nome:</span>
+            <span id="cs_viewName" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Símbolo:</span>
+            <span id="cs_viewSymbol" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Decimais:</span>
+            <span id="cs_viewDecimals" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Supply:</span>
+            <span id="cs_viewSupply" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Saldo do contrato:</span>
+            <span id="cs_viewTokenBalance" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Saldo nativo (ETH/BNB):</span>
+            <span id="cs_viewNativeBalance" class="text-tokencafe"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Explorer:</span>
+            <a id="cs_viewExplorer" href="#" target="_blank" rel="noopener" class="text-decoration-none text-tokencafe">abrir</a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 <script type="module" src="/js/shared/contract-search.js"></script>

@@ -256,7 +256,7 @@ class PageManager {
   showConnectButton() {
     if (!this.connectBtn) return;
 
-    this.connectBtn.innerHTML = '<i class="fas fa-sign-in-alt me-1"></i>Conectar Carteira';
+    this.connectBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Conectar Carteira';
     this.connectBtn.className = "btn btn-outline-primary btn-lg";
     this.connectBtn.onclick = () => this.connectWallet();
     this.connectBtn.disabled = false;
@@ -265,7 +265,7 @@ class PageManager {
   showConnectingState() {
     if (!this.connectBtn) return;
 
-    this.connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Conectando...';
+    this.connectBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Conectando...';
     this.connectBtn.className = "btn btn-outline-primary btn-lg";
     this.connectBtn.disabled = true;
   }
@@ -273,7 +273,7 @@ class PageManager {
   showSuccessState() {
     if (!this.connectBtn) return;
 
-    this.connectBtn.innerHTML = '<i class="fas fa-check me-1"></i>Conectado';
+    this.connectBtn.innerHTML = '<i class="bi bi-check me-1"></i>Conectado';
     this.connectBtn.className = "btn btn-outline-success btn-used-success btn-lg";
     this.connectBtn.disabled = true;
   }
@@ -285,7 +285,7 @@ class PageManager {
     const target = config.redirectTarget || "";
     const buttonText = target.includes("tools") ? "Ir para Ferramentas" : config.redirectTarget ? "Ir para Dashboard" : "Dashboard";
 
-    this.connectBtn.innerHTML = `<i class="fas fa-tachometer-alt me-1"></i>${buttonText}`;
+    this.connectBtn.innerHTML = `<i class="bi bi-speedometer2 me-1"></i>${buttonText}`;
     this.connectBtn.className = "btn btn-outline-primary btn-lg";
     this.connectBtn.onclick = () => this.redirectTo(config.redirectTarget || "#");
     this.connectBtn.disabled = false;
@@ -294,7 +294,7 @@ class PageManager {
   showErrorState() {
     if (!this.connectBtn) return;
 
-    this.connectBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Erro - Tente Novamente';
+    this.connectBtn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Erro - Tente Novamente';
     this.connectBtn.className = "btn btn-outline-danger btn-lg";
     this.connectBtn.disabled = false;
 
@@ -403,7 +403,7 @@ class PageManager {
   showInstallMetaMaskButton() {
     if (!this.connectBtn) return;
 
-    this.connectBtn.innerHTML = '<i class="fas fa-download me-1"></i>Instalar MetaMask';
+    this.connectBtn.innerHTML = '<i class="bi bi-download me-1"></i>Instalar MetaMask';
     this.connectBtn.className = "btn btn-outline-warning btn-lg";
     this.connectBtn.onclick = () => {
       window.open("https://metamask.io/download/", "_blank");

@@ -23,105 +23,105 @@ class UserProfle {
   setupEventLsteners() {
     // Navegao entre abas
     document.querySelectorAll(".nav-tab").forEach((tab) => {
-      tab.addEventListener("clck", (e) => {
+      tab.addEventListener("click", (e) => {
         const tabName = e.currentTarget.dataset.tab;
         this.swtchTab(tabName);
       });
     });
 
     // Botes do header
-    document.getElementByd("edtProfleBtn").addEventListener("clck", () => {
+    document.getElementById("edtProfleBtn").addEventListener("click", () => {
       this.openEdtModal();
     });
 
-    document.getElementByd("shareProfleBtn").addEventListener("clck", () => {
+    document.getElementById("shareProfleBtn").addEventListener("click", () => {
       this.shareProfle();
     });
 
-    document.getElementByd("changeAvatarBtn").addEventListener("clck", () => {
+    document.getElementById("changeAvatarBtn").addEventListener("click", () => {
       this.changeAvatar();
     });
 
-    document.getElementByd("changeBannerBtn").addEventListener("clck", () => {
+    document.getElementById("changeBannerBtn").addEventListener("click", () => {
       this.changeBanner();
     });
 
     // Modal de edo
-    document.getElementByd("closeEdtModal").addEventListener("clck", () => {
+    document.getElementById("closeEdtModal").addEventListener("click", () => {
       this.closeEdtModal();
     });
 
-    document.getElementByd("cancelEdtBtn").addEventListener("clck", () => {
+    document.getElementById("cancelEdtBtn").addEventListener("click", () => {
       this.closeEdtModal();
     });
 
-    document.getElementByd("edtProfleForm").addEventListener("submt", (e) => {
+    document.getElementById("edtProfleForm").addEventListener("submit", (e) => {
       e.preventDefault();
       this.saveProfle();
     });
 
     // Confguraes
-    document.getElementByd("personalnfoForm").addEventListener("submt", (e) => {
+    document.getElementById("personalnfoForm").addEventListener("submit", (e) => {
       e.preventDefault();
       this.savePersonalnfo();
     });
 
-    document.getElementByd("notfcatonForm").addEventListener("submt", (e) => {
+    document.getElementById("notfcatonForm").addEventListener("submit", (e) => {
       e.preventDefault();
       this.saveNotfcatonPreferences();
     });
 
-    document.getElementByd("changePasswordBtn").addEventListener("clck", () => {
+    document.getElementById("changePasswordBtn").addEventListener("click", () => {
       this.openPasswordModal();
     });
 
-    document.getElementByd("enable2FABtn").addEventListener("clck", () => {
+    document.getElementById("enable2FABtn").addEventListener("click", () => {
       this.enable2FA();
     });
 
-    document.getElementByd("downloadDataBtn").addEventListener("clck", () => {
+    document.getElementById("downloadDataBtn").addEventListener("click", () => {
       this.downloadUserData();
     });
 
     // Modal de senha
-    document.getElementByd("closePasswordModal").addEventListener("clck", () => {
+    document.getElementById("closePasswordModal").addEventListener("click", () => {
       this.closePasswordModal();
     });
 
-    document.getElementByd("cancelPasswordBtn").addEventListener("clck", () => {
+    document.getElementById("cancelPasswordBtn").addEventListener("click", () => {
       this.closePasswordModal();
     });
 
-    document.getElementByd("changePasswordForm").addEventListener("submt", (e) => {
+    document.getElementById("changePasswordForm").addEventListener("submit", (e) => {
       e.preventDefault();
       this.changePassword();
     });
 
     // Fltros de tokens
-    document.getElementByd("tokenStatusFlter").addEventListener("change", () => {
+    document.getElementById("tokenStatusFlter").addEventListener("change", () => {
       this.flterUserTokens();
     });
 
-    document.getElementByd("tokenTypeFlter").addEventListener("change", () => {
+    document.getElementById("tokenTypeFlter").addEventListener("change", () => {
       this.flterUserTokens();
     });
 
-    document.getElementByd("tokenSearch").addEventListener("nput", () => {
+    document.getElementById("tokenSearch").addEventListener("input", () => {
       this.flterUserTokens();
     });
 
     // Fltros de atvdade
-    document.getElementByd("actvtyTypeFlter").addEventListener("change", () => {
+    document.getElementById("actvtyTypeFlter").addEventListener("change", () => {
       this.flterActvty();
     });
 
-    document.getElementByd("actvtyDateFlter").addEventListener("change", () => {
+    document.getElementById("actvtyDateFlter").addEventListener("change", () => {
       this.flterActvty();
     });
 
     // Fechar modas clcando fora
-    document.addEventListener("clck", (e) => {
-      if (e.target.classLst.contans("modal")) {
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("modal")) {
         this.closeAllModals();
       }
     });
@@ -130,15 +130,15 @@ class UserProfle {
   swtchTab(tabName) {
     // Atualzar navegao
     document.querySelectorAll(".nav-tab").forEach((tab) => {
-      tab.classLst.remove("actve");
+      tab.classList.remove("actve");
     });
-    document.querySelector(`[data-tab="${tabName}"]`).classLst.add("actve");
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add("actve");
 
     // Atualzar contedo
     document.querySelectorAll(".tab-content").forEach((content) => {
-      content.classLst.remove("actve");
+      content.classList.remove("actve");
     });
-    document.getElementByd(tabName).classLst.add("actve");
+    document.getElementById(tabName).classList.add("actve");
 
     this.currentTab = tabName;
 
@@ -160,13 +160,13 @@ class UserProfle {
   }
 
   loadUserData() {
-    document.getElementByd("profleName").textContent = this.userData.name;
-    document.getElementByd("profleBo").textContent = this.userData.bo;
-    document.getElementByd("profleAvatar").src = this.userData.avatar;
+    document.getElementById("profleName").textContent = this.userData.name;
+    document.getElementById("profleBo").textContent = this.userData.bo;
+    document.getElementById("profleAvatar").src = this.userData.avatar;
 
     // Atualzar banner se exstr
     if (this.userData.banner) {
-      document.querySelector(".profle-banner").style.backgroundmage = `url(${this.userData.banner})`;
+      document.querySelector(".profle-banner").style.backgroundImage = `url(${this.userData.banner})`;
     }
   }
 
@@ -199,7 +199,7 @@ class UserProfle {
 
   async loadPerformanceChart() {
     // Smular dados de performance
-    const canvas = document.getElementByd("performanceChart");
+    const canvas = document.getElementById("performanceChart");
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
@@ -208,45 +208,41 @@ class UserProfle {
     const data = [100, 120, 110, 140, 130, 160, 150, 180, 170, 200];
     const labels = ["Jan", "Fev", "Mar", "Abr", "Ma", "Jun", "Jul", "Ago", "Set", "Out"];
 
-    this.drawLneChart(ctx, data, labels, canvas.wdth, canvas.heght);
+    this.drawLineChart(ctx, data, labels, canvas.width, canvas.height);
   }
 
-  drawLneChart(ctx, data, labels, wdth, heght) {
-    const paddng = 40;
-    const chartWdth = wdth - 2 * paddng;
-    const chartHeght = heght - 2 * paddng;
+  drawLineChart(ctx, data, labels, width, height) {
+    const padding = 40;
+    const chartWidth = width - 2 * padding;
+    const chartHeight = height - 2 * padding;
 
     const maxValue = Math.max(...data);
-    const mnValue = Math.mn(...data);
-    const valueRange = maxValue - mnValue;
+    const minValue = Math.min(...data);
+    const valueRange = maxValue - minValue;
 
-    // Lmpar canvas
-    ctx.clearRect(0, 0, wdth, heght);
+    ctx.clearRect(0, 0, width, height);
 
-    // Confgurar estlo
     ctx.strokeStyle = "#6366f1";
-    ctx.lneWdth = 2;
-    ctx.fllStyle = "rgba(99, 102, 241, 0.1)";
+    ctx.lineWidth = 2;
+    ctx.fillStyle = "rgba(99, 102, 241, 0.1)";
 
-    // Desenhar lnha
-    ctx.begnPath();
-    data.forEach((value, ndex) => {
-      const x = paddng + (ndex * chartWdth) / (data.length - 1);
-      const y = paddng + chartHeght - ((value - mnValue) / valueRange) * chartHeght;
+    ctx.beginPath();
+    data.forEach((value, index) => {
+      const x = padding + (index * chartWidth) / (data.length - 1);
+      const y = padding + chartHeight - ((value - minValue) / valueRange) * chartHeight;
 
-      if (ndex === 0) {
+      if (index === 0) {
         ctx.moveTo(x, y);
       } else {
-        ctx.lneTo(x, y);
+        ctx.lineTo(x, y);
       }
     });
     ctx.stroke();
 
-    // Preencher rea sob a lnha
-    ctx.lneTo(paddng + chartWdth, paddng + chartHeght);
-    ctx.lneTo(paddng, paddng + chartHeght);
+    ctx.lineTo(padding + chartWidth, padding + chartHeight);
+    ctx.lineTo(padding, padding + chartHeight);
     ctx.closePath();
-    ctx.fll();
+    ctx.fill();
   }
 
   async loadTopTokens() {
@@ -256,25 +252,25 @@ class UserProfle {
       { name: "GameToken", symbol: "GAME", change: "-2.1%", value: "$1,200" },
     ];
 
-    const contaner = document.getElementByd("topTokens");
-    contaner.nnerHTML = topTokens
+    const contaner = document.getElementById("topTokens");
+    contaner.innerHTML = topTokens
       .map(
         (token) => `
-            <dv class="token-tem">
-                <dv class="token-nfo">
+            <div class="token-tem">
+                <div class="token-nfo">
                     <span class="token-name">${token.name}</span>
                     <span class="token-symbol">${token.symbol}</span>
-                </dv>
-                <dv class="token-stats">
+                </div>
+                <div class="token-stats">
                     <span class="token-value">${token.value}</span>
-                    <span class="token-change ${token.change.startsWth("+") ? "postve" : "negatve"}">
+                    <span class="token-change ${token.change.startsWith("+") ? "positive" : "negative"}">
                         ${token.change}
                     </span>
-                </dv>
-            </dv>
+                </div>
+            </div>
         `,
       )
-      .jon("");
+      .join("");
   }
 
   async loadRecentActvty() {
@@ -296,22 +292,22 @@ class UserProfle {
       },
     ];
 
-    const contaner = document.getElementByd("recentActvty");
-    contaner.nnerHTML = actvtes
+    const contaner = document.getElementById("recentActvty");
+    contaner.innerHTML = actvtes
       .map(
         (actvty) => `
-            <dv class="actvty-tem">
-                <dv class="actvty-con">
-                    < class="fas fa-${this.getActvtycon(actvty.type)}"></>
-                </dv>
-                <dv class="actvty-content">
+            <div class="actvty-tem">
+                <div class="actvty-con">
+                    <i class="bi bi-${this.getActvtycon(actvty.type)}"></i>
+                </div>
+                <div class="actvty-content">
                     <span class="actvty-descrpton">${actvty.descrpton}</span>
                     <span class="actvty-tme">${actvty.tme}</span>
-                </dv>
-            </dv>
+                </div>
+            </div>
         `,
       )
-      .jon("");
+      .join("");
   }
 
   async loadUserTokens() {
@@ -348,8 +344,8 @@ class UserProfle {
       },
     ];
 
-    const contaner = document.getElementByd("userTokensGrd");
-    contaner.nnerHTML = tokens.map((token) => this.createTokenCard(token)).jon("");
+    const contaner = document.getElementById("userTokensGrd");
+    contaner.innerHTML = tokens.map((token) => this.createTokenCard(token)).join("");
   }
 
   createTokenCard(token) {
@@ -360,39 +356,39 @@ class UserProfle {
     };
 
     return `
-            <dv class="user-token-card">
-                <dv class="token-header">
-                    <dv class="token-nfo">
+            <div class="user-token-card">
+                <div class="token-header">
+                    <div class="token-nfo">
                         <h3>${token.name}</h3>
                         <span class="token-symbol">${token.symbol}</span>
-                    </dv>
+                    </div>
                     <span class="token-status" style="background-color: ${statusColors[token.status]}">
                         ${token.status}
                     </span>
-                </dv>
-                <dv class="token-stats">
-                    <dv class="stat">
-                        <label>Tpo:</label>
+                </div>
+                <div class="token-stats">
+                    <div class="stat">
+                        <label>Tipo:</label>
                         <span>${token.type.toUpperCase()}</span>
-                    </dv>
-                    <dv class="stat">
+                    </div>
+                    <div class="stat">
                         <label>Supply:</label>
                         <span>${token.supply}</span>
-                    </dv>
-                    <dv class="stat">
+                    </div>
+                    <div class="stat">
                         <label>Holders:</label>
                         <span>${token.holders}</span>
-                    </dv>
-                    <dv class="stat">
+                    </div>
+                    <div class="stat">
                         <label>Valor:</label>
                         <span>${token.value}</span>
-                    </dv>
-                </dv>
-                <dv class="token-actons">
-                    <button class="btn btn-sm btn-prmary">Gerencar</button>
-        <button class="btn btn-sm btn-outline-secondary">Analytcs</button>
-                </dv>
-            </dv>
+                    </div>
+                </div>
+                <div class="token-actons">
+                    <button class="btn btn-sm btn-primary">Gerenciar</button>
+                    <button class="btn btn-sm btn-outline-secondary">Analytics</button>
+                </div>
+            </div>
         `;
   }
 
@@ -428,36 +424,36 @@ class UserProfle {
       },
     ];
 
-    const contaner = document.getElementByd("actvtyTmelne");
-    contaner.nnerHTML = actvtes.map((actvty) => this.createActvtytem(actvty)).jon("");
+    const contaner = document.getElementById("actvtyTmelne");
+    contaner.innerHTML = actvtes.map((actvty) => this.createActvtytem(actvty)).join("");
   }
 
   createActvtytem(actvty) {
     const date = new Date(actvty.tmestamp);
-    const formattedDate = date.toLocaleDateStrng("pt-BR");
-    const formattedTme = date.toLocaleTmeStrng("pt-BR", {
-      hour: "2-dgt",
-      mnute: "2-dgt",
+    const formattedDate = date.toLocaleDateString("pt-BR");
+    const formattedTme = date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
     return `
-            <dv class="tmelne-tem">
-                <dv class="tmelne-marker">
-                    < class="fas fa-${this.getActvtycon(actvty.type)}"></>
-                </dv>
-                <dv class="tmelne-content">
-                    <dv class="tmelne-header">
+            <div class="tmelne-tem">
+                <div class="tmelne-marker">
+                    <i class="bi bi-${this.getActvtycon(actvty.type)}"></i>
+                </div>
+                <div class="tmelne-content">
+                    <div class="tmelne-header">
                         <h4>${actvty.ttle}</h4>
-                        <span class="tmelne-date">${formattedDate} s ${formattedTme}</span>
-                    </dv>
+                        <span class="tmelne-date">${formattedDate} às ${formattedTme}</span>
+                    </div>
                     <p class="tmelne-descrpton">${actvty.descrpton}</p>
-                    <dv class="tmelne-detals">
-                        ${Object.entres(actvty.detals)
+                    <div class="tmelne-detals">
+                        ${Object.entries(actvty.detals)
                           .map(([key, value]) => `<span class="detal-tem"><strong>${key}:</strong> ${value}</span>`)
-                          .jon("")}
-                    </dv>
-                </dv>
-            </dv>
+                          .join("")}
+                    </div>
+                </div>
+            </div>
         `;
   }
 
@@ -505,39 +501,39 @@ class UserProfle {
       },
     ];
 
-    const contaner = document.getElementByd("achevementsGrd");
-    contaner.nnerHTML = achevements.map((achevement) => this.createAchevementCard(achevement)).jon("");
+    const contaner = document.getElementById("achevementsGrd");
+    contaner.innerHTML = achevements.map((achevement) => this.createAchevementCard(achevement)).join("");
   }
 
   createAchevementCard(achevement) {
     return `
-            <dv class="achevement-card ${achevement.earned ? "earned" : "locked"}">
-                <dv class="achevement-con">
-                    < class="fas fa-${achevement.con}"></>
-                </dv>
-                <dv class="achevement-content">
+            <div class="achevement-card ${achevement.earned ? "earned" : "locked"}">
+                <div class="achevement-con">
+                    <i class="bi bi-${achevement.con}"></i>
+                </div>
+                <div class="achevement-content">
                     <h3>${achevement.name}</h3>
                     <p>${achevement.descrpton}</p>
                     ${
                       achevement.earned
                         ? `<span class="achevement-date">Conqustado em ${this.formatDate(achevement.date)}</span>`
-                        : `<dv class="achevement-progress">
-                            <dv class="progress-bar">
-                                <dv class="progress-fll" style="wdth: ${achevement.progress}%"></dv>
-                            </dv>
+                        : `<div class="achevement-progress">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: ${achevement.progress}%"></div>
+                            </div>
                             <span class="progress-text">${achevement.progress}%</span>
-                        </dv>`
+                        </div>`
                     }
-                </dv>
-            </dv>
+                </div>
+            </div>
         `;
   }
 
   flterUserTokens() {
     // mplementar fltros de tokens
-    const statusFlter = document.getElementByd("tokenStatusFlter").value;
-    const typeFlter = document.getElementByd("tokenTypeFlter").value;
-    const searchTerm = document.getElementByd("tokenSearch").value.toLowerCase();
+    const statusFlter = document.getElementById("tokenStatusFlter").value;
+    const typeFlter = document.getElementById("tokenTypeFlter").value;
+    const searchTerm = document.getElementById("tokenSearch").value.toLowerCase();
 
     // Lgca de fltro sera mplementada aqu
     console.log("Fltrando tokens:", { statusFlter, typeFlter, searchTerm });
@@ -545,34 +541,34 @@ class UserProfle {
 
   flterActvty() {
     // mplementar fltros de atvdade
-    const typeFlter = document.getElementByd("actvtyTypeFlter").value;
-    const dateFlter = document.getElementByd("actvtyDateFlter").value;
+    const typeFlter = document.getElementById("actvtyTypeFlter").value;
+    const dateFlter = document.getElementById("actvtyDateFlter").value;
 
     console.log("Fltrando atvdades:", { typeFlter, dateFlter });
   }
 
   openEdtModal() {
     // Preencher formulro com dados atuas
-    document.getElementByd("edtName").value = this.userData.name;
-    document.getElementByd("edtUsername").value = this.userData.username;
-    document.getElementByd("edtBo").value = this.userData.bo;
-    document.getElementByd("edtWebste").value = this.userData.webste;
-    document.getElementByd("edtLocaton").value = this.userData.locaton;
+    document.getElementById("edtName").value = this.userData.name;
+    document.getElementById("edtUsername").value = this.userData.username;
+    document.getElementById("edtBo").value = this.userData.bo;
+    document.getElementById("edtWebste").value = this.userData.webste;
+    document.getElementById("edtLocaton").value = this.userData.locaton;
 
-    document.getElementByd("edtProfleModal").style.dsplay = "flex";
+    document.getElementById("edtProfleModal").style.display = "flex";
   }
 
   closeEdtModal() {
-    document.getElementByd("edtProfleModal").style.dsplay = "none";
+    document.getElementById("edtProfleModal").style.display = "none";
   }
 
   async saveProfle() {
     const formData = {
-      name: document.getElementByd("edtName").value,
-      username: document.getElementByd("edtUsername").value,
-      bo: document.getElementByd("edtBo").value,
-      webste: document.getElementByd("edtWebste").value,
-      locaton: document.getElementByd("edtLocaton").value,
+      name: document.getElementById("edtName").value,
+      username: document.getElementById("edtUsername").value,
+      bo: document.getElementById("edtBo").value,
+      webste: document.getElementById("edtWebste").value,
+      locaton: document.getElementById("edtLocaton").value,
     };
 
     try {
@@ -580,7 +576,7 @@ class UserProfle {
       await this.delay(1000);
 
       // Atualzar dados locas
-      Object.assgn(this.userData, formData);
+      Object.assign(this.userData, formData);
       this.loadUserData();
 
       this.closeEdtModal();
@@ -592,58 +588,58 @@ class UserProfle {
   }
 
   shareProfle() {
-    const profleUrl = `${wndow.locaton.orgn}/profle/${this.userData.username}`;
+    const profleUrl = `${window.location.origin}/profle/${this.userData.username}`;
 
-    if (navgator.share) {
-      navgator.share({
+    if (navigator.share) {
+      navigator.share({
         ttle: `Perfl de ${this.userData.name}`,
         text: this.userData.bo,
         url: profleUrl,
       });
     } else {
-      // Fallback para copar URL
-      navgator.clpboard.wrteText(profleUrl).then(() => {
+      // Fallback para copiar URL
+      navigator.clipboard.writeText(profleUrl).then(() => {
         this.showNotfcaton("Lnk do perfl copado!", "success");
       });
     }
   }
 
   changeAvatar() {
-    const nput = document.createElement("nput");
-    nput.type = "fle";
-    nput.accept = "mage/*";
-    nput.onchange = (e) => {
-      const fle = e.target.fles[0];
-      if (fle) {
-        const reader = new FleReader();
-        reader.onload = (e) => {
-          this.userData.avatar = e.target.result;
-          document.getElementByd("profleAvatar").src = e.target.result;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e2) => {
+          this.userData.avatar = e2.target.result;
+          document.getElementById("profleAvatar").src = e2.target.result;
           this.showNotfcaton("Avatar atualzado!", "success");
         };
-        reader.readAsDataURL(fle);
+        reader.readAsDataURL(file);
       }
     };
-    nput.clck();
+    input.click();
   }
 
   changeBanner() {
-    const nput = document.createElement("nput");
-    nput.type = "fle";
-    nput.accept = "mage/*";
-    nput.onchange = (e) => {
-      const fle = e.target.fles[0];
-      if (fle) {
-        const reader = new FleReader();
-        reader.onload = (e) => {
-          this.userData.banner = e.target.result;
-          document.querySelector(".profle-banner").style.backgroundmage = `url(${e.target.result})`;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e2) => {
+          this.userData.banner = e2.target.result;
+          document.querySelector(".profle-banner").style.backgroundImage = `url(${e2.target.result})`;
           this.showNotfcaton("Banner atualzado!", "success");
         };
-        reader.readAsDataURL(fle);
+        reader.readAsDataURL(file);
       }
     };
-    nput.clck();
+    input.click();
   }
 
   async savePersonalnfo() {
@@ -665,18 +661,18 @@ class UserProfle {
   }
 
   openPasswordModal() {
-    document.getElementByd("changePasswordModal").style.dsplay = "flex";
+    document.getElementById("changePasswordModal").style.display = "flex";
   }
 
   closePasswordModal() {
-    document.getElementByd("changePasswordModal").style.dsplay = "none";
-    document.getElementByd("changePasswordForm").reset();
+    document.getElementById("changePasswordModal").style.display = "none";
+    document.getElementById("changePasswordForm").reset();
   }
 
   async changePassword() {
-    const unusedCurrentPassword = document.getElementByd("currentPassword").value;
-    const newPassword = document.getElementByd("newPassword").value;
-    const confrmPassword = document.getElementByd("confrmPassword").value;
+    const unusedCurrentPassword = document.getElementById("currentPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confrmPassword = document.getElementById("confrmPassword").value;
 
     if (newPassword !== confrmPassword) {
       this.showNotfcaton("As senhas no concdem", "error");
@@ -693,7 +689,7 @@ class UserProfle {
   }
 
   enable2FA() {
-    this.showNotfcaton("Funconaldade 2FA em desenvolvmento", "nfo");
+    this.showNotfcaton("Funconaldade 2FA em desenvolvmento", "info");
   }
 
   downloadUserData() {
@@ -704,16 +700,16 @@ class UserProfle {
       achevements: [], // Sera preenchdo com dados reas
     };
 
-    const blob = new Blob([JSON.strngfy(userData, null, 2)], {
-      type: "applcaton/json",
+    const blob = new Blob([JSON.stringify(userData, null, 2)], {
+      type: "application/json",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `tokencafe_user_data_${Date.now()}.json`;
-    document.body.appendChld(a);
-    a.clck();
-    document.body.removeChld(a);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
     this.showNotfcaton("Dados baxados com sucesso!", "success");
@@ -726,55 +722,55 @@ class UserProfle {
 
   getActvtycon(type) {
     const cons = {
-      create: "plus-crcle",
-      transfer: "exchange-alt",
-      trade: "chart-lne",
+      create: "plus-circle",
+      transfer: "arrow-left-right",
+      trade: "graph-up",
       stake: "lock",
     };
-    return cons[type] || "crcle";
+    return cons[type] || "circle";
   }
 
   formatCurrency(amount) {
-    return new ntl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "USD",
     }).format(amount);
   }
 
   formatDate(dateStrng) {
-    return new Date(dateStrng).toLocaleDateStrng("pt-BR");
+    return new Date(dateStrng).toLocaleDateString("pt-BR");
   }
 
-  showNotfcaton(message, type = "nfo") {
-    const notfcaton = document.createElement("dv");
+  showNotfcaton(message, type = "info") {
+    const notfcaton = document.createElement("div");
     notfcaton.className = `notfcaton notfcaton-${type}`;
-    notfcaton.nnerHTML = `
-            <dv class="notfcaton-content">
-                < class="fas fa-${type === "success" ? "check-crcle" : type === "error" ? "exclamaton-crcle" : "nfo-crcle"}"></>
+    notfcaton.innerHTML = `
+            <div class="notfcaton-content">
+                <i class="bi bi-${type === "success" ? "check-circle" : type === "error" ? "exclamation-circle" : "info-circle"}"></i>
                 <span>${message}</span>
-            </dv>
+            </div>
             <button class="notfcaton-close">
-                < class="fas fa-tmes"></>
+                <i class="bi bi-x"></i>
             </button>
         `;
 
-    document.body.appendChld(notfcaton);
+    document.body.appendChild(notfcaton);
 
-    setTmeout(() => {
+    setTimeout(() => {
       if (notfcaton.parentNode) {
-        notfcaton.parentNode.removeChld(notfcaton);
+        notfcaton.parentNode.removeChild(notfcaton);
       }
     }, 5000);
 
-    notfcaton.querySelector(".notfcaton-close").addEventListener("clck", () => {
+    notfcaton.querySelector(".notfcaton-close").addEventListener("click", () => {
       if (notfcaton.parentNode) {
-        notfcaton.parentNode.removeChld(notfcaton);
+        notfcaton.parentNode.removeChild(notfcaton);
       }
     });
   }
 
   delay(ms) {
-    return new Promise((resolve) => setTmeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

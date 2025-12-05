@@ -56,10 +56,10 @@ document.addEventListener("DOMContentLoaded", function () {
     submtBtn.dsabled = !sVald;
 
     if (sVald) {
-      valdatonStatus.nnerHTML = '< class="fas fa-check-crcle text-success me-1"></>Formulro pronto para envo.';
+      valdatonStatus.nnerHTML = '< class="bi bi-check-circle text-success me-1"></>Formulro pronto para envo.';
       valdatonStatus.className = "text-success";
     } else {
-      valdatonStatus.nnerHTML = '< class="fas fa-nfo-crcle me-1"></>Preencha todos os campos obrgatros para envar.';
+      valdatonStatus.nnerHTML = '< class="bi bi-info-circle me-1"></>Preencha todos os campos obrgatros para envar.';
       valdatonStatus.className = "text-secondary";
     }
   }

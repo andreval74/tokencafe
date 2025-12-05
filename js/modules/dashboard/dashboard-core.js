@@ -171,7 +171,7 @@ class DashboardCore {
     const loadngContent = document.querySelector(".loadng-content p");
     if (loadngContent) {
       loadngContent.nnerHTML = `
-                < class="fas fa-exclamaton-trangle text-warnng"></><br>
+                < class="bi bi-exclamation-triangle text-warnng"></><br>
                 Cartera no conectada!<br>
                 <small class="text-muted">Redreconando para pgna ncal...</small>
             `;
@@ -494,146 +494,146 @@ class DashboardCore {
    */
   async getHomeContent() {
     return `
-            <dv class="contaner-flud">
-                <!-- Welcome Secton -->
-                <dv class="row mb-4">
-                    <dv class="col-12">
-                        <dv class="welcome-banner bg-gradent-coffee text-whte p-4 rounded">
-                            <dv class="row algn-tems-center">
-                                <dv class="col-md-8">
-                                    <h2 class="mb-2">Bem-vndo ao TokenCafe! </h2>
-                                    <p class="mb-0">Sua plataforma completa para crar wdgets Web3 personalzados</p>
-                                </dv>
-                                <dv class="col-md-4 text-end">
-                                    <button class="btn btn-lght btn-lg" data-navgate="wdget-create">
-                                        < class="fas fa-plus me-2"></>Crar Wdget
+            <div class="container-fluid">
+                <!-- Welcome Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="welcome-banner bg-dark text-white p-4 rounded">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h2 class="mb-2">Bem-vindo ao TokenCafe!</h2>
+                                    <p class="mb-0">Sua plataforma completa para criar widgets Web3 personalizados</p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <button class="btn btn-primary btn-lg" data-navgate="wdget-create">
+                                        <i class="bi bi-plus me-2"></i>Criar Widget
                                     </button>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                </dv>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Stats Cards -->
-                <dv class="row g-3 mb-4">
-                    <dv class="col-lg-3 col-md-6">
-                        <dv class="card stat-card">
-                            <dv class="card-body">
-                                <dv class="d-flex algn-tems-center">
-                                    <dv class="stat-con bg-coffee text-whte me-3">
-                                        < class="fas fa-cube"></>
-                                    </dv>
-                                    <dv>
-                                        <h3 class="mb-0" d="total-wdgets">0</h3>
-                                        <small class="text-muted">Meus Wdgets</small>
-                                    </dv>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                    <dv class="col-lg-3 col-md-6">
-                        <dv class="card stat-card">
-                            <dv class="card-body">
-                                <dv class="d-flex algn-tems-center">
-                                    <dv class="stat-con bg-success text-whte me-3">
-                                        < class="fas fa-chart-lne"></>
-                                    </dv>
-                                    <dv>
-                                        <h3 class="mb-0" d="total-vews">0</h3>
-                                        <small class="text-muted">Vsualzaes</small>
-                                    </dv>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                    <dv class="col-lg-3 col-md-6">
-                        <dv class="card stat-card">
-                            <dv class="card-body">
-                                <dv class="d-flex algn-tems-center">
-                                    <dv class="stat-con bg-nfo text-whte me-3">
-                                        < class="fas fa-mouse-ponter"></>
-                                    </dv>
-                                    <dv>
-                                        <h3 class="mb-0" d="total-nteractons">0</h3>
-                                        <small class="text-muted">nteraes</small>
-                                    </dv>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                    <dv class="col-lg-3 col-md-6">
-                        <dv class="card stat-card">
-                            <dv class="card-body">
-                                <dv class="d-flex algn-tems-center">
-                                    <dv class="stat-con bg-warnng text-whte me-3">
-                                        < class="fas fa-dollar-sgn"></>
-                                    </dv>
-                                    <dv>
-                                        <h3 class="mb-0" d="total-earnngs">$0</h3>
-                                        <small class="text-muted">Earnngs</small>
-                                    </dv>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                </dv>
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 text-white">
+                                        <i class="bi bi-box-seam"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-0" id="total-wdgets">0</h3>
+                                        <small class="text-muted">Meus Widgets</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 text-white">
+                                        <i class="bi bi-graph-up"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-0" id="total-vews">0</h3>
+                                        <small class="text-muted">Visualizações</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 text-white">
+                                        <i class="bi bi-cursor"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-0" id="total-nteractons">0</h3>
+                                        <small class="text-muted">Interações</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 text-white">
+                                        <i class="bi bi-currency-dollar"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-0" id="total-earnngs">$0</h3>
+                                        <small class="text-muted">Earnings</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                <!-- Quck Actons -->
-                <dv class="row g-3">
-                    <dv class="col-lg-8">
-                        <dv class="card">
-                            <dv class="card-header">
-                                <h5 class="mb-0">< class="fas fa-rocket me-2"></>Aes Rpdas</h5>
-                            </dv>
-                            <dv class="card-body">
-                                <dv class="row g-3">
-                                    <dv class="col-md-6">
-                                        <dv class="quck-acton-card" data-navgate="wdget-create">
-                                            < class="fas fa-plus-crcle fa-2x text-coffee mb-2"></>
-                                            <h6>Crar Wdget</h6>
-                                            <p class="text-muted small">Crar novo wdget Web3 personalzado</p>
-                                        </dv>
-                                    </dv>
-                                    <dv class="col-md-6">
-                                        <dv class="quck-acton-card" data-navgate="templates">
-                                            < class="fas fa-th-large fa-2x text-nfo mb-2"></>
+                <!-- Quick Actions -->
+                <div class="row g-3">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-rocket-takeoff me-2"></i>Ações Rápidas</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="quck-acton-card" data-navgate="wdget-create">
+                                            <i class="bi bi-plus-circle fs-2 text-coffee mb-2"></i>
+                                            <h6>Criar Widget</h6>
+                                            <p class="text-muted small">Criar novo widget Web3 personalizado</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="quck-acton-card" data-navgate="templates">
+                                            <i class="bi bi-grid-3x3-gap fs-2 text-info mb-2"></i>
                                             <h6>Explorar Templates</h6>
-                                            <p class="text-muted small">Descobrr templates prontos para usar</p>
-                                        </dv>
-                                    </dv>
-                                    <dv class="col-md-6">
-                                        <dv class="quck-acton-card" data-navgate="analytcs">
-                                            < class="fas fa-chart-bar fa-2x text-success mb-2"></>
-                                            <h6>Ver Analytcs</h6>
-                                            <p class="text-muted small">Analsar performance dos seus wdgets</p>
-                                        </dv>
-                                    </dv>
-                                    <dv class="col-md-6">
-                                        <dv class="quck-acton-card" data-navgate="support">
-                                            < class="fas fa-lfe-rng fa-2x text-warnng mb-2"></>
+                                            <p class="text-muted small">Descobrir templates prontos para usar</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="quck-acton-card" data-navgate="analytcs">
+                                            <i class="bi bi-bar-chart fs-2 text-success mb-2"></i>
+                                            <h6>Ver Analytics</h6>
+                                            <p class="text-muted small">Analisar performance dos seus widgets</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="quck-acton-card" data-navgate="support">
+                                            <i class="bi bi-life-preserver fs-2 text-warning mb-2"></i>
                                             <h6>Suporte</h6>
-                                            <p class="text-muted small">Obter ajuda e suporte tcnco</p>
-                                        </dv>
-                                    </dv>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                    <dv class="col-lg-4">
-                        <dv class="card">
-                            <dv class="card-header">
-                                <h5 class="mb-0">< class="fas fa-bell me-2"></>Notfcaes</h5>
-                            </dv>
-                            <dv class="card-body" d="notfcatons-lst">
-                                <dv class="text-center text-muted py-3">
-                                    < class="fas fa-bell-slash fa-2x mb-2"></>
-                                    <p class="mb-0">Nenhuma notfcao no momento</p>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                </dv>
-            </dv>
+                                            <p class="text-muted small">Obter ajuda e suporte técnico</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-bell me-2"></i>Notificações</h5>
+                            </div>
+                            <div class="card-body" id="notfcatons-lst">
+                                <div class="text-center text-muted py-3">
+                                    <i class="bi bi-bell-slash fs-2 mb-2"></i>
+                                    <p class="mb-0">Nenhuma notificação no momento</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
   }
 
@@ -642,65 +642,65 @@ class DashboardCore {
    */
   async getWdgetsContent() {
     return `
-            <dv class="contaner-flud">
-                <dv class="d-flex justfy-content-between algn-tems-center mb-4">
-                    <h2>< class="fas fa-cube me-2"></>Meus Wdgets</h2>
-                    <button class="btn btn-coffee" data-navgate="wdget-create">
-                        < class="fas fa-plus me-2"></>Crar Wdget
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="bi bi-box-seam me-2"></i>Meus Widgets</h2>
+                    <button class="btn btn-primary" data-navgate="wdget-create">
+                        <i class="bi bi-plus me-2"></i>Criar Widget
                     </button>
-                </dv>
+                </div>
                 
-                <!-- Fltros -->
-                <dv class="card mb-4">
-                    <dv class="card-body">
-                        <dv class="row algn-tems-center">
-                            <dv class="col-md-3">
-                                <nput type="search" class="form-control" placeholder="Buscar wdgets..." d="wdget-search">
-                            </dv>
-                            <dv class="col-md-2">
-                                <select class="form-control" d="wdget-type-flter">
-                                    <opton value="">Todos os tpos</opton>
-                                    <opton value="swap">Swap</opton>
-                                    <opton value="prce">Prce Tracker</opton>
-                                    <opton value="portfolo">Portfolo</opton>
+                <!-- Filtros -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <input type="search" class="form-control" placeholder="Buscar widgets..." id="wdget-search">
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="wdget-type-flter">
+                                    <option value="">Todos os tipos</option>
+                                    <option value="swap">Swap</option>
+                                    <option value="prce">Price Tracker</option>
+                                    <option value="portfolo">Portfolio</option>
                                 </select>
-                            </dv>
-                            <dv class="col-md-2">
-                                <select class="form-control" d="wdget-status-flter">
-                                    <opton value="">Todos os status</opton>
-                                    <opton value="actve">Atvo</opton>
-                                    <opton value="draft">Rascunho</opton>
-                                    <opton value="archved">Arquvado</opton>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="wdget-status-flter">
+                                    <option value="">Todos os status</option>
+                                    <option value="actve">Ativo</option>
+                                    <option value="draft">Rascunho</option>
+                                    <option value="archved">Arquivado</option>
                                 </select>
-                            </dv>
-                            <dv class="col-md-3 ms-auto">
-                                <dv class="btn-group" role="group">
-                                    <nput type="rado" class="btn-check" name="vew-mode" d="grd-vew" checked>
-                                    <label class="btn btn-outlne-coffee" for="grd-vew">
-                                        < class="fas fa-th"></>
+                            </div>
+                            <div class="col-md-3 ms-auto">
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="vew-mode" id="grd-vew" checked>
+                                    <label class="btn btn-outline-primary" for="grd-vew">
+                                        <i class="bi bi-grid"></i>
                                     </label>
-                                    <nput type="rado" class="btn-check" name="vew-mode" d="lst-vew">
-                                    <label class="btn btn-outlne-coffee" for="lst-vew">
-                                        < class="fas fa-lst"></>
+                                    <input type="radio" class="btn-check" name="vew-mode" id="lst-vew">
+                                    <label class="btn btn-outline-primary" for="lst-vew">
+                                        <i class="bi bi-list"></i>
                                     </label>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                </dv>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                <!-- Lsta de Wdgets -->
-                <dv d="wdgets-contaner">
-                    <dv class="text-center py-5">
-                        < class="fas fa-cube fa-3x text-muted mb-3"></>
-                        <h4>Nenhum wdget crado anda</h4>
-                        <p class="text-muted">Comece crando seu prmero wdget Web3!</p>
-                        <button class="btn btn-coffee" data-navgate="wdget-create">
-                            < class="fas fa-plus me-2"></>Crar Prmero Wdget
+                <!-- Lista de Widgets -->
+                <div id="wdgets-contaner">
+                    <div class="text-center py-5">
+                        <i class="bi bi-box-seam fs-1 text-muted mb-3"></i>
+                        <h4>Nenhum widget criado ainda</h4>
+                        <p class="text-muted">Comece criando seu primeiro widget Web3!</p>
+                        <button class="btn btn-primary" data-navgate="wdget-create">
+                            <i class="bi bi-plus me-2"></i>Criar Primeiro Widget
                         </button>
-                    </dv>
-                </dv>
-            </dv>
+                    </div>
+                </div>
+            </div>
         `;
   }
 
@@ -729,7 +729,7 @@ class DashboardCore {
                     <dv class="col-lg-8">
                         <dv class="card">
                             <dv class="card-header">
-                                <h3>< class="fas fa-lfe-rng me-2"></>Suporte</h3>
+                                <h3>< class="bi bi-life-preserver me-2"></>Suporte</h3>
                             </dv>
                             <dv class="card-body">
                                 <form d="support-form">
@@ -758,7 +758,7 @@ class DashboardCore {
                                         <textarea class="form-control" rows="5" requred></textarea>
                                     </dv>
                                     <button type="submt" class="btn btn-coffee">
-                                        < class="fas fa-paper-plane me-2"></>Envar Mensagem
+                                        < class="bi bi-send me-2"></>Envar Mensagem
                                     </button>
                                 </form>
                             </dv>
@@ -927,13 +927,13 @@ class DashboardCore {
             <dv class="contaner-flud">
                 <dv class="row justfy-content-center">
                     <dv class="col-md-8">
-                        <dv class="alert alert-danger text-center">
-                            < class="fas fa-exclamaton-trangle fa-3x mb-3"></>
+                            <dv class="alert alert-danger text-center">
+                            < class="bi bi-exclamation-triangle fa-3x mb-3"></>
                             <h4>Erro ao Carregar Mdulo</h4>
                             <p>No fo possvel carregar o mdulo <strong>${moduleName}</strong>.</p>
                             <p class="text-muted">${errorMessage}</p>
                             <button class="btn btn-prmary mt-3" onclck="console.log(' Boto tentar novamente clcado - reload desabltado')">
-                                < class="fas fa-refresh"></> Tentar Novamente
+                                < class="bi bi-arrow-repeat"></> Tentar Novamente
                             </button>
                         </dv>
                     </dv>
@@ -947,28 +947,28 @@ class DashboardCore {
    */
   async getTokenCreateContent() {
     return `
-            <dv class="contaner-flud">
-                <dv class="row">
-                    <dv class="col-12">
-                        <dv class="card">
-                            <dv class="card-header">
-                                <h3>< class="fas fa-plus-crcle"></> Crar Novo Token</h3>
-                            </dv>
-                            <dv class="card-body">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-plus-circle"></i> Criar Novo Token</h3>
+                            </div>
+                            <div class="card-body">
                                 <p class="text-center text-muted">
-                                    < class="fas fa-tools fa-2x mb-3"></><br>
-                                    Funconaldade de crao de token em desenvolvmento.
+                                    <i class="bi bi-tools fs-2 mb-3"></i><br>
+                                    Funcionalidade de criação de token em desenvolvimento.
                                 </p>
-                                <dv class="text-center">
-                                    <button class="btn btn-prmary" onclck="navgateTo('tokens')">
-                                        < class="fas fa-arrow-left"></> Voltar para Tokens
+                                <div class="text-center">
+                                    <button class="btn btn-primary" onclick="navgateTo('tokens')">
+                                        <i class="bi bi-arrow-left"></i> Voltar para Tokens
                                     </button>
-                                </dv>
-                            </dv>
-                        </dv>
-                    </dv>
-                </dv>
-            </dv>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
   }
 

@@ -13,14 +13,16 @@ const API_BASE = window.TOKENCAFE_API_BASE || window.localStorage?.getItem("api_
     window.fetch = async function (url, opts) {
       const resp = await origFetch(url, opts);
       try {
-        const clone = resp.clone();
-        const ct = String(clone.headers.get("content-type") || "");
-        if (ct.includes("application/json")) {
-          const data = await clone.json();
-          console.log("[verifica]", "Response", url, resp.status, data);
-        } else {
-          const text = await clone.text();
-          console.log("[verifica]", "Response", url, resp.status, text);
+        const shouldLog = /\/api\//.test(String(url));
+        if (shouldLog) {
+          const clone = resp.clone();
+          const ct = String(clone.headers.get("content-type") || "");
+          if (ct.includes("application/json")) {
+            const data = await clone.json();
+            console.log("[verifica]", "Response", url, resp.status, data);
+          } else {
+            console.log("[verifica]", "Response", url, resp.status);
+          }
         }
         if (String(url).includes("/api/verify-sourcify-upload") && resp.status === 404) {
           try {
@@ -75,7 +77,12 @@ function getVerifyApiKey() {
   try {
     const sp = new URLSearchParams(window.location.search || "");
     const q = sp.get("bscapi");
-    if (q) return q;
+    if (q) {
+      try {
+        localStorage.setItem("bscscan_api_key", q);
+      } catch (_) {}
+      return q;
+    }
   } catch (_) {}
   try {
     if (typeof window.TOKENCAFE_BSCSCAN_API_KEY !== "undefined" && window.TOKENCAFE_BSCSCAN_API_KEY) return window.TOKENCAFE_BSCSCAN_API_KEY;
@@ -134,7 +141,6 @@ function fillVisibleForm(p) {
     set("f_chainId", p?.chainId || "");
     set("f_contractName", p?.contractName || "");
     set("f_compilerVersion", p?.compilerVersion || "");
-    set("f_tokenSymbol", p?.tokenSymbol || "");
     const cf = document.getElementById("f_codeformat");
     if (cf) cf.value = p?.codeformat || "solidity-single-file";
     set("f_contractNameFQN", p?.contractNameFQN || (p?.contractName ? `${p.contractName}.sol:${p.contractName}` : ""));
@@ -151,6 +157,26 @@ function fillVisibleForm(p) {
       openBtn.classList.toggle("disabled", !cUrl);
     }
     setGlobalData(p);
+    const t = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = v != null && String(v).length ? String(v) : "-";
+    };
+    t("cardContractName", p?.contractName || "");
+    t("cardTokenSymbolText", p?.tokenSymbol || "");
+    t("cardFQN", p?.contractNameFQN || (p?.contractName ? `${p.contractName}.sol:${p.contractName}` : ""));
+    t("cardChainIdText", p?.chainId || "");
+    t("cardAddressText", p?.contractAddress || "");
+    t("cardCompilerVersion", p?.compilerVersion || "");
+    t("cardOptimization", p?.optimizationUsed === 0 || p?.optimizationUsed === false ? "0" : "1");
+    t("cardRuns", p?.runs ?? 200);
+    const langSel = document.getElementById("f_language");
+    const langVal = p?.language || (langSel ? langSel.value : "");
+    t("cardLanguage", langVal || "solidity");
+    const cfSel = document.getElementById("f_codeformat");
+    const cfVal = p?.codeformat || (cfSel ? cfSel.value : "");
+    t("cardCodeformat", cfVal || "solidity-single-file");
+    t("cardSourcePreview", p?.sourceCode || "");
+    t("cardMetadataPreview", p?.metadata || "");
   } catch (_) {}
 }
 
@@ -167,7 +193,6 @@ function buildPayloadFromForm() {
       chainId,
       contractAddress: get("f_address") || null,
       contractName: get("f_contractName") || null,
-      tokenSymbol: get("f_tokenSymbol") || null,
       compilerVersion: get("f_compilerVersion") || null,
       codeformat: get("f_codeformat") || "solidity-single-file",
       contractNameFQN: get("f_contractNameFQN") || null,
@@ -188,10 +213,24 @@ async function checkVerifiedStatus() {
     const addr = document.getElementById("f_address")?.value || "";
     const cid = parseInt(document.getElementById("f_chainId")?.value || document.getElementById("networkSearch")?.dataset?.chainId || "0", 10);
     if (!addr || !cid) return;
-    const resp = await fetch(`https://sourcify.dev/server/files/${cid}/${addr.toLowerCase()}`);
-    if (!resp.ok) return;
-    const files = await resp.json();
-    const isVerified = Array.isArray(files) && files.length > 0;
+    let isVerified = false;
+    let sourStatus = "";
+    let httpCode = 0;
+    try {
+      const cResp = await fetch(`https://sourcify.dev/server/contract/${cid}/${addr.toLowerCase()}`);
+      httpCode = cResp.status;
+      if (cResp.ok) {
+        const cj = await cResp.json();
+        const st = String(cj?.status || "").toLowerCase();
+        sourStatus = st;
+        isVerified = st === "perfect" || st === "full";
+      } else {
+        isVerified = false;
+      }
+    } catch (_) {
+      isVerified = false;
+    }
+    const txtEl = document.getElementById("sourcifyStatusText");
     if (isVerified) {
       logStatus("Contrato já verificado na rede.");
       if (runBtn) runBtn.disabled = true;
@@ -206,6 +245,17 @@ async function checkVerifiedStatus() {
         openBtn.href = cUrl || "#";
         openBtn.classList.toggle("disabled", !cUrl);
       }
+      if (txtEl) txtEl.textContent = sourStatus ? `Sourcify: ${sourStatus}` : "Sourcify: verificado";
+    } else {
+      const badge = document.getElementById("verifyStatusBadge");
+      if (badge) {
+        badge.textContent = "Não verificado";
+        badge.className = "badge bg-warning";
+      }
+      if (runBtn) runBtn.disabled = false;
+      if (btnText) btnText.textContent = "Verificar automaticamente";
+      if (spinner) spinner.classList.add("d-none");
+      if (txtEl) txtEl.textContent = httpCode ? `Sourcify: não verificado (HTTP ${httpCode})` : "Sourcify: não verificado";
     }
   } catch (_) {}
 }
@@ -248,17 +298,119 @@ async function runVerify() {
       const ok = !!data?.success || !!data?.verified;
       const link = data?.link || data?.lookupUrl || data?.explorerUrl || explorerUrl;
       if (ok) {
-        logStatus("Verificação concluída.");
-        if (openBtn) {
-          openBtn.href = link || explorerUrl;
-          openBtn.classList.remove("disabled");
+        const confirmed = await (async () => {
+          try {
+            const cResp = await fetch(`https://sourcify.dev/server/contract/${p.chainId}/${String(p.contractAddress).toLowerCase()}`);
+            if (!cResp.ok) return false;
+            const cj = await cResp.json();
+            const st = String(cj?.status || "").toLowerCase();
+            return st === "perfect" || st === "full";
+          } catch (_) {
+            return false;
+          }
+        })();
+        if (confirmed) {
+          logStatus("Verificação concluída.");
+          if (openBtn) {
+            openBtn.href = link || explorerUrl;
+            openBtn.classList.remove("disabled");
+          }
+          try {
+            const histRaw = localStorage.getItem("tokencafe_verify_history");
+            const hist = histRaw ? JSON.parse(histRaw) : [];
+            hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: "success", link });
+            localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
+          } catch (_) {}
+        } else {
+          try {
+            logStatus("Publicando no Sourcify...");
+            const up = await fetch(`${API_BASE}/api/verify-sourcify-upload`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
+            if (up.ok) {
+              const uj = await up.json();
+              if (uj?.success) {
+                const confirmedUp = await (async () => {
+                  try {
+                    const c = await fetch(`https://sourcify.dev/server/contract/${p.chainId}/${String(p.contractAddress).toLowerCase()}`);
+                    if (!c.ok) return false;
+                    const cj = await c.json();
+                    const st = String(cj?.status || "").toLowerCase();
+                    return st === "perfect" || st === "full";
+                  } catch (_) {
+                    return false;
+                  }
+                })();
+                const ulink = uj?.link || link || explorerUrl;
+                if (confirmedUp) {
+                  logStatus("Verificado no Sourcify.");
+                  if (openBtn) {
+                    openBtn.href = ulink;
+                    openBtn.classList.remove("disabled");
+                  }
+                  try {
+                    const histRaw = localStorage.getItem("tokencafe_verify_history");
+                    const hist = histRaw ? JSON.parse(histRaw) : [];
+                    hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: "sourcify", link: ulink });
+                    localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
+                  } catch (_) {}
+                  return;
+                }
+              }
+            }
+          } catch (_) {}
+          logStatus("Auto indisponível. Enviando ao explorer...");
+          const hasKey = !!(p.apiKey || getVerifyApiKey());
+          if (!hasKey) {
+            const vUrl = getExplorerVerificationUrl(p.contractAddress, p.chainId);
+            logStatus(`API Key ausente. Abra manualmente: ${vUrl}`);
+            if (openBtn) {
+              openBtn.href = vUrl || "#";
+              openBtn.classList.remove("disabled");
+            }
+          } else {
+            const respV = await fetch(`${API_BASE}/api/verify-bscscan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
+            if (respV.ok) {
+              const dataV = await respV.json();
+              const vUrl = dataV?.explorerUrl || explorerUrl;
+              const okV = !!dataV?.success;
+              logStatus(okV ? "Verificação concluída (explorer)." : "Verificação enviada/pendente. Acompanhe no explorer.");
+              if (openBtn) {
+                openBtn.href = vUrl;
+                openBtn.classList.remove("disabled");
+              }
+              try {
+                const histRaw = localStorage.getItem("tokencafe_verify_history");
+                const hist = histRaw ? JSON.parse(histRaw) : [];
+                hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: okV ? "explorer-success" : "explorer-pending", link: vUrl });
+                localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
+              } catch (_) {}
+              const guid = dataV?.guid || null;
+              if (!okV && guid) {
+                let tries = 0;
+                const interval = setInterval(async () => {
+                  tries++;
+                  try {
+                    const st = await fetch(`${API_BASE}/api/verify-bscscan-status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chainId: p.chainId, guid, apiKey: p.apiKey }) });
+                    if (st.ok) {
+                      const js = await st.json();
+                      if (js?.success) {
+                        clearInterval(interval);
+                        logStatus("Verificação concluída (explorer).");
+                        if (openBtn) {
+                          openBtn.href = vUrl;
+                          openBtn.classList.remove("disabled");
+                        }
+                      }
+                    }
+                  } catch (_) {}
+                  if (tries >= 10) clearInterval(interval);
+                }, 4000);
+              }
+            } else {
+              const txtV = await respV.text();
+              logStatus(`Falha no envio ao explorer: ${txtV}`);
+            }
+          }
         }
-        try {
-          const histRaw = localStorage.getItem("tokencafe_verify_history");
-          const hist = histRaw ? JSON.parse(histRaw) : [];
-          hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: "success", link });
-          localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
-        } catch (_) {}
       } else {
         try {
           logStatus("Publicando no Sourcify...");
@@ -266,24 +418,45 @@ async function runVerify() {
           if (up.ok) {
             const uj = await up.json();
             if (uj?.success) {
+              const confirmedUp = await (async () => {
+                try {
+                  const c = await fetch(`https://sourcify.dev/server/contract/${p.chainId}/${String(p.contractAddress).toLowerCase()}`);
+                  if (!c.ok) return false;
+                  const cj = await c.json();
+                  const st = String(cj?.status || "").toLowerCase();
+                  return st === "perfect" || st === "full";
+                } catch (_) {
+                  return false;
+                }
+              })();
               const ulink = uj?.link || link || explorerUrl;
-              logStatus("Verificado no Sourcify.");
-              if (openBtn) {
-                openBtn.href = ulink;
-                openBtn.classList.remove("disabled");
+              if (confirmedUp) {
+                logStatus("Verificado no Sourcify.");
+                if (openBtn) {
+                  openBtn.href = ulink;
+                  openBtn.classList.remove("disabled");
+                }
+                try {
+                  const histRaw = localStorage.getItem("tokencafe_verify_history");
+                  const hist = histRaw ? JSON.parse(histRaw) : [];
+                  hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: "sourcify", link: ulink });
+                  localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
+                } catch (_) {}
+                return;
               }
-              try {
-                const histRaw = localStorage.getItem("tokencafe_verify_history");
-                const hist = histRaw ? JSON.parse(histRaw) : [];
-                hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: "sourcify", link: ulink });
-                localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
-              } catch (_) {}
-              return;
             }
           }
         } catch (_) {}
         logStatus("Auto indisponível. Enviando ao explorer...");
-        try {
+        const hasKey = !!(p.apiKey || getVerifyApiKey());
+        if (!hasKey) {
+          const vUrl = getExplorerVerificationUrl(p.contractAddress, p.chainId);
+          logStatus(`API Key ausente. Abra manualmente: ${vUrl}`);
+          if (openBtn) {
+            openBtn.href = vUrl || "#";
+            openBtn.classList.remove("disabled");
+          }
+        } else {
           const respV = await fetch(`${API_BASE}/api/verify-bscscan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
           if (respV.ok) {
             const dataV = await respV.json();
@@ -326,48 +499,56 @@ async function runVerify() {
             const txtV = await respV.text();
             logStatus(`Falha no envio ao explorer: ${txtV}`);
           }
-        } catch (e) {
-          logStatus(`Erro: ${e?.message || e}`);
         }
       }
     } else {
       const txt = await resp.text();
       logStatus(`Falha ao iniciar verificação automática: ${txt}. Iniciando fallback no explorer...`);
-      const respV = await fetch(`${API_BASE}/api/verify-bscscan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chainId: p.chainId, contractAddress: p.contractAddress, sourceCode: p.sourceCode, contractName: p.contractName, compilerVersion: p.compilerVersion, optimizationUsed: true, runs: 200, codeformat: "solidity-single-file", contractNameFQN: `${p.contractName}.sol:${p.contractName}`, apiKey: getVerifyApiKey() }) });
-      if (respV.ok) {
-        const dataV = await respV.json();
+      const k2 = getVerifyApiKey();
+      if (!k2) {
         const vUrl = getExplorerVerificationUrl(p.contractAddress, p.chainId);
-        const okV = !!dataV?.success;
-        logStatus(okV ? "Verificação concluída (explorer)." : "Verificação enviada/pendente. Acompanhe no explorer.");
+        logStatus(`API Key ausente. Abra manualmente: ${vUrl}`);
         if (openBtn) {
-          openBtn.href = vUrl;
+          openBtn.href = vUrl || "#";
           openBtn.classList.remove("disabled");
         }
-        try {
-          const histRaw = localStorage.getItem("tokencafe_verify_history");
-          const hist = histRaw ? JSON.parse(histRaw) : [];
-          hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: okV ? "explorer-success" : "explorer-pending", link: vUrl });
-          localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
-        } catch (_) {}
-        let tries = 0;
-        const maxTries = 20;
-        const interval = setInterval(async () => {
-          tries++;
-          try {
-            const st = await fetch(`${API_BASE}/api/verify-bscscan-status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chainId: p.chainId, guid: dataV?.guid, apiKey: p.apiKey }) });
-            if (st.ok) {
-              const js = await st.json();
-              if (js?.success) {
-                clearInterval(interval);
-                logStatus("Verificação concluída (explorer).");
-              }
-            }
-          } catch (_) {}
-          if (tries >= maxTries) clearInterval(interval);
-        }, 5000);
       } else {
-        const txtV = await respV.text();
-        logStatus(`Falha no envio ao explorer: ${txtV}`);
+        const respV = await fetch(`${API_BASE}/api/verify-bscscan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chainId: p.chainId, contractAddress: p.contractAddress, sourceCode: p.sourceCode, contractName: p.contractName, compilerVersion: p.compilerVersion, optimizationUsed: true, runs: 200, codeformat: "solidity-single-file", contractNameFQN: `${p.contractName}.sol:${p.contractName}`, apiKey: k2 }) });
+        if (respV.ok) {
+          const dataV = await respV.json();
+          const vUrl = getExplorerVerificationUrl(p.contractAddress, p.chainId);
+          const okV = !!dataV?.success;
+          logStatus(okV ? "Verificação concluída (explorer)." : "Verificação enviada/pendente. Acompanhe no explorer.");
+          if (openBtn) {
+            openBtn.href = vUrl;
+            openBtn.classList.remove("disabled");
+          }
+          try {
+            const histRaw = localStorage.getItem("tokencafe_verify_history");
+            const hist = histRaw ? JSON.parse(histRaw) : [];
+            hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: okV ? "explorer-success" : "explorer-pending", link: vUrl });
+            localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
+          } catch (_) {}
+          let tries = 0;
+          const maxTries = 20;
+          const interval = setInterval(async () => {
+            tries++;
+            try {
+              const st = await fetch(`${API_BASE}/api/verify-bscscan-status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chainId: p.chainId, guid: dataV?.guid, apiKey: p.apiKey }) });
+              if (st.ok) {
+                const js = await st.json();
+                if (js?.success) {
+                  clearInterval(interval);
+                  logStatus("Verificação concluída (explorer).");
+                }
+              }
+            } catch (_) {}
+            if (tries >= maxTries) clearInterval(interval);
+          }, 5000);
+        } else {
+          const txtV = await respV.text();
+          logStatus(`Falha no envio ao explorer: ${txtV}`);
+        }
       }
     }
   } catch (e) {
@@ -385,6 +566,16 @@ async function runExplorerDirect() {
     const p = completePayload(buildPayloadFromForm());
     if (!p || !p.contractAddress || !p.chainId || !p.sourceCode || !p.contractName) {
       logStatus("Preencha o formulário acima com todos os campos.");
+      return;
+    }
+    const hasKey = !!(p.apiKey || getVerifyApiKey());
+    if (!hasKey) {
+      const vUrl = getExplorerVerificationUrl(p.contractAddress, p.chainId);
+      logStatus(`API Key ausente. Abra manualmente: ${vUrl}`);
+      if (openBtn) {
+        openBtn.href = vUrl || "#";
+        openBtn.classList.remove("disabled");
+      }
       return;
     }
     logStatus("Enviando verificação ao explorer (direto)...");
@@ -434,6 +625,11 @@ function clearForm() {
       if (!el) continue;
       if (el.tagName === "SELECT") el.value = el.querySelector("option")?.value || "";
       else el.value = "";
+    }
+    const resetTextIds = ["cardContractName", "cardTokenSymbolText", "cardFQN", "cardChainIdText", "cardAddressText", "cardCompilerVersion", "cardOptimization", "cardRuns", "cardLanguage", "cardCodeformat", "cardSourcePreview", "cardMetadataPreview", "erc20SymbolValue", "erc20DecimalsValue", "erc20SupplyValue", "erc20TokenBalanceValue", "erc20NativeBalanceValue"];
+    for (const id of resetTextIds) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "-";
     }
     localStorage.removeItem("tokencafe_contract_verify_payload");
     logStatus("Formulário limpo.");
@@ -560,71 +756,6 @@ function updateCompilerReadOnly() {
   } catch (_) {}
 }
 
-async function tryFetchTokenSymbol() {
-  try {
-    const addr = document.getElementById("f_address")?.value || "";
-    const cid = parseInt(document.getElementById("f_chainId")?.value || document.getElementById("networkSearch")?.dataset?.chainId || "0", 10);
-    const symEl = document.getElementById("f_tokenSymbol");
-    if (!addr || !cid || !symEl || symEl.value) return;
-    const rpc = (function (c) {
-      switch (Number(c)) {
-        case 1:
-          return "https://eth.llamarpc.com";
-        case 56:
-          return "https://bsc-dataseed1.binance.org/";
-        case 97:
-          return "https://data-seed-prebsc-1-s1.binance.org:8545/";
-        case 137:
-          return "https://polygon.llamarpc.com";
-        case 8453:
-          return "https://mainnet.base.org";
-        case 11155111:
-          return "https://rpc.sepolia.org";
-        default:
-          return null;
-      }
-    })(cid);
-    if (!rpc) return;
-    const data = "0x95d89b41";
-    const body = { jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to: String(addr), data }, "latest"] };
-    const resp = await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (!resp.ok) return;
-    const js = await resp.json();
-    let hex = String(js?.result || "");
-    if (!hex || hex === "0x") return;
-    hex = hex.replace(/^0x/, "");
-    const bytes32Hex = hex.slice(0, 64);
-    let out = "";
-    try {
-      const buf = bytes32Hex.match(/.{1,2}/g) || [];
-      out = buf.map((h) => String.fromCharCode(parseInt(h, 16))).join("");
-      out = Array.from(out)
-        .filter((ch) => ch.charCodeAt(0) !== 0)
-        .join("");
-      out = out.trim();
-    } catch (_) {
-      out = "";
-    }
-    if (!out) {
-      try {
-        const lenHex = hex.slice(64 * 2, 64 * 3);
-        const len = parseInt(lenHex, 16);
-        const start = 64 * 3;
-        const strHex = hex.slice(start, start + len * 2);
-        const buf = strHex.match(/.{1,2}/g) || [];
-        out = buf.map((h) => String.fromCharCode(parseInt(h, 16))).join("");
-        out = Array.from(out)
-          .filter((ch) => ch.charCodeAt(0) !== 0)
-          .join("");
-        out = out.trim();
-      } catch (_) {
-        out = "";
-      }
-    }
-    if (out) symEl.value = out;
-  } catch (_) {}
-}
-
 document.getElementById("clearFormBtn")?.addEventListener("click", (e) => {
   e.preventDefault();
   clearForm();
@@ -632,6 +763,63 @@ document.getElementById("clearFormBtn")?.addEventListener("click", (e) => {
 document.getElementById("runSourcifyDirect")?.addEventListener("click", (e) => {
   e.preventDefault();
   autofillFromSourcify();
+});
+document.getElementById("runImportSources")?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  try {
+    const input = document.getElementById("f_sourceFiles");
+    const files = input?.files || [];
+    if (!files || files.length === 0) return;
+    let solFile = null;
+    let metaFile = null;
+    for (const f of files) {
+      const name = String(f?.name || "").toLowerCase();
+      if (!solFile && name.endsWith(".sol")) solFile = f;
+      if (!metaFile && name.endsWith(".json")) metaFile = f;
+    }
+    if (metaFile) {
+      const txt = await metaFile.text();
+      try {
+        const js = JSON.parse(txt);
+        const metaEl = document.getElementById("f_metadata");
+        if (metaEl) metaEl.value = txt;
+        const ver = js?.compiler?.version || js?.version || "";
+        const cv = document.getElementById("f_compilerVersion");
+        if (cv && ver) {
+          cv.value = String(ver);
+          cv.readOnly = true;
+        }
+        const ct = js?.settings?.compilationTarget || {};
+        const firstFile = Object.keys(ct)[0] || null;
+        const cName = firstFile ? ct[firstFile] : null;
+        if (cName) {
+          const fqnEl = document.getElementById("f_contractNameFQN");
+          if (fqnEl) fqnEl.value = `${firstFile}:${cName}`;
+          const cnEl = document.getElementById("f_contractName");
+          if (cnEl && !cnEl.value) cnEl.value = cName;
+        }
+      } catch {
+        const metaEl2 = document.getElementById("f_metadata");
+        if (metaEl2) metaEl2.value = txt;
+      }
+    }
+    if (solFile) {
+      const txt = await solFile.text();
+      const srcEl = document.getElementById("f_sourceCode");
+      if (srcEl) srcEl.value = txt;
+      try {
+        const m = txt.match(/contract\s+([A-Za-z0-9_]+)/);
+        const cName = m && m[1] ? m[1] : "";
+        const cnEl = document.getElementById("f_contractName");
+        if (cnEl && cName && !cnEl.value) cnEl.value = cName;
+        const fqnEl = document.getElementById("f_contractNameFQN");
+        if (fqnEl && cName) fqnEl.value = `${solFile.name}:${cName}`;
+      } catch {}
+    }
+    updateCompilerReadOnly();
+    computeReadiness();
+    logStatus("Arquivos importados.");
+  } catch {}
 });
 document.getElementById("f_toggleApiKey")?.addEventListener("click", (e) => {
   e.preventDefault();
@@ -691,39 +879,12 @@ nsContainer.addEventListener("network:clear", () => {
 
 document.addEventListener("DOMContentLoaded", async () => {
   ensureApiBase();
-  const sp = new URLSearchParams(window.location.search || "");
-  const fromTools = (sp.get("source") || "").toLowerCase() === "tools";
-  if (fromTools) {
-    clearForm();
-    logStatus("Preencha os dados para verificar.");
-    return;
-  }
-  const p = getPayload();
-  if (p) {
-    const pp = completePayload(p);
-    fillVisibleForm(pp);
-    logStatus("Dados carregados da criação. Pronto para verificar.");
-    try {
-      console.log("[verify] payload loaded", pp);
-    } catch (_) {}
-    try {
-      const nsInput = document.getElementById("networkSearch");
-      if (nsInput) {
-        nsInput.dataset.chainId = String(pp.chainId);
-        const evt = new CustomEvent("network:prefilled", { bubbles: true });
-        nsInput.dispatchEvent(evt);
-      }
-      const fcid = document.getElementById("f_chainId");
-      if (fcid && pp.chainId) fcid.value = String(pp.chainId);
-      try {
-        if (pp.chainId) {
-          localStorage && localStorage.setItem("tokencafe_last_chain_id", String(pp.chainId));
-          sessionStorage && sessionStorage.setItem("tokencafe_last_chain_id", String(pp.chainId));
-        }
-      } catch (_) {}
-    } catch (_) {}
-    checkVerifiedStatus();
-  }
+  clearForm();
+  logStatus("Informe a rede e o endereço do contrato para buscar os dados.");
+  try {
+    updateCompilerReadOnly();
+    computeReadiness();
+  } catch (_) {}
 });
 
 try {
@@ -737,6 +898,59 @@ try {
 
 document.getElementById("runVerify")?.addEventListener("click", runVerify);
 document.getElementById("runExplorerDirect")?.addEventListener("click", runExplorerDirect);
+
+try {
+  document.getElementById("copySourceBtn")?.addEventListener("click", () => {
+    try {
+      const txt = document.getElementById("f_sourceCode")?.value || document.getElementById("cardSourcePreview")?.textContent || "";
+      if (txt && navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt);
+    } catch (_) {}
+  });
+  document.getElementById("copyMetadataBtn")?.addEventListener("click", () => {
+    try {
+      const txt = document.getElementById("f_metadata")?.value || document.getElementById("cardMetadataPreview")?.textContent || "";
+      if (txt && navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt);
+    } catch (_) {}
+  });
+  document.getElementById("importSourceBtn")?.addEventListener("click", () => {
+    document.getElementById("importSourceFile")?.click();
+  });
+  document.getElementById("importSourceFile")?.addEventListener("change", async (e) => {
+    try {
+      const f = e.target?.files?.[0];
+      if (!f) return;
+      const txt = await f.text();
+      const srcEl = document.getElementById("f_sourceCode");
+      if (srcEl) srcEl.value = txt;
+      const prev = document.getElementById("cardSourcePreview");
+      if (prev) prev.textContent = txt || "-";
+      computeReadiness();
+      logStatus("Código fonte importado.");
+    } catch (_) {}
+  });
+  document.getElementById("importMetadataBtn")?.addEventListener("click", () => {
+    document.getElementById("importMetadataFile")?.click();
+  });
+  document.getElementById("importMetadataFile")?.addEventListener("change", async (e) => {
+    try {
+      const f = e.target?.files?.[0];
+      if (!f) return;
+      const txt = await f.text();
+      const metaEl = document.getElementById("f_metadata");
+      if (metaEl) metaEl.value = txt;
+      const prev = document.getElementById("cardMetadataPreview");
+      if (prev) prev.textContent = txt || "-";
+      updateCompilerReadOnly();
+      computeReadiness();
+      logStatus("Metadata importado.");
+    } catch (_) {}
+  });
+} catch (_) {}
+
+// Funções de detecção e busca foram unificadas no módulo js/shared/contract-search.js
+
+// Busca unificada: delegada ao módulo compartilhado js/shared/contract-search.js
+// O módulo emite o evento `contract:found` com os dados consolidados.
 
 document.addEventListener("contract:found", (e) => {
   try {
@@ -756,11 +970,42 @@ document.addEventListener("contract:found", (e) => {
     set("f_runs", typeof p.runs === "number" ? p.runs : 200);
     const opt = document.getElementById("f_optimizationUsed");
     if (opt) opt.value = p.optimizationUsed ? "1" : "0";
+    const setText = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = v != null && String(v).length ? String(v) : "-";
+    };
+    setText("cardContractName", p.contractName || "");
+    setText("cardTokenSymbolText", p.tokenSymbol || "");
+    setText("cardFQN", p.contractNameFQN || (p.contractName ? `${p.contractName}.sol:${p.contractName}` : ""));
+    setText("cardChainIdText", p.chainId || "");
+    setText("cardAddressText", p.contractAddress || "");
+    setText("cardCompilerVersion", p.compilerVersion || "");
+    setText("cardOptimization", p.optimizationUsed === 0 || p.optimizationUsed === false ? "0" : "1");
+    setText("cardRuns", p.runs ?? 200);
+    const langSel = document.getElementById("f_language");
+    setText("cardLanguage", langSel ? langSel.value : "solidity");
+    const cfSel = document.getElementById("f_codeformat");
+    setText("cardCodeformat", cfSel ? cfSel.value : "solidity-single-file");
+    setText("cardSourcePreview", p.sourceCode || "");
+    setText("cardMetadataPreview", p.metadata || "");
+    setText("erc20DecimalsValue", p.tokenDecimals != null ? p.tokenDecimals : "");
+    setText("erc20SupplyValue", p.tokenSupply || "");
+    setText("erc20TokenBalanceValue", p.contractTokenBalance || "");
+    setText("erc20NativeBalanceValue", p.contractNativeBalance || "");
+    setText("erc20SymbolValue", p.tokenSymbol || "");
     updateCompilerReadOnly();
-    tryFetchTokenSymbol();
     computeReadiness();
     setGlobalData(p);
     checkVerifiedStatus();
+    try {
+      const parts = [];
+      if (p.tokenSymbol) parts.push(`Símbolo: ${p.tokenSymbol}`);
+      if (p.tokenDecimals != null) parts.push(`Decimals: ${p.tokenDecimals}`);
+      if (p.tokenSupply) parts.push(`Supply: ${p.tokenSupply}`);
+      if (p.contractTokenBalance) parts.push(`Saldo contrato: ${p.contractTokenBalance}`);
+      if (p.contractNativeBalance) parts.push(`Saldo nativo: ${p.contractNativeBalance}`);
+      if (parts.length) logStatus(parts.join(" | "));
+    } catch {}
   } catch (_) {}
 });
 

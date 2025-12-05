@@ -521,10 +521,10 @@ class SystemSettngs {
                         <span class="slider"></span>
                     </label>
                     <button class="btn-icon" onclick="systemSettngs.edtNetwork('${network.d}')">
-                        <i class="fas fa-edit"></i>
+                        <i class="bi bi-pencil"></i>
                     </button>
                     <button class="btn-icon" onclick="systemSettngs.removeNetwork('${network.d}')">
-                        <i class="fas fa-trash"></i>
+                        <i class="bi bi-trash"></i>
                     </button>
                 </div>
             </div>
@@ -556,7 +556,7 @@ class SystemSettngs {
                 </div>
                 <div class="provider-latency">${provder.latency}</div>
                 <button class="btn-icon" onclick="systemSettngs.testRPCProvder('${provder.name}')">
-                    <i class="fas fa-sync"></i>
+                    <i class="bi bi-arrow-repeat"></i>
                 </button>
             </div>
         `,
@@ -734,7 +734,7 @@ class SystemSettngs {
     const notfcaton = document.createElement("div");
     notfcaton.className = `notfcaton ${type}`;
     notfcaton.innerHTML = `
-            <i class="fas fa-${type === "success" ? "check" : type === "error" ? "exclamation-triangle" : "info"}"></i>
+            <i class="bi bi-${type === "success" ? "check" : type === "error" ? "exclamation-triangle" : "info-circle"}"></i>
             <span>${message}</span>
         `;
 

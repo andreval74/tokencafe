@@ -42,6 +42,8 @@ app.use("/pages", express.static(path.join(__dirname, "..", "pages")));
 app.use("/js", express.static(path.join(__dirname, "..", "js")));
 app.use("/css", express.static(path.join(__dirname, "..", "css")));
 app.use("/imgs", express.static(path.join(__dirname, "..", "imgs")));
+// Servir dados compartilhados (rpcs.json) para NetworkManager
+app.use("/shared", express.static(path.join(__dirname, "..", "shared")));
 // Fallback explícito para arquivos CSS
 app.get("/css/:file", (req, res, next) => {
   try {
@@ -333,6 +335,142 @@ contract ${contractName} {
       success: false,
       error: "Erro ao gerar token: " + error.message,
     });
+  }
+});
+
+function getExplorerApiUrl(chainId) {
+  const cid = parseInt(chainId, 10);
+  if (cid === 1) return "https://api.etherscan.io/api";
+  if (cid === 11155111) return "https://api-sepolia.etherscan.io/api";
+  if (cid === 56) return "https://api.bscscan.com/api";
+  if (cid === 97) return "https://api-testnet.bscscan.com/api";
+  if (cid === 137) return "https://api.polygonscan.com/api";
+  if (cid === 8453) return "https://api.basescan.org/api";
+  return "https://api.etherscan.io/api";
+}
+
+function getExplorerVerificationUrl(chainId, address) {
+  const addr = toChecksumAddress(address);
+  const cid = parseInt(chainId, 10);
+  if (cid === 1) return `https://etherscan.io/address/${addr}#code`;
+  if (cid === 11155111) return `https://sepolia.etherscan.io/address/${addr}#code`;
+  if (cid === 56) return `https://bscscan.com/address/${addr}#code`;
+  if (cid === 97) return `https://testnet.bscscan.com/address/${addr}#code`;
+  if (cid === 137) return `https://polygonscan.com/address/${addr}#code`;
+  if (cid === 8453) return `https://basescan.org/address/${addr}#code`;
+  return `https://etherscan.io/address/${addr}#code`;
+}
+
+app.post("/api/verify-auto", async (req, res) => {
+  try {
+    const chainId = parseInt(req.body?.chainId || 0, 10);
+    const address = String(req.body?.contractAddress || "").toLowerCase();
+    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address)) return res.status(400).json({ success: false, error: "Dados inválidos" });
+    const c = await fetch(`https://sourcify.dev/server/contract/${chainId}/${address}`);
+    if (!c.ok) return res.json({ success: false, status: "unverified" });
+    const cj = await c.json();
+    const st = String(cj?.status || "").toLowerCase();
+    const ok = st === "perfect" || st === "full";
+    const link = `https://sourcify.dev/server/files/${chainId}/${address}`;
+    return res.json({ success: ok, verified: ok, status: st, link, lookupUrl: ok ? link : undefined });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e?.message || String(e) });
+  }
+});
+
+app.post("/api/verify-sourcify-upload", async (req, res) => {
+  try {
+    const p = req.body || {};
+    const chainId = parseInt(p.chainId || 0, 10);
+    const address = String(p.contractAddress || "").toLowerCase();
+    const metadata = p.metadata || "";
+    const sourceCode = p.sourceCode || "";
+    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address) || (!metadata && !sourceCode)) return res.status(400).json({ success: false, error: "Dados inválidos" });
+    const form = new FormData();
+    form.append("chain", String(chainId));
+    form.append("address", address);
+    if (metadata) form.append("files", new Blob([metadata], { type: "application/json" }), "metadata.json");
+    if (sourceCode) {
+      let fn = "contract.sol";
+      const fqn = p.contractNameFQN || "";
+      const cName = p.contractName || "";
+      if (fqn && fqn.includes(":")) {
+        const pathPart = fqn.split(":")[0];
+        fn = pathPart.endsWith(".sol") ? pathPart : `${pathPart}.sol`;
+      } else if (cName) {
+        fn = `${cName}.sol`;
+      }
+      form.append("files", new Blob([sourceCode], { type: "text/plain" }), fn);
+    }
+    const resp = await fetch("https://sourcify.dev/server/verify", { method: "POST", body: form });
+    const ok = resp.ok;
+    const link = `https://sourcify.dev/server/files/${chainId}/${address}`;
+    if (!ok) {
+      const txt = await resp.text();
+      return res.status(502).json({ success: false, error: txt });
+    }
+    return res.json({ success: true, link });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e?.message || String(e) });
+  }
+});
+
+app.post("/api/verify-bscscan", async (req, res) => {
+  try {
+    const p = req.body || {};
+    const chainId = parseInt(p.chainId || 0, 10);
+    const addr = toChecksumAddress(p.contractAddress || "");
+    const apiKey = p.apiKey || "";
+    const sourceCode = p.sourceCode || "";
+    const contractName = p.contractName || "";
+    const compilerVersion = p.compilerVersion || "";
+    const optimizationUsed = p.optimizationUsed === 0 || p.optimizationUsed === false ? 0 : 1;
+    const runs = parseInt(p.runs || 200, 10);
+    const codeformat = p.codeformat || "solidity-single-file";
+    const constructorArguments = (p.constructorArguments || "").replace(/^0x/, "");
+    if (!chainId || !addr || !apiKey || !sourceCode || !contractName || !compilerVersion) return res.status(400).json({ success: false, error: "Campos obrigatórios ausentes" });
+    const form = new URLSearchParams();
+    form.append("apikey", apiKey);
+    form.append("module", "contract");
+    form.append("action", "verifysourcecode");
+    form.append("contractaddress", addr);
+    form.append("sourceCode", sourceCode);
+    form.append("codeformat", codeformat);
+    form.append("contractname", contractName);
+    form.append("compilerversion", compilerVersion);
+    form.append("optimizationUsed", String(optimizationUsed));
+    form.append("runs", String(runs));
+    if (constructorArguments) form.append("constructorArguments", constructorArguments);
+    const url = getExplorerApiUrl(chainId);
+    const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form });
+    const js = await resp.json();
+    const ok = String(js?.status || "") === "1";
+    const guid = js?.result || null;
+    const explorerUrl = getExplorerVerificationUrl(chainId, addr);
+    return res.json({ success: ok, guid, explorerUrl, message: js?.message });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e?.message || String(e) });
+  }
+});
+
+app.post("/api/verify-bscscan-status", async (req, res) => {
+  try {
+    const chainId = parseInt(req.body?.chainId || 0, 10);
+    const apiKey = req.body?.apiKey || "";
+    const guid = req.body?.guid || "";
+    if (!chainId || !apiKey || !guid) return res.status(400).json({ success: false, error: "Dados inválidos" });
+    const url = getExplorerApiUrl(chainId);
+    const qs = new URLSearchParams();
+    qs.append("apikey", apiKey);
+    qs.append("module", "contract");
+    qs.append("action", "checkverifystatus");
+    qs.append("guid", guid);
+    const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: qs });
+    const js = await resp.json();
+    const ok = String(js?.status || "") === "1";
+    return res.json({ success: ok, message: js?.result || js?.message || "" });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e?.message || String(e) });
   }
 });
 

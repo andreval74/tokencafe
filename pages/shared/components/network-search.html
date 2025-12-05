@@ -13,9 +13,7 @@
       <button type="button" id="nsInfoBtn" class="btn btn-outline-info" title="Mostrar informações">
         <i class="bi bi-info-circle"></i>
       </button>
-      <button type="button" id="nsClearBtn" class="btn btn-outline-danger" title="Limpar campo">
-        <i class="bi bi-x-circle"></i>
-      </button>
+      
     </div>
     <small id="networkStatus" class="text-muted d-none mt-1">
       <span id="networkSwitchSpinner" class="spinner-border spinner-border-sm me-1" role="status"
@@ -35,7 +33,7 @@
         <i class="bi bi-hash me-1"></i>
         <span id="nsBadgeChainId">-</span>
       </span>
-      <span class="badge bg-success" title="Copiar carteira" style="cursor: pointer;">
+      <span class="badge bg-success cursor-pointer" title="Copiar carteira">
         <i class="bi bi-person-badge me-1"></i>
         <span id="nsBadgeAccount">-</span>
       </span>
@@ -101,7 +99,7 @@
   </div>
   <div id="apiHelp" class="alert alert-warning d-none" role="alert">
     Detectamos um problema ao chamar a API. Clique em
-    <button id="apiFixBtn" class="btn btn-sm btn-outline-dark ms-1 me-1">Usar API de produção</button>
+    <button id="apiFixBtn" class="btn btn-sm btn-outline-warning ms-1 me-1">Usar API de produção</button>
     ou ajuste manualmente o parâmetro
     <code>?api=</code>
     na URL.

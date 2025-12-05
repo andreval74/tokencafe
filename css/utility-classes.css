@@ -107,6 +107,10 @@
 .border-radius-50 {
   border-radius: 50px;
 }
+.square-80 {
+  width: 80px;
+  height: 80px;
+}
 
 .resize-vertical {
   resize: vertical;
@@ -146,6 +150,11 @@
 
 .bg-coffee-light {
   background-color: var(--tokencafe-primary-light);
+}
+.bg-dark-elevated {
+  background-color: var(--tokencafe-bg-tertiary);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
 }
 /* Gradientes padronizados */
 .navbar-gradient-primary {
@@ -190,6 +199,18 @@
 /* Alturas mínimas */
 .min-height-125 {
   min-height: 1.25rem;
+}
+.min-height-180 {
+  min-height: 180px;
+}
+.min-height-240 {
+  min-height: 240px;
+}
+.max-height-240 {
+  max-height: 240px;
+}
+.max-height-400 {
+  max-height: 400px;
 }
 
 /* ============================================================================
@@ -294,6 +315,9 @@
   display: flex;
   gap: 10px;
   margin-top: 20px;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 
 /* ============================================================================

@@ -15,7 +15,7 @@ const ids = {
   tokenSymbol: "tokenSymbol",
   tokenDecimals: "tokenDecimals",
   tokenImage: "tokenImage",
-  btnTokenSearch: "btnTokenSearch",
+  btnTokenSearch: "contractSearchBtn",
   btnClearToken: "btnClearToken",
   btnCopyLink: "btnCopyLink",
   btnShareLink: "btnShareLink",
@@ -69,37 +69,6 @@ function hide(id) {
 
 function isValidAddress(addr) {
   return typeof addr === "string" && /^0x[a-fA-F0-9]{40}$/.test(addr);
-}
-
-// Helpers de timeout e pré-validação de RPC para respostas mais rápidas
-function timeoutRace(promise, ms, errMsg = "timeout") {
-  return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(errMsg)), ms))]);
-}
-
-async function rpcPreflight(rpcUrl, expectedChainId, timeoutMs = 1500) {
-  if (!rpcUrl) throw new Error("RPC vazio");
-  const body = {
-    jsonrpc: "2.0",
-    id: Date.now(),
-    method: "eth_chainId",
-    params: [],
-  };
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(rpcUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    const json = await res.json().catch(() => ({}));
-    const hexId = json?.result;
-    const chain = typeof hexId === "string" ? parseInt(hexId, 16) : NaN;
-    return String(chain) === String(expectedChainId);
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 // Fallbacks mínimos para redes populares quando rpcs.json não fornece URLs
@@ -222,6 +191,9 @@ function selectNetwork(network) {
   if (expText) expText.textContent = explorer;
   if (expLink && explorer) expLink.href = explorer;
   show("token-section");
+  // Ao exibir a seção de token, certificar que a seção de link gerado permaneça oculta
+  const genSection = document.getElementById("generate-section");
+  if (genSection) genSection.classList.add("d-none");
 }
 
 function buildLink() {
@@ -250,170 +222,6 @@ function updateGeneratedLink() {
   setValue(ids.generatedLink, url);
   if (url && tokenFetched) show("generate-section");
   if (tokenFetched) renderTokenView();
-}
-
-async function fetchTokenData() {
-  const address = document.getElementById(ids.tokenAddress)?.value.trim();
-  if (!selectedNetwork) {
-    const loading = document.getElementById("tokenLoading");
-    if (loading) {
-      loading.textContent = "Selecione uma rede antes de buscar o token.";
-      loading.classList.remove("d-none");
-      loading.classList.remove("alert-info");
-      loading.classList.add("alert-danger");
-    }
-    hide("token-info");
-    hide("generate-section");
-    return;
-  }
-  if (!address || !isValidAddress(address)) {
-    const loading = document.getElementById("tokenLoading");
-    if (loading) {
-      loading.textContent = "Endereço inválido. Informe um contrato ERC‑20 (0x...) válido.";
-      loading.classList.remove("d-none");
-      loading.classList.remove("alert-info");
-      loading.classList.add("alert-danger");
-    }
-    hide("token-info");
-    hide("generate-section");
-    return;
-  }
-  const loading = document.getElementById("tokenLoading");
-  let hadError = false;
-  if (loading) {
-    loading.textContent = "Validando RPC...";
-    loading.classList.remove("d-none");
-    loading.classList.remove("alert-danger", "alert-warning");
-    loading.classList.add("alert-info");
-  }
-  try {
-    // Criar provider e validar Chain ID do RPC
-    let rpcUrl = (Array.isArray(selectedNetwork.rpc) && selectedNetwork.rpc.length ? selectedNetwork.rpc[0] : "") || "";
-    if (!rpcUrl) {
-      rpcUrl = getFallbackRpc(selectedNetwork.chainId);
-      if (rpcUrl) {
-        // Atualizar UI e selectedNetwork para refletir o fallback
-        selectedNetwork.rpc = [rpcUrl];
-        const rpcText = document.getElementById("rpcUrlCode");
-        const rpcLink = document.getElementById("rpcUrlText");
-        if (rpcText) rpcText.textContent = rpcUrl;
-        if (rpcLink) rpcLink.href = rpcUrl;
-      }
-    }
-    if (!rpcUrl || typeof ethers === "undefined") {
-      if (loading) {
-        loading.textContent = "RPC indisponível para a rede selecionada. Tente outra rede ou RPC.";
-        loading.classList.remove("alert-info");
-        loading.classList.add("alert-danger");
-      }
-      hadError = true;
-      tokenFetched = false;
-      hide("generate-section");
-      return;
-    }
-
-    // Pré-validação rápida do RPC para evitar esperas longas
-    let validRpc = false;
-    try {
-      validRpc = await rpcPreflight(rpcUrl, selectedNetwork.chainId, 1500);
-    } catch (e) {
-      validRpc = false;
-    }
-    if (!validRpc) {
-      // Tentar fallback rápido
-      const fb = getFallbackRpc(selectedNetwork.chainId);
-      if (fb && fb !== rpcUrl) {
-        try {
-          const fbOk = await rpcPreflight(fb, selectedNetwork.chainId, 1500);
-          if (fbOk) {
-            rpcUrl = fb;
-            selectedNetwork.rpc = [fb];
-            const rpcText = document.getElementById("rpcUrlCode");
-            const rpcLink = document.getElementById("rpcUrlText");
-            if (rpcText) rpcText.textContent = fb;
-            if (rpcLink) rpcLink.href = fb;
-          }
-        } catch {}
-      }
-    }
-
-    if (loading) loading.textContent = "Carregando dados do token...";
-
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-    let net;
-    try {
-      net = await timeoutRace(provider.getNetwork(), 2000, "timeout-network");
-    } catch {}
-    if (!net || String(net.chainId) !== String(selectedNetwork.chainId)) {
-      if (loading) {
-        loading.textContent = "Rede inválida: o RPC não corresponde ao ChainId selecionado.";
-        loading.classList.remove("alert-info");
-        loading.classList.add("alert-danger");
-      }
-      hadError = true;
-      tokenFetched = false;
-      hide("token-info");
-      hide("generate-section");
-      return;
-    }
-
-    // Verificar existência do contrato antes de ler dados
-    let code = "0x";
-    try {
-      code = await timeoutRace(provider.getCode(address), 2500, "timeout-code");
-    } catch {}
-    if (!code || code === "0x") {
-      // Diferenciar carteira (EOA) de contrato ausente
-      let isEoa = false;
-      try {
-        const [balance, txCount] = await Promise.all([timeoutRace(provider.getBalance(address), 2000, "timeout-balance").catch(() => null), timeoutRace(provider.getTransactionCount(address), 2000, "timeout-txcount").catch(() => null)]);
-        if (balance !== null || txCount !== null) isEoa = true;
-      } catch {}
-      if (isEoa) {
-        if (loading) {
-          loading.textContent = "Endereço é de carteira (EOA), não um contrato.";
-          loading.classList.remove("alert-info");
-          loading.classList.add("alert-danger");
-        }
-      } else {
-        if (loading) {
-          loading.textContent = "Contrato não encontrado nesta rede (sem código/deploy). Verifique o ChainId ou tente outro RPC.";
-          loading.classList.remove("alert-info");
-          loading.classList.add("alert-danger");
-        }
-      }
-      hadError = true;
-      tokenFetched = false;
-      hide("token-info");
-      hide("generate-section");
-      return;
-    }
-
-    // Ler dados diretamente do contrato ERC-20
-    const abi = ["function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)"];
-    const contract = new ethers.Contract(address, abi, provider);
-    const [name, symbol, decimals] = await Promise.all([timeoutRace(contract.name(), 2500, "timeout-name").catch(() => ""), timeoutRace(contract.symbol(), 2500, "timeout-symbol").catch(() => ""), timeoutRace(contract.decimals(), 2500, "timeout-decimals").catch(() => 18)]);
-
-    setValue(ids.tokenName, name || "");
-    setValue(ids.tokenSymbol, symbol || "");
-    setValue(ids.tokenDecimals, String(decimals || "18"));
-    show("token-info");
-    toast("Dados do token carregados", "success");
-    tokenFetched = true;
-    updateGeneratedLink();
-  } catch (e) {
-    if (loading) {
-      loading.textContent = `Erro ao buscar token: ${e.message ?? "desconhecido"}`;
-      loading.classList.remove("alert-info");
-      loading.classList.add("alert-danger");
-    }
-    hadError = true;
-    tokenFetched = false;
-    hide("token-info");
-    hide("generate-section");
-  } finally {
-    if (loading && !hadError) loading.classList.add("d-none");
-  }
 }
 
 function copyLink() {
@@ -481,40 +289,50 @@ function openShareMenu(url) {
     const tBtn = modalEl.querySelector("#tcShareTelegram");
     const eBtn = modalEl.querySelector("#tcShareEmail");
     const cBtn = modalEl.querySelector("#tcShareCopy");
-    if (wBtn) wBtn.addEventListener("click", () => {
-      const u = modalEl.dataset.url || "";
-      try { window.open(`https://wa.me/?text=${encodeURIComponent(u)}`, "_blank"); } catch (_) {}
-    });
-    if (tBtn) tBtn.addEventListener("click", () => {
-      const u = modalEl.dataset.url || "";
-      try { window.open(`https://t.me/share/url?url=${encodeURIComponent(u)}&text=TokenCafe%20Link`, "_blank"); } catch (_) {}
-    });
-    if (eBtn) eBtn.addEventListener("click", () => {
-      const u = modalEl.dataset.url || "";
-      try { window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self"); } catch (_) {}
-    });
-    if (cBtn) cBtn.addEventListener("click", async () => {
-      const u = modalEl.dataset.url || "";
-      let copied = false;
-      try {
-        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-          await navigator.clipboard.writeText(u);
-          copied = true;
-        }
-      } catch (_) {}
-      if (!copied) {
+    if (wBtn)
+      wBtn.addEventListener("click", () => {
+        const u = modalEl.dataset.url || "";
         try {
-          const ta = document.createElement("textarea");
-          ta.value = u;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          ta.remove();
-          copied = true;
+          window.open(`https://wa.me/?text=${encodeURIComponent(u)}`, "_blank");
         } catch (_) {}
-      }
-      toast(copied ? "Link copiado" : "Falha ao copiar", copied ? "success" : "warning");
-    });
+      });
+    if (tBtn)
+      tBtn.addEventListener("click", () => {
+        const u = modalEl.dataset.url || "";
+        try {
+          window.open(`https://t.me/share/url?url=${encodeURIComponent(u)}&text=TokenCafe%20Link`, "_blank");
+        } catch (_) {}
+      });
+    if (eBtn)
+      eBtn.addEventListener("click", () => {
+        const u = modalEl.dataset.url || "";
+        try {
+          window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self");
+        } catch (_) {}
+      });
+    if (cBtn)
+      cBtn.addEventListener("click", async () => {
+        const u = modalEl.dataset.url || "";
+        let copied = false;
+        try {
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            await navigator.clipboard.writeText(u);
+            copied = true;
+          }
+        } catch (_) {}
+        if (!copied) {
+          try {
+            const ta = document.createElement("textarea");
+            ta.value = u;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            ta.remove();
+            copied = true;
+          } catch (_) {}
+        }
+        toast(copied ? "Link copiado" : "Falha ao copiar", copied ? "success" : "warning");
+      });
   }
   modalEl.dataset.url = url;
   try {
@@ -560,17 +378,19 @@ async function addTokenToMetaMask() {
       toast("Carteira não detectada", "warning");
       return;
     }
-    const net = selectedNetwork || (() => {
-      try {
-        const chainIdFromInput = document.getElementById(ids.networkSearch)?.dataset?.chainId;
-        if (chainIdFromInput) return networkManager.getNetworkById(chainIdFromInput);
-        const chainIdFromUrl = new URLSearchParams(location.search).get("chainId");
-        if (chainIdFromUrl) return networkManager.getNetworkById(chainIdFromUrl);
-        return null;
-      } catch (_) {
-        return null;
-      }
-    })();
+    const net =
+      selectedNetwork ||
+      (() => {
+        try {
+          const chainIdFromInput = document.getElementById(ids.networkSearch)?.dataset?.chainId;
+          if (chainIdFromInput) return networkManager.getNetworkById(chainIdFromInput);
+          const chainIdFromUrl = new URLSearchParams(location.search).get("chainId");
+          if (chainIdFromUrl) return networkManager.getNetworkById(chainIdFromUrl);
+          return null;
+        } catch (_) {
+          return null;
+        }
+      })();
     if (net && net.chainId) {
       try {
         const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
@@ -675,9 +495,14 @@ function clearAll() {
   tokenFetched = false;
   selectedNetwork = null;
   hide("selected-network-info");
-  show("token-section");
-  show("generate-section");
-  show("token-info");
+  show("network-section");
+  hide("token-section");
+  hide("generate-section");
+  hide("token-info");
+  (function () {
+    const loading = document.getElementById("tokenLoading");
+    if (loading) loading.classList.add("d-none");
+  })();
   // Limpar busca de rede e autocomplete
   const search = document.getElementById(ids.networkSearch);
   if (search) {
@@ -717,6 +542,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Garantir que a seção de rede siga o padrão visual
   const netSection = document.getElementById("network-section");
   if (netSection) netSection.classList.remove("d-none");
+  // Fluxo progressivo: esconder próximas seções até responder a anterior
+  try {
+    const tokenSection = document.getElementById("token-section");
+    const genSection = document.getElementById("generate-section");
+    if (!readonlyLinkMode) {
+      if (tokenSection) tokenSection.classList.add("d-none");
+      if (genSection) genSection.classList.add("d-none");
+    }
+  } catch {}
   // Integração com o componente de busca compartilhado
   // Comentário: O componente emite eventos padronizados que substituem a lógica local.
   // - network:selected { network }: quando usuário escolhe uma rede na lista
@@ -725,6 +559,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.addEventListener("network:selected", (ev) => {
     const net = ev?.detail?.network;
     if (net) selectNetwork(net);
+    try {
+      const cont = document.querySelector(".contract-search-component");
+      if (cont && net?.chainId) cont.setAttribute("data-chainid", String(net.chainId));
+    } catch {}
   });
   document.addEventListener("network:clear", () => {
     if (readonlyLinkMode) return;
@@ -746,10 +584,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       card.classList.toggle("d-none", !visible);
     }
   });
-  document.getElementById(ids.btnTokenSearch)?.addEventListener("click", fetchTokenData);
-  document.getElementById("tokenForm")?.addEventListener("submit", (e) => {
-    try { e.preventDefault(); } catch {}
-    fetchTokenData();
+  // Consumir os dados via componente compartilhado (evento contract:found)
+  document.addEventListener("contract:found", (ev) => {
+    try {
+      if (readonlyLinkMode) return;
+      const p = ev?.detail?.contract || {};
+      if (p?.chainId) {
+        const net = networkManager.getNetworkById(p.chainId);
+        if (net) selectNetwork(net);
+      }
+      if (p?.contractAddress) setValue(ids.tokenAddress, p.contractAddress);
+      if (p?.tokenName) setValue(ids.tokenName, p.tokenName);
+      if (p?.tokenSymbol) setValue(ids.tokenSymbol, p.tokenSymbol);
+      if (p?.tokenDecimals != null) setValue(ids.tokenDecimals, String(p.tokenDecimals));
+      const hasData = !!(p?.tokenName || p?.tokenSymbol || p?.tokenDecimals != null);
+      tokenFetched = hasData;
+      const loading = document.getElementById("tokenLoading");
+      if (loading) loading.classList.add("d-none");
+      const ts = document.getElementById("token-section");
+      if (hasData) {
+        updateGeneratedLink();
+        const genSection = document.getElementById("generate-section");
+        if (genSection) genSection.classList.remove("d-none");
+      } else {
+        if (ts) ts.classList.remove("d-none");
+        try {
+          toast("Não foi possível ler dados ERC-20 do contrato. Preencha manualmente.", "warning");
+        } catch (_) {}
+      }
+    } catch (_) {}
   });
   document.getElementById(ids.btnCopyLink)?.addEventListener("click", copyLink);
   // Pequenos: copiar - adicionar à carteira - ver contrato
@@ -864,7 +727,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       if (!name || !sym || !dec) {
         try {
-          await fetchTokenData();
+          const btn = document.getElementById("contractSearchBtn");
+          if (btn) {
+            btn.click();
+          }
         } catch {}
       }
     }
@@ -887,7 +753,9 @@ function shareWhatsAppSmall() {
     toast("Nenhum link gerado. Informe rede e token.", "warning");
     return;
   }
-  try { window.open(`https://wa.me/?text=${encodeURIComponent(u)}`, "_blank"); } catch (_) {}
+  try {
+    window.open(`https://wa.me/?text=${encodeURIComponent(u)}`, "_blank");
+  } catch (_) {}
 }
 
 function shareTelegramSmall() {
@@ -896,7 +764,9 @@ function shareTelegramSmall() {
     toast("Nenhum link gerado. Informe rede e token.", "warning");
     return;
   }
-  try { window.open(`https://t.me/share/url?url=${encodeURIComponent(u)}&text=TokenCafe%20Link`, "_blank"); } catch (_) {}
+  try {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(u)}&text=TokenCafe%20Link`, "_blank");
+  } catch (_) {}
 }
 
 function shareEmailSmall() {
@@ -905,7 +775,9 @@ function shareEmailSmall() {
     toast("Nenhum link gerado. Informe rede e token.", "warning");
     return;
   }
-  try { window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self"); } catch (_) {}
+  try {
+    window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self");
+  } catch (_) {}
 }
 function renderTokenView() {
   try {
@@ -919,7 +791,7 @@ function renderTokenView() {
     const explorer = selectedNetwork?.explorers?.[0]?.url || explorerParam || getFallbackExplorer(selectedNetwork?.chainId || chainIdParam);
     const tv = document.getElementById("tokenView");
     if (!tv) return;
-    const chainName = selectedNetwork?.name || (chainIdParam ? (networkManager.getNetworkById(chainIdParam)?.name || getFallbackChainName(chainIdParam)) : "");
+    const chainName = selectedNetwork?.name || (chainIdParam ? networkManager.getNetworkById(chainIdParam)?.name || getFallbackChainName(chainIdParam) : "");
     const chainId = selectedNetwork?.chainId || chainIdParam || "";
     const addrEl = document.getElementById("viewAddress");
     const chainNameEl = document.getElementById("viewChainName");

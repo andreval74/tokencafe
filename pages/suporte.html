@@ -6,7 +6,7 @@
       <div class="col-lg-8">
         <div class="d-flex justify-content-center mb-4">
           <div class="feature-icon-large">
-            <i class="fas fa-headset text-primary" style="font-size: 4rem"></i>
+            <i class="bi bi-headset text-primary icon-large"></i>
           </div>
         </div>
         <h2 class="display-4 fw-bold mb-4">
@@ -22,7 +22,7 @@
       <div class="col-lg-10 col-xl-8">
         <div class="card border-0 shadow-lg">
           <!-- Toast Container -->
-          <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1050"></div>
+          <div id="toast-container" class="position-toast"></div>
 
           <div class="card-body p-5">
             <form id="contact-support-form" novalidate>
@@ -30,12 +30,12 @@
                 <!-- Nome Completo -->
                 <div class="col-md-6">
                   <label for="contact-name" class="form-label text-light fw-bold mb-3">
-                    <i class="fas fa-user text-primary me-2"></i>
+                    <i class="bi bi-person text-primary me-2"></i>
                     Nome Completo *
                   </label>
                   <input type="text" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-name" placeholder="Digite seu nome completo" required />
                   <div class="invalid-feedback text-warning">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     Por favor, informe seu nome completo.
                   </div>
                 </div>
@@ -43,12 +43,12 @@
                 <!-- E-mail -->
                 <div class="col-md-6">
                   <label for="contact-email" class="form-label text-light fw-bold mb-3">
-                    <i class="fas fa-envelope text-primary me-2"></i>
+                    <i class="bi bi-envelope text-primary me-2"></i>
                     E-mail *
                   </label>
                   <input type="email" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-email" placeholder="seu@email.com" required />
                   <div class="invalid-feedback text-warning">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     Por favor, informe um e-mail válido.
                   </div>
                 </div>
@@ -61,11 +61,11 @@
                   </label>
                   <input type="tel" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-whatsapp" placeholder="(00) 00000-0000" required pattern="^\(\d{2}\)\s\d{4,5}-\d{4}$" />
                   <div class="invalid-feedback text-warning">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     Por favor, informe um WhatsApp válido no formato (00) 00000-0000.
                   </div>
                   <small class="text-secondary">
-                    <i class="fas fa-info-circle me-1"></i>
+                    <i class="bi bi-info-circle me-1"></i>
                     Formato: (00) 00000-0000
                   </small>
                 </div>
@@ -73,12 +73,12 @@
                 <!-- Carteira MetaMask -->
                 <div class="col-md-6">
                   <label for="contact-wallet" class="form-label text-light fw-bold mb-3">
-                    <i class="fas fa-wallet text-warning me-2"></i>
+                    <i class="bi bi-wallet2 text-warning me-2"></i>
                     Carteira MetaMask
                   </label>
                   <input type="text" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-wallet" placeholder="0x... (opcional)" maxlength="42" />
                   <small class="text-secondary">
-                    <i class="fas fa-info-circle text-info me-1"></i>
+                    <i class="bi bi-info-circle text-info me-1"></i>
                     Informe manualmente se desejar (opcional)
                   </small>
                 </div>
@@ -86,7 +86,7 @@
                 <!-- Assunto -->
                 <div class="col-12">
                   <label for="contact-subject" class="form-label text-light fw-bold mb-3">
-                    <i class="fas fa-tag text-info me-2"></i>
+                    <i class="bi bi-tag text-info me-2"></i>
                     Assunto *
                   </label>
                   <select class="form-select form-select-lg bg-dark text-light border-secondary" id="contact-subject" required>
@@ -99,7 +99,7 @@
                     <option value="outros">📋 Outros</option>
                   </select>
                   <div class="invalid-feedback text-warning">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     Por favor, selecione um assunto.
                   </div>
                 </div>
@@ -107,12 +107,12 @@
                 <!-- Mensagem -->
                 <div class="col-12">
                   <label for="contact-message" class="form-label text-light fw-bold mb-3">
-                    <i class="fas fa-comment-dots text-secondary me-2"></i>
+                    <i class="bi bi-chat-dots text-secondary me-2"></i>
                     Mensagem *
                   </label>
-                  <textarea class="form-control bg-dark text-light border-secondary" id="contact-message" rows="5" placeholder="Descreva detalhadamente sua dúvida, solicitação ou problema..." required minlength="10" style="resize: vertical"></textarea>
+                  <textarea class="form-control bg-dark text-light border-secondary resize-vertical" id="contact-message" rows="5" placeholder="Descreva detalhadamente sua dúvida, solicitação ou problema..." required minlength="10"></textarea>
                   <div class="invalid-feedback text-warning">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     Por favor, escreva uma mensagem com pelo menos 10 caracteres.
                   </div>
                   <div class="text-secondary mt-2">
@@ -130,7 +130,7 @@
                       <br />
                     </label>
                     <div class="invalid-feedback text-warning">
-                      <i class="fas fa-exclamation-triangle me-1"></i>
+                      <i class="bi bi-exclamation-triangle me-1"></i>
                       Você deve aceitar os termos para continuar.
                     </div>
                   </div>
@@ -138,24 +138,24 @@
               </div>
 
               <!-- Status de Envio -->
-              <div id="form-status" class="mb-3 mt-4" style="display: none"></div>
+              <div id="form-status" class="mb-3 mt-4 d-none"></div>
 
               <!-- Submit Button -->
               <div class="text-center mt-5">
-                <button type="submit" class="btn btn-outline-primary btn-lg px-5 py-3 fw-bold position-relative overflow-hidden" id="submit-btn" style="min-width: 250px; border-radius: 50px" disabled>
+                <button type="submit" class="btn btn-outline-primary btn-lg px-5 py-3 fw-bold position-relative overflow-hidden min-width-250 border-radius-50" id="submit-btn" disabled>
                   <span class="btn-content">
-                    <i class="fas fa-paper-plane me-2"></i>
+                    <i class="bi bi-send me-2"></i>
                     <span id="btn-text">Enviar Mensagem</span>
                   </span>
                   <div class="btn-loading d-none">
-                    <i class="fas fa-spinner fa-spin me-2"></i>
+                    <i class="bi bi-arrow-repeat me-2"></i>
                     Enviando...
                   </div>
                 </button>
                 <!-- Campos obrigatórios -->
                 <div class="mt-3">
                   <small class="text-secondary">
-                    <i class="fas fa-asterisk text-danger me-1"></i>
+                    <i class="bi bi-asterisk text-danger me-1"></i>
                     Preencha todos os campos obrigatórios para enviar.
                   </small>
                 </div>
@@ -164,15 +164,15 @@
                 <div class="text-center mt-4">
                   <div class="row g-4">
                     <div class="col-md-4">
-                      <i class="fas fa-user-shield text-primary me-2"></i>
+                      <i class="bi bi-shield-lock text-primary me-2"></i>
                       <small class="text-light">100% Seguro</small>
                     </div>
                     <div class="col-md-4">
-                      <i class="fas fa-clock text-warning me-2"></i>
+                      <i class="bi bi-clock text-warning me-2"></i>
                       <small class="text-light">Resposta Rápida</small>
                     </div>
                     <div class="col-md-4">
-                      <i class="fas fa-headset text-info me-2"></i>
+                      <i class="bi bi-headset text-info me-2"></i>
                       <small class="text-light">Suporte 24/7</small>
                     </div>
                   </div>

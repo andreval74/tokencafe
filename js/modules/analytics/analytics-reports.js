@@ -375,7 +375,7 @@ class AnalytcsReports {
                 </td>
                 <td>
                     <button class="btn btn-sm btn-outlne" onclick="analytcsReports.vewAdvancedAnalytcs('${token.symbol}')">
-                        <i class="fas fa-chart-line"></i> Detalhes
+                        <i class="bi bi-graph-up"></i> Detalhes
                     </button>
                 </td>
             </tr>
@@ -419,7 +419,7 @@ class AnalytcsReports {
                 <h4>Analytcs Detalhado - ${tokenSymbol}</h4>
                 <p>Funconaldade em desenvolvmento...</p>
                 <div class="placeholder-chart">
-                    <i class="fas fa-chart-area fa-3x"></i>
+                    <i class="bi bi-graph-up fa-3x"></i>
                     <p>Grfcos avanados sero mplementados aqu</p>
                 </div>
             </div>

@@ -164,4 +164,3 @@ document.addEventListener("DOMContentLoaded", async () => {
     addBtn.addEventListener("click", () => addToWallet(params, network));
   }
 });
-
