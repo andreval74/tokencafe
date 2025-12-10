@@ -10,6 +10,7 @@ function initContainer(container) {
   const input = container.querySelector("#networkSearch");
   const list = container.querySelector("#networkAutocomplete");
   const infoBtn = container.querySelector("#nsInfoBtn");
+  const clearBtn = container.querySelector("#nsClearBtn");
   // Padronização: remover botão limpar do componente; comportamento de limpar ocorre ao apagar o input
   if (!input || !list) return;
 
@@ -58,7 +59,7 @@ function initContainer(container) {
     try {
       const status = window.walletConnector?.getStatus?.() || {};
       const full = status.account || (badgeAccount && badgeAccount.dataset ? badgeAccount.dataset.full : "") || "";
-      const addr = String(full || (badgeAccount ? badgeAccount.textContent : "")).trim();
+      const addr = String(full || (badgeAccount ? badgeAccount.textContent : "")).replace(/\s+$/u, "");
       if (!addr || addr === "-") {
         return;
       }
@@ -246,10 +247,14 @@ function initContainer(container) {
           // atualizar detalhes sem abrir automaticamente
           updateDetailsCard(net);
           hideList();
-          const setSwitching = (active) => {
-            if (networkStatusEl) networkStatusEl.classList.toggle("d-none", !active);
-            input.disabled = !!active;
-            if (infoBtn) infoBtn.disabled = !!active;
+          const setSwitching = (_active) => {
+            try {
+              if (networkStatusEl) networkStatusEl.classList.add("d-none");
+            } catch (_) {}
+            try {
+              input.disabled = false;
+              if (infoBtn) infoBtn.disabled = false;
+            } catch (_) {}
           };
           const switchToChain = async (chainId) => {
             try {
@@ -299,9 +304,34 @@ function initContainer(container) {
     showList();
   }
 
+  if (clearBtn) {
+    clearBtn.addEventListener("click", (e) => {
+      try { e.preventDefault(); } catch (_) {}
+      input.value = "";
+      delete input.dataset.chainId;
+      hideList();
+      selectedNetwork = null;
+      infoVisible = false;
+      if (detailsCard) detailsCard.classList.add("d-none");
+      if (nameEl) nameEl.textContent = "";
+      if (idEl) idEl.textContent = "";
+      if (currencyNameEl) currencyNameEl.textContent = "";
+      if (currencySymbolEl) currencySymbolEl.textContent = "";
+      if (rpcCodeEl) rpcCodeEl.textContent = "";
+      if (explorerCodeEl) explorerCodeEl.textContent = "";
+      if (rpcAnchorEl) rpcAnchorEl.removeAttribute("href");
+      if (explorerAnchorEl) explorerAnchorEl.removeAttribute("href");
+      if (badgeName) badgeName.textContent = "-";
+      if (badgeSymbol) badgeSymbol.textContent = "-";
+      if (badgeChainId) badgeChainId.textContent = "-";
+      const evt = new CustomEvent("network:clear", { bubbles: true });
+      container.dispatchEvent(evt);
+    });
+  }
+
   // Buscar ao digitar
   input.addEventListener("input", () => {
-    const query = (input.value || "").trim();
+    const query = String(input.value || "").replace(/\s+$/u, "");
     if (!query) {
       if (showPopular) {
         try {
@@ -371,7 +401,7 @@ function initContainer(container) {
           if (chainIdRaw) net = networkManager?.getNetworkById?.(parseInt(chainIdRaw, 10));
         }
         if (!net) {
-          const query = (input.value || "").trim();
+          const query = String(input.value || "").replace(/\s+$/u, "");
           if (query) {
             if (networkManager?.getAllNetworks) await networkManager.getAllNetworks();
             const isDigits = /^\d+$/.test(query);
@@ -408,7 +438,7 @@ function initContainer(container) {
   input.addEventListener("focus", async () => {
     try {
       console.debug("NetworkSearch: focus recebido no input");
-      const query = (input.value || "").trim();
+      const query = String(input.value || "").replace(/\s+$/u, "");
       if (showPopular && !query) {
         if (networkManager?.getAllNetworks) {
           await networkManager.getAllNetworks();

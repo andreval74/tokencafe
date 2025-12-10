@@ -71,7 +71,14 @@
         await window.walletConnector?.connect?.("metamask");
       } catch (e) {
         console.error("Erro ao conectar via header:", e);
-        alert("Erro ao conectar: " + (e.message || e));
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          if (typeof window.notify === "function") {
+            window.notify("Erro ao conectar: " + (e.message || e), "error", { container });
+          } else {
+            console.error("Erro ao conectar: " + (e.message || e));
+          }
+        } catch (_) {}
       }
     },
     { capture: true },

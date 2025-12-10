@@ -224,7 +224,10 @@ function initContainer(container) {
       s = Array.from(s)
         .filter((ch) => ch.charCodeAt(0) !== 0)
         .join("");
-      if (s.trim()) return s.trim();
+      {
+        const st = s.replace(/\s+$/u, "");
+        if (st) return st;
+      }
       const lenHex = h.slice(64, 128);
       const len = parseInt(lenHex, 16);
       const start = 128;
@@ -234,7 +237,7 @@ function initContainer(container) {
         b
           .map((x) => String.fromCharCode(parseInt(x, 16)))
           .join("")
-          .trim() || null
+          .replace(/\s+$/u, "") || null
       );
     } catch (_) {
       return null;
@@ -392,7 +395,7 @@ function initContainer(container) {
       } catch {}
     }
     const addrField = document.getElementById("f_address") || document.getElementById("tokenAddress");
-    const addrRaw = (addrField?.value || "").trim();
+    const addrRaw = String(addrField?.value || "").replace(/\s+$/u, "");
     const okAddr = /^0x[0-9a-fA-F]{40}$/.test(addrRaw);
     const chainIdRaw = findChainId();
     try {
@@ -400,6 +403,10 @@ function initContainer(container) {
     } catch (_) {}
     if (!okAddr || !chainIdRaw) {
       showStatus("Informe endereço e rede.");
+      try {
+        const evtErr = new CustomEvent("form:error", { detail: { message: "Informe endereço e rede.", container }, bubbles: true });
+        document.dispatchEvent(evtErr);
+      } catch (_) {}
       try {
         log("invalid-input");
       } catch (_) {}
@@ -711,12 +718,23 @@ function initContainer(container) {
     }
     const hasData = !!(extra.tokenName || extra.tokenSymbol || extra.tokenDecimals != null || extra.tokenSupply || extra.contractTokenBalance || extra.contractNativeBalance);
     if (!hasData) {
-      showStatus("Tempo limite excedido ou sem dados ERC-20. Verifique a rede e o endereço.");
+      const net = networkManager?.getNetworkById?.(parseInt(chainIdRaw, 10));
+      const chainName = net?.name || "";
+      const msg = chainName ? `Contrato não pertence à rede selecionada (${chainName}, chainId ${chainIdRaw}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
+      showStatus(msg);
+      try {
+        const evtErr = new CustomEvent("form:error", { detail: { message: msg, container }, bubbles: true });
+        document.dispatchEvent(evtErr);
+      } catch (_) {}
       try {
         log("no-data", { chainId: chainIdRaw, address: addrRaw });
       } catch (_) {}
     } else {
       showStatus("");
+      try {
+        const evtOk = new CustomEvent("form:success", { detail: { message: "Contrato encontrado na rede selecionada.", container }, bubbles: true });
+        document.dispatchEvent(evtOk);
+      } catch (_) {}
     }
     try {
       const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
@@ -777,6 +795,7 @@ function initContainer(container) {
   }
   try {
     const infoBtn = container.querySelector("#csInfoBtn");
+    const clearBtn = container.querySelector("#csClearBtn");
     if (infoBtn) {
       infoBtn.addEventListener("click", () => {
         try {
@@ -790,6 +809,57 @@ function initContainer(container) {
           try {
             log("error", e);
           } catch {}
+        }
+      });
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        try {
+          const addrInput = container.querySelector("#f_address");
+          const hiddenAddr = container.querySelector("#tokenAddress") || document.getElementById("tokenAddress");
+          if (addrInput) {
+            addrInput.value = "";
+            addrInput.classList.remove("is-valid", "is-invalid");
+          }
+          if (hiddenAddr) hiddenAddr.value = "";
+          showStatus("");
+          // Limpar badges
+          const bAddr = container.querySelector("#csBadgeAddress") || document.getElementById("csBadgeAddress");
+          const bName = container.querySelector("#csBadgeName") || document.getElementById("csBadgeName");
+          const bSym = container.querySelector("#csBadgeSymbol") || document.getElementById("csBadgeSymbol");
+          const bDec = container.querySelector("#csBadgeDecimals") || document.getElementById("csBadgeDecimals");
+          const bCid = container.querySelector("#csBadgeChainId") || document.getElementById("csBadgeChainId");
+          if (bAddr) bAddr.textContent = "-";
+          if (bName) bName.textContent = "-";
+          if (bSym) bSym.textContent = "-";
+          if (bDec) bDec.textContent = "-";
+          if (bCid) bCid.textContent = "-";
+          // Limpar visualização
+          const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
+          const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
+          const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
+          const vSym = container.querySelector("#cs_viewSymbol") || document.getElementById("cs_viewSymbol");
+          const vDec = container.querySelector("#cs_viewDecimals") || document.getElementById("cs_viewDecimals");
+          const vSup = container.querySelector("#cs_viewSupply") || document.getElementById("cs_viewSupply");
+          const vTokBal = container.querySelector("#cs_viewTokenBalance") || document.getElementById("cs_viewTokenBalance");
+          const vNatBal = container.querySelector("#cs_viewNativeBalance") || document.getElementById("cs_viewNativeBalance");
+          const vExp = container.querySelector("#cs_viewExplorer") || document.getElementById("cs_viewExplorer");
+          if (vAddr) vAddr.textContent = "";
+          if (vCid) vCid.textContent = "";
+          if (vName) vName.textContent = "";
+          if (vSym) vSym.textContent = "";
+          if (vDec) vDec.textContent = "";
+          if (vSup) vSup.textContent = "";
+          if (vTokBal) vTokBal.textContent = "";
+          if (vNatBal) vNatBal.textContent = "";
+          if (vExp) vExp.removeAttribute("href");
+          const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+          if (card) card.classList.add("d-none");
+          const evt = new CustomEvent("contract:clear", { bubbles: true });
+          try { container.dispatchEvent(evt); } catch (_) {}
+          try { document.dispatchEvent(evt); } catch (_) {}
+        } catch (e) {
+          try { log("error", e); } catch {}
         }
       });
     }

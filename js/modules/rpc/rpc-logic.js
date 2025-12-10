@@ -13,6 +13,26 @@ function getNetworkManager() {
   return window.networkManager || null;
 }
 
+function getUtils() {
+  try {
+    if (!window.__tc_utils) window.__tc_utils = new (window.SharedUtilities || function () {})();
+    return window.__tc_utils;
+  } catch (_) {
+    return null;
+  }
+}
+
+function isValidUrl(url) {
+  try {
+    const utils = getUtils();
+    if (utils && typeof utils.isValidUrl === "function") return utils.isValidUrl(url);
+    const u = new URL(url);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch (_) {
+    return false;
+  }
+}
+
 /**
  * Inicializar gerenciador de RPC com módulos unificados
  */
@@ -139,7 +159,7 @@ async function connectWallet() {
       const status = wc.getStatus();
       updateWalletUI(status);
       showNextSection("network-section");
-      window.showToast && showToast("Carteira já conectada", "info");
+      window.notify && window.notify("Carteira já conectada", "info");
       return;
     }
     if (!wc || typeof wc.connect !== "function") {
@@ -151,7 +171,7 @@ async function connectWallet() {
     const result = await wc.connect("metamask");
 
     if (result.success) {
-      window.showToast && showToast("Carteira conectada com sucesso!", "success");
+      window.notify && window.notify("Carteira conectada com sucesso!", "success");
       updateWalletUI(result);
       showNextSection("network-section");
     } else {
@@ -159,7 +179,7 @@ async function connectWallet() {
     }
   } catch (error) {
     console.error("Erro ao conectar:", error);
-    window.showToast && showToast(`Erro ao conectar: ${error.message}`, "error");
+    window.notify && window.notify(`Erro ao conectar: ${error.message}` , "error");
   } finally {
     window.hideLoading && hideLoading();
   }
@@ -337,7 +357,7 @@ function updateNetworkPreview(network) {
   const unusedPreview = document.getElementById("network-preview");
 
   // Escolher RPC: manual > radio > primeiro disponível
-  const customVal = document.getElementById("customRpcUrl")?.value?.trim() || "";
+  const customVal = String(document.getElementById("customRpcUrl")?.value || "").replace(/\s+$/u, "") || "";
   let rpcUrl = "";
   if (customVal && isValidUrl(customVal)) {
     rpcUrl = customVal;
@@ -392,7 +412,7 @@ async function addNetworkToMetaMask() {
     const nm = getNetworkManager();
     const network = nm ? nm.getNetworkById(chainIdNum) : null;
     // RPC escolhido
-    const customVal = document.getElementById("customRpcUrl")?.value?.trim() || "";
+    const customVal = String(document.getElementById("customRpcUrl")?.value || "").replace(/\s+$/u, "") || "";
     let chosenRpc = "";
     if (customVal && isValidUrl(customVal)) {
       chosenRpc = customVal;
@@ -424,14 +444,14 @@ async function addNetworkToMetaMask() {
       throw new Error("WalletConnector indisponível para adicionar rede.");
     }
     await wc.addNetwork(networkData);
-    window.showToast && showToast("Rede adicionada com sucesso!", "success");
+    window.notify && window.notify("Rede adicionada com sucesso!", "success");
 
     // Registrar RPC escolhido como já adicionado para esta rede
     addKnownRpc(networkData.chainId, networkData.rpc[0]);
-    clearNetworkForm();
+    clearNetworkForm(true);
   } catch (error) {
     console.error("Erro ao adicionar rede:", error);
-    window.showToast && showToast(`Erro ao adicionar rede: ${error.message}`, "error");
+    window.notify && window.notify(`Erro ao adicionar rede: ${error.message}`, "error");
     // Limpar dados ao falhar
     clearNetworkForm();
   } finally {
@@ -452,7 +472,7 @@ function onWalletDisconnected() {
 function onChainChanged(event) {
   const { chainId } = event.detail;
   console.log("Rede alterada:", chainId);
-  window.showToast && showToast("Rede alterada na carteira", "info");
+  window.notify && window.notify("Rede alterada na carteira", "info");
 }
 
 /**
@@ -537,7 +557,7 @@ function attemptFocusRetry(selector, tries = 5, delayMs = 150) {
 }
 
 // Limpar dados do formulário e preview
-function clearNetworkForm() {
+function clearNetworkForm(silent = false) {
   const ids = ["networkSearch"];
   ids.forEach((id) => {
     const el = document.getElementById(id);
@@ -599,36 +619,18 @@ function clearNetworkForm() {
   const addBtn = document.getElementById("add-network-btn");
   if (addBtn) addBtn.setAttribute("disabled", "");
 
-  window.showToast && showToast("Dados limpos. Selecione uma rede para começar.", "info");
-}
-
-// Validação simples de URL
-function isValidUrl(url) {
-  try {
-    const u = new URL(url);
-    return !!u.protocol && (u.protocol === "http:" || u.protocol === "https:");
-  } catch {
-    return false;
-  }
-}
-
-// Fetch com timeout usando AbortController
-async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const resp = await fetch(url, { ...options, signal: controller.signal });
-    return resp;
-  } finally {
-    clearTimeout(id);
+  if (!silent) {
+    window.notify && window.notify("Dados limpos. Selecione uma rede para começar.", "info");
   }
 }
 
 // Testar se um RPC está online chamando eth_chainId
 async function testRpcUrl(rpcUrl, expectedChainId) {
-  if (!isValidUrl(rpcUrl)) return false;
+  const utils = getUtils();
+  const valid = utils && typeof utils.isValidUrl === "function" ? utils.isValidUrl(rpcUrl) : (() => { try { const u = new URL(rpcUrl); return !!u.protocol && (u.protocol === "http:" || u.protocol === "https:"); } catch { return false; } })();
+  if (!valid) return false;
   try {
-    const resp = await fetchWithTimeout(
+    const resp = utils && typeof utils.fetchWithTimeout === "function" ? await utils.fetchWithTimeout(
       rpcUrl,
       {
         method: "POST",
@@ -641,7 +643,16 @@ async function testRpcUrl(rpcUrl, expectedChainId) {
         }),
       },
       5000,
-    );
+    ) : await (async () => {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 5000);
+      try {
+        const r = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", method: "eth_chainId", params: [], id: 1 }), signal: controller.signal });
+        return r;
+      } finally {
+        clearTimeout(id);
+      }
+    })();
     if (!resp.ok) return false;
     const data = await resp.json().catch(() => null);
     if (!data || (!data.result && !data.chainId)) return false;
@@ -664,7 +675,7 @@ function updateAddButtonState(network) {
   const addBtn = document.getElementById("add-network-btn");
   if (!addBtn) return;
   const selectedRadio = document.querySelector('#rpc-options-list input[name="rpcChoice"]:checked');
-  const customVal = document.getElementById("customRpcUrl")?.value?.trim() || "";
+  const customVal = String(document.getElementById("customRpcUrl")?.value || "").replace(/\s+$/u, "") || "";
   const useCustom = customVal && customRpcValidated;
   const useRadio = selectedRadio && rpcValidationCache[selectedRadio.value] === true;
   const ready = !!(network && (useCustom || useRadio));
@@ -726,9 +737,10 @@ async function renderRpcOptions(network) {
   const section = document.getElementById("rpc-options-section");
   const listEl = document.getElementById("rpc-options-list");
   if (!section || !listEl) return;
+  try { section.classList.remove("d-none"); } catch (_) {}
 
   // Se há RPC manual preenchido, esconder a lista
-  const customVal = document.getElementById("customRpcUrl")?.value?.trim();
+  const customVal = String(document.getElementById("customRpcUrl")?.value || "").replace(/\s+$/u, "");
   if (customVal) {
     section.classList.add("d-none");
     const addBtn = document.getElementById("add-network-btn");
@@ -748,7 +760,7 @@ async function renderRpcOptions(network) {
   const allRpcs = Array.from(new Set([...nativeRpcs.map(toUrl).filter(isValidUrl), ...externalRpcs.map(toUrl).filter(isValidUrl)]));
   const known = new Set(getKnownRpcs(network.chainId).map((r) => r.trim()));
   const available = allRpcs.filter((url) => url && !known.has(url.trim()));
-  // Não exibir automaticamente; só mostrar quando usuário clicar em "Escolher RPCs"
+  // Exibir automaticamente ao selecionar a rede
   listEl.innerHTML = available
     .map(
       (url, idx) => `
@@ -802,7 +814,7 @@ async function renderRpcOptions(network) {
 
 // Regras de prioridade do RPC manual sobre a lista
 function handleCustomRpcInput() {
-  const unusedCustomVal = document.getElementById("customRpcUrl")?.value?.trim() || "";
+  const unusedCustomVal = String(document.getElementById("customRpcUrl")?.value || "").replace(/\s+$/u, "") || "";
   const unusedSection = document.getElementById("rpc-options-section");
   const unusedAddBtn = document.getElementById("add-network-btn");
   const chainIdRaw = document.getElementById("networkSearch")?.dataset?.chainId;
@@ -842,7 +854,7 @@ document.getElementById("btn-test-custom-rpc")?.addEventListener("click", async 
   const chainIdNum = chainIdRaw ? parseInt(chainIdRaw, 10) : null;
   const nm = getNetworkManager();
   const network = chainIdNum ? (nm ? nm.getNetworkById(chainIdNum) : null) : null;
-  const url = document.getElementById("customRpcUrl")?.value?.trim() || "";
+  const url = String(document.getElementById("customRpcUrl")?.value || "").replace(/\s+$/u, "") || "";
   const btn = document.getElementById("btn-test-custom-rpc");
   if (!url || !isValidUrl(url)) {
     if (btn) {
@@ -865,4 +877,6 @@ document.getElementById("btn-test-custom-rpc")?.addEventListener("click", async 
   customRpcValidated = !!ok;
   updateAddButtonState(network);
   if (network) updateNetworkPreview(network);
+  // manter padrão: não persistir escolha de RPC
 });
+//

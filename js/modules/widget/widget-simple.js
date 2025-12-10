@@ -303,7 +303,7 @@ class WidgetSimple {
 
     if (!saleContractInput || !validationStatus) return;
 
-    const address = saleContractInput.value.trim();
+    const address = String(saleContractInput.value || "").replace(/\s+$/u, "");
 
     // Limpa status anterior
     validationStatus.innerHTML = "";
@@ -542,7 +542,7 @@ class WidgetSimple {
 
     if (!saleContractInput || !blockchainSelect || !validationStatus || !validateBtn) return;
 
-    const contractAddress = saleContractInput.value.trim();
+    const contractAddress = String(saleContractInput.value || "").replace(/\s+$/u, "");
     const chainId = blockchainSelect.value;
 
     // Validações básicas
@@ -1154,13 +1154,13 @@ class WidgetSimple {
    * Renderiza preview do widget com base nos campos atuais
    */
   async showPreview() {
-    const projectName = (document.getElementById("projectName")?.value || "").trim() || "Widget de Venda";
-    const chainIdStr = (document.getElementById("blockchain")?.value || "").trim();
-    const saleAddress = (document.getElementById("saleContract")?.value || "").trim();
-    const priceStr = (document.getElementById("tokenPrice")?.value || "").trim();
-    const minStr = (document.getElementById("minPurchase")?.value || "").trim();
-    const maxStr = (document.getElementById("maxPurchase")?.value || "").trim();
-    const buyButtonText = (document.getElementById("buyButtonText")?.value || "").trim() || "Comprar Tokens";
+    const projectName = String(document.getElementById("projectName")?.value || "").replace(/\s+$/u, "") || "Widget de Venda";
+    const chainIdStr = String(document.getElementById("blockchain")?.value || "").replace(/\s+$/u, "");
+    const saleAddress = String(document.getElementById("saleContract")?.value || "").replace(/\s+$/u, "");
+    const priceStr = String(document.getElementById("tokenPrice")?.value || "").replace(/\s+$/u, "");
+    const minStr = String(document.getElementById("minPurchase")?.value || "").replace(/\s+$/u, "");
+    const maxStr = String(document.getElementById("maxPurchase")?.value || "").replace(/\s+$/u, "");
+    const buyButtonText = String(document.getElementById("buyButtonText")?.value || "").replace(/\s+$/u, "") || "Comprar Tokens";
 
     const chainId = chainIdStr ? parseInt(chainIdStr, 10) : 97;
     const currencySymbol = this.supportedNetworks[String(chainId)]?.symbol || "BNB";
@@ -1463,7 +1463,7 @@ class WidgetSimple {
       // Definir ABI mínima e contrato
       // quantidade e valor (usar BigNumber para evitar erros de precisão)
       const qtyEl = document.getElementById("previewQuantity");
-      const qtyRaw = qtyEl && qtyEl.value ? String(qtyEl.value).trim() : "";
+      const qtyRaw = qtyEl && qtyEl.value ? String(qtyEl.value).replace(/\s+$/u, "") : "";
       const qtyInt = parseInt(qtyRaw, 10);
       if (!Number.isFinite(qtyInt) || qtyInt <= 0) {
         this.showError("Informe uma quantidade de tokens inteira e válida.");
@@ -2209,13 +2209,13 @@ class WidgetSimple {
    */
   generateWidgetConfig() {
     // Leitura dos inputs atuais
-    const chainIdStr = (document.getElementById("blockchain")?.value || "").trim();
-    const saleAddressInput = (document.getElementById("saleContract")?.value || "").trim();
-    const priceStr = (document.getElementById("tokenPrice")?.value || "").trim();
-    const minStr = (document.getElementById("minPurchase")?.value || "").trim();
-    const maxStr = (document.getElementById("maxPurchase")?.value || "").trim();
-    const buyButtonText = (document.getElementById("buyButtonText")?.value || "").trim();
-    const projectName = (document.getElementById("projectName")?.value || "").trim();
+    const chainIdStr = String(document.getElementById("blockchain")?.value || "").replace(/\s+$/u, "");
+    const saleAddressInput = String(document.getElementById("saleContract")?.value || "").replace(/\s+$/u, "");
+    const priceStr = String(document.getElementById("tokenPrice")?.value || "").replace(/\s+$/u, "");
+    const minStr = String(document.getElementById("minPurchase")?.value || "").replace(/\s+$/u, "");
+    const maxStr = String(document.getElementById("maxPurchase")?.value || "").replace(/\s+$/u, "");
+    const buyButtonText = String(document.getElementById("buyButtonText")?.value || "").replace(/\s+$/u, "");
+    const projectName = String(document.getElementById("projectName")?.value || "").replace(/\s+$/u, "");
 
     // Fallbacks do estado (auto-detectados durante a validação)
     const auto = this.state?.autoDetectedParams || {};
@@ -2311,69 +2311,43 @@ class WidgetSimple {
    * Mostra mensagem de erro
    */
   showError(message) {
-    const root = this.state?.activeWidgetContainer || document;
-    const alertContainer = (root.querySelector ? root.querySelector("#alertContainer") : null) || document.getElementById("alertContainer");
-    if (alertContainer) {
-      alertContainer.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>`;
-
-      // Auto-hide após 5 segundos
-      setTimeout(() => {
-        const alert = alertContainer.querySelector(".alert");
-        if (alert) {
-          const bsAlert = new bootstrap.Alert(alert);
-          bsAlert.close();
-        }
-      }, 5000);
-    }
+    try {
+      const container = document.querySelector(".container, .container-fluid") || document.body;
+      if (typeof window.notify === "function") {
+        window.notify(String(message || ""), "error", { container });
+        return;
+      }
+      console.error(message);
+    } catch (_) {}
   }
 
   /**
    * Mostra mensagem de sucesso
    */
   showSuccess(message) {
-    const root = this.state?.activeWidgetContainer || document;
-    const alertContainer = (root.querySelector ? root.querySelector("#alertContainer") : null) || document.getElementById("alertContainer");
-    if (alertContainer) {
-      alertContainer.innerHTML = `<div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>`;
-
-      // Auto-hide após 3 segundos
-      setTimeout(() => {
-        const alert = alertContainer.querySelector(".alert");
-        if (alert) {
-          const bsAlert = new bootstrap.Alert(alert);
-          bsAlert.close();
-        }
-      }, 3000);
-    }
+    try {
+      const container = document.querySelector(".container, .container-fluid") || document.body;
+      if (typeof window.notify === "function") {
+        window.notify(String(message || ""), "success", { container });
+        return;
+      }
+      console.log(message);
+    } catch (_) {}
   }
 
   /**
    * Mostra mensagem de aviso
    */
+  // Mensagens padronizadas: usa notify para avisos
   showWarning(message) {
-    const root = this.state?.activeWidgetContainer || document;
-    const alertContainer = (root.querySelector ? root.querySelector("#alertContainer") : null) || document.getElementById("alertContainer");
-    if (alertContainer) {
-      alertContainer.innerHTML = `<div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>`;
-
-      // Auto-hide após 4 segundos
-      setTimeout(() => {
-        const alert = alertContainer.querySelector(".alert");
-        if (alert) {
-          const bsAlert = new bootstrap.Alert(alert);
-          bsAlert.close();
-        }
-      }, 4000);
-    }
+    try {
+      const container = document.querySelector(".container, .container-fluid") || document.body;
+      if (typeof window.notify === "function") {
+        window.notify(String(message || ""), "warning", { container });
+        return;
+      }
+      console.warn(message);
+    } catch (_) {}
   }
 
   /**

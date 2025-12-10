@@ -13,7 +13,7 @@
 
   <!-- Security Headers -->
   <meta http-equiv="Content-Security-Policy"
-    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';" />
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: ws: wss:; object-src 'none'; base-uri 'self';" />
 
   <!-- Favicons TokenCafe -->
   <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
@@ -56,55 +56,57 @@
         <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->
         <div id="token-section" class="mb-4">
           <div data-component="shared/components/contract-search.html"></div>
-          <div id="tokenLoading" class="alert alert-info mt-2 d-none" role="status" aria-live="polite">Carregando dados do
-            token...</div>
-
-          
+        
+        
         </div>
       </div>
 
       <!-- ===== SEÇÃO 3: LINK GERADO ===== -->
       <div id="generate-section" class="mb-4 d-none">
         <div id="generateSectionTitle" data-component="shared/components/section-title.html"
-          data-st-icon="bi-link-45deg" data-st-title="3. Link Gerado"
+          data-st-icon="bi-link-45deg" data-st-title="Link Gerado"
           data-st-subtitle="Copie, compartilhe ou teste o link">
         </div>
 
         <div id="generatedLinkGroup" class="input-group mt-2">
           <input id="generatedLink" class="form-control" readonly aria-label="Link gerado" />
         </div>
-        <div class="row row-cols-1 row-cols-md-6 g-2 mt-2" id="generatedActionsRow">
+        <small id="metaValidatedBadge" class="text-success d-none mt-1">
+          <i class="bi bi-check-circle me-1"></i>
+          Dados do contrato confirmados (símbolo/decimais)
+        </small>
+        <div class="row row-cols-6 g-2 mt-2" id="generatedActionsRow">
           <div class="col">
-            <button id="btnCopyLink" class="btn btn-outline-secondary w-100" title="Copiar link"
-              aria-label="Copiar link">
-              <i class="bi bi-clipboard me-1"></i>Copiar link
+            <button id="btnCopyLink" class="btn btn-outline-secondary btn-lg w-100" title="Copiar"
+              aria-label="Copiar">
+              <i class="bi bi-clipboard me-1"></i>Copiar
             </button>
           </div>
           <div class="col">
-            <button id="btnShareWhatsAppSmall" class="btn btn-outline-success w-100" title="Enviar via WhatsApp"
-              aria-label="Enviar via WhatsApp">
+            <button id="btnShareWhatsAppSmall" class="btn btn-outline-success btn-lg w-100" title="WhatsApp"
+              aria-label="WhatsApp">
               <i class="fab fa-whatsapp me-1"></i>WhatsApp
             </button>
           </div>
           <div class="col">
-            <button id="btnShareTelegramSmall" class="btn btn-outline-info w-100" title="Enviar via Telegram"
-              aria-label="Enviar via Telegram">
+            <button id="btnShareTelegramSmall" class="btn btn-outline-info btn-lg w-100" title="Telegram"
+              aria-label="Telegram">
               <i class="fab fa-telegram me-1"></i>Telegram
             </button>
           </div>
           <div class="col">
-            <button id="btnShareEmailSmall" class="btn btn-outline-warning w-100" title="Enviar por Email"
-              aria-label="Enviar por Email">
+            <button id="btnShareEmailSmall" class="btn btn-outline-warning btn-lg w-100" title="Email"
+              aria-label="Email">
               <i class="bi bi-envelope me-1"></i>Email
             </button>
           </div>
           <div class="col">
-            <button id="addToWalletButton" class="btn btn-outline-primary w-100" title="Adicionar token à carteira"
-              aria-label="Adicionar token à carteira">
-              <i class="bi bi-wallet2 me-1"></i>Add carteira
+            <button id="btnOpenLink" class="btn btn-outline-primary btn-lg w-100" title="Testar"
+              aria-label="Testar">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Testar
             </button>
           </div>
-          
+
         </div>
       </div>
     </div>

@@ -159,6 +159,12 @@
                   Abrir módulo Verificação
                 </a>
               </div>
+              <div class="col-12 d-none" id="openAddTokenLinkContainer">
+                <a id="openAddTokenLinkBtn" class="btn btn-outline-primary w-100" href="../link/link-token.html">
+                  <i class="bi bi-wallet2 me-1"></i>
+                  Abrir Adicionar Token (link)
+                </a>
+              </div>
             </div>
             <!-- Links do Deploy movidos para detalhes do contrato -->
 
@@ -263,7 +269,7 @@
     <script type="module" src="../../../js/shared/base-system.js"></script>
     <div data-component="shared/layouts/scripts-base.html"></div>
     <script>
-      window.TOKENCAFE_API_BASE = "https://tokencafe.onrender.com";
+      window.TOKENCAFE_API_BASE = "https://tokencafe-api.onrender.com";
     </script>
     <!-- Configuração do endpoint da API (pode ser sobrescrito em produção) -->
     <script src="../../../js/modules/contrato/api-config.js?v=1.1"></script>

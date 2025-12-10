@@ -13,13 +13,27 @@
     try {
       // Delegar conexão ao WalletConnector centralizado
       if (!window.walletConnector || typeof window.walletConnector.connect !== "function") {
-        alert("Sistema de conexão indisponível. Atualize a página e tente novamente.");
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          if (typeof window.notify === "function") {
+            window.notify("Sistema de conexão indisponível. Atualize a página e tente novamente.", "error", { container });
+          } else {
+            console.error("Sistema de conexão indisponível. Atualize a página e tente novamente.");
+          }
+        } catch (_) {}
         return;
       }
 
       const result = await window.walletConnector.connect(provider);
       if (!result || !result.success) {
-        alert("Falha ao conectar a carteira.");
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          if (typeof window.notify === "function") {
+            window.notify("Falha ao conectar a carteira.", "error", { container });
+          } else {
+            console.error("Falha ao conectar a carteira.");
+          }
+        } catch (_) {}
         return;
       }
 
@@ -34,7 +48,14 @@
       window.location.href = target;
     } catch (e) {
       console.error("Erro na conexão de carteira:", e);
-      alert(e?.message || "Falha na conexão. Verifique sua carteira e tente novamente.");
+      try {
+        const container = document.querySelector(".container, .container-fluid") || document.body;
+        if (typeof window.notify === "function") {
+          window.notify(e?.message || "Falha na conexão. Verifique sua carteira e tente novamente.", "error", { container });
+        } else {
+          console.error(e?.message || "Falha na conexão. Verifique sua carteira e tente novamente.");
+        }
+      } catch (_) {}
     }
   }
 

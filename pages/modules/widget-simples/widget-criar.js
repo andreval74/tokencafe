@@ -53,13 +53,11 @@
 
   function sanitizeUrl(u) {
     if (!u) return null;
-    let s = String(u).trim();
-    // remove aspas e crases ao redor
+    let s = String(u).replace(/\s+$/u, "");
     if ((s.startsWith("`") && s.endsWith("`")) || (s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-      s = s.slice(1, -1).trim();
+      s = s.slice(1, -1).replace(/\s+$/u, "");
     }
-    // remover espaços internos acidentais ao redor
-    s = s.replace(/^\s+|\s+$/g, "");
+    s = s.replace(/\s+$/u, "");
     return s;
   }
 
@@ -180,21 +178,33 @@
       await ensureNetworkSelected();
       const { prov: readProv, url: rpcUrl } = await pickResponsiveRpc(5000);
       await ensureReadNetwork(readProv);
-      const saleAddr = $("#saleAddress").value.trim();
+      const saleAddr = String($("#saleAddress").value || "").replace(/\s+$/u, "");
       // Log inicial para diagnóstico
       log({ action: "readSale-start", rpcUrl, saleAddr });
       // Validações básicas do input
       if (!saleAddr) {
         log({ error: "Informe o endereço do contrato TokenSale" });
-        const alert = $("#alertContainer");
-        if (alert) alert.innerHTML = '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>Informe o endereço do contrato TokenSale</div>';
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          if (typeof window.notify === "function") {
+            window.notify("Informe o endereço do contrato TokenSale", "warning", { container });
+          } else {
+            console.warn("Informe o endereço do contrato TokenSale");
+          }
+        } catch (_) {}
         $("#saleAddress")?.focus();
         return;
       }
       if (!ethers.utils.isAddress(saleAddr)) {
         log({ error: "Endereço inválido", address: saleAddr });
-        const alert = $("#alertContainer");
-        if (alert) alert.innerHTML = '<div class="alert alert-danger"><i class="bi bi-x-circle me-2"></i>Endereço inválido. Use um endereço 0x...</div>';
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          if (typeof window.notify === "function") {
+            window.notify("Endereço inválido. Use um endereço 0x...", "error", { container });
+          } else {
+            console.error("Endereço inválido. Use um endereço 0x...");
+          }
+        } catch (_) {}
         $("#saleAddress")?.focus();
         return;
       }
@@ -371,7 +381,7 @@
     try {
       const { prov: readProv, url: rpcUrl } = await pickResponsiveRpc(5000);
       await ensureReadNetwork(readProv);
-      const saleAddr = $("#saleAddress").value.trim();
+      const saleAddr = String($("#saleAddress").value || "").replace(/\s+$/u, "");
       // Log inicial para diagnóstico
       log({ action: "certifySale-start", rpcUrl, saleAddr, qty });
       if (!saleAddr) {
@@ -513,7 +523,7 @@
   async function buyWithBNB() {
     try {
       await ensureNetworkWallet();
-      const saleAddr = $("#saleAddress").value.trim();
+      const saleAddr = String($("#saleAddress").value || "").replace(/\s+$/u, "");
       if (!saleAddr) {
         log({ error: "Informe o endereço do contrato TokenSale" });
         return;
@@ -731,9 +741,15 @@
             receipt,
           };
           log(resumo);
-          const alert = document.getElementById("alertContainer");
-          const symbol = document.getElementById("currencySymbol")?.textContent || "BNB";
-          if (alert) alert.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle me-2"></i>Compra confirmada. Tx: <a href=\"#\" class=\"text-decoration-underline\">${tx.hash}</a>. Pago: ${ethers.utils.formatEther(chosenTotal)} ${symbol}.</div>`;
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            const symbol = document.getElementById("currencySymbol")?.textContent || "BNB";
+            if (typeof window.notify === "function") {
+              window.notify(`Compra confirmada. Tx: <a href=\"#\" class=\"text-decoration-underline\">${tx.hash}</a>. Pago: ${ethers.utils.formatEther(chosenTotal)} ${symbol}.`, "success", { container });
+            } else {
+              console.log("Compra confirmada", tx.hash);
+            }
+          } catch (_) {}
         } catch (_) {
           log({
             ok: true,

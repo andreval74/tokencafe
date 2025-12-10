@@ -1142,7 +1142,14 @@ const TokenCafeNavgaton = {
       }
     } else {
       console.error(" WalletSystem no encontrado!");
-      alert("Sstema de conexo no inicializado. Recarregue a pgna.");
+      try {
+        const container = document.querySelector(".container, .container-fluid") || document.body;
+        if (typeof window.notify === "function") {
+          window.notify("Sistema de conexão não inicializado. Recarregue a página.", "error", { container });
+        } else {
+          console.error("Sistema de conexão não inicializado. Recarregue a página.");
+        }
+      } catch (_) {}
     }
   },
 

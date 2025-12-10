@@ -6,22 +6,46 @@
       async function connectWallet(provider = "metamask") {
         try {
           if (!window.walletConnector || typeof window.walletConnector.connect !== "function") {
-            alert("Sistema de conexão de carteira indisponível. Atualize a página e tente novamente.");
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify("Sistema de conexão de carteira indisponível. Atualize a página e tente novamente.", "error", { container });
+              } else {
+                console.error("Sistema de conexão de carteira indisponível. Atualize a página e tente novamente.");
+              }
+            } catch (_) {}
             return;
           }
           const result = await window.walletConnector.connect(provider);
           if (!result || !result.success) {
-            alert("Falha ao conectar a carteira.");
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify("Falha ao conectar a carteira.", "error", { container });
+              } else {
+                console.error("Falha ao conectar a carteira.");
+              }
+            } catch (_) {}
             return;
           }
           console.log("Carteira conectada:", result.account);
           const statusEl = document.getElementById("contract-validation-status");
-          if (statusEl && !statusEl.innerHTML) {
-            statusEl.innerHTML = '<div class="alert alert-info">✅ Carteira conectada. Você pode validar e testar o contrato.</div>';
-          }
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            if (typeof window.notify === "function") {
+              window.notify("Carteira conectada. Você pode validar e testar o contrato.", "success", { container });
+            }
+          } catch (_) {}
         } catch (e) {
           console.error("Erro na conexão de carteira:", e);
-          alert(e?.message || "Falha na conexão. Verifique sua carteira e tente novamente.");
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            if (typeof window.notify === "function") {
+              window.notify(e?.message || "Falha na conexão. Verifique sua carteira e tente novamente.", "error", { container });
+            } else {
+              console.error(e?.message || "Falha na conexão. Verifique sua carteira e tente novamente.");
+            }
+          } catch (_) {}
         }
       }
 
@@ -100,11 +124,16 @@
           // Mostrar feedback imediato para o usuário
           const statusEl = document.getElementById("contract-validation-status");
           if (statusEl) {
-            if (skipMetaMask) {
-              statusEl.innerHTML = '<div class="alert alert-info">🔄 Validando usando RPCs públicos da BSC Testnet (ignorando MetaMask).</div>';
-            } else if (!statusEl.innerHTML.includes("MetaMask indisponível")) {
-              statusEl.innerHTML = '<div class="alert alert-warning">⚠️ MetaMask indisponível. Usando RPCs públicos BSC...</div>';
-            }
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                if (skipMetaMask) {
+                  window.notify("Validando usando RPCs públicos da BSC Testnet (ignorando MetaMask).", "success", { container });
+                } else {
+                  window.notify("MetaMask indisponível. Usando RPCs públicos BSC...", "warning", { container });
+                }
+              }
+            } catch (_) {}
           }
         }
 
@@ -309,17 +338,31 @@
           if (!contractAddressEl || !tokenAddressEl) {
             const errorMsg = "Campos de endereço não encontrados na UI";
             console.error(`❌ [detectContractInformation] ${errorMsg}`);
-            alert(errorMsg);
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
-          const contractAddress = contractAddressEl.value.trim();
-          const tokenAddress = tokenAddressEl.value.trim();
+          const contractAddress = String(contractAddressEl.value || "").replace(/\s+$/u, "");
+          const tokenAddress = String(tokenAddressEl.value || "").replace(/\s+$/u, "");
 
           if (!contractAddress) {
             const errorMsg = "Por favor, informe o endereço do contrato de venda deployado";
             console.warn(`⚠️ [detectContractInformation] ${errorMsg}`);
-            alert(errorMsg);
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "warning", { container });
+              } else {
+                console.warn(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
@@ -327,7 +370,14 @@
           if (!isValidEthereumAddress(contractAddress)) {
             const errorMsg = "Endereço do contrato inválido";
             console.error(`❌ [detectContractInformation] ${errorMsg}: ${contractAddress}`);
-            alert(errorMsg);
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
@@ -347,7 +397,14 @@
           // Mostrar status de carregamento
           const statusEl = document.getElementById("contract-validation-status");
           if (statusEl) {
-            statusEl.innerHTML = '<div class="alert alert-info">🔍 Verificando existência do contrato...</div>';
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify("🔍 Verificando existência do contrato...", "info", { container });
+              } else {
+                console.log("🔍 Verificando existência do contrato...");
+              }
+            } catch (_) {}
           }
 
           // Verificar se o contrato existe com função melhorada
@@ -357,15 +414,27 @@
           if (!contractExists) {
             const errorMsg = "Contrato não encontrado no endereço informado. Verifique se o endereço está correto e se o contrato foi deployado.";
             console.error(`❌ [detectContractInformation] ${errorMsg}`);
-            if (statusEl) {
-              statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
-            }
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
           console.log("✅ [detectContractInformation] Contrato existe, prosseguindo com detecção...");
           if (statusEl) {
-            statusEl.innerHTML = '<div class="alert alert-info">🔍 Detectando informações do contrato...</div>';
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify("🔍 Detectando informações do contrato...", "info", { container });
+              } else {
+                console.log("🔍 Detectando informações do contrato...");
+              }
+            } catch (_) {}
           }
 
           // Se não tiver endereço do token, tentar detectar automaticamente
@@ -405,7 +474,14 @@
                 tokenAddressEl.value = detectedTokenAddress;
 
                 if (statusEl) {
-                  statusEl.innerHTML = '<div class="alert alert-info">🔍 Detectando informações do token...</div>';
+                  try {
+                    const container = document.querySelector(".container, .container-fluid") || document.body;
+                    if (typeof window.notify === "function") {
+                      window.notify("🔍 Detectando informações do token...", "info", { container });
+                    } else {
+                      console.log("🔍 Detectando informações do token...");
+                    }
+                  } catch (_) {}
                 }
 
                 // Detectar informações do token automaticamente com retry
@@ -417,16 +493,15 @@
                   return { name, symbol, decimals };
                 });
 
-                if (statusEl) {
-                  statusEl.innerHTML = `
-                  <div class="alert alert-success">
-                    ✅ Informações detectadas automaticamente:<br>
-                    <strong>Token:</strong> ${tokenInfo.name} (${tokenInfo.symbol})<br>
-                    <strong>Endereço do Token:</strong> ${detectedTokenAddress}<br>
-                    <strong>Decimais:</strong> ${tokenInfo.decimals}
-                  </div>
-                `;
-                }
+                try {
+                  const container = document.querySelector(".container, .container-fluid") || document.body;
+                  const msg = `✅ Informações detectadas: Token ${tokenInfo.name} (${tokenInfo.symbol}), Decimais ${tokenInfo.decimals}.`;
+                  if (typeof window.notify === "function") {
+                    window.notify(msg, "success", { container });
+                  } else {
+                    console.log(msg);
+                  }
+                } catch (_) {}
               } else {
                 throw new Error("Endereço do token não encontrado no contrato");
               }
@@ -434,14 +509,28 @@
               console.error("Erro ao detectar token:", error);
               if (statusEl) {
                 const errorMsg = error.message.includes("missing trie node") ? "Problema temporário de sincronização da rede. Tente novamente em alguns segundos." : "Não foi possível detectar automaticamente o endereço do token. Por favor, informe manualmente.";
-                statusEl.innerHTML = `<div class="alert alert-warning">⚠️ ${errorMsg}</div>`;
+                try {
+                  const container = document.querySelector(".container, .container-fluid") || document.body;
+                  if (typeof window.notify === "function") {
+                    window.notify(errorMsg, "warning", { container });
+                  } else {
+                    console.warn(errorMsg);
+                  }
+                } catch (_) {}
               }
             }
           } else {
             // Se já tem o endereço do token, apenas validar
             try {
               if (statusEl) {
-                statusEl.innerHTML = '<div class="alert alert-info">🔍 Validando informações do token...</div>';
+                try {
+                  const container = document.querySelector(".container, .container-fluid") || document.body;
+                  if (typeof window.notify === "function") {
+                    window.notify("🔍 Validando informações do token...", "info", { container });
+                  } else {
+                    console.log("🔍 Validando informações do token...");
+                  }
+                } catch (_) {}
               }
 
               const tokenInfo = await retryWithProviders(async (currentProvider) => {
@@ -452,20 +541,27 @@
                 return { name, symbol, decimals };
               });
 
-              if (statusEl) {
-                statusEl.innerHTML = `
-                <div class="alert alert-success">
-                  ✅ Token validado:<br>
-                  <strong>Nome:</strong> ${tokenInfo.name} (${tokenInfo.symbol})<br>
-                  <strong>Decimais:</strong> ${tokenInfo.decimals}
-                </div>
-              `;
-              }
+              try {
+                const container = document.querySelector(".container, .container-fluid") || document.body;
+                const msg = `✅ Token validado: ${tokenInfo.name} (${tokenInfo.symbol}), Decimais ${tokenInfo.decimals}.`;
+                if (typeof window.notify === "function") {
+                  window.notify(msg, "success", { container });
+                } else {
+                  console.log(msg);
+                }
+              } catch (_) {}
             } catch (error) {
               console.error("Erro ao validar token:", error);
               if (statusEl) {
                 const errorMsg = error.message.includes("missing trie node") ? "Problema temporário de sincronização da rede. Tente novamente em alguns segundos." : "Erro ao validar o token. Verifique o endereço.";
-                statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
+                try {
+                  const container = document.querySelector(".container, .container-fluid") || document.body;
+                  if (typeof window.notify === "function") {
+                    window.notify(errorMsg, "error", { container });
+                  } else {
+                    console.error(errorMsg);
+                  }
+                } catch (_) {}
               }
             }
           }
@@ -477,7 +573,14 @@
             if (error.message.includes("missing trie node") || error.message.includes("Internal JSON-RPC error")) {
               errorMsg = "Problema temporário de sincronização da rede. Tente novamente em alguns segundos.";
             }
-            statusEl.innerHTML = `<div class="alert alert-danger">❌ Erro: ${errorMsg}</div>`;
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(`❌ Erro: ${errorMsg}`, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
           }
         }
       }
@@ -493,17 +596,31 @@
           if (!contractAddressEl || !tokenAddressEl) {
             const errorMsg = "Campos de endereço não encontrados na UI";
             console.error(`❌ [validateContractFunction] ${errorMsg}`);
-            alert(errorMsg);
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
-          const contractAddress = contractAddressEl.value.trim();
-          const tokenAddress = tokenAddressEl.value.trim();
+          const contractAddress = String(contractAddressEl.value || "").replace(/\s+$/u, "");
+          const tokenAddress = String(tokenAddressEl.value || "").replace(/\s+$/u, "");
 
           if (!contractAddress || !tokenAddress) {
             const errorMsg = "Por favor, informe os endereços do contrato e do token";
             console.warn(`⚠️ [validateContractFunction] ${errorMsg}`);
-            alert(errorMsg);
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "warning", { container });
+              } else {
+                console.warn(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
@@ -511,14 +628,28 @@
           if (!isValidEthereumAddress(contractAddress)) {
             const errorMsg = "Endereço do contrato inválido";
             console.error(`❌ [validateContractFunction] ${errorMsg}: ${contractAddress}`);
-            alert(errorMsg);
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
           if (!isValidEthereumAddress(tokenAddress)) {
             const errorMsg = "Endereço do token inválido";
             console.error(`❌ [validateContractFunction] ${errorMsg}: ${tokenAddress}`);
-            alert(errorMsg);
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
@@ -529,7 +660,14 @@
 
           const statusEl = document.getElementById("contract-validation-status");
           if (statusEl) {
-            statusEl.innerHTML = '<div class="alert alert-info">🔍 Validando contrato...</div>';
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify("🔍 Validando contrato...", "info", { container });
+              } else {
+                console.log("🔍 Validando contrato...");
+              }
+            } catch (_) {}
           }
 
           // Verificar existência do contrato primeiro
@@ -539,9 +677,14 @@
           if (!contractExists) {
             const errorMsg = "Contrato não encontrado ou sem código na BSC Testnet (97)";
             console.error(`❌ [validateContractFunction] ${errorMsg}`);
-            if (statusEl) {
-              statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
-            }
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
@@ -552,9 +695,14 @@
           if (!tokenExists) {
             const errorMsg = "Token não encontrado no endereço informado";
             console.error(`❌ [validateContractFunction] ${errorMsg}`);
-            if (statusEl) {
-              statusEl.innerHTML = `<div class="alert alert-danger">❌ ${errorMsg}</div>`;
-            }
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(errorMsg, "error", { container });
+              } else {
+                console.error(errorMsg);
+              }
+            } catch (_) {}
             return;
           }
 
@@ -651,18 +799,15 @@
 
           const priceInBNB = ethers.utils.formatEther(tokenPrice);
 
-          if (statusEl) {
-            statusEl.innerHTML = `
-            <div class="alert alert-success">
-              ✅ <strong>Contrato validado com sucesso!</strong><br><br>
-              <strong>Token:</strong> ${tokenName} (${tokenSymbol})<br>
-              <strong>Preço:</strong> ${priceInBNB} BNB por token<br>
-              <strong>Owner:</strong> ${owner}<br>
-              <strong>Status:</strong> ${isPaused ? "⏸️ Pausado" : "▶️ Ativo"}<br>
-              <strong>Decimais:</strong> ${tokenDecimals}
-            </div>
-          `;
-          }
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            const msg = `✅ Contrato validado: Token ${tokenName} (${tokenSymbol}), Preço ${priceInBNB} BNB/token, Owner ${owner}, Status ${isPaused ? "Pausado" : "Ativo"}, Decimais ${tokenDecimals}.`;
+            if (typeof window.notify === "function") {
+              window.notify(msg, "success", { container });
+            } else {
+              console.log(msg);
+            }
+          } catch (_) {}
 
           // Habilitar o botão "Testar Sistema"
           const goToStep5Btn = document.getElementById("goToStep5");
@@ -681,7 +826,14 @@
             } else if (msg.includes("CALL_EXCEPTION") || msg.includes("token()")) {
               msg = "A chamada token() reverteu. Verifique se o endereço é do contrato de venda correto e se a função token() existe no ABI.";
             }
-            statusEl.innerHTML = `<div class="alert alert-danger">❌ Erro na validação: ${msg}</div>`;
+            try {
+              const container = document.querySelector(".container, .container-fluid") || document.body;
+              if (typeof window.notify === "function") {
+                window.notify(`❌ Erro na validação: ${msg}`, "error", { container });
+              } else {
+                console.error(msg);
+              }
+            } catch (_) {}
           }
 
           // Desabilitar o botão "Testar Sistema"

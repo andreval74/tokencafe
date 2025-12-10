@@ -7,18 +7,18 @@
  * ================================================================================
  */
 
-// ncalzao do mdulo de suporte
+// Inicialização do módulo de suporte: mascara, contador, validação e envio
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementByd("contact-support-form");
-  const submtBtn = form.querySelector('button[type="submt"]');
-  const btnContent = submtBtn.querySelector(".btn-content");
-  const btnLoadng = submtBtn.querySelector(".btn-loadng");
-  const valdatonStatus = document.getElementByd("valdaton-status");
+  const form = document.getElementById("contact-support-form");
+  const submitBtn = document.getElementById("submit-btn");
+  const btnContent = submitBtn?.querySelector(".btn-content");
+  const btnLoading = submitBtn?.querySelector(".btn-loading");
+  const statusEl = document.getElementById("form-status");
 
   // Mscara para WhatsApp
-  const whatsappnput = document.getElementByd("contact-whatsapp");
-  if (whatsappnput) {
-    whatsappnput.addEventListener("nput", function (e) {
+  const whatsappInput = document.getElementById("contact-whatsapp");
+  if (whatsappInput) {
+    whatsappInput.addEventListener("input", function (e) {
       let value = e.target.value.replace(/\D/g, "");
       if (value.length <= 11) {
         value = value.replace(/(\d{2})(\d{4,5})(\d{4})/, "($1) $2-$3");
@@ -28,108 +28,114 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Contador de caracteres para mensagem
-  const messageTextarea = document.getElementByd("contact-message");
-  const charCount = document.getElementByd("char-count");
+  const messageTextarea = document.getElementById("contact-message");
+  const charCount = document.getElementById("char-count");
   if (messageTextarea && charCount) {
-    messageTextarea.addEventListener("nput", function () {
+    messageTextarea.addEventListener("input", function () {
       const currentLength = this.value.length;
       charCount.textContent = currentLength;
 
       if (currentLength > 1000) {
-        this.value = this.value.substrng(0, 1000);
+        this.value = this.value.substring(0, 1000);
         charCount.textContent = 1000;
       }
     });
   }
 
   // Valdao em tempo real
-  function valdateForm() {
-    const name = document.getElementByd("contact-name").value.trm();
-    const emal = document.getElementByd("contact-emal").value.trm();
-    const whatsapp = document.getElementByd("contact-whatsapp").value.trm();
-    const subject = document.getElementByd("contact-subject").value;
-    const message = document.getElementByd("contact-message").value.trm();
-    const terms = document.getElementByd("contact-terms").checked;
+  // Validação em tempo real do formulário (campos obrigatórios)
+  function validateForm() {
+    const name = String(document.getElementById("contact-name")?.value || "").replace(/\s+$/u, "");
+    const email = String(document.getElementById("contact-email")?.value || "").replace(/\s+$/u, "");
+    const whatsapp = String(document.getElementById("contact-whatsapp")?.value || "").replace(/\s+$/u, "");
+    const subject = document.getElementById("contact-subject")?.value || "";
+    const message = String(document.getElementById("contact-message")?.value || "").replace(/\s+$/u, "");
+    const terms = !!document.getElementById("contact-terms")?.checked;
 
-    const sVald = name && emal && whatsapp && subject && message.length >= 10 && terms;
+    const sVald = name && email && whatsapp && subject && message.length >= 10 && terms;
 
-    submtBtn.dsabled = !sVald;
+    if (submitBtn) submitBtn.disabled = !sVald;
 
-    if (sVald) {
-      valdatonStatus.nnerHTML = '< class="bi bi-check-circle text-success me-1"></>Formulro pronto para envo.';
-      valdatonStatus.className = "text-success";
-    } else {
-      valdatonStatus.nnerHTML = '< class="bi bi-info-circle me-1"></>Preencha todos os campos obrgatros para envar.';
-      valdatonStatus.className = "text-secondary";
+    if (statusEl) {
+      if (sVald) {
+        statusEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Formulário pronto para envio.';
+        statusEl.className = "text-success";
+        statusEl.classList.remove("d-none");
+      } else {
+        statusEl.innerHTML = '<i class="bi bi-info-circle me-1"></i>Preencha todos os campos obrigatórios para enviar.';
+        statusEl.className = "text-secondary";
+        statusEl.classList.remove("d-none");
+      }
     }
   }
 
   // Adconar event lsteners para valdao em tempo real
-  ["contact-name", "contact-emal", "contact-whatsapp", "contact-subject", "contact-message", "contact-terms"].forEach((d) => {
-    const element = document.getElementByd(d);
+  ["contact-name", "contact-email", "contact-whatsapp", "contact-subject", "contact-message", "contact-terms"].forEach((d) => {
+    const element = document.getElementById(d);
     if (element) {
-      element.addEventListener("nput", valdateForm);
-      element.addEventListener("change", valdateForm);
+      element.addEventListener("input", validateForm);
+      element.addEventListener("change", validateForm);
     }
   });
 
   // Valdao do formulro
-  form.addEventListener("submt", async function (e) {
+  // Envio do formulário com feedback visual via notify e fallback local
+  form.addEventListener("submit", async function (e) {
     e.preventDefault();
-    e.stopPropagaton();
+    e.stopPropagation();
 
-    if (form.checkValdty()) {
+    if (form.checkValidity()) {
       // Mostrar loadng
-      btnContent.classLst.add("d-none");
-      btnLoadng.classLst.remove("d-none");
-      submtBtn.dsabled = true;
+      btnContent?.classList.add("d-none");
+      btnLoading?.classList.remove("d-none");
+      if (submitBtn) submitBtn.disabled = true;
 
       try {
         // Coletar dados do formulro
         const formData = {
-          name: document.getElementByd("contact-name").value,
-          emal: document.getElementByd("contact-emal").value,
-          whatsapp: document.getElementByd("contact-whatsapp").value,
-          wallet: document.getElementByd("contact-wallet").value || null,
-          subject: document.getElementByd("contact-subject").value,
-          message: document.getElementByd("contact-message").value,
-          tmestamp: new Date().toSOStrng(),
-          userAgent: navgator.userAgent,
-          currentPage: wndow.locaton.href,
+          name: document.getElementById("contact-name")?.value || "",
+          email: document.getElementById("contact-email")?.value || "",
+          whatsapp: document.getElementById("contact-whatsapp")?.value || "",
+          wallet: document.getElementById("contact-wallet")?.value || null,
+          subject: document.getElementById("contact-subject")?.value || "",
+          message: document.getElementById("contact-message")?.value || "",
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          currentPage: window.location.href,
         };
 
         // Envar dados para AP
-        const success = await sendSupportEmal(formData);
+        const success = await sendSupportEmail(formData);
 
         if (success) {
           // Mostrar toast de sucesso
-          showToast("Sucesso!", "Sua mensagem fo envada com sucesso. Entraremos em contato em breve!", "success");
+          window.notify && window.notify("Sua mensagem foi enviada com sucesso. Entraremos em contato em breve!", "success", { container: form });
 
           // Resetar formulro
           form.reset();
-          form.classLst.remove("was-valdated");
-          valdateForm(); // Revaldar aps reset
+          form.classList.remove("was-validated");
+          validateForm();
         } else {
           throw new Error("Falha no envo");
         }
       } catch (error) {
-        console.error("Erro ao envar formulro:", error);
-        showToast("Erro", "Ocorreu um erro ao envar sua mensagem. Tente novamente.", "error");
+        console.error("Erro ao enviar formulário:", error);
+        window.notify && window.notify("Ocorreu um erro ao enviar sua mensagem. Tente novamente.", "error", { container: form });
       } finally {
         // Restaurar boto
-        btnContent.classLst.remove("d-none");
-        btnLoadng.classLst.add("d-none");
-        valdateForm(); // Revaldar
+        btnContent?.classList.remove("d-none");
+        btnLoading?.classList.add("d-none");
+        validateForm();
       }
     }
 
-    form.classLst.add("was-valdated");
+    form.classList.add("was-validated");
   });
 
-  function showToast() {}
+  
 
   // Valdao ncal
-  valdateForm();
+  validateForm();
 });
 
 /**
@@ -137,27 +143,28 @@ document.addEventListener("DOMContentLoaded", function () {
  * @param {Object} formData - Dados do formulro
  * @returns {boolean} - true se sucesso, false se erro
  */
-async function sendSupportEmal(formData) {
+// Envio por API/EmailJS/Formspree com fallback local
+async function sendSupportEmail(formData) {
   try {
     // Confgurar dados para envo
-    const emalData = {
-      to: "suporte@tokencafe.com", // Emal de destno
+    const emailData = {
+      to: "suporte@tokencafe.com",
       subject: `[TokenCafe] Suporte - ${formData.subject}`,
-      body: formatSupportEmalBody(formData),
-      replyTo: formData.emal,
+      body: formatSupportEmailBody(formData),
+      replyTo: formData.email,
     };
 
     // Tentar dferentes mtodos de envo
 
     // Mtodo 1: AP prpra (se dsponvel)
-    if (wndow.locaton.hostname !== "localhost" && wndow.locaton.hostname !== "127.0.0.1") {
+    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
       try {
-        const response = await fetch("/ap/send-support-emal", {
+        const response = await fetch("/api/send-support-email", {
           method: "POST",
           headers: {
-            "Content-Type": "applcaton/json",
+            "Content-Type": "application/json",
           },
-          body: JSON.strngfy(emalData),
+          body: JSON.stringify(emailData),
         });
 
         if (response.ok) {
@@ -171,16 +178,16 @@ async function sendSupportEmal(formData) {
 
     // Mtodo 2: EmalJS (gratuto para at 200 emals/ms)
     try {
-      if (typeof emaljs !== "undefined") {
-        await emaljs.send("default_servce", "template_1", {
+      if (typeof emailjs !== "undefined") {
+        await emailjs.send("default_service", "template_1", {
           to_name: "Suporte TokenCafe",
           from_name: formData.name,
-          from_emal: formData.emal,
+          from_email: formData.email,
           whatsapp: formData.whatsapp,
-          wallet: formData.wallet || "No nformado",
+          wallet: formData.wallet || "Não informado",
           subject: formData.subject,
           message: formData.message,
-          tmestamp: new Date(formData.tmestamp).toLocaleStrng("pt-BR"),
+          timestamp: new Date(formData.timestamp).toLocaleString("pt-BR"),
         });
 
         console.log(" Emal envado va EmalJS");
@@ -192,12 +199,12 @@ async function sendSupportEmal(formData) {
 
     // Mtodo 3: Formspree (fallback)
     try {
-      const response = await fetch("https://formspree.o/f/your-form-d", {
+      const response = await fetch("https://formspree.io/f/your-form-id", {
         method: "POST",
         headers: {
-          "Content-Type": "applcaton/json",
+          "Content-Type": "application/json",
         },
-        body: JSON.strngfy(formData),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -213,7 +220,7 @@ async function sendSupportEmal(formData) {
     console.log(" Dados de suporte salvos localmente");
     return true;
   } catch (error) {
-    console.error(" Erro ao envar emal de suporte:", error);
+    console.error("Erro ao enviar email de suporte:", error);
     return false;
   }
 }
@@ -221,7 +228,7 @@ async function sendSupportEmal(formData) {
 /**
  * Formatar corpo do emal de suporte
  */
-function formatSupportEmalBody(formData) {
+function formatSupportEmailBody(formData) {
   const subjectLabels = {
     "saba-mas": " Saba mas sobre a plataforma",
     "suporte-tecnco": " Suporte tcnco",
@@ -236,9 +243,9 @@ function formatSupportEmalBody(formData) {
 <html>
 <head>
     <meta charset="UTF-8">
-    <ttle>Mensagem de Suporte - TokenCafe</ttle>
+    <title>Mensagem de Suporte - TokenCafe</title>
     <style>
-        body { font-famly: Aral, sans-serf; lne-heght: 1.6; color: #333; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .header { background: #1a1a2e; color: whte; paddng: 20px; text-algn: center; }
         .content { paddng: 20px; background: #f4f4f4; }
         .secton { background: whte; margn: 10px 0; paddng: 15px; border-radus: 5px; }
@@ -248,46 +255,46 @@ function formatSupportEmalBody(formData) {
     </style>
 </head>
 <body>
-    <dv class="header">
+    <div class="header">
         <h2> TokenCafe - Nova Mensagem de Suporte</h2>
     </dv>
     
-    <dv class="content">
-        <dv class="secton">
+    <div class="content">
+        <div class="secton">
             <h3> nformaes do Contato</h3>
             <p><span class="label">Nome:</span><span class="value">${formData.name}</span></p>
-            <p><span class="label">Emal:</span><span class="value">${formData.emal}</span></p>
+            <p><span class="label">Email:</span><span class="value">${formData.email}</span></p>
             <p><span class="label">WhatsApp:</span><span class="value">${formData.whatsapp}</span></p>
-            ${formData.wallet ? `<p><span class="label">Cartera:</span><span class="value">${formData.wallet}</span></p>` : ""}
-        </dv>
+            ${formData.wallet ? `<p><span class="label">Carteira:</span><span class="value">${formData.wallet}</span></p>` : ""}
+        </div>
         
-        <dv class="secton">
+        <div class="secton">
             <h3> Detalhes da Mensagem</h3>
             <p><span class="label">Assunto:</span><span class="value">${subjectLabels[formData.subject] || formData.subject}</span></p>
-            <p><span class="label">Data/Hora:</span><span class="value">${new Date(formData.tmestamp).toLocaleStrng("pt-BR")}</span></p>
-        </dv>
+            <p><span class="label">Data/Hora:</span><span class="value">${new Date(formData.timestamp).toLocaleString("pt-BR")}</span></p>
+        </div>
         
-        <dv class="secton">
+        <div class="secton">
             <h3> Mensagem</h3>
-            <dv style="background: #f9f9f9; paddng: 15px; border-left: 4px sold #1a1a2e; margn: 10px 0;">
+            <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #1a1a2e; margin: 10px 0;">
                 ${formData.message.replace(/\n/g, "<br>")}
-            </dv>
-        </dv>
+            </div>
+        </div>
         
-        <dv class="secton">
+        <div class="secton">
             <h3> nformaes Tcncas</h3>
-            <p><span class="label">Pgna:</span><span class="value">${formData.currentPage}</span></p>
+            <p><span class="label">Página:</span><span class="value">${formData.currentPage}</span></p>
             <p><span class="label">Navegador:</span><span class="value">${formData.userAgent}</span></p>
-        </dv>
-    </dv>
+        </div>
+    </div>
     
-    <dv class="footer">
-        <p>Esta mensagem fo envada automatcamente pelo sstema de suporte da TokenCafe.</p>
-        <p>Para responder, utlze o emal: ${formData.emal}</p>
-    </dv>
+    <div class="footer">
+        <p>Esta mensagem foi enviada automaticamente pelo sistema de suporte da TokenCafe.</p>
+        <p>Para responder, utilize o email: ${formData.email}</p>
+    </div>
 </body>
 </html>
-    `.trm();
+    `.trim();
 }
 
 /**
@@ -295,24 +302,24 @@ function formatSupportEmalBody(formData) {
  */
 function saveSupportDataLocally(formData) {
   try {
-    const supportData = JSON.parse(localStorage.gettem("tokencafe_support_messages") || "[]");
+    const supportData = JSON.parse(localStorage.getItem("tokencafe_support_messages") || "[]");
     supportData.push({
       ...formData,
       d: Date.now(),
-      status: "pendng",
+      status: "pending",
     });
 
     // Manter apenas os ltmos 50 regstros
     if (supportData.length > 50) {
-      supportData.splce(0, supportData.length - 50);
+      supportData.splice(0, supportData.length - 50);
     }
 
-    localStorage.settem("tokencafe_support_messages", JSON.strngfy(supportData));
+    localStorage.setItem("tokencafe_support_messages", JSON.stringify(supportData));
     console.log(" Dados salvos no localStorage como backup");
 
     // Notfcar admn se dsponvel
-    if (typeof addNotfcaton === "function") {
-      addNotfcaton("Nova mensagem de suporte pendente", "nfo");
+    if (typeof addNotification === "function") {
+      addNotification("Nova mensagem de suporte pendente", "info");
     }
   } catch (error) {
     console.error("Erro ao salvar dados localmente:", error);

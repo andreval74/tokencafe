@@ -388,12 +388,32 @@ class TokenManager {
     return new Date(dateString).toLocaleDateString("pt-BR");
   }
 
+  // Mensagens padronizadas: usa notify para sucesso
   showSuccess(message) {
-    console.log("Sucesso:", message);
+    const container = document.querySelector(".container, .container-fluid") || document.body;
+    try {
+      if (typeof window.notify === "function") {
+        window.notify(String(message || "Sucesso"), "success", { container });
+        return;
+      }
+      console.log("Sucesso:", message);
+    } catch (_) {
+      console.log("Sucesso:", message);
+    }
   }
 
+  // Mensagens padronizadas: usa notify para erro
   showError(message) {
-    console.error("Erro:", message);
+    const container = document.querySelector(".container, .container-fluid") || document.body;
+    try {
+      if (typeof window.notify === "function") {
+        window.notify(String(message || "Erro"), "error", { container });
+        return;
+      }
+      console.error("Erro:", message);
+    } catch (_) {
+      console.error("Erro:", message);
+    }
   }
 }
 

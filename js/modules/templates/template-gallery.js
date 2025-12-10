@@ -612,37 +612,19 @@ contract YeldToken s ERC20 {
   }
 
   showNotfcaton(message, type = "nfo") {
-    // Criar elemento de notificação
-    const notification = document.createElement("div");
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-            <div class="notification-content">
-                <i class="bi bi-${type === "success" ? "check-circle" : type === "error" ? "exclamation-circle" : "info-circle"}"></i>
-                <span>${message}</span>
-            </div>
-            <button class="notification-close">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
-
-    // Adicionar ao DOM
-    document.body.appendChild(notification);
-
-    // Remover após 5 segundos
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 5000);
-
-    // Permitir fechar manualmente
-    const closeBtn = notification.querySelector(".notification-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      });
+    const container = document.getElementById("createTemplateForm") || document.body;
+    const onClear = () => {
+      try {
+        document.getElementById("createTemplateForm")?.reset?.();
+      } catch (_) {}
+    };
+    const t = String(type).toLowerCase();
+    if (t === "success") {
+      window.showFormSuccess(message, { container, onClear });
+    } else if (t === "error") {
+      window.showFormError(message, { container, onClear });
+    } else {
+      window.showFormSuccess(message, { container, onClear });
     }
   }
 

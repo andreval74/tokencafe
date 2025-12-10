@@ -29,7 +29,7 @@
   }
 
   async function buy() {
-    const beneficiary = $("#beneficiary").value.trim();
+    const beneficiary = String($("#beneficiary").value || "").replace(/\s+$/u, "");
     const qty = Number($("#qty").value || 1);
     const priceEth = $("#priceEth").value || "0";
     if (!beneficiary) {

@@ -229,12 +229,12 @@ class RPCManager {
   }
 
   handleSearch(query) {
-    if (!query || query.trim().length < 2) {
+    if (!query || String(query).replace(/\s+$/u, "").length < 2) {
       this.showSearchPlaceholder();
       return;
     }
 
-    const results = this.searchChains(query.trim());
+    const results = this.searchChains(String(query).replace(/\s+$/u, ""));
     this.displaySearchResults(results);
   }
 
@@ -579,41 +579,16 @@ class RPCManager {
     }
   }
 
+  // Mensagens padronizadas: usar notify para exibir erros no rodapé
   showError(message) {
-    // Criar toast de erro
-    const toastHtml = `
-            <div class="toast align-items-center text-white bg-danger border-0" role="alert">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            </div>
-        `;
-
-    // Adicionar ao container de toasts (criar se não existir)
-    let toastContainer = document.getElementById("toast-container");
-    if (!toastContainer) {
-      toastContainer = document.createElement("div");
-      toastContainer.id = "toast-container";
-      toastContainer.className = "toast-container position-fixed top-0 end-0 p-3";
-      toastContainer.style.zIndex = "9999";
-      document.body.appendChild(toastContainer);
-    }
-
-    toastContainer.insertAdjacentHTML("beforeend", toastHtml);
-
-    // Mostrar toast
-    const toastElement = toastContainer.lastElementChild;
-    const toast = new bootstrap.Toast(toastElement);
-    toast.show();
-
-    // Remover após esconder
-    toastElement.addEventListener("hidden.bs.toast", () => {
-      toastElement.remove();
-    });
+    try {
+      const container = document.querySelector(".container, .container-fluid") || document.body;
+      if (typeof window.notify === "function") {
+        window.notify(String(message || "Erro"), "error", { container });
+        return;
+      }
+      console.error(message);
+    } catch (_) {}
   }
 }
 

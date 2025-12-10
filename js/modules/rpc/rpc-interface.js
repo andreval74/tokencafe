@@ -87,7 +87,7 @@ class RPCInterface {
   }
 
   handleNetworkSearch(query) {
-    if (!query.trim()) {
+    if (!String(query).replace(/\s+$/u, "")) {
       this.hideNetworkAutocomplete();
       return;
     }
@@ -374,7 +374,14 @@ class RPCInterface {
     try {
       // Se carteira não disponível, informar e oferecer download
       if (!window.ethereum || !window.ethereum.isMetaMask) {
-        alert("MetaMask não está instalado. Por favor, instale o MetaMask para continuar.");
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          if (typeof window.notify === "function") {
+            window.notify("MetaMask não está instalado. Por favor, instale o MetaMask para continuar.", "error", { container });
+          } else {
+            console.error("MetaMask não está instalado. Por favor, instale o MetaMask para continuar.");
+          }
+        } catch (_) {}
         window.open("https://metamask.io/download/", "_blank");
         return false;
       }
@@ -468,13 +475,13 @@ class RPCInterface {
     const customRpcInput = document.getElementById("customRpcInput");
     const customRpcName = document.getElementById("customRpcName");
 
-    if (!customRpcInput || !customRpcInput.value.trim()) {
+    if (!customRpcInput || !String(customRpcInput.value || "").replace(/\s+$/u, "")) {
       this.showMessage("error", "Por favor, insira uma URL válida para o RPC");
       return;
     }
 
-    const rpcUrl = customRpcInput.value.trim();
-    const rpcName = customRpcName ? customRpcName.value.trim() || "RPC Personalizado" : "RPC Personalizado";
+    const rpcUrl = String(customRpcInput.value || "").replace(/\s+$/u, "");
+    const rpcName = customRpcName ? String(customRpcName.value || "").replace(/\s+$/u, "") || "RPC Personalizado" : "RPC Personalizado";
 
     if (!this.selectedNetwork) {
       this.showMessage("error", "Nenhuma rede selecionada");
@@ -650,11 +657,11 @@ class RPCInterface {
       // Adiciona RPCs personalizadas se fornecidas
       const customRpcUrl = document.getElementById("customRpcUrl");
       let customRpcs = [];
-      if (customRpcUrl && customRpcUrl.value.trim()) {
+      if (customRpcUrl && String(customRpcUrl.value || "").replace(/\s+$/u, "")) {
         customRpcs = customRpcUrl.value
-          .trim()
+          .replace(/\s+$/u, "")
           .split("\n")
-          .map((url) => url.trim())
+          .map((url) => String(url).replace(/\s+$/u, ""))
           .filter((url) => url && (url.startsWith("http://") || url.startsWith("https://")));
 
         if (customRpcs.length > 0) {
@@ -737,34 +744,22 @@ class RPCInterface {
   }
 
   showMessage(type, message) {
-    // Esconde todas as mensagens primeiro
-    this.hideMessage("success");
-    this.hideMessage("error");
-    this.hideMessage("warning");
-    this.hideMessage("info");
-
-    // Mostra a mensagem do tipo especificado
-    const messageElement = document.getElementById(`${type}Message`);
-    const textElement = document.getElementById(`${type}Text`);
-
-    if (messageElement && textElement) {
-      textElement.textContent = message;
-      messageElement.style.display = "block";
-
-      // Auto-hide para mensagens de sucesso e info após 5 segundos
-      if (type === "success" || type === "info") {
-        setTimeout(() => {
-          this.hideMessage(type);
-        }, 5000);
+    try {
+      const container = document.querySelector(".container, .container-fluid") || document.body;
+      if (typeof window.notify === "function") {
+        window.notify(String(message || ""), String(type || "info"), { container });
+        return;
       }
-    }
+      if (type === "success") {
+        console.log(message);
+      } else {
+        console.error(message);
+      }
+    } catch (_) {}
   }
 
   hideMessage(type) {
-    const messageElement = document.getElementById(`${type}Message`);
-    if (messageElement) {
-      messageElement.style.display = "none";
-    }
+    try { void type; } catch (_) {}
   }
 
   /**

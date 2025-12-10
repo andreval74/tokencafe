@@ -147,6 +147,101 @@ class BaseSystem {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });
+
+    // Sanitização global de campos: exposta como função reutilizável
+    // Evita duplicação e garante padrão em todo o ecossistema
+    window.bindInputSanitizer = (unusedOptions = {}) => {
+      if (unusedOptions && typeof unusedOptions === "object") {
+        void unusedOptions;
+      }
+      // Guard para evitar múltiplos binds
+      if (window.__inputSanitizerBound) return;
+      window.__inputSanitizerBound = true;
+
+      // Regras de sanitização
+      const shouldSanitize = (el) => {
+        if (!el || el.disabled) return false;
+        const tag = (el.tagName || "").toLowerCase();
+        if (tag !== "input" && tag !== "textarea") return false;
+        if (el.dataset && String(el.dataset.trim).toLowerCase() === "off") return false;
+        return true;
+      };
+      const trimTrailing = (v) => (typeof v === "string" ? v.replace(/\s+$/u, "") : v);
+      const trimFull = (v) => (typeof v === "string" ? v.replace(/\s+$/u, "") : v);
+      const collapseSpaces = (v) => (typeof v === "string" ? v.replace(/\s{2,}/g, " ") : v);
+      const getMode = (el) => {
+        const d = String(el?.dataset?.trim || "").toLowerCase();
+        if (d === "off") return "off";
+        if (d === "collapse") return "collapse";
+        return "default";
+      };
+
+      // Removido: não sanitizar enquanto digita
+
+      // Ao sair do campo: trim completo
+      ["change", "blur"].forEach((ev) => {
+        document.addEventListener(
+          ev,
+        (e) => {
+          const el = e.target;
+          if (!shouldSanitize(el)) return;
+          const mode = getMode(el);
+          const before = el.value;
+          let after = trimFull(before);
+          if (mode === "collapse") after = collapseSpaces(after);
+          if (after !== before) el.value = after;
+        },
+        true,
+      );
+      });
+    };
+
+    // Aplicar por padrão em todas as páginas que carregam o Base System
+    window.bindInputSanitizer();
+
+    // Padronização: delega mensagens de sucesso para notify
+    window.showFormSuccess = (message, _opts = {}) => {
+      try {
+        const container = _opts?.container || (document.querySelector(".container, .container-fluid") || document.body);
+        if (typeof window.notify === "function") {
+          return window.notify(String(message || "Sucesso"), "success", { container });
+        }
+        if (window.SuccessErrorUI?.showSuccess) return window.SuccessErrorUI.showSuccess(message, {});
+        console.log(message);
+        return null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    // Padronização: delega mensagens de erro para notify
+    window.showFormError = (message, _opts = {}) => {
+      try {
+        const container = _opts?.container || (document.querySelector(".container, .container-fluid") || document.body);
+        if (typeof window.notify === "function") {
+          return window.notify(String(message || "Erro"), "error", { container });
+        }
+        if (window.SuccessErrorUI?.showError) return window.SuccessErrorUI.showError(message, {});
+        console.error(message);
+        return null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    document.addEventListener("form:success", (e) => {
+      try {
+        const d = e?.detail || {};
+        window.showFormSuccess(String(d.message || "Sucesso"), { container: d.container, onClear: d.onClear });
+      } catch (_) {}
+    });
+
+    document.addEventListener("form:error", (e) => {
+      try {
+        const d = e?.detail || {};
+        window.showFormError(String(d.message || "Erro"), { container: d.container, onClear: d.onClear });
+      } catch (_) {}
+    });
   }
 
   /**
@@ -178,15 +273,59 @@ class BaseSystem {
       if (ok) {
         await this.applyConnectedNetworkDefault();
       } else {
-        await this.applyNetworkSelectionMode();
+        let connected = false;
+        try {
+          if (window.ethereum && typeof window.ethereum.request === "function") {
+            const accs = await window.ethereum.request({ method: "eth_accounts" }).catch(() => []);
+            if (Array.isArray(accs) && accs.length > 0) {
+              try {
+                await window.walletConnector?.connectSilent?.("metamask");
+                connected = true;
+              } catch (_) {}
+            }
+          }
+          if (!connected) {
+            if (!window.__tokencafe_auto_connect_initiated) {
+              window.__tokencafe_auto_connect_initiated = true;
+              if (window.authModal && typeof window.authModal.show === "function") {
+                try {
+                  window.authModal.show();
+                } catch (_) {}
+              } else {
+                try {
+                  await window.walletConnector?.connect?.("metamask");
+                  connected = true;
+                } catch (_) {}
+              }
+            }
+          }
+        } catch (_) {}
+        const status2 = window.walletConnector?.getStatus?.() || {};
+        const ok2 = !!status2.account;
+        if (connected || ok2) {
+          await this.applyConnectedNetworkDefault();
+        } else {
+          const base = this.getBasePath();
+          const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
+          window.location.href = target;
+          return;
+        }
       }
 
       document.addEventListener("wallet:disconnected", async () => {
         try {
           try {
-            await window.walletConnector?.connect?.("metamask");
-          } catch (_) {
-            window.showToast?.("Carteira desconectada. Conecte para continuar", "error");
+            await window.walletConnector?.connectSilent?.("metamask");
+          } catch (_) {}
+          const s = window.walletConnector?.getStatus?.() || {};
+          if (!s.account) {
+            try {
+              await window.walletConnector?.connect?.("metamask");
+            } catch (_) {
+              const base = this.getBasePath();
+              const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
+              window.location.href = target;
+            }
           }
         } catch (_) {}
       });

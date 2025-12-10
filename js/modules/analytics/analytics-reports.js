@@ -554,11 +554,25 @@ class AnalytcsReports {
   }
 
   showSuccess(message) {
-    console.log("", message);
+    try {
+      const container = document.querySelector(".container, .container-fluid") || document.body;
+      if (typeof window.notify === "function") {
+        window.notify(String(message || ""), "success", { container });
+        return;
+      }
+      console.log(message);
+    } catch (_) {}
   }
 
   showError(message) {
-    console.error("", message);
+    try {
+      const container = document.querySelector(".container, .container-fluid") || document.body;
+      if (typeof window.notify === "function") {
+        window.notify(String(message || ""), "error", { container });
+        return;
+      }
+      console.error(message);
+    } catch (_) {}
   }
 }
 

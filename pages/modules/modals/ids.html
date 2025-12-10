@@ -164,7 +164,17 @@
       }
 
       async function addNetwork(net) {
-        if (!provider) return alert("MetaMask não detectado.");
+        if (!provider) {
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            if (typeof window.notify === "function") {
+              window.notify("MetaMask não detectado.", "error", { container });
+            } else {
+              console.error("MetaMask não detectado.");
+            }
+          } catch (_) {}
+          return;
+        }
 
         try {
           await provider.request({
@@ -188,7 +198,17 @@
       }
 
       async function switchToNetwork(chainId) {
-        if (!provider) return alert("MetaMask não detectado.");
+        if (!provider) {
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            if (typeof window.notify === "function") {
+              window.notify("MetaMask não detectado.", "error", { container });
+            } else {
+              console.error("MetaMask não detectado.");
+            }
+          } catch (_) {}
+          return;
+        }
         try {
           await provider.request({
             method: "wallet_switchEthereumChain",
@@ -214,7 +234,17 @@
 
       document.getElementById("customForm").addEventListener("submit", function (e) {
         e.preventDefault();
-        if (!provider) return alert("MetaMask não detectado.");
+        if (!provider) {
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            if (typeof window.notify === "function") {
+              window.notify("MetaMask não detectado.", "error", { container });
+            } else {
+              console.error("MetaMask não detectado.");
+            }
+          } catch (_) {}
+          return;
+        }
 
         const chainId = document.getElementById("customChainId").value;
         const chainName = document.getElementById("customChainName").value;
@@ -254,5 +284,6 @@
           });
       });
     </script>
+    <script src="/js/shared/sucessoeerro.js"></script>
   </body>
 </html>

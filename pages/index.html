@@ -945,7 +945,14 @@
               await window.walletConnector?.connect?.("metamask");
               window.location.href = "/pages/tools.html";
             } catch (e) {
-              alert("Conexão necessária: " + (e?.message || e));
+              try {
+                const container = document.querySelector(".container, .container-fluid") || document.body;
+                if (typeof window.notify === "function") {
+                  window.notify("Conexão necessária: " + (e?.message || e), "error", { container });
+                } else {
+                  console.error("Conexão necessária: " + (e?.message || e));
+                }
+              } catch (_) {}
             }
           };
         };

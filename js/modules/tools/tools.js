@@ -30,7 +30,14 @@ function setupToolLinks() {
       const walletStatus = window.walletConnector?.getStatus?.();
       const isWalletConnected = !!walletStatus?.account;
       const msg = ["Status do Sistema Unificado:", "• RPCs locais (rpcs.json): OK", `• Backend RPC: ${backendEnabled ? "Ativo" : "Opcional/Desativado"}`, "• Link Generator: OK", `• Wallet: ${isWalletConnected ? "Conectada" : "Desconectada"}`].join("\n");
-      alert(msg);
+      try {
+        const container = document.querySelector(".container, .container-fluid") || document.body;
+        if (typeof window.notify === "function") {
+          window.notify(msg.replaceAll("\n", "<br>"), "info", { container });
+        } else {
+          console.log(msg);
+        }
+      } catch (_) {}
     });
   }
 }
@@ -61,7 +68,14 @@ function setupImportRecipe() {
           localStorage.setItem("tokencafe_contract_recipe_import", JSON.stringify(rec));
           window.location.href = "modules/contracts/index.html";
         } catch (err) {
-          alert("Falha ao importar .json: " + (err && err.message ? err.message : err));
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            if (typeof window.notify === "function") {
+              window.notify("Falha ao importar .json: " + (err && err.message ? err.message : err), "error", { container });
+            } else {
+              console.error("Falha ao importar .json:", err);
+            }
+          } catch (_) {}
         }
       };
       reader.readAsText(file);

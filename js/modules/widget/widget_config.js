@@ -71,7 +71,7 @@ function setupEvents() {
   });
 
   search.addEventListener("input", (e) => {
-    const q = String(e.target.value || "").trim();
+    const q = String(e.target.value || "").replace(/\s+$/u, "");
     const results = q.length < 2 ? networkManager?.getPopularNetworks(8) || [] : networkManager?.searchNetworks(q, 10) || [];
     renderAutocomplete(results);
   });

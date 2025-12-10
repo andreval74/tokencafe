@@ -27,11 +27,11 @@
 
   function sanitizeUrl(u) {
     if (!u) return null;
-    let s = String(u).trim();
+    let s = String(u).replace(/\s+$/u, "");
     if ((s.startsWith("`") && s.endsWith("`")) || (s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-      s = s.slice(1, -1).trim();
+      s = s.slice(1, -1).replace(/\s+$/u, "");
     }
-    s = s.replace(/^\s+|\s+$/g, "");
+    s = s.replace(/\s+$/u, "");
     return s;
   }
 
@@ -166,13 +166,13 @@
 
     attachEvents() {
       this.el.contractInput?.addEventListener("change", () => {
-        this.contractAddress = this.el.contractInput.value.trim();
+        this.contractAddress = String(this.el.contractInput.value || "").replace(/\s+$/u, "");
       });
       this.el.tokenInput?.addEventListener("change", () => {
-        this.tokenAddress = this.el.tokenInput.value.trim();
+        this.tokenAddress = String(this.el.tokenInput.value || "").replace(/\s+$/u, "");
       });
       this.el.priceInput?.addEventListener("change", () => {
-        const v = this.el.priceInput.value.trim();
+        const v = String(this.el.priceInput.value || "").replace(/\s+$/u, "");
         try {
           this.pricePerToken = ethers.utils.parseEther(v || "0.001");
         } catch (_) {
@@ -257,8 +257,8 @@
     }
 
     async validateContract() {
-      const addr = this.contractAddress?.trim();
-      const tokenAddr = this.tokenAddress?.trim();
+      const addr = String(this.contractAddress || "").replace(/\s+$/u, "");
+      const tokenAddr = String(this.tokenAddress || "").replace(/\s+$/u, "");
       this.state = {
         contractIsDeployed: null,
         isErc20Valid: null,
@@ -399,8 +399,14 @@
           });
         } catch (e) {
           const reason = extractReason(e);
-          const alert = $("#tw-alert");
-          if (alert) alert.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2"></i>Pré-checagem falhou: ${reason}</div>`;
+          try {
+            const container = document.querySelector(".container, .container-fluid") || document.body;
+            if (typeof window.notify === "function") {
+              window.notify(`Pré-checagem falhou: ${reason}`, "error", { container });
+            } else {
+              console.error(`Pré-checagem falhou: ${reason}`);
+            }
+          } catch (_) {}
           log({ error: "Pré-checagem buy() falhou", details: reason, raw: e });
           if (buyBtn) {
             buyBtn.disabled = false;
@@ -433,8 +439,16 @@
           status: receipt.status === 1 ? "CONFIRMADO" : "REVERTIDO",
         };
         log(resumo);
-        const alert = $("#tw-alert");
-        if (alert) alert.innerHTML = `<div class="alert alert-${receipt.status === 1 ? "success" : "danger"}"><i class="bi ${receipt.status === 1 ? "bi-check-circle" : "bi-x-circle"} me-2"></i>Transação ${receipt.status === 1 ? "confirmada" : "revertida"} · Tx: <a href="#" class="text-decoration-underline">${tx.hash}</a> · Pago: ${ethers.utils.formatEther(total)} ${this.symbol}</div>`;
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          const type = receipt.status === 1 ? "success" : "error";
+          const iconText = receipt.status === 1 ? "confirmada" : "revertida";
+          if (typeof window.notify === "function") {
+            window.notify(`Transação ${iconText} · Tx: <a href=\"#\" class=\"text-decoration-underline\">${tx.hash}</a> · Pago: ${ethers.utils.formatEther(total)} ${this.symbol}`, type, { container });
+          } else {
+            console.log(`Transação ${iconText}`, tx.hash);
+          }
+        } catch (_) {}
         await this.refreshBalances();
         if (buyBtn) {
           buyBtn.disabled = false;
@@ -448,8 +462,14 @@
         }
         const msg = e?.message || String(e);
         log({ error: "Falha na compra", details: msg });
-        const alert = $("#tw-alert");
-        if (alert) alert.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle me-2"></i>Erro na compra: ${msg}</div>`;
+        try {
+          const container = document.querySelector(".container, .container-fluid") || document.body;
+          if (typeof window.notify === "function") {
+            window.notify(`Erro na compra: ${msg}`, "error", { container });
+          } else {
+            console.error(`Erro na compra: ${msg}`);
+          }
+        } catch (_) {}
       }
     }
 

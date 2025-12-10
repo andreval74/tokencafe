@@ -12,6 +12,7 @@ function getDeployButton() {
   }
 }
 import { getExplorerContractUrl, getExplorerTxUrl, getExplorerVerificationUrl } from "./explorer-utils.js";
+import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
 
 // Estado simples do módulo
@@ -146,30 +147,65 @@ function updateVanityVisibility() {
 
 function readForm() {
   state.form.group = $("#contractGroup").value;
-  state.form.token.name = $("#tokenName").value.trim();
-  state.form.token.symbol = $("#tokenSymbol").value.trim().toUpperCase();
+  state.form.token.name = String($("#tokenName").value || "").replace(/\s+$/u, "");
+  state.form.token.symbol = String($("#tokenSymbol").value || "").replace(/\s+$/u, "").toUpperCase();
   state.form.token.decimals = parseInt($("#tokenDecimals").value || "18", 10);
   {
-    const raw = String($("#initialSupply").value || "").trim();
+    const raw = String($("#initialSupply").value || "").replace(/\s+$/u, "");
     const sanitized = raw.replace(/[^0-9]/g, "");
     state.form.token.initialSupply = parseInt(sanitized || "0", 10);
   }
 
   // Entradas decimais (strings), não usar wei. Conversão será feita no backend.
-  state.form.sale.priceDec = ($("#tokenPriceDec").value || "").trim();
-  state.form.sale.minDec = ($("#minPurchaseDec").value || "").trim();
-  state.form.sale.maxDec = ($("#maxPurchaseDec").value || "").trim();
+  state.form.sale.priceDec = String($("#tokenPriceDec").value || "").replace(/\s+$/u, "");
+  state.form.sale.minDec = String($("#minPurchaseDec").value || "").replace(/\s+$/u, "");
+  state.form.sale.maxDec = String($("#maxPurchaseDec").value || "").replace(/\s+$/u, "");
   state.form.sale.capUnits = BigInt($("#perWalletCap").value || "0");
-  state.form.sale.payoutWallet = ($("#payoutWallet").value || "").trim();
+  state.form.sale.payoutWallet = String($("#payoutWallet").value || "").replace(/\s+$/u, "");
 
   state.form.vanity.mode = $("#vanityMode").value;
-  state.form.vanity.custom = ($("#vanityCustom").value || "").trim();
+  state.form.vanity.custom = String($("#vanityCustom").value || "").replace(/\s+$/u, "");
 }
 
 function validateHex4(str) {
   // Aceitar apenas 0-9 e a-f (case-insensitive). Aviso: não garantimos maiúsculas/minúsculas no endereço.
   return /^[0-9a-f]{4}$/i.test(str);
 }
+
+// Validação de endereço usando utilitário compartilhado (consistência com o resto da app)
+const __utils = new SharedUtilities();
+function isValidAddress(addr) {
+  try {
+    return __utils.isValidEthereumAddress(String(addr || ""));
+  } catch (_) {
+    return false;
+  }
+}
+
+function getDefaultImageUrl() {
+  try {
+    const origin = String(location.origin || "");
+    if (/^https?:/i.test(origin)) return `${origin.replace(/\/$/, "")}/imgs/tkncafe192x192.png`;
+    return "https://tokencafe.onrender.com/imgs/tkncafe192x192.png";
+  } catch (_) {
+    return "https://tokencafe.onrender.com/imgs/tkncafe192x192.png";
+  }
+}
+
+function getFallbackRpcByChainId(chainId) {
+  try {
+    const cid = Number(chainId);
+    if (cid === 56) return "https://bsc-dataseed.binance.org";
+    if (cid === 97) return "https://bsc-testnet.publicnode.com";
+    if (cid === 1) return "https://eth.llamarpc.com";
+    if (cid === 137) return "https://polygon-rpc.com";
+    return "";
+  } catch (_) {
+    return "";
+  }
+}
+
+// manter padrão: usa primeiro RPC da rede ou fallback por chainId
 
 function validateForm() {
   readForm();
@@ -254,14 +290,14 @@ function clearFieldInvalid(el) {
 
 function validateTokenNameInline() {
   const el = getEl("tokenName");
-  const v = (el?.value || "").trim();
+  const v = String(el?.value || "");
   if (!v) return setFieldInvalid(el, "Informe o nome do token.");
   return clearFieldInvalid(el);
 }
 
 function validateTokenSymbolInline() {
   const el = getEl("tokenSymbol");
-  let v = (el?.value || "").trim();
+  let v = String(el?.value || "");
   // Sanitizar para maiúsculas A–Z e dígitos 0–9, no máx 8 chars
   const sanitized = v
     .toUpperCase()
@@ -328,7 +364,7 @@ function validateSaleInline() {
   const capVal = parseInt(capEl?.value || "0", 10);
   if (!Number.isFinite(capVal) || capVal < 0) ok = setFieldInvalid(capEl, "Cap por carteira deve ser ≥ 0.");
   else clearFieldInvalid(capEl);
-  const pw = (payoutEl?.value || "").trim();
+  const pw = String(payoutEl?.value || "").replace(/\s+$/u, "");
   if (pw && !/^0x[0-9a-fA-F]{40}$/.test(pw)) ok = setFieldInvalid(payoutEl, "Endereço inválido (0x...).");
   else clearFieldInvalid(payoutEl);
   return ok;
@@ -881,6 +917,10 @@ async function deployPlaceholder() {
         updateVerificationBadges({
           bscUrl: getExplorerVerificationUrl(addr, chainId),
         });
+      } catch (_) {}
+      try {
+        const mm = document.getElementById("btnAddToMetaMask");
+        if (mm) mm.disabled = !isValidAddress(state?.deployed?.address);
       } catch (_) {}
       // Verificação privada on-chain
       try {
@@ -1551,7 +1591,7 @@ async function bindUI() {
       } catch (_) {}
       try {
         const mm = document.getElementById("btnAddToMetaMask");
-        if (mm) mm.disabled = false;
+        if (mm) mm.disabled = !isValidAddress(state?.deployed?.address);
       } catch (_) {}
       try {
         const vc = document.getElementById("verifyLaunchContainer");
@@ -1562,8 +1602,33 @@ async function bindUI() {
       try {
         const oc = document.getElementById("openVerificaContainer");
         const ob = document.getElementById("openVerificaModuleBtn");
+        const lc = document.getElementById("openAddTokenLinkContainer");
+        const lb = document.getElementById("openAddTokenLinkBtn");
         if (oc) oc.classList.remove("d-none");
         if (ob) ob.classList.remove("disabled");
+        try {
+          const addr = state?.deployed?.address || "";
+          const cid = state?.form?.network?.chainId || state?.wallet?.chainId || null;
+          const nm = state?.form?.token?.name || "";
+          const sym = state?.form?.token?.symbol || "TKN";
+          const dec = Number.isFinite(state?.form?.token?.decimals) ? state.form.token.decimals : 18;
+          const fullContractUrl = cid ? getExplorerContractUrl(addr, cid) : "";
+          const expBase = fullContractUrl ? String(fullContractUrl).replace(/\/address\/.*$/, "") : "";
+          const img = getDefaultImageUrl();
+          let rpcParam = "";
+          const net = state?.form?.network || {};
+          if (Array.isArray(net?.rpc) && net.rpc.length) rpcParam = net.rpc[0];
+          else if (typeof net?.rpc === "string" && net.rpc) rpcParam = net.rpc;
+          else if (cid) rpcParam = getFallbackRpcByChainId(cid);
+          const qs = (addr && cid)
+            ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}`
+            : "";
+          if (lc) lc.classList.remove("d-none");
+          if (lb) {
+            lb.classList.toggle("disabled", !qs);
+            lb.href = `../link/link-token.html${qs}`;
+          }
+        } catch (_) {}
       } catch (_) {}
       try {
         const sp = document.getElementById("deploySpinner");
@@ -1588,7 +1653,7 @@ async function bindUI() {
         btnBuildDeploy.classList.add("btn-used-success");
         try {
           const mm = document.getElementById("btnAddToMetaMask");
-          if (mm) mm.disabled = false;
+          if (mm) mm.disabled = !isValidAddress(state?.deployed?.address);
         } catch (_) {}
         try {
           const vc = document.getElementById("verifyLaunchContainer");
@@ -1599,8 +1664,33 @@ async function bindUI() {
         try {
           const oc = document.getElementById("openVerificaContainer");
           const ob = document.getElementById("openVerificaModuleBtn");
+          const lc = document.getElementById("openAddTokenLinkContainer");
+          const lb = document.getElementById("openAddTokenLinkBtn");
           if (oc) oc.classList.remove("d-none");
           if (ob) ob.classList.remove("disabled");
+          try {
+            const addr = state?.deployed?.address || "";
+            const cid = state?.form?.network?.chainId || state?.wallet?.chainId || null;
+            const nm = state?.form?.token?.name || "";
+            const sym = state?.form?.token?.symbol || "TKN";
+            const dec = Number.isFinite(state?.form?.token?.decimals) ? state.form.token.decimals : 18;
+            const fullContractUrl = cid ? getExplorerContractUrl(addr, cid) : "";
+            const expBase = fullContractUrl ? String(fullContractUrl).replace(/\/address\/.*$/, "") : "";
+            const img = getDefaultImageUrl();
+            let rpcParam = "";
+            const net = state?.form?.network || {};
+            if (Array.isArray(net?.rpc) && net.rpc.length) rpcParam = net.rpc[0];
+            else if (typeof net?.rpc === "string" && net.rpc) rpcParam = net.rpc;
+            else if (cid) rpcParam = getFallbackRpcByChainId(cid);
+            const qs = (addr && cid)
+              ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}`
+              : "";
+            if (lc) lc.classList.remove("d-none");
+            if (lb) {
+              lb.classList.toggle("disabled", !qs);
+              lb.href = `../link/link-token.html${qs}`;
+            }
+          } catch (_) {}
         } catch (_) {}
         try {
           const sp = document.getElementById("buildSpinner");
@@ -1625,6 +1715,22 @@ async function bindUI() {
         const address = state?.deployed?.address || "";
         const symbol = state?.erc20?.symbol || state?.form?.token?.symbol || "TKN";
         const decimals = Number.isFinite(state?.erc20?.decimals) ? state.erc20.decimals : state?.form?.token?.decimals || 18;
+        if (!isValidAddress(address)) {
+          log("Endereço do contrato inválido. Faça o deploy primeiro.");
+          return;
+        }
+        try {
+          const cid = state.form?.network?.chainId;
+          if (window.ethereum && cid) {
+            const targetHex = "0x" + Number(cid).toString(16);
+            const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
+            if (!currentHex || String(parseInt(currentHex, 16)) !== String(cid)) {
+              try {
+                await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: targetHex }] });
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
         const res = await addTokenToMetaMask({ address, symbol, decimals });
         log(res.success ? "Token adicionado à MetaMask" : `Falha ao adicionar: ${res.error}`);
       } catch (e) {

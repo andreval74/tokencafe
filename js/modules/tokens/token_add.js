@@ -2,26 +2,25 @@
 // Captura completa de informações, detecção de rede e preview de contrato
 
 import { NetworkManager } from "../../shared/network-manager.js";
+import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { getExplorerVerificationUrl } from "../contracts/explorer-utils.js";
 
 function qs(id) {
   return document.getElementById(id);
 }
 
-function isValidEthAddress(addr) {
-  return /^0x[a-fA-F0-9]{40}$/.test(addr || "");
-}
+const utils = new SharedUtilities();
 
 let selectedNetwork = null;
 // Base da API: usa configuração global (Render) ou localhost como fallback
 const API_BASE = window.TOKENCAFE_API_BASE || window.XCAFE_API_BASE || "http://localhost:3000";
 
 function validateBasicFields() {
-  const name = qs("tokenName")?.value?.trim();
-  const symbol = qs("tokenSymbol")?.value?.trim();
-  const supply = qs("totalSupply")?.value?.trim();
-  const owner = qs("ownerAddress")?.value?.trim();
-  const ok = !!(name && symbol && supply && owner && isValidEthAddress(owner));
+  const name = String(qs("tokenName")?.value || "").replace(/\s+$/u, "");
+  const symbol = String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "");
+  const supply = String(qs("totalSupply")?.value || "").replace(/\s+$/u, "");
+  const owner = String(qs("ownerAddress")?.value || "").replace(/\s+$/u, "");
+  const ok = !!(name && symbol && supply && owner && utils.isValidEthereumAddress(owner));
   const btn = qs("create-token-btn");
   if (btn) btn.style.display = ok ? "block" : "none";
 }
@@ -96,10 +95,10 @@ function setupResultActions() {
   if (addToMetaMaskBtn) {
     addToMetaMaskBtn.addEventListener("click", async () => {
       try {
-        const address = qs("contract-address-display")?.value?.trim();
-        const symbol = qs("tokenSymbol")?.value?.trim() || "TKN";
-        const decimals = parseInt(qs("decimals")?.value?.trim() || "18", 10);
-        if (!address || !isValidEthAddress(address) || !window.ethereum) return;
+        const address = String(qs("contract-address-display")?.value || "").replace(/\s+$/u, "");
+        const symbol = String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "") || "TKN";
+        const decimals = parseInt(String(qs("decimals")?.value || "").replace(/\s+$/u, "") || "18", 10);
+        if (!address || !utils.isValidEthereumAddress(address) || !window.ethereum) return;
         await window.ethereum.request({
           method: "wallet_watchAsset",
           params: { type: "ERC20", options: { address, symbol, decimals } },
@@ -154,7 +153,7 @@ function bindDelegatedActions() {
     const downloadSolBtn = act('[data-action="download-solidity-file"]');
     if (downloadSolBtn) {
       const code = qs("preview-contract-code")?.textContent || "";
-      const name = (qs("contractName")?.value?.trim() || qs("tokenSymbol")?.value?.trim() || "Token") + ".sol";
+      const name = (String(qs("contractName")?.value || "").replace(/\s+$/u, "") || String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "") || "Token") + ".sol";
       const blob = new Blob([code], { type: "text/plain" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
@@ -177,7 +176,7 @@ function getCompilerSettings() {
 function generateContractCode({ name, symbol, decimals, totalSupply, owner }) {
   const license = getCompilerSettings().licenseType;
   const supplyExpr = `uint256(${totalSupply}) * (10 ** uint256(${decimals}))`;
-  const cnInput = qs("contractName")?.value?.trim();
+  const cnInput = String(qs("contractName")?.value || "").replace(/\s+$/u, "");
   const contractName = cnInput || `${symbol}Token`;
   const ownable = !!qs("featureOwnable")?.checked;
   const mintable = !!qs("featureMintable")?.checked;
@@ -265,12 +264,12 @@ function setupContractPreview() {
   const viewBtn = qs("view-contract-btn");
   if (!viewBtn) return;
   viewBtn.addEventListener("click", () => {
-    const name = qs("tokenName")?.value?.trim();
-    const symbol = qs("tokenSymbol")?.value?.trim();
+    const name = String(qs("tokenName")?.value || "").replace(/\s+$/u, "");
+    const symbol = String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "");
     const decimals = parseInt(qs("decimals")?.value || "18", 10);
-    const totalSupply = qs("totalSupply")?.value?.trim();
-    const owner = qs("ownerAddress")?.value?.trim();
-    if (!(name && symbol && totalSupply && owner && isValidEthAddress(owner))) return;
+    const totalSupply = String(qs("totalSupply")?.value || "").replace(/\s+$/u, "");
+    const owner = String(qs("ownerAddress")?.value || "").replace(/\s+$/u, "");
+    if (!(name && symbol && totalSupply && owner && utils.isValidEthereumAddress(owner))) return;
     const code = generateContractCode({
       name,
       symbol,
@@ -295,7 +294,7 @@ function setupVerifyAction() {
   const verifyBtn = qs("verify-contract-btn");
   if (!verifyBtn) return;
   verifyBtn.addEventListener("click", () => {
-    const addr = qs("contract-address-display")?.value?.trim();
+    const addr = String(qs("contract-address-display")?.value || "").replace(/\s+$/u, "");
     const base = getExplorerBase();
     if (addr) window.open(`${base}/address/${addr}#code`, "_blank");
   });
@@ -361,21 +360,21 @@ function setLink(id, url) {
 
 async function autoVerifyContract() {
   try {
-    const address = qs("contract-address-display")?.value?.trim();
-    const name = qs("tokenName")?.value?.trim();
-    const symbol = qs("tokenSymbol")?.value?.trim();
-    const totalSupply = qs("totalSupply")?.value?.trim();
+    const address = String(qs("contract-address-display")?.value || "").replace(/\s+$/u, "");
+    const name = String(qs("tokenName")?.value || "").replace(/\s+$/u, "");
+    const symbol = String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "");
+    const totalSupply = String(qs("totalSupply")?.value || "").replace(/\s+$/u, "");
     const decimals = parseInt(qs("decimals")?.value || "18", 10);
     const chainId = selectedNetwork?.chainId || 97;
     const apiKey = window.TOKENCAFE_BSCSCAN_API_KEY || "";
     const compilerVersion = "v0.8.30+commit.8a97fa7a";
 
     if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      if (window.showToast) window.showToast("Endereço de contrato inválido para verificação.", "warning");
+      window.notify && window.notify("Endereço de contrato inválido para verificação.", "error");
       return;
     }
     if (!(name && symbol && totalSupply)) {
-      if (window.showToast) window.showToast("Preencha Nome, Símbolo e Supply antes de verificar.", "warning");
+      window.notify && window.notify("Preencha Nome, Símbolo e Supply antes de verificar.", "error");
       return;
     }
 
@@ -456,12 +455,12 @@ async function autoVerifyContract() {
       }
     }
 
-    if (window.showToast) window.showToast("Verificação concluída.", "success");
+    window.notify && window.notify("Verificação concluída.", "success");
   } catch (e) {
     console.warn("Erro na verificação:", e);
     updateStatus("sourcify-status", "Sourcify: erro", "danger");
     updateStatus("bscscan-status", "BscScan: erro", "danger");
-    if (window.showToast) window.showToast(`Erro ao verificar: ${e?.message || e}`, "error");
+    window.notify && window.notify(`Erro ao verificar: ${e?.message || e}`, "error");
   }
 }
 

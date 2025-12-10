@@ -59,7 +59,14 @@ class RPCSimple {
    */
   async connectWallet() {
     if (!this.isMetaMaskInstalled) {
-      alert("MetaMask não está instalado. Por favor, instale o MetaMask para continuar.");
+      try {
+        const container = document.querySelector(".container, .container-fluid") || document.body;
+        if (typeof window.notify === "function") {
+          window.notify("MetaMask não está instalado. Por favor, instale o MetaMask para continuar.", "error", { container });
+        } else {
+          console.error("MetaMask não está instalado. Por favor, instale o MetaMask para continuar.");
+        }
+      } catch (_) {}
       window.open("https://metamask.io/download/", "_blank");
       return null;
     }
