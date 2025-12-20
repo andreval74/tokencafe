@@ -13,9 +13,12 @@
         <button type="submit" id="contractSearchBtn" class="btn btn-outline-primary" title="Buscar dados via RPC" aria-label="Buscar dados via RPC">
           <i class="bi bi-search"></i>
         </button>
-        <button type="button" id="csInfoBtn" class="btn btn-outline-info" title="Mostrar informações">
+        <button type="button" id="csInfoBtn" class="btn btn-outline-info" title="Ver detalhes do contrato">
           <i class="bi bi-info-circle"></i>
-        </button>        
+        </button>
+        <a id="csExplorerBtn" href="#" target="_blank" rel="noopener" class="btn btn-outline-info disabled" title="Abrir no Explorer">
+          <i class="bi bi-box-arrow-up-right"></i>
+        </a>
         <button type="button" id="csClearBtn" class="btn btn-outline-secondary" title="Limpar dados">
           <i class="bi bi-x-circle"></i>
         </button>
@@ -27,7 +30,7 @@
         <span id="contractSearchStatusText"></span>
       </small>
     </form>
-    <div id="csBadges" class="mt-2 d-flex align-items-center gap-2">
+    <div id="csBadges" class="mt-2 d-flex align-items-center gap-2 flex-wrap">
       <span class="badge bg-dark-elevated">
         <i class="bi bi-hash me-1"></i>
         <span id="csBadgeAddress">-</span>
@@ -40,7 +43,10 @@
         <i class="bi bi-globe me-1"></i>
         <span id="csBadgeName">-</span>
       </span>
-      
+      <span id="verifyStatusBadge" class="badge bg-secondary">
+        <!-- Status de verificação será injetado aqui -->
+        -
+      </span>
     </div>
   </div>
   <div id="selected-contract-info" class="card mb-4 d-none">

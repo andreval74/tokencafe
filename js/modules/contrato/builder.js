@@ -12,6 +12,7 @@ function getDeployButton() {
   }
 }
 import { getExplorerContractUrl, getExplorerTxUrl, getExplorerVerificationUrl } from "./explorer-utils.js";
+import { getVerifyApiKey, getApiBase as getApiBaseShared, runVerifyDirect as runVerifyDirectShared } from "../../shared/verify-utils.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
 
@@ -401,17 +402,25 @@ async function unusedConnectWallet() {
 
 // Funções auxiliares e resolução do API_BASE
 function getApiBase() {
+  const base = getApiBaseShared();
   try {
     const fromWin = window.TOKENCAFE_API_BASE || window.XCAFE_API_BASE || null;
     const fromLs = window.localStorage?.getItem("api_base") || null;
-    const base = fromWin || fromLs || "http://localhost:3000";
+    log(`API_BASE resolvido: ${base} (fonte: ${fromWin ? "window" : fromLs ? "localStorage" : "fallback"})`);
+  } catch (_) {}
+  return base;
+}
+
+function setApiBase(newBase) {
+  try {
+    window.TOKENCAFE_API_BASE = newBase;
+    if (window.localStorage) window.localStorage.setItem("api_base", newBase);
     try {
-      log(`API_BASE resolvido: ${base} (fonte: ${fromWin ? "window" : fromLs ? "localStorage" : "fallback"})`);
+      const baseDisp = document.getElementById("apiBaseDisplay");
+      if (baseDisp) baseDisp.textContent = newBase;
     } catch (_) {}
-    return base;
-  } catch (_) {
-    return "http://localhost:3000";
-  }
+    log(`API_BASE atualizado: ${newBase}`);
+  } catch (_) {}
 }
 
 async function checkApiConnectivity(apiBase) {
@@ -588,23 +597,6 @@ async function checkApiEndpoints(apiBase) {
 }
 
 const API_BASE = getApiBase();
-function getVerifyApiKey() {
-  try {
-    const sp = new URLSearchParams(window.location.search || "");
-    const fromQuery = sp.get("bscapi");
-    if (fromQuery) return fromQuery;
-  } catch (_) {}
-  try {
-    if (typeof window.TOKENCAFE_BSCSCAN_API_KEY !== "undefined" && window.TOKENCAFE_BSCSCAN_API_KEY) {
-      return window.TOKENCAFE_BSCSCAN_API_KEY;
-    }
-  } catch (_) {}
-  try {
-    return window.localStorage ? window.localStorage.getItem("bscscan_api_key") : null;
-  } catch (_) {
-    return null;
-  }
-}
 async function compileContract() {
   // Validação visual inline dos campos
   const ok = runAllFieldValidation() && validateForm();
@@ -613,8 +605,13 @@ async function compileContract() {
     return;
   }
   try {
-    // Checagem de conectividade antes de compilar
-    await checkApiConnectivity(API_BASE);
+    let base = getApiBase();
+    const okConn = await checkApiConnectivity(base);
+    if (!okConn) {
+      const local = "http://localhost:3000";
+      base = local;
+      setApiBase(local);
+    }
 
     readForm();
     const name = state.form.token.name || "MyToken";
@@ -624,12 +621,12 @@ async function compileContract() {
 
     const payload = { name, symbol, totalSupply, decimals };
     log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}...`);
-    log(`Endpoint: ${API_BASE}/api/generate-token`);
+    log(`Endpoint: ${base}/api/generate-token`);
     try {
       log(`Payload: ${JSON.stringify(payload)}`);
     } catch (_) {}
 
-    const resp = await fetchWithDiagnostics(`${API_BASE}/api/generate-token`, {
+    const resp = await fetchWithDiagnostics(`${base}/api/generate-token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -691,7 +688,7 @@ async function compileContract() {
           return "unknown:";
         }
       })();
-      log(`Erro na compilação: Failed to fetch. API=${API_BASE}`);
+      log(`Erro na compilação: Failed to fetch. API=${base}`);
       log(`Verifique CORS do backend, disponibilidade do servidor e mixed content (página ${pageProto} vs API ${apiProto}). online=${navigator.onLine}`);
       // Fallback: tentar compilar via /api/compile-only com código gerado no frontend
       try {
@@ -701,12 +698,12 @@ async function compileContract() {
         const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
         const totalSupplyRaw = state.form.token.initialSupply || 0;
         const totalSupplyInt = typeof totalSupplyRaw === "string" ? parseInt(totalSupplyRaw, 10) : Number(totalSupplyRaw);
-        log(`Tentando fallback: gerar código local e compilar (${API_BASE}/api/compile-only)...`);
+        log(`Tentando fallback: gerar código local e compilar (${base}/api/compile-only)...`);
         const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
         try {
           log(`Contrato gerado: ${src.contractName}. Tamanho do código: ${src.sourceCode.length} chars`);
         } catch (_) {}
-        const resp2 = await fetchWithDiagnostics(`${API_BASE}/api/compile-only`, {
+        const resp2 = await fetchWithDiagnostics(`${base}/api/compile-only`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -759,9 +756,9 @@ async function compileContract() {
         const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
         const totalSupplyRaw = state.form.token.initialSupply || 0;
         const totalSupplyInt = typeof totalSupplyRaw === "string" ? parseInt(totalSupplyRaw, 10) : Number(totalSupplyRaw);
-        log(`Tentando fallback: gerar código local e compilar (${API_BASE}/api/compile-only)...`);
+        log(`Tentando fallback: gerar código local e compilar (${base}/api/compile-only)...`);
         const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
-        const resp2 = await fetchWithDiagnostics(`${API_BASE}/api/compile-only`, {
+        const resp2 = await fetchWithDiagnostics(`${base}/api/compile-only`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -842,17 +839,31 @@ async function deployPlaceholder() {
     log("Corrija os erros nos campos antes de fazer o deploy.");
     return;
   }
+  startOpStatus("Deploy em andamento");
   // Se temos artefatos compilados, preferir deploy via servidor
   if (state.compilation?.abi && state.compilation?.bytecode) {
     try {
       // Sondar endpoint antes de tentar
       try {
-        const st = await fetchWithDiagnostics(`${API_BASE}/api/deploy-server`, {
+        updateOpStatus("Verificando endpoint de deploy");
+        let base = getApiBase();
+        let st = await fetchWithDiagnostics(`${base}/api/deploy-server`, {
           method: "OPTIONS",
           timeoutMs: 8000,
         })
           .then((r) => r.status)
           .catch(() => -1);
+        if (st === -1 || (st >= 400 && st !== 204)) {
+          const local = "http://localhost:3000";
+          base = local;
+          setApiBase(local);
+          st = await fetchWithDiagnostics(`${base}/api/deploy-server`, {
+            method: "OPTIONS",
+            timeoutMs: 8000,
+          })
+            .then((r) => r.status)
+            .catch(() => -1);
+        }
         if (st === -1 || (st >= 400 && st !== 204)) {
           log("Endpoint /api/deploy-server não disponível (ou bloqueado). Prosseguindo com MetaMask.");
           throw new Error("deploy-server indisponível");
@@ -862,8 +873,9 @@ async function deployPlaceholder() {
         throw probeErr;
       }
       log("Iniciando deploy via servidor (chave segura, RPC configurado)...");
+      updateOpStatus("Publicando via servidor");
       const reqChainId = state.form?.network?.chainId || null;
-      const resp = await fetch(`${API_BASE}/api/deploy-server`, {
+      const resp = await fetch(`${getApiBase()}/api/deploy-server`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -921,7 +933,10 @@ async function deployPlaceholder() {
       try {
         const mm = document.getElementById("btnAddToMetaMask");
         if (mm) mm.disabled = !isValidAddress(state?.deployed?.address);
+        const sh = document.getElementById("btnShareDeploy");
+        if (sh) sh.disabled = !isValidAddress(state?.deployed?.address);
       } catch (_) {}
+      stopOpStatus("Deploy concluído (servidor)");
       // Verificação privada on-chain
       try {
         const addrVerify = state.deployed?.address;
@@ -968,9 +983,14 @@ async function deployPlaceholder() {
         updateVerificationBadges({ privOk: false });
         log(`Erro na verificação privada: ${perr?.message || perr}`);
       }
+      try {
+        const payloadAuto = buildVerifyPayloadFromState();
+        if (payloadAuto) await runVerifyDirect(payloadAuto);
+      } catch (_) {}
       return;
     } catch (err) {
       log(`Erro no deploy servidor: ${err.message || err}`);
+      updateOpStatus("Falha no servidor, usando MetaMask");
       try {
         const d = getDeployButton();
         if (d) {
@@ -991,12 +1011,14 @@ async function deployPlaceholder() {
   // Caso não haja compilação disponível, ou servidor falhar, usar fluxo MetaMask (placeholder)
   if (!state.wallet.signer) {
     log("Conecte sua carteira para realizar o deploy pelo MetaMask.");
+    stopOpStatus("Carteira não conectada");
     return;
   }
   // Garantir que a rede selecionada corresponde à rede atual da carteira
   const selectedChainId = state.form?.network?.chainId;
   if (!selectedChainId) {
     log("Selecione a rede no topo antes de prosseguir com o deploy.");
+    stopOpStatus("Rede não selecionada");
     return;
   }
   try {
@@ -1013,26 +1035,31 @@ async function deployPlaceholder() {
         state.wallet.chainId = afterSwitch.chainId;
         if (afterSwitch.chainId !== selectedChainId) {
           log("Não foi possível confirmar a troca de rede. Troque manualmente no MetaMask.");
+          stopOpStatus("Falha ao trocar rede");
           return;
         }
         log(`Rede alterada com sucesso para chainId ${afterSwitch.chainId}.`);
       } catch (err) {
         log(`Falha ao trocar rede automaticamente. Troque manualmente para ${state.form.network?.name} (chainId ${selectedChainId}). Erro: ${err?.message || err}`);
+        stopOpStatus("Falha ao trocar rede");
         return;
       }
     }
   } catch (e) {
     log(`Erro ao checar rede da carteira: ${e?.message || e}`);
+    stopOpStatus("Erro ao checar rede");
     return;
   }
   // Deploy real via MetaMask (cliente) usando ethers.js
   try {
     if (!state.compilation?.abi || !state.compilation?.bytecode) {
       log("Compile o contrato antes do deploy. ABI/bytecode ausentes.");
+      stopOpStatus("ABI/bytecode ausentes");
       return;
     }
     if (!state.wallet?.signer) {
       log("Conecte sua carteira para assinar o deploy no MetaMask.");
+      stopOpStatus("Carteira não conectada");
       return;
     }
 
@@ -1041,6 +1068,7 @@ async function deployPlaceholder() {
     const signer = state.wallet.signer;
 
     log("Preparando contrato para deploy com MetaMask...");
+    startOpStatus("Deploy via MetaMask");
     const factory = new ethers.ContractFactory(abi, bytecode, signer);
 
     // Tentar estimar gas para o deploy; usar fallback se falhar
@@ -1061,6 +1089,7 @@ async function deployPlaceholder() {
     const contract = await factory.deploy(overrides);
     const tx = contract.deployTransaction;
     log(`Transação enviada: ${tx.hash}. Aguardando confirmação...`);
+    updateOpStatus("Transação enviada");
     state.deployed.transactionHash = tx.hash || null;
     state.deployed.deployParams = {
       gasLimit: overrides?.gasLimit ? (overrides.gasLimit.toString ? overrides.gasLimit.toString() : String(overrides.gasLimit)) : undefined,
@@ -1071,9 +1100,11 @@ async function deployPlaceholder() {
     // Aguarda confirmação com timeout/polling para evitar loop quando explorer fica "Indexing"
     let receipt;
     try {
+      updateOpStatus("Confirmando...");
       receipt = await tx.wait(1);
     } catch (waitErr) {
       log("Confirmação demorando, iniciando polling do receipt...");
+      updateOpStatus("Confirmando...");
     }
     if (!receipt) {
       const provider = state.wallet.provider;
@@ -1113,6 +1144,7 @@ async function deployPlaceholder() {
     try {
       if (addr) {
         const provider = state.wallet.provider;
+        updateOpStatus("Verificando bytecode");
         let code = await provider.getCode(addr);
         const start = Date.now();
         const timeoutMs = 30000;
@@ -1129,14 +1161,17 @@ async function deployPlaceholder() {
           } catch (_) {}
           log("Confirmação on-chain: endereço contém bytecode. É um contrato.");
           updateERC20Details(null, null, null, null, "Contrato detectado on-chain", true);
+          stopOpStatus("Contrato detectado on-chain");
         } else {
           log("Bytecode ainda não disponível no RPC. Provável indexação em andamento no nó/explorer.");
           updateERC20Details(null, null, null, null, "Aguardando bytecode no RPC", true);
+          updateOpStatus("Aguardando bytecode no RPC");
         }
       }
     } catch (codeErr) {
       log(`Falha ao verificar bytecode do contrato: ${codeErr?.message || codeErr}`);
       updateERC20Details(null, null, null, null, "Falha ao verificar bytecode", true);
+      stopOpStatus("Falha ao verificar bytecode");
     }
 
     const chainId = state.form?.network?.chainId;
@@ -1171,12 +1206,15 @@ async function deployPlaceholder() {
     try {
       const mm = document.getElementById("btnAddToMetaMask");
       if (mm) mm.disabled = false;
+      const sh = document.getElementById("btnShareDeploy");
+      if (sh) sh.disabled = false;
     } catch (_) {}
     try {
       updateVerificationBadges({
         bscUrl: getExplorerVerificationUrl(addr, chainId),
       });
     } catch (_) {}
+    stopOpStatus("Deploy concluído");
 
     try {
       const rec = buildRecipe();
@@ -1250,111 +1288,11 @@ async function deployPlaceholder() {
       }
     } catch (_) {}
 
-    const unusedAutoToggle = document.getElementById("autoVerifyToggle");
-    const autoEnabled = false;
+  const unusedAutoToggle = document.getElementById("autoVerifyToggle");
+  const autoEnabled = true;
     if (autoEnabled) {
-      try {
-        const addrVerify = state.deployed?.address;
-        const chainIdVerify = state.form?.network?.chainId;
-        const src = state.compilation?.sourceCode;
-        const cname = state.compilation?.contractName;
-        const meta = state.compilation?.metadata;
-        if (addrVerify && chainIdVerify && src && cname) {
-          const resp = await fetch(`${API_BASE}/api/verify-auto`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chainId: chainIdVerify,
-              contractAddress: addrVerify,
-              contractName: cname,
-              sourceCode: src,
-              metadata: meta ? JSON.stringify(meta) : undefined,
-              compilerVersion: meta?.compiler?.version || null,
-              optimizationUsed: true,
-              runs: 200,
-              codeformat: "solidity-single-file",
-              contractNameFQN: `${cname}.sol:${cname}`,
-              apiKey: getVerifyApiKey(),
-            }),
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            const link = data?.link || data?.lookupUrl || data?.explorerUrl || null;
-            const ok = !!data?.success || !!data?.verified;
-            const hasFilesErr = typeof data?.error === "string" && data.error.toLowerCase().includes("files have not been found");
-            const needFallback = !ok || hasFilesErr || !link;
-            if (!needFallback) {
-              updateVerificationBadges({ bscUrl: link || getExplorerVerificationUrl(addrVerify, chainIdVerify) });
-              log(ok ? `✅ Verificação concluída. ${link || ""}` : `📤 Verificação enviada/pendente. ${link || ""}`);
-            } else {
-              log("Sourcify/auto-verificação não disponível. Iniciando fallback no explorer...");
-              const respV = await fetch(`${API_BASE}/api/verify-bscscan`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  chainId: chainIdVerify,
-                  contractAddress: addrVerify,
-                  sourceCode: src,
-                  contractName: cname,
-                  compilerVersion: meta?.compiler?.version || null,
-                  optimizationUsed: true,
-                  runs: 200,
-                  codeformat: "solidity-single-file",
-                  contractNameFQN: `${cname}.sol:${cname}`,
-                  apiKey: getVerifyApiKey(),
-                }),
-              });
-              if (respV.ok) {
-                const dataV = await respV.json();
-                const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(addrVerify, chainIdVerify);
-                const okV = !!dataV?.success;
-                updateVerificationBadges({ bscUrl: vUrl });
-                log(okV ? `✅ Verificação concluída (explorer). ${vUrl}` : `📤 Verificação enviada (explorer). ${vUrl}`);
-              } else {
-                const txtV = await respV.text();
-                const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
-                updateVerificationBadges({ bscUrl: vUrl });
-                log(`Falha no fallback de verificação: ${txtV}. Abra manualmente: ${vUrl}`);
-              }
-            }
-          } else {
-            const txt = await resp.text();
-            log(`Falha ao iniciar verificação automática: ${txt}. Iniciando fallback no explorer...`);
-            const respV = await fetch(`${API_BASE}/api/verify-bscscan`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                chainId: chainIdVerify,
-                contractAddress: addrVerify,
-                sourceCode: src,
-                contractName: cname,
-                compilerVersion: meta?.compiler?.version || null,
-                optimizationUsed: true,
-                runs: 200,
-                codeformat: "solidity-single-file",
-                contractNameFQN: `${cname}.sol:${cname}`,
-                apiKey: getVerifyApiKey(),
-              }),
-            });
-            if (respV.ok) {
-              const dataV = await respV.json();
-              const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(addrVerify, chainIdVerify);
-              const okV = !!dataV?.success;
-              updateVerificationBadges({ bscUrl: vUrl });
-              log(okV ? `✅ Verificação concluída (explorer). ${vUrl}` : `📤 Verificação enviada (explorer). ${vUrl}`);
-            } else {
-              const txtV = await respV.text();
-              const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
-              updateVerificationBadges({ bscUrl: vUrl });
-              log(`Falha no fallback de verificação: ${txtV}. Abra manualmente: ${vUrl}`);
-            }
-          }
-        } else {
-          log("Verificação automática não iniciada: dados insuficientes (addr/chainId/source/contractName).");
-        }
-      } catch (verErr) {
-        log(`Erro na verificação automática: ${verErr?.message || verErr}`);
-      }
+      const payload = buildVerifyPayloadFromState();
+      if (payload) await runVerifyDirect(payload);
     } else {
       log("Verificação automática desabilitada.");
     }
@@ -1399,6 +1337,7 @@ async function deployPlaceholder() {
     }
   } catch (err) {
     log(`Erro no deploy via MetaMask: ${err?.message || err}`);
+    stopOpStatus("Erro no deploy");
     try {
       const d = getDeployButton();
       if (d) {
@@ -1421,6 +1360,7 @@ function updateDeployLinks(contractUrl, txUrl) {
   try {
     const aAddr = document.getElementById("erc20Address");
     const aTx = document.getElementById("erc20TxHash");
+    const container = document.getElementById("erc20-details");
     const addrVal = state.deployed?.address || null;
     const txVal = state.deployed?.transactionHash || null;
     if (aAddr) {
@@ -1432,6 +1372,10 @@ function updateDeployLinks(contractUrl, txUrl) {
       aTx.href = txUrl || "#";
       aTx.textContent = txVal || "-";
       aTx.classList.toggle("disabled", !txUrl);
+    }
+    if (container) {
+      const shouldShow = !!(addrVal || txVal || contractUrl || txUrl);
+      if (shouldShow) container.classList.remove("d-none");
     }
   } catch {}
 }
@@ -1469,6 +1413,56 @@ function getNetworkNameByChainId(chainId) {
   }
 }
 
+let opTimer = null;
+let opStartedAt = 0;
+function setStatusContainerVisible() {
+  try {
+    const c = document.getElementById("erc20-details");
+    if (c) c.classList.remove("d-none");
+  } catch (_) {}
+}
+function formatElapsed(ms) {
+  try {
+    const total = Math.floor(ms / 1000);
+    const m = String(Math.floor(total / 60));
+    const s = String(total % 60).padStart(2, "0");
+    return `${m}:${s}`;
+  } catch (_) {
+    return "0:00";
+  }
+}
+function startOpStatus(message) {
+  try {
+    opStartedAt = Date.now();
+    setStatusContainerVisible();
+    const st = document.getElementById("contractStatus");
+    if (st) st.textContent = `${message} — tempo: 0:00`;
+    if (opTimer) clearInterval(opTimer);
+    opTimer = setInterval(() => {
+      try {
+        const el = document.getElementById("contractStatus");
+        if (el) el.textContent = `${message} — tempo: ${formatElapsed(Date.now() - opStartedAt)}`;
+      } catch (_) {}
+    }, 1000);
+  } catch (_) {}
+}
+function updateOpStatus(message) {
+  try {
+    const st = document.getElementById("contractStatus");
+    if (st) st.textContent = `${message} — tempo: ${formatElapsed(Date.now() - opStartedAt)}`;
+  } catch (_) {}
+}
+function stopOpStatus(finalMessage) {
+  try {
+    if (opTimer) {
+      clearInterval(opTimer);
+      opTimer = null;
+    }
+    const st = document.getElementById("contractStatus");
+    if (st) st.textContent = `${finalMessage} — tempo: ${formatElapsed(Date.now() - opStartedAt)}`;
+  } catch (_) {}
+}
+
 // Atualiza seção de detalhes ERC-20 na UI
 function updateERC20Details(symbol, name, decimals, supply, statusText, visible) {
   try {
@@ -1485,6 +1479,7 @@ function updateERC20Details(symbol, name, decimals, supply, statusText, visible)
     if (elDec) elDec.textContent = decimals != null ? String(decimals) : (elDec.textContent ?? "-");
     if (elSup) elSup.textContent = supply != null ? String(supply) : (elSup.textContent ?? "-");
     container.classList.toggle("d-none", !visible);
+    if (state.deployed?.address) container.classList.remove("d-none");
   } catch {}
 }
 
@@ -1556,6 +1551,7 @@ async function bindUI() {
         const tx = document.getElementById("compileBtnText");
         if (sp) sp.classList.remove("d-none");
         if (tx) tx.textContent = "Compilando...";
+        startOpStatus("Compilando");
       } catch (_) {}
       await compileContract();
       try {
@@ -1572,6 +1568,7 @@ async function bindUI() {
         const tx = document.getElementById("compileBtnText");
         if (sp) sp.classList.add("d-none");
         if (tx) tx.textContent = "Compilar";
+        stopOpStatus("Compilação concluída");
       } catch (_) {}
     });
   if (btnDeploy)
@@ -1647,7 +1644,9 @@ async function bindUI() {
           if (sp) sp.classList.remove("d-none");
           if (tx) tx.textContent = "Construindo e publicando...";
         } catch (_) {}
+        startOpStatus("Compilando e deployando");
         await compileContract();
+        updateOpStatus("Deployando...");
         await deployPlaceholder();
         btnBuildDeploy.classList.remove("btn-outline-success");
         btnBuildDeploy.classList.add("btn-used-success");
@@ -1696,7 +1695,8 @@ async function bindUI() {
           const sp = document.getElementById("buildSpinner");
           const tx = document.getElementById("buildBtnText");
           if (sp) sp.classList.add("d-none");
-          if (tx) tx.textContent = "Compilar e Deploy";
+          if (tx) tx.textContent = "Compilar, Deploy e Verifica";
+          stopOpStatus("Concluído");
         } catch (_) {}
       } catch (e) {
         btnBuildDeploy.classList.remove("btn-outline-success");
@@ -1705,7 +1705,8 @@ async function bindUI() {
           const sp = document.getElementById("buildSpinner");
           const tx = document.getElementById("buildBtnText");
           if (sp) sp.classList.add("d-none");
-          if (tx) tx.textContent = "Compilar e Deploy";
+          if (tx) tx.textContent = "Compilar, Deploy e Verifica";
+          stopOpStatus("Falha");
         } catch (_) {}
       }
     });
@@ -1735,6 +1736,29 @@ async function bindUI() {
         log(res.success ? "Token adicionado à MetaMask" : `Falha ao adicionar: ${res.error}`);
       } catch (e) {
         log(`Erro MetaMask: ${e?.message || e}`);
+      }
+    });
+
+  const btnShare = document.getElementById("btnShareDeploy");
+  if (btnShare)
+    btnShare.addEventListener("click", async () => {
+      try {
+        const addr = state?.deployed?.address || "";
+        const cid = state?.form?.network?.chainId || state?.wallet?.chainId || null;
+        if (!addr || !cid) return;
+        const url = getExplorerContractUrl(addr, cid) || window.location.href;
+        const title = `Contrato ERC-20 (${state?.form?.token?.symbol || "TKN"})`;
+        const text = `Endereço: ${addr}\nRede: ${state?.form?.network?.name || cid}`;
+        const shareData = { title, text, url };
+        if (navigator.share) {
+          await navigator.share(shareData);
+          log("Link compartilhado com sucesso");
+        } else {
+          await navigator.clipboard?.writeText?.(url);
+          log("Web Share indisponível; link copiado para a área de transferência");
+        }
+      } catch (e) {
+        log(`Falha ao compartilhar: ${e?.message || e}`);
       }
     });
 
@@ -2181,9 +2205,9 @@ async function bindUI() {
         unusedActionHandler = () => {};
         openHref = "../verifica/verifica-index.html";
       } else if (kind === "sour") {
-        title = "Verificação via Sourcify";
+        title = "Verificação via Explorer";
         html = `
-          <p>O Sourcify permite verificação open-source. Baixe e guarde o <strong>.sol</strong>. Se a compilação trouxe metadata, a verificação automática será usada.</p>
+          <p>Use o explorer da rede para publicar seu código. Baixe e guarde o <strong>.sol</strong>. Se a compilação trouxe metadata, utilize esses dados na verificação.</p>
           <div class="alert alert-dark">
             <div class="mb-2">Baixe os arquivos:</div>
             <div class="d-flex gap-2">
@@ -2482,76 +2506,17 @@ function buildVerifyPayloadFromState() {
 }
 
 async function runVerifyDirect(p) {
-  const addrVerify = p?.contractAddress;
-  const chainIdVerify = p?.chainId;
-  const src = p?.sourceCode;
-  const cname = p?.contractName;
-  const meta = p?.metadata ? JSON.parse(p.metadata) : null;
-  const apikey = p?.apiKey || getVerifyApiKey();
-  if (!addrVerify || !chainIdVerify || !src || !cname) {
-    log("Verificação: dados insuficientes (addr/chainId/source/contractName).");
-    return;
-  }
-  if (!apikey) {
-    try {
-      const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
-      updateVerificationBadges({ bscUrl: vUrl });
-      log(`API Key não configurada. Abra manualmente: ${vUrl}`);
-      if (vUrl) window.open(vUrl, "_blank");
-    } catch (_) {}
-    return;
-  }
   try {
-    const resp = await fetch(`${API_BASE}/api/verify-auto`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(p),
-    });
-    if (resp.ok) {
-      const data = await resp.json();
-      const link = data?.link || data?.lookupUrl || data?.explorerUrl || null;
-      const ok = !!data?.success || !!data?.verified;
-      const hasFilesErr = typeof data?.error === "string" && data.error.toLowerCase().includes("files have not been found");
-      const needFallback = !ok || hasFilesErr || !link;
-      if (!needFallback) {
-        updateVerificationBadges({ bscUrl: link });
-        log(ok ? `✅ Verificação concluída. ${link || ""}` : `📤 Verificação enviada/pendente. ${link || ""}`);
-        return;
-      }
-    }
-  } catch (_) {}
-  try {
-    const respV = await fetch(`${API_BASE}/api/verify-bscscan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chainId: chainIdVerify,
-        contractAddress: addrVerify,
-        sourceCode: src,
-        contractName: cname,
-        compilerVersion: meta?.compiler?.version || null,
-        optimizationUsed: true,
-        runs: 200,
-        codeformat: "solidity-single-file",
-        contractNameFQN: `${cname}.sol:${cname}`,
-        apiKey: getVerifyApiKey(),
-      }),
-    });
-    if (respV.ok) {
-      const dataV = await respV.json();
-      const vUrl = dataV?.explorerUrl || getExplorerVerificationUrl(addrVerify, chainIdVerify);
-      const okV = !!dataV?.success;
-      updateVerificationBadges({ bscUrl: vUrl });
-      log(okV ? `✅ Verificação concluída (explorer). ${vUrl}` : `📤 Verificação enviada (explorer). ${vUrl}`);
+    const res = await runVerifyDirectShared(p);
+    if (res?.link) updateVerificationBadges({ bscUrl: res.link });
+    if (res?.success) {
+      log(`✅ Verificação concluída (${res.status}). ${res.link || ""}`);
+    } else if (res?.status === "pending") {
+      log(`📤 Verificação enviada (explorer). ${res.link || ""}`);
     } else {
-      const txtV = await respV.text();
-      const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
-      updateVerificationBadges({ bscUrl: vUrl });
-      log(`Falha no fallback de verificação: ${txtV}. Abra manualmente: ${vUrl}`);
+      log(`Falha/erro na verificação: ${res?.error || res?.status || "desconhecido"}`);
     }
   } catch (e) {
-    const vUrl = getExplorerVerificationUrl(addrVerify, chainIdVerify);
-    updateVerificationBadges({ bscUrl: vUrl });
-    log(`Erro na verificação: ${e?.message || e}. Abra manualmente: ${vUrl}`);
+    log(`Erro na verificação: ${e?.message || e}`);
   }
 }

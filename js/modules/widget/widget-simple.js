@@ -722,22 +722,19 @@ class WidgetSimple {
    */
   async detectContractABI(contractAddress, chainId) {
     try {
-      // Tentar Sourcify primeiro (open source)
-      const sourcifyResult = await fetch(`https://sourcify.dev/server/files/${chainId}/${contractAddress}`);
-      if (sourcifyResult.ok) {
-        const files = await sourcifyResult.json();
-        const metadataFile = files.find((f) => f.name === "metadata.json");
-        if (metadataFile) {
-          const metadata = JSON.parse(metadataFile.content);
-          return metadata.output.abi;
-        }
-      }
-
-      // Tentar API do explorer (se disponível)
-      const networkConfig = this.supportedNetworks[chainId];
-      if (networkConfig && networkConfig.explorer.includes("bscscan")) {
-        // Implementar chamada para BSCScan API se tiver API key
-        // Por enquanto, usar ABI mínima para contratos padrão
+      const API_BASE = window.TOKENCAFE_API_BASE || window.XCAFE_API_BASE || "http://localhost:3000";
+      const resp = await fetch(`${API_BASE}/api/explorer-getsourcecode`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chainId, address: contractAddress }),
+      });
+      const js = await resp.json().catch(() => null);
+      const abiStr = js?.explorer?.abi || "";
+      if (abiStr && abiStr !== "Contract source code not verified") {
+        try {
+          const abi = JSON.parse(abiStr);
+          if (Array.isArray(abi)) return abi;
+        } catch (_) {}
       }
 
       // Retornar ABI mínima para contratos TokenSale padrão

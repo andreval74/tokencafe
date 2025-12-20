@@ -378,9 +378,7 @@ async function autoVerifyContract() {
       return;
     }
 
-    updateStatus("sourcify-status", "Verificando...", "info");
     updateStatus("bscscan-status", "Enviando...", "info");
-    setLink("sourcify-link", null);
     setLink("bscscan-link", null);
 
     // 1) Gerar artefatos (fonte e nome) via backend
@@ -400,30 +398,7 @@ async function autoVerifyContract() {
 
     if (!sourceCode) throw new Error("sourceCode não retornado pelo backend");
 
-    // 2) Verificar no Sourcify
-    const sourBody = {
-      chainId,
-      contractAddress: address,
-      contractName,
-      sourceCode,
-      metadata: gen?.compilation?.metadata || "",
-      optimizationUsed: true,
-      runs: 200,
-    };
-    const sourResp = await fetch(`${API_BASE}/api/verify-sourcify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(sourBody),
-    });
-    const sourJson = await sourResp.json().catch(() => ({}));
-    if (sourJson?.success) {
-      const status = sourJson.status || sourJson.match || "ok";
-      updateStatus("sourcify-status", `Sourcify: ${status}`, "success");
-      const repoUrl = `https://repo.sourcify.dev/contracts/full_match/${chainId}/${address}/`;
-      setLink("sourcify-link", repoUrl);
-    } else {
-      updateStatus("sourcify-status", "Sourcify: falhou", "danger");
-    }
+    // Verificação apenas via BscScan
 
     // 3) Verificar no BscScan (Etherscan V2)
     const bscBody = {
@@ -458,7 +433,6 @@ async function autoVerifyContract() {
     window.notify && window.notify("Verificação concluída.", "success");
   } catch (e) {
     console.warn("Erro na verificação:", e);
-    updateStatus("sourcify-status", "Sourcify: erro", "danger");
     updateStatus("bscscan-status", "BscScan: erro", "danger");
     window.notify && window.notify(`Erro ao verificar: ${e?.message || e}`, "error");
   }

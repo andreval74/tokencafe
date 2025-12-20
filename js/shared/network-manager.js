@@ -326,8 +326,18 @@ export class NetworkManager {
   processRPCUrls(rpcUrls) {
     if (!Array.isArray(rpcUrls)) return [];
 
+    const sanitize = (u) => {
+      try {
+        const s = String(u || "").replace(/[`'\"]/g, "").trim();
+        return s;
+      } catch (_) {
+        return "";
+      }
+    };
+
     return rpcUrls
       .map((rpc) => (typeof rpc === "string" ? rpc : rpc.url))
+      .map((url) => sanitize(url))
       .filter((url) => url && url.startsWith("https://"))
       .filter((url) => !url.includes("${") && !url.includes("API_KEY"))
       .slice(0, 3); // Máximo 3 RPCs por rede para performance

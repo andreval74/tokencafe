@@ -103,29 +103,43 @@ function initContainer(container) {
     }
   }
 
-  const MAX_TIMEOUT_MS = 900;
-  const GLOBAL_LIMIT_MS = 1500;
+  const MAX_TIMEOUT_MS = 1500;
+  const GLOBAL_LIMIT_MS = 2000;
   const DISABLE_MULTI_RPC_FALLBACK = true;
+
+  function sanitizeRpcUrl(u) {
+    try {
+      const s = String(u || "").replace(/[`'\"]/g, "").trim();
+      if (!/^https?:\/\//i.test(s)) return "";
+      return s;
+    } catch (_) {
+      return "";
+    }
+  }
 
   async function fetchJsonWithTimeout(rpc, body, timeoutMs) {
     try {
+      const rpcUrl = sanitizeRpcUrl(rpc);
       const ctrl = new AbortController();
       const t = setTimeout(() => {
         try {
-          log("timeout", { rpc, method: body?.method, timeoutMs });
+          const label = Array.isArray(body) ? (body.map((b) => b && b.method).filter(Boolean).join(",") || "batch") : body?.method;
+          log("timeout", { rpc: rpcUrl, method: label, timeoutMs });
         } catch (_) {}
         ctrl.abort();
       }, timeoutMs);
-      const resp = await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctrl.signal });
+      const resp = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctrl.signal });
       clearTimeout(t);
       if (!resp.ok) return null;
       try {
-        log("rpc ok", { rpc, method: body?.method, status: resp.status });
+        const label = Array.isArray(body) ? (body.map((b) => b && b.method).filter(Boolean).join(",") || "batch") : body?.method;
+        log("rpc ok", { rpc: rpcUrl, method: label, status: resp.status });
       } catch (_) {}
       return await resp.json();
     } catch (_) {
       try {
-        log("rpc error", { rpc, method: body?.method });
+        const label = Array.isArray(body) ? (body.map((b) => b && b.method).filter(Boolean).join(",") || "batch") : body?.method;
+        log("rpc error", { rpc: sanitizeRpcUrl(rpc), method: label });
       } catch (_) {}
       return null;
     }
@@ -157,9 +171,11 @@ function initContainer(container) {
       else if (typeof net?.rpc === "string") arr.push(net.rpc);
       const f = getFallbackRpc(chainId);
       if (f) arr.push(f);
-      return Array.from(new Set(arr.filter(Boolean))).slice(0, 4);
+      const clean = arr.map((u) => sanitizeRpcUrl(u)).filter(Boolean);
+      return Array.from(new Set(clean)).slice(0, 4);
     } catch (_) {
-      return [getFallbackRpc(chainId)].filter(Boolean);
+      const f = sanitizeRpcUrl(getFallbackRpc(chainId));
+      return [f].filter(Boolean);
     }
   }
 
@@ -172,6 +188,7 @@ function initContainer(container) {
     const rpcs = getCandidateRpcs(chainId);
     const firstNet = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc[0] : typeof net?.rpc === "string" ? net.rpc : "";
     let rpc = curated || firstNet || rpcs[0] || "";
+    rpc = sanitizeRpcUrl(rpc);
     primaryRpcCache.set(cid, rpc);
     return rpc;
   }
@@ -352,32 +369,7 @@ function initContainer(container) {
     }
   }
 
-  async function fetchSourcify(chainId, address) {
-    try {
-      const cid = parseInt(chainId, 10);
-      const addr = String(address).toLowerCase();
-      const cResp = await fetch(`https://sourcify.dev/server/contract/${cid}/${addr}`);
-      let status = "";
-      if (cResp.ok) {
-        const cj = await cResp.json();
-        status = String(cj?.status || "").toLowerCase();
-      }
-      const resp = await fetch(`https://sourcify.dev/server/files/${cid}/${addr}`);
-      if (!resp.ok) return null;
-      const files = await resp.json();
-      const metaFile = Array.isArray(files) ? files.find((f) => f?.name === "metadata.json") : null;
-      if (!metaFile?.content) return null;
-      const meta = JSON.parse(metaFile.content);
-      const ct = meta?.settings?.compilationTarget || {};
-      const firstFile = Object.keys(ct)[0] || null;
-      const cName = firstFile ? ct[firstFile] : null;
-      const srcContent = firstFile && meta?.sources?.[firstFile]?.content ? meta.sources[firstFile].content : "";
-      const fqn = firstFile && cName ? `${firstFile}:${cName}` : cName ? `${cName}.sol:${cName}` : "";
-      return { meta, srcContent, cName, fqn, status };
-    } catch {
-      return null;
-    }
-  }
+  // Sourcify removido
 
   async function runSearch() {
     if (isSearching) return;
@@ -450,6 +442,7 @@ function initContainer(container) {
         });
       });
     };
+    // Sourcify removido: sem pré-preenchimento por repositório
     try {
       log("start-core-calls");
     } catch (_) {}
@@ -560,6 +553,7 @@ function initContainer(container) {
         log("error", e);
       } catch {}
     }
+    // Completar saldos antes de emitir, para uma única emissão consolidada
     const extra = {
       tokenSymbol: (sn && sn.symbol ? sn.symbol : null) || symbolFallback || null,
       tokenName: (sn && sn.name ? sn.name : null) || nameFallback || null,
@@ -569,101 +563,28 @@ function initContainer(container) {
       contractNativeBalance: info && info.nativeBalance ? info.nativeBalance : null,
     };
     try {
-      log("emit:contract:found", { payload: { ...payload, ...extra } });
-    } catch (_) {}
-    const evt = new CustomEvent("contract:found", { detail: { contract: { ...payload, ...extra } }, bubbles: true });
-    try {
-      document.dispatchEvent(evt);
-    } catch (_) {
-      try {
-        container.dispatchEvent(evt);
-      } catch (_) {}
-    }
-    if (!DISABLE_MULTI_RPC_FALLBACK) {
-      (async () => {
-        try {
-          log("sourcify:start");
-        } catch (_) {}
-        const sour = await fetchSourcify(chainIdRaw, addrRaw);
-        if (sour) {
-          const shouldAttach = String(sour.status || "").toLowerCase() === "perfect" || String(sour.status || "").toLowerCase() === "full";
-          try {
-            log("sourcify:result", { status: sour.status, shouldAttach });
-          } catch (_) {}
-          const payload2 = {
-            ...payload,
-            contractName: sour.cName || "",
-            contractNameFQN: sour.fqn || "",
-            compilerVersion: sour.meta?.compiler?.version || "",
-            runs: sour.meta?.settings?.optimizer?.runs ?? 200,
-            optimizationUsed: sour.meta?.settings?.optimizer?.enabled ? 1 : 0,
-            ...(shouldAttach ? { metadata: JSON.stringify(sour.meta), sourceCode: sour.srcContent } : {}),
-          };
-          try {
-            log("emit:contract:found:sourcify", { payload: { ...payload2, ...extra } });
-          } catch (_) {}
-          const evt2 = new CustomEvent("contract:found", { detail: { contract: { ...payload2, ...extra } }, bubbles: true });
-          try {
-            document.dispatchEvent(evt2);
-          } catch (_) {
-            try {
-              container.dispatchEvent(evt2);
-            } catch (_) {}
-          }
-        }
-      })();
-    }
-    (async () => {
-      try {
-        try {
-          log("balances:start");
-        } catch (_) {}
-        const rpc = getPrimaryRpc(chainIdRaw);
-        const bodies = [
-          { jsonrpc: "2.0", id: 7, method: "eth_call", params: [{ to: String(addrRaw), data: "0x70a08231" + String(addrRaw).toLowerCase().replace(/^0x/, "").padStart(64, "0") }, "latest"] },
-          { jsonrpc: "2.0", id: 8, method: "eth_getBalance", params: [String(addrRaw), "latest"] },
-        ];
-        let balHex = null;
-        let nativeHex = null;
-        const js = await fetchJsonWithTimeout(rpc, bodies, MAX_TIMEOUT_MS);
-        if (Array.isArray(js) && js.length) {
-          const r7 = js.find((x) => x && x.id === 7);
-          const r8 = js.find((x) => x && x.id === 8);
-          balHex = r7 && r7.result ? String(r7.result) : null;
-          nativeHex = r8 && r8.result ? String(r8.result) : null;
-        }
-        const d = extra.tokenDecimals != null ? extra.tokenDecimals : 18;
-        const upd = { ...payload, contractTokenBalance: formatUnits(balHex, d), contractNativeBalance: formatUnits(nativeHex, 18) };
-        try {
-          log("balances:result", { tokenBalanceHex: balHex, nativeBalanceHex: nativeHex, decimals: d });
-        } catch (_) {}
-        try {
-          log("emit:contract:found:balances", { payload: { ...upd, ...extra } });
-        } catch (_) {}
-        const evt3 = new CustomEvent("contract:found", { detail: { contract: { ...upd, ...extra } }, bubbles: true });
-        try {
-          document.dispatchEvent(evt3);
-        } catch (_) {
-          try {
-            container.dispatchEvent(evt3);
-          } catch (_) {}
-        }
-        try {
-          const vTokBal2 = container.querySelector("#cs_viewTokenBalance") || document.querySelector("#cs_viewTokenBalance");
-          const vNatBal2 = container.querySelector("#cs_viewNativeBalance") || document.querySelector("#cs_viewNativeBalance");
-          if (vTokBal2) vTokBal2.textContent = upd.contractTokenBalance || "";
-          if (vNatBal2) vNatBal2.textContent = upd.contractNativeBalance || "";
-        } catch (e) {
-          try {
-            log("error", e);
-          } catch {}
-        }
-      } catch (e) {
-        try {
-          log("error", e);
-        } catch {}
+      const rpc = getPrimaryRpc(chainIdRaw);
+      const bodies = [
+        { jsonrpc: "2.0", id: 7, method: "eth_call", params: [{ to: String(addrRaw), data: "0x70a08231" + String(addrRaw).toLowerCase().replace(/^0x/, "").padStart(64, "0") }, "latest"] },
+        { jsonrpc: "2.0", id: 8, method: "eth_getBalance", params: [String(addrRaw), "latest"] },
+      ];
+      let balHex = null;
+      let nativeHex = null;
+      const js = await fetchJsonWithTimeout(rpc, bodies, MAX_TIMEOUT_MS);
+      if (Array.isArray(js) && js.length) {
+        const r7 = js.find((x) => x && x.id === 7);
+        const r8 = js.find((x) => x && x.id === 8);
+        balHex = r7 && r7.result ? String(r7.result) : null;
+        nativeHex = r8 && r8.result ? String(r8.result) : null;
       }
-    })();
+      const d = extra.tokenDecimals != null ? extra.tokenDecimals : 18;
+      extra.contractTokenBalance = formatUnits(balHex, d);
+      extra.contractNativeBalance = formatUnits(nativeHex, 18);
+      try { log("balances:result", { tokenBalanceHex: balHex, nativeBalanceHex: nativeHex, decimals: d }); } catch (_) {}
+    } catch (e) { try { log("error", e); } catch {} }
+    try { log("emit:contract:found", { payload: { ...payload, ...extra } }); } catch (_) {}
+    const evt = new CustomEvent("contract:found", { detail: { contract: { ...payload, ...extra } }, bubbles: true });
+    try { document.dispatchEvent(evt); } catch (_) { try { container.dispatchEvent(evt); } catch (_) {} }
 
     try {
       const vAddr = container.querySelector("#cs_viewAddress") || document.querySelector("#cs_viewAddress");
@@ -675,6 +596,7 @@ function initContainer(container) {
       const vTokBal = container.querySelector("#cs_viewTokenBalance") || document.querySelector("#cs_viewTokenBalance");
       const vNatBal = container.querySelector("#cs_viewNativeBalance") || document.querySelector("#cs_viewNativeBalance");
       const vExp = container.querySelector("#cs_viewExplorer") || document.querySelector("#cs_viewExplorer");
+      const topExp = container.querySelector("#csExplorerBtn") || document.querySelector("#csExplorerBtn");
       if (vAddr) vAddr.textContent = addrRaw;
       if (vCid) vCid.textContent = String(payload.chainId || "");
       if (vName) vName.textContent = extra.tokenName || "";
@@ -688,6 +610,10 @@ function initContainer(container) {
         const base = net?.explorers?.[0]?.url || getFallbackExplorer(payload.chainId) || "";
         const href = base ? `${String(base).replace(/\/$/, "")}/address/${addrRaw}` : "#";
         if (vExp) vExp.href = href;
+        if (topExp) {
+          topExp.href = href;
+          topExp.classList.toggle("disabled", !base);
+        }
       } catch (e) {
         try {
           log("error", e);
@@ -756,7 +682,17 @@ function initContainer(container) {
   try {
     const t = String(btn?.getAttribute("type") || "").toLowerCase();
     if (btn && t !== "submit") {
-      btn.addEventListener("click", runSearch);
+      let _lastClick = 0;
+      let _timer = null;
+      btn.addEventListener("click", () => {
+        const now = Date.now();
+        if (now - _lastClick < 800) return;
+        _lastClick = now;
+        if (_timer) clearTimeout(_timer);
+        _timer = setTimeout(() => {
+          runSearch();
+        }, 150);
+      });
     }
   } catch (e) {
     try {
@@ -829,11 +765,14 @@ function initContainer(container) {
           const bSym = container.querySelector("#csBadgeSymbol") || document.getElementById("csBadgeSymbol");
           const bDec = container.querySelector("#csBadgeDecimals") || document.getElementById("csBadgeDecimals");
           const bCid = container.querySelector("#csBadgeChainId") || document.getElementById("csBadgeChainId");
+          const bVer = container.querySelector("#verifyStatusBadge") || document.getElementById("verifyStatusBadge"); // Limpar status de verificação
           if (bAddr) bAddr.textContent = "-";
           if (bName) bName.textContent = "-";
           if (bSym) bSym.textContent = "-";
           if (bDec) bDec.textContent = "-";
           if (bCid) bCid.textContent = "-";
+          if (bVer) bVer.classList.add("d-none");
+          
           // Limpar visualização
           const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
           const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
@@ -844,6 +783,7 @@ function initContainer(container) {
           const vTokBal = container.querySelector("#cs_viewTokenBalance") || document.getElementById("cs_viewTokenBalance");
           const vNatBal = container.querySelector("#cs_viewNativeBalance") || document.getElementById("cs_viewNativeBalance");
           const vExp = container.querySelector("#cs_viewExplorer") || document.getElementById("cs_viewExplorer");
+          const topExp = container.querySelector("#csExplorerBtn") || document.getElementById("csExplorerBtn");
           if (vAddr) vAddr.textContent = "";
           if (vCid) vCid.textContent = "";
           if (vName) vName.textContent = "";
@@ -853,6 +793,10 @@ function initContainer(container) {
           if (vTokBal) vTokBal.textContent = "";
           if (vNatBal) vNatBal.textContent = "";
           if (vExp) vExp.removeAttribute("href");
+          if (topExp) {
+            topExp.href = "#";
+            topExp.classList.add("disabled");
+          }
           const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
           if (card) card.classList.add("d-none");
           const evt = new CustomEvent("contract:clear", { bubbles: true });

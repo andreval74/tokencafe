@@ -34,11 +34,29 @@ const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
 
 // Middleware
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.path} - IP: ${req.ip}`);
+  next();
+});
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
+// DEBUG PATHS
+const pagesPath = path.join(__dirname, "..", "pages");
+console.log("Serving /pages from:", pagesPath);
+const fs = require('fs');
+if (fs.existsSync(pagesPath)) {
+  console.log("✅ Pages directory exists");
+  try {
+     const files = fs.readdirSync(path.join(pagesPath, "modules", "verifica"));
+     console.log("✅ Verified verifica folder content:", files);
+  } catch(e) { console.log("⚠️ Could not list verifica folder:", e.message); }
+} else {
+  console.error("❌ Pages directory NOT FOUND at:", pagesPath);
+}
+
 // Servir páginas e assets estáticos para testar a UI
-app.use("/pages", express.static(path.join(__dirname, "..", "pages")));
+app.use("/pages", express.static(pagesPath));
 app.use("/js", express.static(path.join(__dirname, "..", "js")));
 app.use("/css", express.static(path.join(__dirname, "..", "css")));
 app.use("/imgs", express.static(path.join(__dirname, "..", "imgs")));
@@ -59,18 +77,10 @@ app.get("/", (req, res) => {
   res.redirect("/pages/index.html");
 });
 
-// Logging middleware (opcional para debug)
-if (process.env.NODE_ENV !== "production" || process.env.DEBUG === "true") {
-  app.use((req, res, next) => {
-    console.log(`🌐 ${req.method} ${req.path} - IP: ${req.ip}`);
-    next();
-  });
-}
-
 // Rate limiting
 const apiLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW) || 60000, // 1 minuto
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10,
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW) || 60000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 60,
   message: {
     success: false,
     error: "Rate limit exceeded. Tente novamente em 1 minuto.",
@@ -262,7 +272,7 @@ app.post("/api/generate-token", async (req, res) => {
 
     const sourceCode = `
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.30;
 
 contract ${contractName} {
     string public name = "${name}";
@@ -342,14 +352,26 @@ contract ${contractName} {
 });
 
 function getExplorerApiUrl(chainId) {
-  const cid = parseInt(chainId, 10);
-  if (cid === 1) return "https://api.etherscan.io/api";
-  if (cid === 11155111) return "https://api-sepolia.etherscan.io/api";
-  if (cid === 56) return "https://api.bscscan.com/api";
+  const cid = parseInt(chainId || 0, 10) || 0;
+  // Unified Etherscan V2 Endpoint for all supported chains
+  // Documentation: https://docs.etherscan.io/v2-migration
+  const base = "https://api.etherscan.io/v2/api";
+  return `${base}?chainid=${cid}`;
+}
+
+function getLegacyExplorerApiUrl(chainId) {
+  const cid = parseInt(chainId || 0, 10) || 0;
   if (cid === 97) return "https://api-testnet.bscscan.com/api";
+  if (cid === 56) return "https://api.bscscan.com/api";
   if (cid === 137) return "https://api.polygonscan.com/api";
   if (cid === 8453) return "https://api.basescan.org/api";
+  if (cid === 1) return "https://api.etherscan.io/api";
   return "https://api.etherscan.io/api";
+}
+
+function isV2SupportedChain(chainId) {
+  const cid = parseInt(chainId || 0, 10) || 0;
+  return cid === 1 || cid === 11155111 || cid === 56 || cid === 97 || cid === 137 || cid === 8453;
 }
 
 function getExplorerVerificationUrl(chainId, address) {
@@ -364,130 +386,166 @@ function getExplorerVerificationUrl(chainId, address) {
   return `https://etherscan.io/address/${addr}#code`;
 }
 
-app.post("/api/verify-auto", async (req, res) => {
+function getExplorerApiKeyFromEnv() {
   try {
-    const chainId = parseInt(req.body?.chainId || 0, 10);
-    const address = String(req.body?.contractAddress || "").toLowerCase();
-    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address)) return res.status(400).json({ success: false, error: "Dados inválidos" });
-    const c = await fetch(`https://sourcify.dev/server/contract/${chainId}/${address}`);
-    if (!c.ok) return res.json({ success: false, status: "unverified" });
-    const cj = await c.json();
-    const st = String(cj?.status || "").toLowerCase();
-    const ok = st === "perfect" || st === "full";
-    const link = `https://sourcify.dev/server/files/${chainId}/${address}`;
-    return res.json({ success: ok, verified: ok, status: st, link, lookupUrl: ok ? link : undefined });
-  } catch (e) {
-    return res.status(500).json({ success: false, error: e?.message || String(e) });
+    const b64 = process.env.EXPLORER_API_KEY_B64 || "";
+    if (b64) {
+      try {
+        return Buffer.from(String(b64), "base64").toString("utf8");
+      } catch (_) {}
+    }
+    const direct = process.env.EXPLORER_API_KEY || process.env.BSCSCAN_API_KEY || process.env.ETHERSCAN_API_KEY || "";
+    return String(direct || "");
+  } catch (_) {
+    return "";
   }
-});
+}
 
-app.post("/api/verify-sourcify-upload", async (req, res) => {
-  try {
-    const p = req.body || {};
-    const chainId = parseInt(p.chainId || 0, 10);
-    const address = String(p.contractAddress || "").toLowerCase();
-    const metadata = p.metadata || "";
-    const sourceCode = p.sourceCode || "";
-    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address) || (!metadata && !sourceCode)) return res.status(400).json({ success: false, error: "Dados inválidos" });
-    const form = new FormData();
-    form.append("chain", String(chainId));
-    form.append("address", address);
-    if (metadata) form.append("files", new Blob([metadata], { type: "application/json" }), "metadata.json");
-    if (sourceCode) {
-      let fn = "contract.sol";
-      const fqn = p.contractNameFQN || "";
-      const cName = p.contractName || "";
-      if (fqn && fqn.includes(":")) {
-        const pathPart = fqn.split(":")[0];
-        fn = pathPart.endsWith(".sol") ? pathPart : `${pathPart}.sol`;
-      } else if (cName) {
-        fn = `${cName}.sol`;
-      }
-      form.append("files", new Blob([sourceCode], { type: "text/plain" }), fn);
-    }
-    const resp = await fetch("https://sourcify.dev/server/verify", { method: "POST", body: form });
-    const ok = resp.ok;
-    const link = `https://sourcify.dev/server/files/${chainId}/${address}`;
-    if (!ok) {
-      const txt = await resp.text();
-      return res.status(502).json({ success: false, error: txt });
-    }
-    return res.json({ success: true, link });
-  } catch (e) {
-    return res.status(500).json({ success: false, error: e?.message || String(e) });
-  }
-});
-
-app.post("/api/verify-sourcify", async (req, res) => {
-  try {
-    const p = req.body || {};
-    const chainId = parseInt(p.chainId || 0, 10);
-    const address = String(p.contractAddress || "").toLowerCase();
-    const metadata = p.metadata || "";
-    const sourceCode = p.sourceCode || "";
-    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address) || (!metadata && !sourceCode)) return res.status(400).json({ success: false, error: "Dados inválidos" });
-    const form = new FormData();
-    form.append("chain", String(chainId));
-    form.append("address", address);
-    if (metadata) form.append("files", new Blob([metadata], { type: "application/json" }), "metadata.json");
-    if (sourceCode) {
-      let fn = "contract.sol";
-      const fqn = p.contractNameFQN || "";
-      const cName = p.contractName || "";
-      if (fqn && fqn.includes(":")) {
-        const pathPart = fqn.split(":")[0];
-        fn = pathPart.endsWith(".sol") ? pathPart : `${pathPart}.sol`;
-      } else if (cName) {
-        fn = `${cName}.sol`;
-      }
-      form.append("files", new Blob([sourceCode], { type: "text/plain" }), fn);
-    }
-    const resp = await fetch("https://sourcify.dev/server/verify", { method: "POST", body: form });
-    const ok = resp.ok;
-    const link = `https://sourcify.dev/server/files/${chainId}/${address}`;
-    if (!ok) {
-      const txt = await resp.text();
-      return res.status(502).json({ success: false, error: txt });
-    }
-    return res.json({ success: true, link });
-  } catch (e) {
-    return res.status(500).json({ success: false, error: e?.message || String(e) });
-  }
-});
 
 app.post("/api/verify-bscscan", async (req, res) => {
   try {
     const p = req.body || {};
     const chainId = parseInt(p.chainId || 0, 10);
     const addr = toChecksumAddress(p.contractAddress || "");
-    const apiKey = p.apiKey || "";
+    const apiKey = p.apiKey || getExplorerApiKeyFromEnv();
     const sourceCode = p.sourceCode || "";
     const contractName = p.contractName || "";
     const compilerVersion = p.compilerVersion || "";
     const optimizationUsed = p.optimizationUsed === 0 || p.optimizationUsed === false ? 0 : 1;
     const runs = parseInt(p.runs || 200, 10);
     const codeformat = p.codeformat || "solidity-single-file";
-    const constructorArguments = (p.constructorArguments || "").replace(/^0x/, "");
-    if (!chainId || !addr || !apiKey || !sourceCode || !contractName || !compilerVersion) return res.status(400).json({ success: false, error: "Campos obrigatórios ausentes" });
-    const form = new URLSearchParams();
-    form.append("apikey", apiKey);
-    form.append("module", "contract");
-    form.append("action", "verifysourcecode");
-    form.append("contractaddress", addr);
-    form.append("sourceCode", sourceCode);
-    form.append("codeformat", codeformat);
-    form.append("contractname", contractName);
-    form.append("compilerversion", compilerVersion);
-    form.append("optimizationUsed", String(optimizationUsed));
-    form.append("runs", String(runs));
-    if (constructorArguments) form.append("constructorArguments", constructorArguments);
-    const url = getExplorerApiUrl(chainId);
-    const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form });
-    const js = await resp.json();
-    const ok = String(js?.status || "") === "1";
-    const guid = js?.result || null;
+  const constructorArguments = (p.constructorArguments || "").replace(/^0x/, "");
+  if (!chainId || !addr || !apiKey || !sourceCode || !contractName || !compilerVersion) return res.status(400).json({ success: false, error: "Campos obrigatórios ausentes" });
     const explorerUrl = getExplorerVerificationUrl(chainId, addr);
-    return res.json({ success: ok, guid, explorerUrl, message: js?.message });
+    if (isV2SupportedChain(chainId)) {
+      const form = new URLSearchParams();
+      form.append("apikey", apiKey);
+      form.append("module", "contract");
+      form.append("action", "verifysourcecode");
+      form.append("chainid", String(chainId));
+      form.append("contractaddress", addr);
+      form.append("sourceCode", sourceCode);
+      form.append("codeformat", codeformat);
+      form.append("contractname", contractName);
+      form.append("compilerversion", compilerVersion);
+      form.append("optimizationUsed", String(optimizationUsed));
+      form.append("runs", String(runs));
+      if (constructorArguments) form.append("constructorArguments", constructorArguments);
+      const url = getExplorerApiUrl(chainId);
+      // Try fetching as JSON
+      const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: form });
+      // BscScan sometimes returns HTML error page (Cloudflare) or plain text if error
+      const text = await resp.text();
+      let js;
+      try {
+        js = JSON.parse(text);
+      } catch (e) {
+         // Fallback to V1 if V2 returns non-JSON (HTML/Error)
+         js = null; 
+      }
+      
+      console.log(`[Verify] Chain ${chainId} Response:`, text.substring(0, 200));
+
+      const ok = String(js?.status || "") === "1";
+      const guid = js?.result || null;
+      if (ok) return res.json({ success: true, guid, explorerUrl, message: js?.message });
+      
+      // If V2 returned a valid response but status is 0, it means submission failed (e.g. compilation error)
+      // Since V1 is deprecated for these chains, falling back is useless and masks the error.
+      if (js && (js.status === "0" || js.result)) {
+          return res.json({ success: false, explorerUrl, error: js.result || "Verification failed", message: js.message });
+      }
+    }
+    // V1 direto (ou fallback) para redes não suportadas pelo V2
+    try {
+      const legacyUrl = getLegacyExplorerApiUrl(chainId);
+      const lf = new URLSearchParams();
+      lf.append("apikey", apiKey);
+      lf.append("module", "contract");
+      lf.append("action", "verifysourcecode");
+      // BscScan V1 legacy does NOT want chainid param usually? Or maybe it does?
+      // Standard Etherscan V1: contractaddress, sourceCode, etc.
+      // NOTE: BscScan documentation says V1 endpoints are being deprecated.
+      // But if V2 fails with "Deprecated V1", it's weird.
+      // Maybe we are hitting "https://api-testnet.bscscan.com/api" which IS V1.
+      // And BscScan is saying "Stop using V1".
+      // BUT we also tried V2 "https://api-testnet.bscscan.com/v2/api" and maybe that redirects or is not enabled for us?
+      // Let's try forcing V2 URL even if isV2SupportedChain returned false (which we just edited).
+      // Wait, if isV2SupportedChain(97) is false, we come here.
+      // And here we use getLegacyExplorerApiUrl(97) -> "https://api-testnet.bscscan.com/api"
+      // And we get "You are using a deprecated V1 endpoint".
+      // So V1 IS deprecated and rejecting requests.
+      // So we MUST use V2.
+      // So why did V2 fail before?
+      // Before we had: 
+      // isV2SupportedChain(97) = true.
+      // URL = "https://api-testnet.bscscan.com/v2/api?chainid=97"
+      // Payload had chainid=97.
+      // If that failed, maybe it was because of the ?chainid=97 in URL AND body?
+      // Or maybe the base URL is wrong?
+      // Docs: https://docs.bscscan.com/v/v2-migration
+      // Endpoints: https://api.bscscan.com/v2/api?chainid=56
+      // So for testnet: https://api-testnet.bscscan.com/v2/api?chainid=97
+      // We were doing exactly that.
+      
+      // Let's revert isV2SupportedChain to include 97, but log the response from V2 to see why it wasn't working or if it was falling through.
+      
+      lf.append("contractaddress", addr);
+      lf.append("sourceCode", sourceCode);
+      lf.append("codeformat", codeformat);
+      lf.append("contractname", contractName);
+      lf.append("compilerversion", compilerVersion);
+      lf.append("optimizationUsed", String(optimizationUsed));
+      lf.append("runs", String(runs));
+      if (constructorArguments) lf.append("constructorArguments", constructorArguments);
+      const lr = await fetch(legacyUrl, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: lf });
+      const lj = await lr.json();
+      const lok = String(lj?.status || "") === "1";
+      const lguid = lj?.result || null;
+      return res.json({ success: lok, guid: lguid, explorerUrl, message: lj?.message || "" });
+    } catch (e2) {
+      return res.json({ success: false, explorerUrl, error: e2?.message || String(e2) });
+    }
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e?.message || String(e) });
+  }
+});
+
+app.post("/api/explorer-getsourcecode", async (req, res) => {
+  try {
+    const chainId = parseInt(req.body?.chainId || 0, 10);
+    const address = toChecksumAddress(req.body?.address || req.body?.contractAddress || "");
+    const apiKey = req.body?.apiKey || getExplorerApiKeyFromEnv();
+    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address)) return res.status(400).json({ success: false, error: "Dados inválidos" });
+    const base = getExplorerApiUrl(chainId);
+    const qs = new URLSearchParams();
+    qs.append("module", "contract");
+    qs.append("action", "getsourcecode");
+    qs.append("address", address);
+    if (apiKey) qs.append("apikey", apiKey);
+    const url = `${base}&${qs.toString()}`;
+    let resp = await fetch(url, { method: "GET" });
+    let js = await resp.json();
+    const status = String(js?.status || "0");
+    const resultArr = Array.isArray(js?.result) ? js.result : [];
+    const first = resultArr[0] || {};
+    const src = String(first?.SourceCode || "");
+    const verified = !!src && src.length > 0;
+    if (!resp.ok || status !== "1") {
+      try {
+        const legacy = getLegacyExplorerApiUrl(chainId);
+        const url2 = `${legacy}?${qs.toString()}`;
+        const r2 = await fetch(url2, { method: "GET" });
+        const j2 = await r2.json();
+        const st2 = String(j2?.status || "0");
+        const arr2 = Array.isArray(j2?.result) ? j2.result : [];
+        const f2 = arr2[0] || {};
+        const src2 = String(f2?.SourceCode || "");
+        const ver2 = !!src2 && src2.length > 0;
+        return res.json({ success: true, verified: ver2, explorer: { status: st2, contractName: f2?.ContractName || "", compilerVersion: f2?.CompilerVersion || "", abi: f2?.ABI || "", implementation: f2?.Implementation || "" } });
+      } catch (_) {}
+    }
+    return res.json({ success: true, verified, explorer: { status, contractName: first?.ContractName || "", compilerVersion: first?.CompilerVersion || "", abi: first?.ABI || "", implementation: first?.Implementation || "" } });
   } catch (e) {
     return res.status(500).json({ success: false, error: e?.message || String(e) });
   }
@@ -496,18 +554,38 @@ app.post("/api/verify-bscscan", async (req, res) => {
 app.post("/api/verify-bscscan-status", async (req, res) => {
   try {
     const chainId = parseInt(req.body?.chainId || 0, 10);
-    const apiKey = req.body?.apiKey || "";
+    const apiKey = req.body?.apiKey || getExplorerApiKeyFromEnv();
     const guid = req.body?.guid || "";
     if (!chainId || !apiKey || !guid) return res.status(400).json({ success: false, error: "Dados inválidos" });
-    const url = getExplorerApiUrl(chainId);
+    const base = getExplorerApiUrl(chainId);
     const qs = new URLSearchParams();
     qs.append("apikey", apiKey);
     qs.append("module", "contract");
     qs.append("action", "checkverifystatus");
     qs.append("guid", guid);
-    const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: qs });
-    const js = await resp.json();
-    const ok = String(js?.status || "") === "1";
+    const url = `${base}&${qs.toString()}`;
+    let resp = await fetch(url, { method: "GET" });
+    let text = await resp.text();
+    let js;
+    try { js = JSON.parse(text); } catch(e) { js = null; }
+    
+    let ok = String(js?.status || "") === "1";
+    
+    // Only fallback if V2 failed to return valid JSON (network error or severe API failure)
+    // Status "0" is a valid response (Pending or Fail), so we should NOT fallback in that case.
+    if (!resp.ok || !js) {
+      try {
+        const legacy = getLegacyExplorerApiUrl(chainId);
+        const url2 = `${legacy}?${qs.toString()}`;
+        const r2 = await fetch(url2, { method: "GET" });
+        const t2 = await r2.text();
+        let j2; 
+        try { j2 = JSON.parse(t2); } catch(e) { j2 = null; }
+
+        ok = String(j2?.status || "") === "1";
+        return res.json({ success: ok, message: j2?.result || j2?.message || js?.result || js?.message || "" });
+      } catch (_) {}
+    }
     return res.json({ success: ok, message: js?.result || js?.message || "" });
   } catch (e) {
     return res.status(500).json({ success: false, error: e?.message || String(e) });
@@ -525,6 +603,7 @@ app.use((err, req, res, _next) => {
 
 // 404 handler
 app.use((req, res) => {
+  console.log(`⚠️ 404 Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({
     success: false,
     error: "Endpoint não encontrado",

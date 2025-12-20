@@ -28,7 +28,7 @@
             <div class="col-12">
               <div data-component="shared/components/contract-search.html"></div>
             </div>
-            <input id="f_address" type="hidden" />
+            <!-- f_address removed to avoid duplicate ID with contract-search component -->
             <input id="f_chainId" type="hidden" />
             <div class="col-md-3 d-none">
               <label for="f_contractName" class="form-label small">
@@ -45,170 +45,39 @@
                 <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="Versão do solc usada na compilação"></i>
                 <span id="compVerLockIcon" class="ms-1 text-warning d-none"><i class="bi bi-lock-fill"></i></span>
               </label>
-              <input id="f_compilerVersion" class="form-control form-control-sm" placeholder="ex: v0.8.26+commit..." />
+              <input id="f_compilerVersion" class="form-control form-control-sm" placeholder="ex: v0.8.30+commit.73712a01" list="compilerVersions" />
+              <datalist id="compilerVersions">
+                <option value="v0.8.30+commit.73712a01">
+                <option value="v0.8.29+commit.ab55807c">
+                <option value="v0.8.28+commit.78136a7d">
+                <option value="v0.8.27+commit.40a35a09">
+                <option value="v0.8.26+commit.8a97fa7a">
+                <option value="v0.8.25+commit.b61c2a91">
+                <option value="v0.8.24+commit.e11b9ed9">
+                <option value="v0.8.23+commit.f704f362">
+                <option value="v0.8.22+commit.4fc1097e">
+                <option value="v0.8.21+commit.d9974bed">
+                <option value="v0.8.20+commit.a1b79de6">
+              </datalist>
               <div id="compVerHelp" class="form-text d-none">Versão obtida do metadata.json</div>
             </div>
           </div>
-          <div class="row g-2 mt-2">
-            <div class="col-12">
-              <div class="card bg-dark border-secondary">
-                <div class="card-header border-secondary">
-                  <h6 class="mb-0 text-white"><i class="bi bi-card-list me-2"></i>Contrato</h6>
-                </div>
-                <div class="card-body">
-                  <div class="row g-3">
-                    <div class="col-md-3">
-                      <div class="small text-muted">Nome</div>
-                      <div id="cardContractName" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="small text-muted">Símbolo</div>
-                      <div id="cardTokenSymbolText" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-4">
-                      <div class="small text-muted">FQN</div>
-                      <div id="cardFQN" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-3">
-                      <div class="small text-muted">ChainId</div>
-                      <div id="cardChainIdText" class="text-white">-</div>
-                    </div>
-                    <div class="col-12">
-                      <div class="small text-muted">Endereço</div>
-                      <div id="cardAddressText" class="text-white">-</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row g-2 mt-1" id="erc20-details">
-            <div class="col-12">
-              <div class="card bg-dark border-secondary">
-                <div class="card-header border-secondary">
-                  <h6 class="mb-0 text-white"><i class="bi bi-coin me-2"></i>Detalhes ERC-20</h6>
-                </div>
-                <div class="card-body">
-                  <div class="row g-3">
-                    <div class="col-md-2">
-                      <div class="small text-muted">Símbolo</div>
-                      <div id="erc20SymbolValue" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="small text-muted">Decimals</div>
-                      <div id="erc20DecimalsValue" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-3">
-                      <div class="small text-muted">Supply</div>
-                      <div id="erc20SupplyValue" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-3">
-                      <div class="small text-muted">Saldo do contrato (token)</div>
-                      <div id="erc20TokenBalanceValue" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-4">
-                      <div class="small text-muted">Saldo nativo</div>
-                      <div id="erc20NativeBalanceValue" class="text-white">-</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row g-2 mt-1">
-            <div class="col-12">
-              <div class="card bg-dark border-secondary">
-                <div class="card-header border-secondary">
-                  <h6 class="mb-0 text-white"><i class="bi bi-cpu me-2"></i>Compilador</h6>
-                </div>
-                <div class="card-body">
-                  <div class="row g-3">
-                    <div class="col-md-3">
-                      <div class="small text-muted">Versão</div>
-                      <div id="cardCompilerVersion" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="small text-muted">Otimização</div>
-                      <div id="cardOptimization" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="small text-muted">Runs</div>
-                      <div id="cardRuns" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-2">
-                      <div class="small text-muted">Language</div>
-                      <div id="cardLanguage" class="text-white">-</div>
-                    </div>
-                    <div class="col-md-3">
-                      <div class="small text-muted">Formato</div>
-                      <div id="cardCodeformat" class="text-white">-</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="d-none">
-            <div class="row g-2 mt-1">
-              <div class="col-md-2">
-                <label for="f_language" class="form-label small">Language<span class="text-danger">*</span></label>
-                <select id="f_language" class="form-select form-select-sm">
-                  <option value="solidity">Solidity</option>
-                  <option value="vyper">Vyper</option>
-                </select>
-              </div>
-              <div class="col-md-2">
-                <label for="f_codeformat" class="form-label small">Formato do código<span
-                    class="text-danger">*</span></label>
-                <select id="f_codeformat" class="form-select form-select-sm">
-                  <option value="solidity-single-file">solidity-single-file</option>
-                  <option value="standard-json">standard-json</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="f_contractNameFQN" class="form-label small">FQN<span class="text-danger">*</span></label>
-                <input id="f_contractNameFQN" class="form-control form-control-sm"
-                  placeholder="ex: MyToken.sol:MyToken" />
-              </div>
-              <div class="col-md-2">
-                <label for="f_optimizationUsed" class="form-label small">Otimização</label>
-                <select id="f_optimizationUsed" class="form-select form-select-sm">
-                  <option value="1">optimizer=1</option>
-                  <option value="0">optimizer=0</option>
-                </select>
-              </div>
-              <div class="col-md-2">
-                <label for="f_runs" class="form-label small">Runs</label>
-                <input id="f_runs" class="form-control form-control-sm" placeholder="ex: 200" />
-              </div>
-            </div>
-          </div>
+          
+          
         </div>
         <div class="mt-3">
-          <div id="verifyReadiness" class="mt-2">
-            <span id="verifyStatusBadge" class="badge bg-secondary">Aguardando</span>
-          </div>
-          <div id="sourcifyStatusText" class="form-text text-muted"></div>
+          <div id="explorerStatusText" class="form-text text-muted d-none"></div>
         </div>
-        <div class="mt-3">
-          <div class="small text-muted mb-1">Informações para verificação</div>
-          <div class="row g-2 mt-1">
-            <div class="col-md-6">
-              <label for="f_constructorArgs" class="form-label small">
-                Constructor Arguments (hex)
-                <i class="bi bi-info-circle" data-bs-toggle="tooltip"
-                  title="Argumentos do construtor, em hex, se aplicável"></i>
-              </label>
-              <input id="f_constructorArgs" class="form-control form-control-sm" placeholder="0x..." />
-            </div>
-          </div>
-          <div class="mt-2">
+        <div id="codeSourceSection" class="d-none">
+          <div class="mt-3">
             <div class="card bg-dark border-secondary">
               <div class="card-header border-secondary d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-white"><i class="bi bi-file-earmark-code me-2"></i>Código Fonte</h6>
                 <div class="d-flex gap-2">
                   <button id="importSourceBtn" class="btn btn-sm btn-outline-primary">Importar</button>
                   <button id="copySourceBtn" class="btn btn-sm btn-outline-light">Copiar</button>
+                  <button id="pasteSourceBtn" class="btn btn-sm btn-outline-light">Colar</button>
+                  <button id="clearSourceBtn" class="btn btn-sm btn-outline-danger">Limpar</button>
                 </div>
               </div>
               <div class="card-body">
@@ -229,7 +98,7 @@
             </div>
             <div class="form-text">Licenças devem estar marcadas com comentários SPDX no topo dos arquivos.</div>
           </div>
-          <div class="mt-2">
+          <div class="mt-2 d-none">
             <div class="card bg-dark border-secondary">
               <div class="card-header border-secondary d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-white"><i class="bi bi-braces me-2"></i>Metadata.json</h6>
@@ -241,7 +110,7 @@
               <div class="card-body">
                 <pre id="cardMetadataPreview" class="text-white small code-display">-</pre>
                 <input id="importMetadataFile" type="file" class="d-none" accept=".json" />
-                <div class="form-text">Preencha ao menos um entre sourceCode ou metadata.json</div>
+                <div class="form-text">Importe o arquivo .sol e opcionalmente o metadata.json</div>
               </div>
             </div>
           </div>
@@ -249,32 +118,23 @@
             <textarea id="f_metadata" class="form-control form-control-sm" rows="4" placeholder="{ ... }"></textarea>
           </div>
         </div>
-        <div class="mt-3">
-          <div class="row row-cols-1 row-cols-md-3 g-2">
-            <div class="col">
+
+        <div id="actionButtons" class="mt-3 d-none">
+          <div class="row g-2">
+            <div class="col-12" id="btnVerifyCol">
               <button id="runVerify" class="btn btn-outline-success w-100">
                 <span id="verifySpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"
                   aria-hidden="true"></span>
                 <i class="bi bi-shield-check me-1"></i>
-                <span id="verifyBtnText">Verificar automaticamente</span>
+                <span id="verifyBtnText">Verificar</span>
               </button>
-            </div>
-            <div class="col">
-              <button id="runSourcifyDirect" class="btn btn-outline-info w-100">Buscar arquivos no Sourcify</button>
-            </div>
-            <div class="col">
-              <a id="openContractLink" href="#" target="_blank" rel="noopener"
-                class="btn btn-outline-primary w-100 disabled">Abrir contrato na blockchain</a>
             </div>
           </div>
         </div>
+        <div id="apiKeyField" class="d-none">
+          <input id="f_apiKey" type="password" value="I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5" />
+        </div>
         <div id="verifyStatus" class="small text-muted mt-2"></div>
-        <form id="sourcifyForm" class="d-none">
-          <input type="text" id="sf_chainId" />
-          <input type="text" id="sf_address" />
-          <textarea id="sf_metadata"></textarea>
-          <textarea id="sf_source"></textarea>
-        </form>
       </div>
     </div>
   </div>

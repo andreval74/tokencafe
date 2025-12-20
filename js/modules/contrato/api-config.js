@@ -51,4 +51,25 @@
   try {
     if (isUrl(chosen)) window.localStorage && window.localStorage.setItem("api_base", chosen);
   } catch (_) {}
+  // Configuração automática da API Key do BscScan (se disponível)
+  try {
+    var sp2 = new URLSearchParams(window.location.search || "");
+    var keyFromUrl = sp2.get("bscapi") || null;
+    if (keyFromUrl) {
+      try {
+        window.localStorage && window.localStorage.setItem("bscscan_api_key", keyFromUrl);
+      } catch (_) {}
+      window.TOKENCAFE_BSCSCAN_API_KEY = keyFromUrl;
+    } else {
+      var keyStored = null;
+      try {
+        keyStored = window.localStorage ? window.localStorage.getItem("bscscan_api_key") : null;
+      } catch (_) {
+        keyStored = null;
+      }
+      if (typeof window.TOKENCAFE_BSCSCAN_API_KEY === "undefined" || !window.TOKENCAFE_BSCSCAN_API_KEY) {
+        window.TOKENCAFE_BSCSCAN_API_KEY = keyStored || null;
+      }
+    }
+  } catch (_) {}
 })();

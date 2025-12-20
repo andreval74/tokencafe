@@ -136,6 +136,21 @@ function getExplorerVerificationUrl(chainId, address) {
   return map[Number(chainId)] || `https://etherscan.io/address/${addr}#code`;
 }
 
+function getExplorerApiKeyFromEnv() {
+  try {
+    const b64 = process.env.EXPLORER_API_KEY_B64 || "";
+    if (b64) {
+      try {
+        return Buffer.from(String(b64), "base64").toString("utf8");
+      } catch (_) {}
+    }
+    const direct = process.env.EXPLORER_API_KEY || process.env.BSCSCAN_API_KEY || process.env.ETHERSCAN_API_KEY || "";
+    return String(direct || "");
+  } catch (_) {
+    return "";
+  }
+}
+
 function getExplorerApiBase(chainId) {
   const cid = Number(chainId);
   if (cid === 97) return "https://api-testnet.bscscan.com/api";
@@ -182,7 +197,8 @@ app.post("/api/verify-bscscan-status", async (req, res) => {
     params.append("module", "contract");
     params.append("action", "checkverifystatus");
     params.append("guid", String(guid));
-    if (apiKey) params.append("apikey", String(apiKey));
+    const finalKey = apiKey || getExplorerApiKeyFromEnv();
+    if (finalKey) params.append("apikey", String(finalKey));
     const resp = await fetch(apiBase, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -206,7 +222,8 @@ app.post("/api/verify-bscscan", async (req, res) => {
     }
     const explorerUrl = getExplorerVerificationUrl(chainId, String(contractAddress));
     const apiBase = getExplorerApiBase(chainId);
-    if (!apiKey) {
+    const finalKey = apiKey || getExplorerApiKeyFromEnv();
+    if (!finalKey) {
       return res.status(400).json({ success: false, error: "Missing apiKey for explorer", explorerUrl });
     }
     if (!sourceCode || !contractName || !compilerVersion) {
@@ -220,7 +237,7 @@ app.post("/api/verify-bscscan", async (req, res) => {
     const params = new URLSearchParams();
     params.append("module", "contract");
     params.append("action", "verifysourcecode");
-    params.append("apikey", String(apiKey));
+    params.append("apikey", String(finalKey));
     params.append("contractaddress", String(contractAddress));
     params.append("sourceCode", String(sourceCode));
     params.append("codeformat", String(codeformat || "solidity-single-file"));
@@ -241,7 +258,7 @@ app.post("/api/verify-bscscan", async (req, res) => {
     const status = String(json?.status || "0");
     const result = String(json?.result || "");
     if (status === "1" && result) {
-      const polled = await pollExplorerVerification(apiBase, result, apiKey);
+      const polled = await pollExplorerVerification(apiBase, result, finalKey);
       if (polled.ok) return res.json({ success: true, explorerUrl });
       return res.json({ success: false, message: "pending", guid: result, explorerUrl });
     }
@@ -255,144 +272,6 @@ app.post("/api/verify-bscscan", async (req, res) => {
 });
 
 // Verify-auto: tenta verificação automática (Sourcify) e retorna link; caso não disponível, retorna link do explorer
-app.post("/api/verify-auto", async (req, res) => {
-  try {
-    const { chainId, contractAddress } = req.body || {};
-    if (!contractAddress || typeof chainId === "undefined") {
-      return res.status(400).json({ success: false, error: "Missing chainId or contractAddress" });
-    }
-    const out = await sourcifyRepoStatus(chainId, contractAddress);
-    const ok = out.status === "perfect" || out.status === "partial";
-    if (ok) {
-      return res.json({
-        success: true,
-        status: out.status,
-        link: out.lookupUrl,
-        repoFull: out.repoFull,
-        repoPartial: out.repoPartial,
-      });
-    }
-    const explorerUrl = getExplorerVerificationUrl(chainId, String(contractAddress));
-    return res.json({ success: false, status: "none", link: explorerUrl });
-  } catch (err) {
-    return res.status(500).json({ success: false, error: err?.message || String(err) });
-  }
-});
-
-async function sourcifyRepoStatus(chainId, address) {
-  const cid = Number(chainId);
-  const addr = String(address || "").toLowerCase();
-  const baseRepo = "https://repo.sourcify.dev/contracts";
-  const fullUrl = `${baseRepo}/full_match/${cid}/${addr}/`;
-  const partialUrl = `${baseRepo}/partial_match/${cid}/${addr}/`;
-  let full = false,
-    partial = false;
-  try {
-    const r = await fetch(fullUrl, { method: "GET" });
-    full = r.ok;
-  } catch {}
-  try {
-    const r = await fetch(partialUrl, { method: "GET" });
-    partial = r.ok;
-  } catch {}
-  const status = full ? "perfect" : partial ? "partial" : "none";
-  const anyUrl = full ? fullUrl : partial ? partialUrl : null;
-  const lookupUrl = `https://sourcify.dev/server/files/${cid}/${addr}`;
-  return {
-    status,
-    repoFull: full ? fullUrl : null,
-    repoPartial: partial ? partialUrl : null,
-    repoFilesAny: anyUrl,
-    lookupUrl,
-  };
-}
-
-app.post("/api/verify-sourcify", async (req, res) => {
-  try {
-    const { chainId, contractAddress } = req.body || {};
-    if (!contractAddress || typeof chainId === "undefined") {
-      return res.status(400).json({ success: false, error: "Missing chainId or contractAddress" });
-    }
-    const out = await sourcifyRepoStatus(chainId, contractAddress);
-    const success = out.status === "perfect" || out.status === "partial";
-    return res.json({ success, ...out });
-  } catch (err) {
-    return res.status(500).json({ success: false, error: err?.message || String(err) });
-  }
-});
-
-async function trySourcifyJson(chainId, address, contractName, sourceCode, metadataObj) {
-  const url = "https://sourcify.dev/server/verify";
-  const body = {
-    address: String(address).toLowerCase(),
-    chainId: Number(chainId),
-    files: [
-      { name: "metadata.json", content: JSON.stringify(metadataObj || {}) },
-      { name: `${contractName}.sol`, content: String(sourceCode || "") },
-    ],
-  };
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const json = await resp.json().catch(() => null);
-  return { ok: resp.ok, json };
-}
-
-async function trySourcifyMultipart(chainId, address, contractName, sourceCode, metadataObj) {
-  const url = "https://sourcify.dev/server/verify";
-  const form = new FormData();
-  form.append("chainId", String(chainId));
-  form.append("address", String(address).toLowerCase());
-  const metaBlob = new Blob([JSON.stringify(metadataObj || {})], { type: "application/json" });
-  const srcBlob = new Blob([String(sourceCode || "")], { type: "text/plain" });
-  form.append("files", metaBlob, "metadata.json");
-  form.append("files", srcBlob, `${contractName}.sol`);
-  const resp = await fetch(url, { method: "POST", body: form });
-  const json = await resp.json().catch(() => null);
-  return { ok: resp.ok, json };
-}
-
-function formatSourcifyUploadResult(chainId, address, json) {
-  const cid = Number(chainId);
-  const addr = String(address).toLowerCase();
-  const status = json?.result?.status || json?.status || null;
-  const lookupUrl = `https://sourcify.dev/server/files/${cid}/${addr}`;
-  const repoFull = `https://repo.sourcify.dev/contracts/full_match/${cid}/${addr}/`;
-  const repoPartial = `https://repo.sourcify.dev/contracts/partial_match/${cid}/${addr}/`;
-  const success = status === "perfect" || status === "partial";
-  return { success, status, link: lookupUrl, repoFull, repoPartial };
-}
-
-app.post("/api/verify-sourcify-upload", async (req, res) => {
-  try {
-    const { chainId, contractAddress, contractName, sourceCode, metadata } = req.body || {};
-    if (!contractAddress || typeof chainId === "undefined") {
-      return res.status(400).json({ success: false, error: "Missing chainId or contractAddress" });
-    }
-    let meta = null;
-    try {
-      meta = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
-    } catch {
-      meta = null;
-    }
-    if (!meta && sourceCode && contractName) {
-      const nameSan = sanitizeContractName(contractName);
-      const { metadata: compiledMeta } = compileSolidity(String(sourceCode), nameSan);
-      meta = compiledMeta || {};
-    }
-    let out = await trySourcifyJson(chainId, contractAddress, contractName, sourceCode, meta);
-    if (!out.ok) out = await trySourcifyMultipart(chainId, contractAddress, contractName, sourceCode, meta);
-    if (out && out.json) {
-      const formatted = formatSourcifyUploadResult(chainId, contractAddress, out.json);
-      return res.json(formatted);
-    }
-    return res.status(500).json({ success: false, error: "Sourcify upload failed" });
-  } catch (err) {
-    return res.status(500).json({ success: false, error: err?.message || String(err) });
-  }
-});
 
 function getRpcUrl(chainId) {
   const cid = Number(chainId);
