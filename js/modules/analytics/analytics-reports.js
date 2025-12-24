@@ -173,6 +173,7 @@ class AnalytcsReports {
           {
             name: "CafeToken",
             symbol: "CAFE",
+            address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
             type: "ERC-20",
             holders: 450,
             volume: 850000,
@@ -183,6 +184,7 @@ class AnalytcsReports {
           {
             name: "MyNFT Collecton",
             symbol: "MYNFT",
+            address: "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
             type: "ERC-721",
             holders: 180,
             volume: 420000,
@@ -193,6 +195,7 @@ class AnalytcsReports {
           {
             name: "TestToken",
             symbol: "TEST",
+            address: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
             type: "ERC-20",
             holders: 120,
             volume: 280000,
@@ -384,7 +387,14 @@ class AnalytcsReports {
                 <td>
                     <div class="token-nfo">
                         <strong>${token.name}</strong>
-                        <small>${token.symbol}</small>
+                        <div class="d-flex align-items-center gap-2">
+                          <small>${token.symbol}</small>
+                          ${token.address ? `
+                            <button class="btn btn-sm btn-link p-0 text-muted" onclick="window.copyToClipboard('${token.address}')" title="Copiar Endereço">
+                              <i class="bi bi-clipboard" style="font-size: 0.8rem;"></i>
+                            </button>
+                          ` : ''}
+                        </div>
                     </div>
                 </td>
                 <td><span class="token-type">${token.type}</span></td>
@@ -437,18 +447,87 @@ class AnalytcsReports {
 
     if (!modal || !content) return;
 
+    // Encontrar dados do token
+    const token = this.data.tokenDetals.find(t => t.symbol === tokenSymbol) || { name: tokenSymbol, symbol: tokenSymbol, address: "" };
+
     content.innerHTML = `
             <div class="advanced-analytcs">
-                <h4>Analytcs Detalhado - ${tokenSymbol}</h4>
-                <p>Funconaldade em desenvolvmento...</p>
-                <div class="placeholder-chart">
-                    <i class="bi bi-graph-up fa-3x"></i>
-                    <p>Grfcos avanados sero mplementados aqu</p>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>Analytics Detalhado - ${token.name} <small class="text-muted">(${token.symbol})</small></h4>
+                    ${token.address ? `
+                    <div class="input-group" style="max-width: 300px;">
+                        <span class="input-group-text bg-dark border-secondary text-muted">Contrato</span>
+                        <input type="text" class="form-control bg-dark text-white border-secondary form-control-sm" value="${token.address}" readonly>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="window.copyToClipboard('${token.address}')" title="Copiar Endereço">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Holders</h6>
+                                <h3>${this.formatNumber(token.holders || 0)}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Volume</h6>
+                                <h3>${this.formatCurrency(token.volume || 0)}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Transações</h6>
+                                <h3>${this.formatNumber(token.transactons || 0)}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-dark border-secondary">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted">Variação</h6>
+                                <h3 class="${(token.change || 0) >= 0 ? 'text-success' : 'text-danger'}">
+                                    ${(token.change || 0) >= 0 ? '+' : ''}${(token.change || 0)}%
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="placeholder-chart text-center py-5 bg-dark rounded border border-secondary">
+                    <i class="bi bi-graph-up display-1 text-muted opacity-25"></i>
+                    <p class="mt-3 text-muted">Gráficos avançados de holders e transações em desenvolvimento</p>
                 </div>
             </div>
         `;
 
     modal.style.display = "flex";
+  }
+
+  /**
+   * Limpar dados (Resetar filtros e recarregar)
+   */
+  clearData() {
+    this.tmeRange = "30d";
+    const rangeSelector = document.getElementById("time-range-selector");
+    if (rangeSelector) rangeSelector.value = "30d";
+
+    const searchInput = document.getElementById("table-search");
+    if (searchInput) searchInput.value = "";
+
+    const sortSelect = document.getElementById("table-sort");
+    if (sortSelect) sortSelect.value = "volume";
+
+    this.refreshAnalytcs();
+    this.showSuccess("Dados e filtros resetados com sucesso!");
   }
 
   /**

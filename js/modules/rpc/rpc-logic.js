@@ -3,14 +3,21 @@
 // em conformidade com a norma de evitar scripts inline. Mantém compatibilidade
 // com o fluxo atual expondo window.initRPCManager.
 
+import { walletConnector } from "../../shared/wallet-connector.js";
+import { networkManager } from "../../shared/network-manager.js";
+import { SystemResponse } from "../../shared/system-response.js";
+import "../../shared/page-manager.js";
+
+const systemResponse = new SystemResponse();
+
 // Acessos aos módulos unificados via window (mantém compatibilidade)
 // Usar getters dinâmicos para evitar captura de valores nulos em tempo de carga
 function getWalletConnector() {
-  return window.walletConnector || null;
+  return walletConnector;
 }
 
 function getNetworkManager() {
-  return window.networkManager || null;
+  return networkManager;
 }
 
 function getUtils() {
@@ -444,11 +451,26 @@ async function addNetworkToMetaMask() {
       throw new Error("WalletConnector indisponível para adicionar rede.");
     }
     await wc.addNetwork(networkData);
-    window.notify && window.notify("Rede adicionada com sucesso!", "success");
 
     // Registrar RPC escolhido como já adicionado para esta rede
     addKnownRpc(networkData.chainId, networkData.rpc[0]);
-    clearNetworkForm(true);
+    
+    // Show System Response
+    systemResponse.show({
+        title: "Rede Adicionada",
+        subtitle: "A rede foi adicionada com sucesso à sua carteira.",
+        icon: "bi-hdd-network",
+        content: `Chain ID: ${networkData.chainId} | RPC: ${networkData.rpc[0]}`,
+        badge: "Configuração aplicada",
+        actions: ['copy', 'clear'],
+        onClear: () => {
+             clearNetworkForm(true);
+             hideAllSections();
+             showNextSection("network-section");
+        }
+    });
+
+    hideAllSections();
   } catch (error) {
     console.error("Erro ao adicionar rede:", error);
     window.notify && window.notify(`Erro ao adicionar rede: ${error.message}`, "error");
@@ -767,7 +789,10 @@ async function renderRpcOptions(network) {
                         <div class="list-group-item d-flex align-items-center justify-content-between gap-2" data-rpc-url="${url}">
                             <div class="d-flex align-items-center gap-2">
                                 <input type="radio" name="rpcChoice" class="form-check-input me-2" value="${url}" disabled />
-                                <code class="text-tokencafe">${url}</code>
+                                <code class="text-tokencafe" id="rpc-url-${idx}">${url}</code>
+                                <button class="btn btn-sm btn-link text-white p-0 ms-1" onclick="window.copyToClipboard('${url}')" title="Copiar URL">
+                                     <i class="bi bi-clipboard"></i>
+                                </button>
                             </div>
                             <button id="rpcTest-${idx}" class="btn btn-sm btn-outline-primary">Testar</button>
                         </div>

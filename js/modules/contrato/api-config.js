@@ -29,6 +29,15 @@
   var isHttps = pageProto === "https:";
   var isLocalHost = pageHost === "localhost" || pageHost === "127.0.0.1";
   var prodDefault = "https://tokencafe-api.onrender.com";
+
+  // Senior Fix: Prevent Mixed Content on Localhost
+  // If we are running locally (HTTP), we cannot call HTTPS APIs (Mixed Content).
+  // We must ignore stored/existing HTTPS URLs in this context unless explicitly overridden via query param.
+  if (isLocalHost && !isHttps) {
+    if (stored && stored.startsWith("https:")) stored = null;
+    if (existing && existing.startsWith("https:")) existing = null;
+  }
+
   var chosen = (isUrl(override) ? override : null) || existing || stored || (isHttps && !isLocalHost ? prodDefault : "http://localhost:3000");
   try {
     var chosenUrl = new URL(chosen);

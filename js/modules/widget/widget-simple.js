@@ -188,6 +188,11 @@ class WidgetSimple {
       copyCodeBtn.addEventListener("click", this.handleCopyCode.bind(this));
     }
 
+    const copyContractBtn = document.getElementById("copyContractBtn");
+    if (copyContractBtn) {
+      copyContractBtn.addEventListener("click", this.handleCopyContract.bind(this));
+    }
+
     const downloadJsonBtn = document.getElementById("downloadJsonBtn");
     if (downloadJsonBtn) {
       downloadJsonBtn.addEventListener("click", this.handleDownloadJson.bind(this));
@@ -196,6 +201,11 @@ class WidgetSimple {
     const copyEmbedBtn = document.getElementById("copyEmbedBtn");
     if (copyEmbedBtn) {
       copyEmbedBtn.addEventListener("click", this.handleCopyEmbed.bind(this));
+    }
+
+    const clearFormBtn = document.getElementById("btnClearForm");
+    if (clearFormBtn) {
+      clearFormBtn.addEventListener("click", this.handleClearForm.bind(this));
     }
 
     // Validação em tempo real do endereço do contrato
@@ -521,6 +531,171 @@ class WidgetSimple {
       this.showError("Erro ao criar contrato de venda: " + error.message);
     } finally {
       this.hideLoading();
+    }
+  }
+
+  /**
+   * Copia endereço do contrato para área de transferência
+   */
+  handleCopyContract() {
+    const saleContractInput = document.getElementById("saleContract");
+    if (saleContractInput && saleContractInput.value) {
+      if (window.copyToClipboard) {
+        window.copyToClipboard(saleContractInput.value);
+        this.showSuccess("Endereço copiado!");
+      } else {
+        // Fallback
+        navigator.clipboard.writeText(saleContractInput.value)
+          .then(() => this.showSuccess("Endereço copiado!"))
+          .catch(() => this.showError("Erro ao copiar"));
+      }
+    }
+  }
+
+  /**
+   * Limpa o formulário e reseta o estado
+   */
+  handleClearForm() {
+    // Reset inputs
+    const ids = ["saleContract", "tokenPrice", "minPurchase", "maxPurchase", "receiverWallet", "tokenContract"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+
+    // Reset defaults
+    const price = document.getElementById("tokenPrice");
+    if (price) price.value = "0.01";
+    
+    // Clear validation status
+    const validationStatus = document.getElementById("validationStatus");
+    if (validationStatus) validationStatus.innerHTML = "";
+    
+    // Reset state
+    this.state.contractValidated = false;
+    this.state.autoDetectedParams = {};
+    
+    // Enable buttons
+    const validateBtn = document.getElementById("validateBtn");
+    if (validateBtn) {
+      validateBtn.disabled = false;
+      validateBtn.textContent = "Validar Contrato";
+      validateBtn.classList.remove("btn-success");
+      validateBtn.classList.add("btn-primary");
+    }
+
+    const goToStep5 = document.getElementById("goToStep5");
+    if (goToStep5) goToStep5.disabled = true;
+
+    // Reset preview
+    this.showPreview();
+    
+    // Notify
+    if (window.showFormSuccess) {
+      window.showFormSuccess("Formulário limpo com sucesso!");
+    }
+  }
+
+  /**
+   * Valida o contrato informado
+   */
+  async handleContractValidation() {
+    const saleContractInput = document.getElementById("saleContract");
+    const address = saleContractInput?.value;
+
+    if (!address || !this.isValidEthereumAddress(address)) {
+      this.showError("Endereço de contrato inválido");
+      return;
+    }
+
+    this.showLoading("Validando contrato...");
+    
+    try {
+      // Usar provider conectado ou fallback
+      if (!this.state.provider) {
+         // Tenta provider da carteira se conectado
+         if (window.ethereum) {
+             this.state.provider = new ethers.providers.Web3Provider(window.ethereum);
+         } else {
+             // Fallback para RPC público da rede selecionada
+             const blockchainSelect = document.getElementById("blockchain");
+             const chainId = blockchainSelect?.value || "97";
+             const net = this.supportedNetworks[chainId];
+             if (net) {
+                 this.state.provider = new ethers.providers.JsonRpcProvider(net.rpcUrl);
+             }
+         }
+      }
+
+      const saleInfo = await this.detectSaleContract(address);
+      
+      if (saleInfo) {
+        this.state.contractValidated = true;
+        this.state.autoDetectedParams = saleInfo;
+        
+        // Disable validate button
+        const validateBtn = document.getElementById("validateBtn");
+        if (validateBtn) {
+          validateBtn.disabled = true;
+          validateBtn.textContent = "Validado";
+          validateBtn.classList.remove("btn-primary");
+          validateBtn.classList.add("btn-success");
+        }
+        
+        // Enable next step
+        const goToStep5 = document.getElementById("goToStep5");
+        if (goToStep5) goToStep5.disabled = false;
+
+        // Show success modal
+        if (typeof showVerificationResultModal === 'function') {
+            showVerificationResultModal('Contrato Validado', 'Contrato de venda verificado com sucesso!', 'success');
+        } else {
+            this.showSuccess("Contrato validado com sucesso!");
+        }
+
+        // Update UI with detected params
+        if (saleInfo.pricePerToken) {
+           const priceEl = document.getElementById("tokenPrice");
+           if (priceEl) priceEl.value = saleInfo.pricePerToken;
+        }
+        
+        this.showPreview();
+      } else {
+        throw new Error("Contrato não é uma venda válida ou ABI desconhecida.");
+      }
+    } catch (error) {
+      console.error("Erro na validação:", error);
+      if (typeof showVerificationResultModal === 'function') {
+          showVerificationResultModal('Falha na Validação', error.message || "Erro desconhecido", 'error');
+      } else {
+          this.showError(error.message);
+      }
+    } finally {
+      this.hideLoading();
+    }
+  }
+    if (price) price.value = "0.01";
+    
+    const min = document.getElementById("minPurchase");
+    if (min) min.value = "0.01";
+
+    const max = document.getElementById("maxPurchase");
+    if (max) max.value = "10";
+    
+    const btnText = document.getElementById("buyButtonText");
+    if (btnText) btnText.value = "Comprar Tokens";
+
+    // Clear validation status
+    const validationStatus = document.getElementById("validationStatus");
+    if (validationStatus) validationStatus.innerHTML = "";
+
+    // Reset preview
+    this.showPreview();
+    
+    if (window.showFormSuccess) {
+      window.showFormSuccess("Formulário limpo com sucesso!");
+    } else {
+      this.showSuccess("Formulário limpo com sucesso!");
     }
   }
 
@@ -1341,6 +1516,69 @@ class WidgetSimple {
     if (previewCard) {
       previewCard.style.display = "block";
     }
+    
+    // Atualizar preview de código
+    this.updateCodePreview(config);
+  }
+
+  /**
+   * Atualiza os campos de código gerado (HTML/Embed)
+   */
+  updateCodePreview(config) {
+     const codeBlock = document.getElementById("generatedCode");
+     const embedBlock = document.getElementById("generatedEmbed");
+     
+     if (codeBlock) {
+         // Exemplo de código para integração via Script
+         const scriptCode = `<!-- Widget TokenCafe -->
+<div id="tokencafe-widget-${Date.now()}"></div>
+<script>
+  (function() {
+    const config = ${JSON.stringify(config, null, 2)};
+    // Integração simplificada
+    console.log("Widget Config:", config);
+  })();
+</script>`; 
+         codeBlock.value = scriptCode;
+     }
+     
+     if (embedBlock) {
+         const encoded = encodeURIComponent(JSON.stringify(config));
+         const embedCode = `<iframe src="https://tokencafe.app/embed?config=${encoded}" width="400" height="600" frameborder="0"></iframe>`;
+         embedBlock.value = embedCode;
+     }
+  }
+
+  /**
+   * Copia o código HTML gerado
+   */
+  handleCopyCode() {
+      const codeBlock = document.getElementById("generatedCode");
+      if (codeBlock && codeBlock.value) {
+          if (window.copyToClipboard) {
+              window.copyToClipboard(codeBlock.value);
+          } else {
+              navigator.clipboard.writeText(codeBlock.value)
+                  .then(() => this.showSuccess("Código copiado!"))
+                  .catch(() => this.showError("Erro ao copiar"));
+          }
+      }
+  }
+
+  /**
+   * Copia o código Embed gerado
+   */
+  handleCopyEmbed() {
+      const embedBlock = document.getElementById("generatedEmbed");
+      if (embedBlock && embedBlock.value) {
+          if (window.copyToClipboard) {
+              window.copyToClipboard(embedBlock.value);
+          } else {
+              navigator.clipboard.writeText(embedBlock.value)
+                  .then(() => this.showSuccess("Embed copiado!"))
+                  .catch(() => this.showError("Erro ao copiar"));
+          }
+      }
   }
 
   /**
@@ -2126,17 +2364,42 @@ class WidgetSimple {
   /**
    * Manipha cópia de código
    */
-  handleCopyCode() {
+  /**
+   * Copia o código de incorporação (embed)
+   */
+  handleCopyEmbed() {
     const embedCode = document.getElementById("embedCode");
-    if (embedCode) {
+    if (embedCode && embedCode.textContent) {
+      if (window.copyToClipboard) {
+        window.copyToClipboard(embedCode.textContent);
+        this.showSuccess("Código de incorporação copiado!");
+      } else {
+        navigator.clipboard.writeText(embedCode.textContent)
+          .then(() => this.showSuccess("Código de incorporação copiado!"))
+          .catch(() => this.showError("Erro ao copiar código"));
+      }
+    }
+  }
+
+  /**
+   * Copia a configuração do widget (JSON)
+   */
+  handleCopyCode() {
+    const config = this.state.widgetConfig || this.generateWidgetConfig();
+    const json = JSON.stringify(config, null, 2);
+
+    if (window.copyToClipboard) {
+      window.copyToClipboard(json);
+      this.showSuccess("Configuração (JSON) copiada!");
+    } else {
       navigator.clipboard
-        .writeText(embedCode.textContent)
+        .writeText(json)
         .then(() => {
-          this.showSuccess("Código copiado para a área de transferência!");
+          this.showSuccess("Configuração (JSON) copiada!");
         })
         .catch((err) => {
           console.error("Erro ao copiar:", err);
-          this.showError("Erro ao copiar código");
+          this.showError("Erro ao copiar configuração");
         });
     }
   }
@@ -2171,15 +2434,20 @@ class WidgetSimple {
   handleCopyEmbed() {
     const embedCode = document.getElementById("embedCode");
     if (embedCode) {
-      navigator.clipboard
-        .writeText(embedCode.textContent)
-        .then(() => {
-          this.showSuccess("Código de incorporação copiado!");
-        })
-        .catch((err) => {
-          console.error("Erro ao copiar:", err);
-          this.showError("Erro ao copiar código");
-        });
+      if (window.copyToClipboard) {
+        window.copyToClipboard(embedCode.textContent);
+        this.showSuccess("Código de incorporação copiado!");
+      } else {
+        navigator.clipboard
+          .writeText(embedCode.textContent)
+          .then(() => {
+            this.showSuccess("Código de incorporação copiado!");
+          })
+          .catch((err) => {
+            console.error("Erro ao copiar:", err);
+            this.showError("Erro ao copiar código");
+          });
+      }
     }
   }
 

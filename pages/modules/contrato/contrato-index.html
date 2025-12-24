@@ -132,15 +132,17 @@
 
         <!-- Ação de Compilar e Deploy -->
         <div class="mb-4" id="actions-section">
-          <div class="row g-2">
-            <div class="col-12">
-              <button id="btnBuildDeploy" class="btn btn-outline-success w-100">
-                <span id="buildSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"
-                  aria-hidden="true"></span>
-                <i class="bi bi-tools me-1"></i>
-                <span id="buildBtnText">Compilar, Deploy e Verifica</span>
-              </button>
-            </div>
+          <div class="btn-row">
+            <button id="btnBuildDeploy" class="btn btn-outline-success">
+              <span id="buildSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"
+                aria-hidden="true"></span>
+              <i class="bi bi-tools me-1"></i>
+              <span id="buildBtnText">Compilar, Deploy e Verifica</span>
+            </button>
+            <button id="btnClearForm" class="btn btn-outline-secondary">
+              <i class="bi bi-eraser me-1"></i>
+              Limpar Dados
+            </button>
           </div>
         </div>
 
@@ -155,9 +157,11 @@
             <div class="row g-2 small">
               <div class="col-12">
                 Endereço: <a id="erc20Address" href="#" target="_blank" rel="noopener">-</a>
+                <button class="btn btn-sm btn-link text-white p-0 ms-2" onclick="window.copyToClipboard?.(document.getElementById('erc20Address').innerText)" title="Copiar"><i class="bi bi-clipboard"></i></button>
               </div>
               <div class="col-12">
                 Transação: <a id="erc20TxHash" href="#" target="_blank" rel="noopener">-</a>
+                <button class="btn btn-sm btn-link text-white p-0 ms-2" onclick="window.copyToClipboard?.(document.getElementById('erc20TxHash').innerText)" title="Copiar"><i class="bi bi-clipboard"></i></button>
               </div>
               <div class="col-6">
                 Nome: <span id="erc20Name">-</span>
@@ -174,17 +178,19 @@
             </div>
           </div>
           <!-- Ação de Adicionar ao MetaMask e Compartilha o link -->
-          <div class="row g-2 mt-2">
-            <div class="col-12 d-flex gap-2">
-              <button id="btnAddToMetaMask" class="btn btn-outline-primary flex-grow-1" disabled>
-                <img src="../../../imgs/metamask.svg" alt="MetaMask" width="20" height="20" class="me-1" />
-                Adicionar ao MetaMask
-              </button>
-              <button id="btnShareDeploy" class="btn btn-outline-info flex-grow-1" disabled>
-                <i class="bi bi-share me-1"></i>
-                Compartilhar Link
-              </button>
-            </div>
+          <div class="btn-row mt-2">
+            <button id="btnAddToMetaMask" class="btn btn-outline-primary" disabled>
+              <img src="../../../imgs/metamask.svg" alt="MetaMask" width="20" height="20" class="me-1" />
+              Adicionar ao MetaMask
+            </button>
+            <button id="btnShareDeploy" class="btn btn-outline-info" disabled>
+              <i class="bi bi-share me-1"></i>
+              Compartilhar Link
+            </button>
+            <a id="erc20VerifyLink" class="btn btn-outline-warning disabled" href="#" target="_blank" rel="noopener">
+              <i class="bi bi-shield-check me-1"></i>
+              Verificar
+            </a>
           </div>
         </div>
 
@@ -195,27 +201,25 @@
         <div data-component="shared/components/section-title.html" data-st-icon="bi-file-arrow-down"
           data-st-title="Download de Arquivos" data-st-subtitle="Disponível após o deploy"></div>
         <div class="border rounded p-3 bg-dark-elevated">
-          <div class="row g-2">
-            <div class="col-12 d-flex gap-2">
-              <button id="btnDownloadSol" class="btn btn-outline-primary flex-grow-1" disabled>
-                <i class="bi bi-filetype-sol me-1"></i>
-                Visualizar .sol
-              </button>
-              <button id="btnDownloadJson" class="btn btn-outline-primary flex-grow-1" disabled>
-                <i class="bi bi-filetype-json me-1"></i>
-                Visualizar verificação (.json)
-              </button>
-              <button id="btnDownloadAbi" class="btn btn-outline-primary flex-grow-1" disabled>
-                <i class="bi bi-braces me-1"></i>
-                Visualizar ABI
-              </button>
-              <button id="btnDownloadDeployedBytecode" class="btn btn-outline-primary flex-grow-1" disabled>
-                <i class="bi bi-code-slash me-1"></i>
-                Visualizar bytecode (deployed)
-              </button>
-            </div>
+          <div class="btn-row">
+            <button id="btnDownloadSol" class="btn btn-outline-primary" disabled>
+              <i class="bi bi-filetype-sol me-1"></i>
+              Visualizar .sol
+            </button>
+            <button id="btnDownloadJson" class="btn btn-outline-primary" disabled>
+              <i class="bi bi-filetype-json me-1"></i>
+              Visualizar verificação (.json)
+            </button>
+            <button id="btnDownloadAbi" class="btn btn-outline-primary" disabled>
+              <i class="bi bi-braces me-1"></i>
+              Visualizar ABI
+            </button>
+            <button id="btnDownloadDeployedBytecode" class="btn btn-outline-primary" disabled>
+              <i class="bi bi-code-slash me-1"></i>
+              Visualizar bytecode (deployed)
+            </button>
           </div>
-          <small class="text-danger">
+          <small class="text-danger mt-2 d-block">
             <i class="bi bi-exclamation-triangle"></i>
             Revise e salve estes arquivos (.sol, .json, ABI, deployed bytecode). Eles serão necessários para
             verificação e auditoria futuras.
@@ -252,10 +256,11 @@
     </div>
   </div>
   <script type="module" src="../../../js/shared/base-system.js"></script>
-  <div data-component="shared/layouts/scripts-base.html"></div>
+  <!--
   <script>
     window.TOKENCAFE_API_BASE = "https://tokencafe-api.onrender.com";
   </script>
+  -->
   <!-- Configuração do endpoint da API (pode ser sobrescrito em produção) -->
   <script src="../../../js/modules/contrato/api-config.js?v=1.1"></script>
   <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">

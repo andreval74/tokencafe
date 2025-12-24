@@ -18,8 +18,8 @@ const API_BASE = window.TOKENCAFE_API_BASE || window.XCAFE_API_BASE || "http://l
 function validateBasicFields() {
   const name = String(qs("tokenName")?.value || "").replace(/\s+$/u, "");
   const symbol = String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "");
-  const supply = String(qs("totalSupply")?.value || "").replace(/\s+$/u, "");
-  const owner = String(qs("ownerAddress")?.value || "").replace(/\s+$/u, "");
+  const supply = String(qs("totalSupply")?.value || "").replace(/\s/g, "");
+  const owner = String(qs("ownerAddress")?.value || "").replace(/\s/g, "");
   const ok = !!(name && symbol && supply && owner && utils.isValidEthereumAddress(owner));
   const btn = qs("create-token-btn");
   if (btn) btn.style.display = ok ? "block" : "none";
@@ -79,6 +79,7 @@ function setupResultActions() {
     copyContractBtn.addEventListener("click", () => {
       const val = qs("contract-address-display")?.value || "";
       window.copyToClipboard?.(val);
+      window.showFormSuccess?.("Endereço copiado!", {});
     });
   }
 
@@ -103,6 +104,7 @@ function setupResultActions() {
           method: "wallet_watchAsset",
           params: { type: "ERC20", options: { address, symbol, decimals } },
         });
+        window.showFormSuccess?.("Solicitação enviada ao MetaMask!", {});
       } catch (_) {}
     });
   }
@@ -111,6 +113,7 @@ function setupResultActions() {
   if (copyHashBtn) {
     copyHashBtn.addEventListener("click", () => {
       window.copyToClipboard?.(qs("transaction-hash-display")?.value || "");
+      window.showFormSuccess?.("Hash copiado!", {});
     });
   }
 
@@ -131,6 +134,7 @@ function bindDelegatedActions() {
     if (copyModalBtn) {
       const code = qs("contract-modal-code")?.textContent || "";
       window.copyToClipboard?.(code);
+      window.showFormSuccess?.("Código copiado!", {});
       return;
     }
     const downloadModalBtn = act('[data-action="download-modal-code"]');
@@ -148,6 +152,7 @@ function bindDelegatedActions() {
     if (copyContractBtn2) {
       const code = qs("preview-contract-code")?.textContent || "";
       window.copyToClipboard?.(code);
+      window.showFormSuccess?.("Código copiado!", {});
       return;
     }
     const downloadSolBtn = act('[data-action="download-solidity-file"]');
@@ -267,7 +272,7 @@ function setupContractPreview() {
     const name = String(qs("tokenName")?.value || "").replace(/\s+$/u, "");
     const symbol = String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "");
     const decimals = parseInt(qs("decimals")?.value || "18", 10);
-    const totalSupply = String(qs("totalSupply")?.value || "").replace(/\s+$/u, "");
+    const totalSupply = String(qs("totalSupply")?.value || "").replace(/\s/g, "");
     const owner = String(qs("ownerAddress")?.value || "").replace(/\s+$/u, "");
     if (!(name && symbol && totalSupply && owner && utils.isValidEthereumAddress(owner))) return;
     const code = generateContractCode({
@@ -305,17 +310,82 @@ function setupCreateFlow() {
   if (!btn) return;
   btn.addEventListener("click", () => {
     // Fluxo mínimo: revela seções de resultado e verificação
-    const secResult = document.getElementById("section-result");
+    // const secResult = document.getElementById("section-result");
     const secVeri = document.getElementById("section-veri");
-    if (secResult) secResult.classList.remove("d-none");
+    // if (secResult) secResult.classList.remove("d-none");
     if (secVeri) secVeri.classList.remove("d-none");
     // Preenche placeholders se vazios
     const addr = qs("contract-address-display");
     if (addr && !addr.value) addr.value = "0x0000000000000000000000000000000000000000";
     const hash = qs("transaction-hash-display");
     if (hash && !hash.value) hash.value = "0x" + "0".repeat(64);
+
+    const contractAddress = addr ? addr.value : "";
+    
+    // Show System Response
+    systemResponse.show({
+        title: "Token Criado!",
+        subtitle: "Seu contrato inteligente foi implantado com sucesso.",
+        icon: "bi-check-circle",
+        content: contractAddress,
+        badge: "Implantado",
+        actions: ['copy', 'add_wallet', 'open', 'clear'],
+        tokenData: {
+            address: contractAddress,
+            symbol: qs("tokenSymbol")?.value || "TKN",
+            decimals: parseInt(qs("decimals")?.value || 18),
+            image: ""
+        },
+        onClear: () => {
+            const clearBtn = qs("btnClearForm");
+            if (clearBtn) clearBtn.click();
+            if (secVeri) secVeri.classList.add("d-none");
+        }
+    });
+
     // Iniciar verificação automática (Sourcify e BscScan)
     autoVerifyContract().catch((err) => console.warn("Falha na verificação automática:", err));
+  });
+}
+
+function setupClearButton() {
+  const btn = qs("btnClearForm");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    // Reset inputs
+    const setVal = (id, val) => { const el = qs(id); if (el) el.value = val; };
+    setVal("tokenName", "");
+    setVal("tokenSymbol", "");
+    setVal("tokenDecimals", "18"); // Reset to default 18
+    setVal("decimals", "18"); // Ensure hidden/select fields are reset too
+    setVal("totalSupply", "");
+    setVal("ownerAddress", "");
+    setVal("tokenImage", "");
+    setVal("contractName", "");
+    
+    // Checkboxes (Advanced features)
+    const setCheck = (id, val) => { const el = qs(id); if (el) el.checked = val; };
+    setCheck("featureMintable", false);
+    setCheck("featureBurnable", false);
+    setCheck("featurePausable", false);
+    setCheck("featureOwnable", true);
+    setCheck("optimizerEnabled", true);
+
+    // Hide result sections
+    const secResult = document.getElementById("section-result");
+    const secVeri = document.getElementById("section-veri");
+    if (secResult) secResult.classList.add("d-none");
+    if (secVeri) secVeri.classList.add("d-none");
+
+    // Hide Create button (since validation will fail)
+    const createBtn = qs("create-token-btn");
+    if (createBtn) createBtn.style.display = "none";
+    
+    // Clear status
+    const addr = qs("contract-address-display");
+    if (addr) addr.value = "";
+    const hash = qs("transaction-hash-display");
+    if (hash) hash.value = "";
   });
 }
 
@@ -325,6 +395,7 @@ function init() {
   initNetworkDetection();
   setupResultActions();
   setupCreateFlow();
+  setupClearButton();
   setupContractPreview();
   setupVerifyAction();
   setupAutoVerifyButton();
@@ -358,12 +429,15 @@ function setLink(id, url) {
   }
 }
 
+  // Removido showVerificationResultModal local para usar a global
+  // function showVerificationResultModal(success, message, link) { ... }
+
 async function autoVerifyContract() {
   try {
     const address = String(qs("contract-address-display")?.value || "").replace(/\s+$/u, "");
     const name = String(qs("tokenName")?.value || "").replace(/\s+$/u, "");
     const symbol = String(qs("tokenSymbol")?.value || "").replace(/\s+$/u, "");
-    const totalSupply = String(qs("totalSupply")?.value || "").replace(/\s+$/u, "");
+    const totalSupply = String(qs("totalSupply")?.value || "").replace(/\s/g, "");
     const decimals = parseInt(qs("decimals")?.value || "18", 10);
     const chainId = selectedNetwork?.chainId || 97;
     const apiKey = window.TOKENCAFE_BSCSCAN_API_KEY || "";
@@ -388,7 +462,7 @@ async function autoVerifyContract() {
       body: JSON.stringify({
         name,
         symbol,
-        totalSupply: Number(totalSupply),
+        totalSupply,
         decimals,
       }),
     });
@@ -413,6 +487,7 @@ async function autoVerifyContract() {
     };
     if (!apiKey) {
       updateStatus("bscscan-status", "BscScan: API key ausente", "warning");
+      window.showVerificationResultModal && window.showVerificationResultModal(false, "API Key do BscScan não configurada.");
     } else {
       const bscResp = await fetch(`${API_BASE}/api/verify-bscscan`, {
         method: "POST",
@@ -424,9 +499,11 @@ async function autoVerifyContract() {
         updateStatus("bscscan-status", "BscScan: OK", "success");
         const url = bscJson.explorerUrl || getExplorerVerificationUrl(address, chainId);
         setLink("bscscan-link", url);
+        window.showVerificationResultModal && window.showVerificationResultModal(true, "Contrato verificado com sucesso!", url);
       } else {
         const msg = bscJson?.message || "falhou";
         updateStatus("bscscan-status", `BscScan: ${msg}`, "danger");
+        window.showVerificationResultModal && window.showVerificationResultModal(false, `Falha na verificação: ${msg}`, null);
       }
     }
 
@@ -435,6 +512,7 @@ async function autoVerifyContract() {
     console.warn("Erro na verificação:", e);
     updateStatus("bscscan-status", "BscScan: erro", "danger");
     window.notify && window.notify(`Erro ao verificar: ${e?.message || e}`, "error");
+    window.showVerificationResultModal && window.showVerificationResultModal(false, `Erro interno: ${e?.message || e}`, null);
   }
 }
 

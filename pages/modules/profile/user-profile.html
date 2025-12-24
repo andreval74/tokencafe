@@ -27,6 +27,12 @@
           <div class="profile-details">
             <h1 class="profile-name" id="profileName">João Silva</h1>
             <p class="profile-username">@joaosilva</p>
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+              <span id="profileAddress" class="text-muted font-monospace small">0x1234...5678</span>
+              <button class="btn btn-sm btn-link text-secondary p-0" id="btnCopyAddress" title="Copiar Endereço">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
             <p class="profile-bio" id="profileBio">Desenvolvedor blockchain apaixonado por DeFi e NFTs. Criando o futuro das finanças descentralizadas.</p>
             <div class="profile-stats">
               <div class="stat">
@@ -51,6 +57,10 @@
             <button class="btn btn-outline-info" id="shareProfileBtn">
               <i class="bi bi-share"></i>
               Compartilhar
+            </button>
+            <button class="btn btn-outline-secondary" id="btnClearData">
+              <i class="bi bi-eraser"></i>
+              Limpar Dados
             </button>
           </div>
         </div>

@@ -13,7 +13,7 @@
 
   <!-- Security Headers -->
   <meta http-equiv="Content-Security-Policy"
-    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: ws: wss:; object-src 'none'; base-uri 'self';" />
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: http://localhost:* ws: wss:; object-src 'none'; base-uri 'self';" />
 
   <!-- Favicons TokenCafe -->
   <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
@@ -56,57 +56,31 @@
         <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->
         <div id="token-section" class="mb-4">
           <div data-component="shared/components/contract-search.html"></div>
-        
-        
         </div>
       </div>
 
-      <!-- ===== SEÇÃO 3: LINK GERADO ===== -->
-      <div id="generate-section" class="mb-4 d-none">
-        <div id="generateSectionTitle" data-component="shared/components/section-title.html"
-          data-st-icon="bi-link-45deg" data-st-title="Link Gerado"
-          data-st-subtitle="Copie, compartilhe ou teste o link">
-        </div>
+      <!-- ===== SEÇÃO 3: LINK GERADO (SISTEMA PADRÃO) ===== -->
+      <div class="mb-4">
+        <div data-component="shared/components/system-response.html"></div>
+      </div>
 
-        <div id="generatedLinkGroup" class="input-group mt-2">
-          <input id="generatedLink" class="form-control" readonly aria-label="Link gerado" />
-        </div>
-        <small id="metaValidatedBadge" class="text-success d-none mt-1">
-          <i class="bi bi-check-circle me-1"></i>
-          Dados do contrato confirmados (símbolo/decimais)
-        </small>
-        <div class="row row-cols-6 g-2 mt-2" id="generatedActionsRow">
-          <div class="col">
-            <button id="btnCopyLink" class="btn btn-outline-secondary btn-lg w-100" title="Copiar"
-              aria-label="Copiar">
-              <i class="bi bi-clipboard me-1"></i>Copiar
-            </button>
+      <!-- Modal: Verificação (Padronizado) -->
+      <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content bg-dark text-light border">
+            <div class="modal-header">
+              <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="verifyInfoContent" class="small"></div>
+            </div>
+            <div class="modal-footer">
+              <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir
+                página de verificação</a>
+            </div>
           </div>
-          <div class="col">
-            <button id="btnShareWhatsAppSmall" class="btn btn-outline-success btn-lg w-100" title="WhatsApp"
-              aria-label="WhatsApp">
-              <i class="fab fa-whatsapp me-1"></i>WhatsApp
-            </button>
-          </div>
-          <div class="col">
-            <button id="btnShareTelegramSmall" class="btn btn-outline-info btn-lg w-100" title="Telegram"
-              aria-label="Telegram">
-              <i class="fab fa-telegram me-1"></i>Telegram
-            </button>
-          </div>
-          <div class="col">
-            <button id="btnShareEmailSmall" class="btn btn-outline-warning btn-lg w-100" title="Email"
-              aria-label="Email">
-              <i class="bi bi-envelope me-1"></i>Email
-            </button>
-          </div>
-          <div class="col">
-            <button id="btnOpenLink" class="btn btn-outline-primary btn-lg w-100" title="Testar"
-              aria-label="Testar">
-              <i class="bi bi-box-arrow-up-right me-1"></i>Testar
-            </button>
-          </div>
-
         </div>
       </div>
     </div>

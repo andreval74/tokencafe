@@ -3,9 +3,11 @@
 
 import { NetworkManager } from "../../shared/network-manager.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
+import { SystemResponse } from "../../shared/system-response.js";
 
 const networkManager = new NetworkManager();
 const utils = new SharedUtilities();
+const systemResponse = new SystemResponse();
 
 const ids = {
   networkSearch: "networkSearch",
@@ -59,6 +61,28 @@ function hide(id) {
   if (el) el.classList.add("d-none");
 }
 
+function setReadonlyMode(enabled) {
+    readonlyLinkMode = enabled;
+    const inputs = [
+        ids.tokenAddress, ids.tokenName, ids.tokenSymbol, 
+        ids.tokenDecimals, ids.tokenImage
+    ];
+    
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.readOnly = enabled;
+            if (enabled) el.classList.add('bg-light');
+            else el.classList.remove('bg-light');
+        }
+    });
+
+    const btnSearch = document.getElementById(ids.btnTokenSearch);
+    if (btnSearch) {
+        btnSearch.disabled = enabled;
+    }
+}
+
 const isValidAddress = (addr) => utils.isValidEthereumAddress(addr);
 
 // Mensagem padronizada de erro (rodapé)
@@ -86,29 +110,31 @@ function clearError() {
 function initStatusMirror() {
   try {
     const el = document.getElementById("contractSearchStatusText");
-    if (!el) return;
-    const sync = () => {
-      const raw = String(el.textContent || "").replace(/\s+$/u, "");
-      if (!raw) {
-        clearError();
-        return;
-      }
-      if (/Informe endereço e rede/i.test(raw)) {
-        setError("Informe endereço e rede.");
-        return;
-      }
-      if (/Tempo limite|sem dados/i.test(raw)) {
-        const netName = selectedNetwork?.name || "";
-        const cid = selectedNetwork?.chainId != null ? String(selectedNetwork.chainId) : "";
-        const msg = netName && cid ? `Contrato não pertence à rede selecionada (${netName}, chainId ${cid}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
-        setError(msg);
-        return;
-      }
-      clearError();
-    };
-    sync();
-    const obs = new MutationObserver(sync);
-    obs.observe(el, { characterData: true, childList: true, subtree: true });
+    if (el) {
+        // Observer logic moved to ensure element exists
+        const sync = () => {
+          const raw = String(el.textContent || "").replace(/\s+$/u, "");
+          if (!raw) {
+            clearError();
+            return;
+          }
+          if (/Informe endereço e rede/i.test(raw)) {
+            setError("Informe endereço e rede.");
+            return;
+          }
+          if (/Tempo limite|sem dados/i.test(raw)) {
+            const netName = selectedNetwork?.name || "";
+            const cid = selectedNetwork?.chainId != null ? String(selectedNetwork.chainId) : "";
+            const msg = netName && cid ? `Contrato não pertence à rede selecionada (${netName}, chainId ${cid}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
+            setError(msg);
+            return;
+          }
+          clearError();
+        };
+        sync();
+        const obs = new MutationObserver(sync);
+        obs.observe(el, { characterData: true, childList: true, subtree: true });
+    }
   } catch (_) {}
 }
 
@@ -328,11 +354,26 @@ function buildLink() {
 
 function updateGeneratedLink() {
   const url = buildLink();
-  setValue(ids.generatedLink, url);
+  
   if (url && tokenFetched) {
-    show("generate-section");
+    const sym = document.getElementById(ids.tokenSymbol)?.value;
+    const dec = document.getElementById(ids.tokenDecimals)?.value;
+    const hasMeta = sym && dec && sym !== "TKN";
+    
+    systemResponse.show({
+        title: "Link Gerado",
+        subtitle: "Copie, compartilhe ou teste o link",
+        icon: "bi-link-45deg",
+        content: url,
+        badge: hasMeta ? "Dados do contrato confirmados (símbolo/decimais)" : null,
+        actions: ['copy', 'whatsapp', 'telegram', 'email', 'open', 'clear'],
+        onClear: () => {
+             clearAll();
+        }
+    });
     clearError();
   } else {
+    systemResponse.hide();
     const addr = String(document.getElementById(ids.tokenAddress)?.value || "").replace(/\s+$/u, "");
     if (!addr || !isValidAddress(addr)) {
       setError("Endereço inválido ou não informado.");
@@ -348,10 +389,107 @@ function updateGeneratedLink() {
   if (tokenFetched) renderTokenView();
 }
 
+// Escutar evento de limpeza global
+document.addEventListener('contract:clear', () => {
+    tokenFetched = false;
+    selectedNetwork = null;
+    hide("token-section");
+    hide("generate-section");
+    clearError();
+    setReadonlyMode(false); // Reset readonly state
+    // Reset inputs
+    const idsToReset = [
+        ids.tokenAddress, ids.tokenName, ids.tokenSymbol, 
+        ids.tokenDecimals, ids.tokenImage, ids.generatedLink
+    ];
+    idsToReset.forEach(id => setValue(id, ""));
+    
+    // Re-habilitar botões se necessário
+    const btnSearch = document.getElementById(ids.btnTokenSearch);
+    if (btnSearch) {
+        btnSearch.disabled = false;
+        btnSearch.innerHTML = '<i class="bi bi-search"></i>';
+        btnSearch.classList.remove('btn-success');
+        btnSearch.classList.add('btn-primary');
+    }
+    
+    window.showFormSuccess && window.showFormSuccess("Dados limpos com sucesso!");
+});
+
+// Escutar evento de contrato encontrado para feedback e travar botão
+document.addEventListener('contract:found', (e) => {
+    if (e.detail && e.detail.contract) {
+        tokenFetched = true;
+        setReadonlyMode(true);
+        // Mostrar modal de sucesso
+        const msg = `Token ${e.detail.contract.tokenSymbol || 'Encontrado'} detectado com sucesso!`;
+        
+        // Use global showVerificationResultModal if available
+        if (window.showVerificationResultModal) {
+            window.showVerificationResultModal(
+                true,
+                "Token Encontrado",
+                `<div class="text-center">
+                   <div class="mb-3"><i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i></div>
+                   <p>${msg}</p>
+                   <p class="text-muted small">Link gerado automaticamente.</p>
+                 </div>`,
+                null // No external link needed for this context
+            );
+        } else if (window.showFormSuccess) {
+            window.showFormSuccess(msg);
+        }
+        
+        // Desabilitar botão de busca para evitar cliques duplicados
+        const btnSearch = document.getElementById(ids.btnTokenSearch);
+        if (btnSearch) {
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = '<i class="bi bi-check-circle"></i>';
+        }
+        
+        // Gerar link automaticamente
+        updateGeneratedLink();
+    }
+});
+
+// Escutar evento de contrato verificado
+document.addEventListener('contract:verified', (e) => {
+    if (e.detail && e.detail.contract) {
+        // Atualizar status visual se houver algum indicador de verificação
+        const btnSearch = document.getElementById(ids.btnTokenSearch);
+        if (btnSearch) {
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = '<i class="bi bi-check-circle-fill"></i> Verificado';
+            btnSearch.classList.remove('btn-primary', 'btn-success');
+            btnSearch.classList.add('btn-success');
+        }
+        
+        // Exibir modal de verificação se disponível
+        if (window.showVerificationResultModal) {
+            window.showVerificationResultModal(
+                true,
+                "Contrato Verificado",
+                `<div class="text-center">
+                   <div class="mb-3"><i class="bi bi-patch-check-fill text-success" style="font-size: 3rem;"></i></div>
+                   <p>O contrato <strong>${e.detail.contract.tokenSymbol || 'Token'}</strong> foi verificado com sucesso!</p>
+                   <p class="text-muted small">Todas as funcionalidades estão ativas.</p>
+                 </div>`,
+                e.detail.explorerUrl
+            );
+        } else if (window.showFormSuccess) {
+            window.showFormSuccess(`Contrato ${e.detail.contract.tokenSymbol || ''} verificado com sucesso!`);
+        }
+    }
+});
+
 function copyLink() {
   const val = document.getElementById(ids.generatedLink)?.value;
   if (!val) return;
-  navigator.clipboard.writeText(val).then(() => window.notify && window.notify("Link copiado", "success"));
+  if (window.copyToClipboard) {
+    window.copyToClipboard(val);
+  } else {
+    navigator.clipboard.writeText(val).then(() => window.notify && window.notify("Link copiado", "success"));
+  }
 }
 
 function shareLink() {
@@ -437,25 +575,30 @@ function openShareMenu(url) {
     if (cBtn)
       cBtn.addEventListener("click", async () => {
         const u = modalEl.dataset.url || "";
-        let copied = false;
-        try {
-          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-            await navigator.clipboard.writeText(u);
-            copied = true;
-          }
-        } catch (_) {}
-        if (!copied) {
+        if (window.copyToClipboard) {
+          window.copyToClipboard(u);
+        } else {
+          // Fallback manual se não houver função global
+          let copied = false;
           try {
-            const ta = document.createElement("textarea");
-            ta.value = u;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand("copy");
-            ta.remove();
-            copied = true;
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+              await navigator.clipboard.writeText(u);
+              copied = true;
+            }
           } catch (_) {}
+          if (!copied) {
+            try {
+              const ta = document.createElement("textarea");
+              ta.value = u;
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand("copy");
+              ta.remove();
+              copied = true;
+            } catch (_) {}
+          }
+          window.notify && window.notify(copied ? "Link copiado" : "Falha ao copiar", copied ? "success" : "warning");
         }
-        window.notify && window.notify(copied ? "Link copiado" : "Falha ao copiar", copied ? "success" : "warning");
       });
   }
   modalEl.dataset.url = url;
@@ -787,6 +930,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById(ids.btnShareLink)?.addEventListener("click", shareLink);
   // Botão "Adicionar à MetaMask" (quando presente neste layout)
   document.getElementById(ids.btnAddToMetaMask)?.addEventListener("click", addTokenToMetaMask);
+  document.getElementById(ids.btnClearAll)?.addEventListener("click", clearAll);
   // Pré-visualizar/abrir link gerado (se o botão existir neste layout)
   document.getElementById(ids.btnOpenLink)?.addEventListener("click", unusedPreviewLink);
   // Pequenos: WhatsApp/Telegram/Email
@@ -865,43 +1009,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           el.classList.add("form-control-plaintext");
         }
       });
-      [ids.btnTokenSearch, ids.btnCopyLink, ids.btnShareLink, ids.btnOpenLink, ids.btnAddToMetaMask, ids.btnShareWhatsAppSmall, ids.btnShareTelegramSmall, ids.btnShareEmailSmall, ids.btnClearAll, ids.btnClearToken, ids.addToWalletButton].forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.classList.add("d-none");
-          el.setAttribute("disabled", "disabled");
-          el.classList.add("disabled");
-        }
-      });
-      show("generate-section");
-      const linkGroup = document.getElementById("generatedLinkGroup");
-      if (linkGroup) linkGroup.classList.add("d-none");
-      const genTitle = document.getElementById("generateSectionTitle");
-      if (genTitle) genTitle.classList.add("d-none");
-      const netSection = document.getElementById("network-section");
-      if (netSection) netSection.classList.add("d-none");
-      const tokenSection = document.getElementById("token-section");
-      if (tokenSection) tokenSection.classList.add("d-none");
-      const addTokBtn = document.getElementById(ids.addToWalletButton);
-      if (addTokBtn) {
-        addTokBtn.classList.remove("d-none", "disabled");
-        addTokBtn.removeAttribute("disabled");
-      }
-      renderTokenView();
-      const addNetBtn = document.getElementById(ids.btnAddNetwork);
-      if (addNetBtn) {
-        addNetBtn.classList.add("d-none");
-        addNetBtn.setAttribute("disabled", "disabled");
-        addNetBtn.classList.add("disabled");
-      }
-      if (!name || !sym || !dec) {
-        try {
-          const btn = document.getElementById("contractSearchBtn");
-          if (btn) {
-            btn.click();
-          }
-        } catch {}
-      }
+      if (document.getElementById(ids.btnTokenSearch)) document.getElementById(ids.btnTokenSearch).classList.add("d-none");
     }
   } catch {}
 });

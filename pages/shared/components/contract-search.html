@@ -1,28 +1,27 @@
 <div class="contract-search-component">
   <div id="contract-search-root" class="mt-4">
     <div class="d-flex align-items-center mb-2">
-      <div class="me-2"><i class="bi bi-coin section-icon fs-2"></i></div>
+      <div class="me-2"><i class="bi bi-file-binary section-icon fs-2"></i></div>
       <div class="flex-grow-1">
-        <h5 class="mb-0 fw-semibold">Buscar Contrato/Token</h5>
-        <p class="text-muted mb-0 small">Informe o endereço 0x... do contrato/token</p>
+        <h5 id="cs_title" class="mb-0 fw-semibold">Buscar Contrato/Token</h5>
+        <p id="cs_subtitle" class="text-muted mb-0 small">Informe o endereço 0x... do contrato/token</p>
       </div>
     </div>
     <form id="tokenForm" class="mt-1" novalidate>
       <div class="input-group">
         <input type="text" id="f_address" class="form-control" placeholder="Endereço 0x... do contrato/token" autocomplete="off" pattern="^0x[a-fA-F0-9]{40}$" />
+        <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('f_address').value)" title="Copiar">
+          <i class="bi bi-clipboard"></i>
+        </button>
         <button type="submit" id="contractSearchBtn" class="btn btn-outline-primary" title="Buscar dados via RPC" aria-label="Buscar dados via RPC">
           <i class="bi bi-search"></i>
         </button>
         <button type="button" id="csInfoBtn" class="btn btn-outline-info" title="Ver detalhes do contrato">
           <i class="bi bi-info-circle"></i>
         </button>
-        <a id="csExplorerBtn" href="#" target="_blank" rel="noopener" class="btn btn-outline-info disabled" title="Abrir no Explorer">
-          <i class="bi bi-box-arrow-up-right"></i>
-        </a>
         <button type="button" id="csClearBtn" class="btn btn-outline-secondary" title="Limpar dados">
           <i class="bi bi-x-circle"></i>
         </button>
-        
       </div>
       <input id="tokenAddress" type="hidden" class="d-none" />
       <small id="contractSearchStatus" class="text-muted d-none mt-1">
@@ -30,7 +29,7 @@
         <span id="contractSearchStatusText"></span>
       </small>
     </form>
-    <div id="csBadges" class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+    <div id="csBadges" class="mt-2 d-flex align-items-center gap-2 flex-wrap d-none">
       <span class="badge bg-dark-elevated">
         <i class="bi bi-hash me-1"></i>
         <span id="csBadgeAddress">-</span>
@@ -43,20 +42,24 @@
         <i class="bi bi-globe me-1"></i>
         <span id="csBadgeName">-</span>
       </span>
-      <span id="verifyStatusBadge" class="badge bg-secondary">
-        <!-- Status de verificação será injetado aqui -->
-        -
+      <span id="verifyStatusBadge" class="badge bg-dark-elevated">
+        <i class="bi bi-file-binary me-1"></i>
+        <span class="status-text">-</span>
       </span>
     </div>
   </div>
+  <!-- mostra informações da rede selecionada -->
   <div id="selected-contract-info" class="card mb-4 d-none">
     <div class="card-body">
       <h6 class="mb-2">Contrato/Token:</h6>
       <div class="row g-2 small">
-        <div class="col-12">
+        <div class="col-6">
           <div class="d-flex align-items-baseline gap-2">
             <span>Endereço:</span>
-            <span id="cs_viewAddress" class="text-tokencafe"></span>
+            <a id="cs_viewAddress" href="#" target="_blank" rel="noopener" class="text-tokencafe text-decoration-none"></a>
+            <button class="btn btn-sm btn-link text-white p-0" onclick="window.copyToClipboard?.(document.getElementById('cs_viewAddress').textContent)" title="Copiar endereço">
+              <i class="bi bi-clipboard"></i>
+            </button>
           </div>
         </div>
         <div class="col-6">
@@ -85,6 +88,12 @@
         </div>
         <div class="col-6">
           <div class="d-flex align-items-baseline gap-2">
+            <span>Status:</span>
+            <span id="cs_viewStatus" class="status-text"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
             <span>Supply:</span>
             <span id="cs_viewSupply" class="text-tokencafe"></span>
           </div>
@@ -101,10 +110,10 @@
             <span id="cs_viewNativeBalance" class="text-tokencafe"></span>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
           <div class="d-flex align-items-baseline gap-2">
-            <span>Explorer:</span>
-            <a id="cs_viewExplorer" href="#" target="_blank" rel="noopener" class="text-decoration-none text-tokencafe">abrir</a>
+            <span>Status na Carteira:</span>
+            <span id="cs_viewWalletStatus" class="text-tokencafe">-</span>
           </div>
         </div>
       </div>

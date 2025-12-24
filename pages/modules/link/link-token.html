@@ -8,7 +8,7 @@
   <meta name="description" content="Adicionar token à carteira a partir de um link" />
   <meta name="author" content="TokenCafe Team" />
   <meta http-equiv="Content-Security-Policy"
-    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: ws: wss:; object-src 'none'; base-uri 'self';" />
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: http://localhost:* ws: wss:; object-src 'none'; base-uri 'self';" />
   <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png" />
@@ -27,32 +27,20 @@
   <div class="container">
     <div class="g-4">
       <div class="col-12">
-        <div class="mb-3">
-          <div data-component="shared/components/section-title.html" data-st-icon="bi-wallet2"
-            data-st-title="Adicionar Token" data-st-subtitle="Verifique os dados e adicione à carteira"></div>
-        </div>
-
-        <div class="p-3 bg-dark-elevated" id="tokenView">
-          <div class="row g-2 small">
-            <div class="col-12">Endereço: <span id="viewAddress" class="text-tokencafe"></span></div>
-            <div class="col-6">Rede: <span id="viewChainName" class="text-tokencafe"></span></div>
-            <div class="col-6">Chain ID: <span id="viewChainId" class="text-tokencafe"></span></div>
-            <div class="col-6">Nome: <span id="viewName" class="text-tokencafe"></span></div>
-            <div class="col-6">Símbolo: <span id="viewSymbol" class="text-tokencafe"></span></div>
-            <div class="col-6">Decimais: <span id="viewDecimals" class="text-tokencafe"></span></div>
-            <div class="col-6">Saldo nativo (contrato): <span id="viewNativeBalance" class="text-tokencafe"></span></div>
-            <div class="col-6">Supply total: <span id="viewTotalSupply" class="text-tokencafe"></span></div>
-            <div class="col-6">Explorer: <a id="viewExplorer" href="#" target="_blank" rel="noopener"
-                class="text-decoration-none text-tokencafe">abrir</a></div>
-          </div>
-        </div>
+        <!-- Componente Busca de Contrato (Reutilizado) -->
+        <div data-component="shared/components/contract-search.html"></div>
         <small id="metaValidatedBadgeLt" class="text-success d-none mt-1">
           <i class="bi bi-check-circle me-1"></i>
           Dados do contrato confirmados (símbolo/decimais)
         </small>
+        
+        <!-- Componente de Resposta do Sistema -->
+        <div class="mt-4">
+          <div data-component="shared/components/system-response.html"></div>
+        </div>
 
-        <div class="d-grid gap-3 mt-3">
-          <button id="addToWalletButton" class="btn btn-outline-primary btn-lg w-100">
+        <div class="btn-row mt-3 justify-content-center">
+          <button id="addToWalletButton" class="btn btn-outline-primary w-100" disabled>
             <i class="bi bi-wallet2 me-2"></i>
             Adicionar à Carteira
           </button>

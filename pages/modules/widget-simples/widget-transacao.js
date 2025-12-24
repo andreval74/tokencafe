@@ -210,6 +210,9 @@
       this.el.buyBtn?.addEventListener("click", async () => {
         await this.buy();
       });
+      this.el.addMmBtn?.addEventListener("click", async () => {
+        await this.addToMetaMask();
+      });
     }
 
     refreshTotal() {

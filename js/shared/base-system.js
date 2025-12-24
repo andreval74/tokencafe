@@ -10,6 +10,7 @@
 import { SharedUtilities } from "../core/shared_utilities_es6.js";
 import { walletConnector } from "../shared/wallet-connector.js";
 import { networkManager } from "../shared/network-manager.js";
+import { SystemResponse } from "../shared/system-response.js";
 
 class BaseSystem {
   constructor() {
@@ -57,6 +58,7 @@ class BaseSystem {
     window.SharedUtilities = SharedUtilities;
     window.walletConnector = walletConnector;
     window.networkManager = networkManager;
+    window.SystemResponse = SystemResponse;
 
     console.log("📦 Módulos unificados disponibilizados globalmente");
   }
@@ -99,11 +101,38 @@ class BaseSystem {
       }
     };
 
+    // Global copyToClipboard
     window.copyToClipboard = async (text) => {
+      if (!text) return;
       try {
-        return await utilsInstance.copyToClipboard(text);
-      } catch (_) {
-        return false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          if (window.showFormSuccess) window.showFormSuccess("Copiado para a área de transferência!");
+          else if (window.notify) window.notify("Copiado!", "success");
+        } else {
+          // Fallback
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-9999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            if (window.showFormSuccess) window.showFormSuccess("Copiado para a área de transferência!");
+            else if (window.notify) window.notify("Copiado!", "success");
+          } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+            if (window.showFormError) window.showFormError("Falha ao copiar");
+            else if (window.notify) window.notify("Falha ao copiar", "error");
+          }
+          document.body.removeChild(textArea);
+        }
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+        if (window.showFormError) window.showFormError("Falha ao copiar");
+        else if (window.notify) window.notify("Falha ao copiar", "error");
       }
     };
 
@@ -226,6 +255,60 @@ class BaseSystem {
         return null;
       } catch (_) {
         return null;
+      }
+    };
+
+    // Padronização: modal de resultado de verificação
+    window.showVerificationResultModal = (success, title, contentHtml, linkUrl) => {
+      try {
+        const modalEl = document.getElementById('verifyInfoModal');
+        if (!modalEl) {
+           // Se não houver modal, tenta usar notify
+           if (success) window.showFormSuccess(title || "Verificado com sucesso!");
+           else window.showFormError(title || "Falha na verificação");
+           return;
+        }
+        
+        const titleEl = document.getElementById('verifyInfoTitle');
+        const contentEl = document.getElementById('verifyInfoContent');
+        const linkEl = document.getElementById('verifyOpenLink');
+        
+        if (titleEl) {
+          titleEl.textContent = title;
+          titleEl.className = success ? "modal-title text-success" : "modal-title text-danger";
+        }
+        
+        if (contentEl) {
+          contentEl.innerHTML = contentHtml;
+        }
+        
+        if (linkEl) {
+          if (linkUrl) {
+            linkEl.href = linkUrl;
+            linkEl.classList.remove('d-none');
+            linkEl.textContent = "Abrir no Explorer";
+          } else {
+            linkEl.classList.add('d-none');
+          }
+        }
+        
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
+        } else {
+          modalEl.style.display = 'block';
+          modalEl.classList.add('show');
+          // Simple close handler for fallback
+          const closeBtns = modalEl.querySelectorAll('[data-bs-dismiss="modal"]');
+          closeBtns.forEach(btn => {
+             btn.onclick = () => {
+                 modalEl.style.display = 'none';
+                 modalEl.classList.remove('show');
+             };
+          });
+        }
+      } catch (e) {
+        console.error("Error showing verification modal:", e);
       }
     };
 

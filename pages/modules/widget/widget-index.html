@@ -1,6 +1,75 @@
 <!doctype html>
 <html>
-  <body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Validar Widget - TokenCafe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="../../../css/styles.css" rel="stylesheet" />
+  </head>
+  <body class="bg-page-black">
+    <div class="container py-4">
+      <div class="card border-primary">
+        <div class="card-header bg-primary bg-opacity-10">
+          <h4 class="mb-0"><i class="bi bi-shield-check me-2"></i>Validar e Testar Contrato</h4>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Endereço do Contrato de Venda</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="deployedContractAddress" placeholder="0x..." />
+              <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('deployedContractAddress').value)" title="Copiar">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Endereço do Token</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="contractTokenAddress" placeholder="0x..." />
+              <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('contractTokenAddress').value)" title="Copiar">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+          <div id="contract-validation-status" class="mb-3"></div>
+          <div class="btn-row">
+            <button id="btnValidateContract" class="btn btn-primary" onclick="validateContractFunction()">Validar Contrato</button>
+            <button class="btn btn-secondary" id="goToStep5" disabled>Testar Sistema</button>
+            <button class="btn btn-outline-secondary" id="btnClearForm">
+              <i class="bi bi-eraser me-2"></i>
+              Limpar Dados
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Scripts dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script type="module" src="../../../js/shared/base-system.js"></script>
+    <script type="module" src="../../../js/shared/wallet-connector.js"></script>
+
+    <!-- Modal Splash Verificação -->
+    <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content bg-dark text-light border">
+          <div class="modal-header">
+            <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="verifyInfoContent" class="small"></div>
+          </div>
+          <div class="modal-footer">
+            <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir página de verificação</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       // Conexão centralizada de carteira no Widget usando WalletConnector
       async function connectWallet(provider = "metamask") {
@@ -61,6 +130,60 @@
         "https://bsc-testnet.blockpi.network/v1/rpc/public", // BlockPI testnet
         "https://endpoints.omniatech.io/v1/bsc/testnet/public", // OmniaTech testnet
       ];
+
+      // Função para exibir modal de resultado da verificação (Delegada para global)
+      function showVerificationResultModal(title, message, type = 'info', link = null) {
+        if (window.showVerificationResultModal) {
+            window.showVerificationResultModal(type === 'success', title, message, link);
+        } else {
+             alert(`${title}\n${message}`);
+        }
+      }
+
+      // Configurar botão Limpar Dados
+      function setupClearButton() {
+        const btn = document.getElementById('btnClearForm');
+        if (btn) {
+          btn.addEventListener('click', () => {
+            // Limpar inputs
+            const inputs = ['deployedContractAddress', 'contractTokenAddress'];
+            inputs.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) el.value = '';
+            });
+
+            // Limpar status
+            const statusEl = document.getElementById('contract-validation-status');
+            if (statusEl) statusEl.innerHTML = '';
+
+            // Resetar botão de Testar
+            const goToStep5Btn = document.getElementById("goToStep5");
+            if (goToStep5Btn) {
+              goToStep5Btn.disabled = true;
+              goToStep5Btn.classList.remove("btn-outline-primary");
+              goToStep5Btn.classList.add("btn-secondary");
+            }
+            
+            // Habilitar botão de validar se estiver desabilitado (caso implementemos disable)
+            const validateBtn = document.querySelector('button[onclick="validateContractFunction()"]');
+            if (validateBtn) {
+               validateBtn.disabled = false;
+               validateBtn.innerHTML = 'Validar Contrato';
+            }
+
+            if (window.showFormSuccess) {
+              window.showFormSuccess("Dados limpos com sucesso!");
+            } else if (typeof window.notify === 'function') {
+              window.notify("Dados limpos com sucesso!", "success");
+            }
+          });
+        }
+      }
+
+      // Inicializar listeners
+      document.addEventListener('DOMContentLoaded', () => {
+        setupClearButton();
+      });
 
       // Função para verificar se endereço é válido
       function isValidEthereumAddress(address) {
@@ -589,85 +712,41 @@
       async function validateContractFunction() {
         console.log("🔧 [validateContractFunction] Iniciando validação do contrato");
 
+        const btn = document.getElementById("btnValidateContract");
+        if (btn) {
+           btn.disabled = true;
+           btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Validando...';
+        }
+
         try {
           const contractAddressEl = document.getElementById("deployedContractAddress");
           const tokenAddressEl = document.getElementById("contractTokenAddress");
 
           if (!contractAddressEl || !tokenAddressEl) {
-            const errorMsg = "Campos de endereço não encontrados na UI";
-            console.error(`❌ [validateContractFunction] ${errorMsg}`);
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify(errorMsg, "error", { container });
-              } else {
-                console.error(errorMsg);
-              }
-            } catch (_) {}
-            return;
+             throw new Error("Campos de endereço não encontrados na UI");
           }
 
           const contractAddress = String(contractAddressEl.value || "").replace(/\s+$/u, "");
           const tokenAddress = String(tokenAddressEl.value || "").replace(/\s+$/u, "");
 
           if (!contractAddress || !tokenAddress) {
-            const errorMsg = "Por favor, informe os endereços do contrato e do token";
-            console.warn(`⚠️ [validateContractFunction] ${errorMsg}`);
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify(errorMsg, "warning", { container });
-              } else {
-                console.warn(errorMsg);
-              }
-            } catch (_) {}
-            return;
+             throw new Error("Por favor, informe os endereços do contrato e do token");
           }
 
           // Validar formato dos endereços
           if (!isValidEthereumAddress(contractAddress)) {
-            const errorMsg = "Endereço do contrato inválido";
-            console.error(`❌ [validateContractFunction] ${errorMsg}: ${contractAddress}`);
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify(errorMsg, "error", { container });
-              } else {
-                console.error(errorMsg);
-              }
-            } catch (_) {}
-            return;
+             throw new Error(`Endereço do contrato inválido: ${contractAddress}`);
           }
 
           if (!isValidEthereumAddress(tokenAddress)) {
-            const errorMsg = "Endereço do token inválido";
-            console.error(`❌ [validateContractFunction] ${errorMsg}: ${tokenAddress}`);
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify(errorMsg, "error", { container });
-              } else {
-                console.error(errorMsg);
-              }
-            } catch (_) {}
-            return;
+             throw new Error(`Endereço do token inválido: ${tokenAddress}`);
           }
+
+          showVerificationResultModal("Validando", "Verificando contratos na rede...", "pending");
 
           // Não obrigar conexão de carteira para validação de leitura
           if (!provider) {
             console.warn("🔗 [validateContractFunction] Provider padrão indisponível, usando RPCs públicos para validar");
-          }
-
-          const statusEl = document.getElementById("contract-validation-status");
-          if (statusEl) {
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify("🔍 Validando contrato...", "info", { container });
-              } else {
-                console.log("🔍 Validando contrato...");
-              }
-            } catch (_) {}
           }
 
           // Verificar existência do contrato primeiro
@@ -675,17 +754,7 @@
           const contractExists = await checkContractExists(contractAddress, "contrato de venda");
 
           if (!contractExists) {
-            const errorMsg = "Contrato não encontrado ou sem código na BSC Testnet (97)";
-            console.error(`❌ [validateContractFunction] ${errorMsg}`);
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify(errorMsg, "error", { container });
-              } else {
-                console.error(errorMsg);
-              }
-            } catch (_) {}
-            return;
+             throw new Error("Contrato não encontrado ou sem código na BSC Testnet (97)");
           }
 
           // Verificar existência do token
@@ -693,17 +762,7 @@
           const tokenExists = await checkContractExists(tokenAddress, "token");
 
           if (!tokenExists) {
-            const errorMsg = "Token não encontrado no endereço informado";
-            console.error(`❌ [validateContractFunction] ${errorMsg}`);
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify(errorMsg, "error", { container });
-              } else {
-                console.error(errorMsg);
-              }
-            } catch (_) {}
-            return;
+             throw new Error("Token não encontrado no endereço informado");
           }
 
           console.log("✅ [validateContractFunction] Ambos os contratos existem, validando funções...");
@@ -799,15 +858,14 @@
 
           const priceInBNB = ethers.utils.formatEther(tokenPrice);
 
-          try {
-            const container = document.querySelector(".container, .container-fluid") || document.body;
-            const msg = `✅ Contrato validado: Token ${tokenName} (${tokenSymbol}), Preço ${priceInBNB} BNB/token, Owner ${owner}, Status ${isPaused ? "Pausado" : "Ativo"}, Decimais ${tokenDecimals}.`;
-            if (typeof window.notify === "function") {
-              window.notify(msg, "success", { container });
-            } else {
-              console.log(msg);
-            }
-          } catch (_) {}
+          const msg = `Contrato validado com sucesso!<br><br>
+            <strong>Token:</strong> ${tokenName} (${tokenSymbol})<br>
+            <strong>Preço:</strong> ${priceInBNB} BNB/token<br>
+            <strong>Owner:</strong> ${owner}<br>
+            <strong>Status:</strong> ${isPaused ? "Pausado" : "Ativo"}<br>
+            <strong>Decimais:</strong> ${tokenDecimals}`;
+            
+          showVerificationResultModal("Sucesso", msg, "success");
 
           // Habilitar o botão "Testar Sistema"
           const goToStep5Btn = document.getElementById("goToStep5");
@@ -816,25 +874,23 @@
             goToStep5Btn.classList.remove("btn-secondary");
             goToStep5Btn.classList.add("btn-outline-primary");
           }
+          
+          // Manter o botão validar desabilitado após sucesso
+          if (btn) {
+            btn.innerHTML = 'Validado <i class="bi bi-check-circle"></i>';
+          }
+          
         } catch (error) {
           console.error("Erro ao validar contrato:", error);
-          const statusEl = document.getElementById("contract-validation-status");
-          if (statusEl) {
-            let msg = error && error.message ? error.message : String(error);
-            if (msg.includes("Internal JSON-RPC error") || msg.includes("-32603")) {
-              msg = "Falha no RPC (MetaMask). Validando via RPCs públicos da BSC Testnet. Tente novamente.";
-            } else if (msg.includes("CALL_EXCEPTION") || msg.includes("token()")) {
-              msg = "A chamada token() reverteu. Verifique se o endereço é do contrato de venda correto e se a função token() existe no ABI.";
-            }
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify(`❌ Erro na validação: ${msg}`, "error", { container });
-              } else {
-                console.error(msg);
-              }
-            } catch (_) {}
+          
+          let msg = error && error.message ? error.message : String(error);
+          if (msg.includes("Internal JSON-RPC error") || msg.includes("-32603")) {
+            msg = "Falha no RPC (MetaMask). Validando via RPCs públicos da BSC Testnet. Tente novamente.";
+          } else if (msg.includes("CALL_EXCEPTION") || msg.includes("token()")) {
+            msg = "A chamada token() reverteu. Verifique se o endereço é do contrato de venda correto e se a função token() existe no ABI.";
           }
+          
+          showVerificationResultModal("Erro na Validação", msg, "error");
 
           // Desabilitar o botão "Testar Sistema"
           const goToStep5Btn = document.getElementById("goToStep5");
@@ -842,6 +898,12 @@
             goToStep5Btn.disabled = true;
             goToStep5Btn.classList.remove("btn-outline-primary");
             goToStep5Btn.classList.add("btn-secondary");
+          }
+          
+          // Reabilitar botão de validar em caso de erro
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'Validar Contrato';
           }
         }
       }

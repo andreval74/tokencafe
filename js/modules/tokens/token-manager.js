@@ -41,6 +41,35 @@ class TokenManager {
       });
     });
 
+    const clearFiltersBtn = document.getElementById("tm-clear-filters");
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener("click", () => {
+        if (searchInput) searchInput.value = "";
+        this.searchTerm = "";
+        this.currentFilter = "all";
+        filterButtons.forEach((b) => {
+            if(b.dataset.filter === "all") b.classList.add("active");
+            else b.classList.remove("active");
+        });
+        this.filterAndRenderTokens();
+      });
+    }
+
+    const clearDataBtn = document.getElementById("btn-clear-data");
+    if (clearDataBtn) {
+      clearDataBtn.addEventListener("click", () => {
+        if (searchInput) searchInput.value = "";
+        this.searchTerm = "";
+        this.currentFilter = "all";
+        filterButtons.forEach((b) => {
+            if(b.dataset.filter === "all") b.classList.add("active");
+            else b.classList.remove("active");
+        });
+        this.refreshTokens();
+        this.showSuccess("Dados limpos e atualizados!");
+      });
+    }
+
     // Ações do cabeçalho do módulo (delegadas)
     document.addEventListener("click", (e) => {
       const createBtn = e.target.closest('[data-action="tm-create-token"]');
@@ -248,7 +277,9 @@ class TokenManager {
                 <div class="token-actions">
                     <button class="btn btn-sm btn-outline-primary" data-action="view">Ver Detalhes</button>
                     <button class="btn btn-sm btn-outline-secondary" data-action="edit">Editar</button>
-                    <button class="btn btn-sm btn-outline-secondary" data-action="copy">Copiar</button>
+                    <button class="btn btn-sm btn-outline-secondary" data-action="copy">
+                        <i class="bi bi-clipboard"></i> Copiar
+                    </button>
                 </div>
             </div>
         `;
@@ -273,7 +304,15 @@ class TokenManager {
                 <div class="detail-section">
                     <h4>Contrato</h4>
                     <div class="detail-grid">
-                        <div class="detail-item"><label>Endereço:</label><span>${token.contractAddress}</span></div>
+                        <div class="detail-item">
+                            <label>Endereço:</label>
+                            <span class="d-flex align-items-center gap-2">
+                                ${token.contractAddress}
+                                <button class="btn btn-sm btn-link p-0 text-primary" onclick="window.tokenManager.copyAddress('${token.contractAddress}')" title="Copiar">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </span>
+                        </div>
                         <div class="detail-item"><label>Rede:</label><span>${token.network}</span></div>
                         <div class="detail-item"><label>Decimais:</label><span>${token.decimals || "-"}</span></div>
                         <div class="detail-item"><label>Holders:</label><span>${token.holders}</span></div>
@@ -335,11 +374,16 @@ class TokenManager {
   }
 
   async copyAddress(address) {
-    try {
-      await navigator.clipboard.writeText(address);
+    if (window.copyToClipboard) {
+      await window.copyToClipboard(address);
       this.showSuccess("Endereço copiado!");
-    } catch (error) {
-      this.showError("Erro ao copiar endereço");
+    } else {
+      try {
+        await navigator.clipboard.writeText(address);
+        this.showSuccess("Endereço copiado!");
+      } catch (error) {
+        this.showError("Erro ao copiar endereço");
+      }
     }
   }
 
@@ -388,30 +432,24 @@ class TokenManager {
     return new Date(dateString).toLocaleDateString("pt-BR");
   }
 
-  // Mensagens padronizadas: usa notify para sucesso
+  // Mensagens padronizadas: usa window.showFormSuccess se disponível
   showSuccess(message) {
-    const container = document.querySelector(".container, .container-fluid") || document.body;
-    try {
-      if (typeof window.notify === "function") {
-        window.notify(String(message || "Sucesso"), "success", { container });
-        return;
-      }
-      console.log("Sucesso:", message);
-    } catch (_) {
+    if (window.showFormSuccess) {
+      window.showFormSuccess(message);
+    } else if (typeof window.notify === "function") {
+      window.notify(message, "success");
+    } else {
       console.log("Sucesso:", message);
     }
   }
 
-  // Mensagens padronizadas: usa notify para erro
+  // Mensagens padronizadas: usa window.showFormError se disponível
   showError(message) {
-    const container = document.querySelector(".container, .container-fluid") || document.body;
-    try {
-      if (typeof window.notify === "function") {
-        window.notify(String(message || "Erro"), "error", { container });
-        return;
-      }
-      console.error("Erro:", message);
-    } catch (_) {
+    if (window.showFormError) {
+      window.showFormError(message);
+    } else if (typeof window.notify === "function") {
+      window.notify(message, "error");
+    } else {
       console.error("Erro:", message);
     }
   }

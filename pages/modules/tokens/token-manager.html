@@ -36,7 +36,7 @@
               <div class="module-title flex-grow-1">
                 <div data-component="shared/components/section-title.html" data-st-icon="bi-coin" data-st-title="Meus Tokens" data-st-subtitle="Gerencie todos os seus tokens criados"></div>
               </div>
-              <div class="module-actions">
+              <div class="module-actions btn-row">
                 <button class="btn btn-outline-primary" data-action="tm-create-token">
                   <i class="bi bi-plus-lg"></i>
                   Criar Novo Token
@@ -60,6 +60,9 @@
                 <button class="filter-btn btn btn-outline-light" data-filter="erc721">ERC-721</button>
                 <button class="filter-btn btn btn-outline-light" data-filter="active">Ativos</button>
                 <button class="filter-btn btn btn-outline-light" data-filter="paused">Pausados</button>
+                <button class="btn btn-outline-secondary" id="tm-clear-filters" title="Limpar Filtros">
+                  <i class="bi bi-eraser"></i>
+                </button>
               </div>
             </div>
 
@@ -83,6 +86,13 @@
             <div class="loading-state text-center py-4 d-none" id="tokens-loading">
               <div class="spinner-border text-primary" role="status"></div>
               <p class="text-secondary mt-2">Carregando seus tokens...</p>
+            </div>
+
+            <!-- Botão Limpar Dados (Padronização) -->
+            <div class="d-flex justify-content-end mt-4 pt-3 border-top border-secondary">
+              <button id="btn-clear-data" class="btn btn-outline-danger">
+                <i class="bi bi-eraser"></i> Limpar Dados
+              </button>
             </div>
           </div>
 
@@ -123,11 +133,30 @@
                       <label for="edit-token-website" class="form-label">Website</label>
                       <input type="url" id="edit-token-website" class="form-control" />
                     </div>
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="btn-row">
                       <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                       <button type="submit" class="btn btn-outline-primary">Salvar Alterações</button>
                     </div>
                   </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal: Verificação (Padronizado) -->
+          <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+              <div class="modal-content bg-dark text-light border">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <div id="verifyInfoContent" class="small"></div>
+                </div>
+                <div class="modal-footer">
+                  <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir página de
+                    verificação</a>
                 </div>
               </div>
             </div>

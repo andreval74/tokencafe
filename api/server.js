@@ -181,14 +181,19 @@ function sanitizeContractName(rawName) {
 }
 
 // Valida e normaliza campos numéricos
-function normalizeSupply(totalSupply) {
-  if (typeof totalSupply === "string") {
-    // Aceitar apenas dígitos
-    if (!/^\d+$/.test(totalSupply.trim())) return NaN;
-    return parseInt(totalSupply.trim(), 10);
+function validateSupply(totalSupply) {
+  if (totalSupply === undefined || totalSupply === null) return null;
+  const str = String(totalSupply).trim();
+  // Aceitar apenas dígitos
+  if (!/^\d+$/.test(str)) return null;
+  try {
+    // Usar BigInt para validar tamanho e positividade sem overflow
+    const val = BigInt(str);
+    if (val <= 0n) return null;
+    return str; // Retorna a string original limpa
+  } catch (_) {
+    return null;
   }
-  if (typeof totalSupply === "number") return totalSupply;
-  return NaN;
 }
 
 // Endpoint principal: compilação de contratos
@@ -244,8 +249,8 @@ app.post("/api/generate-token", async (req, res) => {
       });
     }
     // Valida supply
-    const normalizedSupply = normalizeSupply(totalSupply);
-    if (!Number.isFinite(normalizedSupply) || normalizedSupply <= 0) {
+    const validSupply = validateSupply(totalSupply);
+    if (!validSupply) {
       return res.status(400).json({
         success: false,
         error: "totalSupply deve ser um número inteiro positivo",
@@ -287,7 +292,7 @@ contract ${contractName} {
     event Approval(address indexed owner, address indexed spender, uint256 value);
     
     constructor() {
-        totalSupply = ${normalizedSupply} * 10**decimals;
+        totalSupply = ${validSupply} * 10**decimals;
         balanceOf[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
     }
@@ -325,7 +330,7 @@ contract ${contractName} {
       token: {
         name,
         symbol: sym,
-        totalSupply: normalizedSupply,
+        totalSupply: validSupply,
         decimals: dec,
         contractName,
       },

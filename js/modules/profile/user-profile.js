@@ -8,6 +8,7 @@ class UserProfle {
       emal: "joao@example.com",
       webste: "",
       locaton: "So Paulo, Brasl",
+      address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
       avatar: "https://va.placeholder.com/120x120/6366f1/ffffff?text=U",
       banner: "https://va.placeholder.com/1200x300/4f46e5/ffffff?text=Banner",
     };
@@ -170,6 +171,19 @@ class UserProfle {
     }
   }
 
+  copyAddress() {
+    if (this.userData.address) {
+      if (window.copyToClipboard) {
+        window.copyToClipboard(this.userData.address);
+        this.showNotfcaton("Endereço copiado!", "success");
+      } else {
+        navigator.clipboard.writeText(this.userData.address)
+          .then(() => this.showNotfcaton("Endereço copiado!", "success"))
+          .catch(() => this.showNotfcaton("Erro ao copiar", "error"));
+      }
+    }
+  }
+
   async loadOvervewData() {
     try {
       // Carregar dados do resumo
@@ -247,17 +261,17 @@ class UserProfle {
 
   async loadTopTokens() {
     const topTokens = [
-      { name: "CafeToken", symbol: "CAFE", change: "+12.5%", value: "$2,450" },
-      { name: "DeFCon", symbol: "DEF", change: "+8.3%", value: "$1,890" },
-      { name: "GameToken", symbol: "GAME", change: "-2.1%", value: "$1,200" },
+      { name: "CafeToken", symbol: "CAFE", change: "+12.5%", value: "$2,450", address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F" },
+      { name: "DeFiCon", symbol: "DEF", change: "+8.3%", value: "$1,890", address: "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF" },
+      { name: "GameToken", symbol: "GAME", change: "-2.1%", value: "$1,200", address: "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45" },
     ];
 
-    const contaner = document.getElementById("topTokens");
-    contaner.innerHTML = topTokens
+    const container = document.getElementById("topTokens");
+    container.innerHTML = topTokens
       .map(
         (token) => `
-            <div class="token-tem">
-                <div class="token-nfo">
+            <div class="token-item">
+                <div class="token-info">
                     <span class="token-name">${token.name}</span>
                     <span class="token-symbol">${token.symbol}</span>
                 </div>
@@ -266,6 +280,9 @@ class UserProfle {
                     <span class="token-change ${token.change.startsWith("+") ? "positive" : "negative"}">
                         ${token.change}
                     </span>
+                    <button class="btn btn-sm btn-link text-secondary p-0 ms-2" onclick="window.copyToClipboard?.('${token.address}')" title="Copiar Endereço">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
                 </div>
             </div>
         `,
@@ -596,11 +613,25 @@ class UserProfle {
         text: this.userData.bo,
         url: profleUrl,
       });
+    } else if (window.copyToClipboard) {
+      window.copyToClipboard(profleUrl);
+      this.showNotfcaton("Link copiado!", "success");
     } else {
       // Fallback para copiar URL
-      navigator.clipboard.writeText(profleUrl).then(() => {
-        this.showNotfcaton("Lnk do perfl copado!", "success");
-      });
+      navigator.clipboard.writeText(profleUrl)
+        .then(() => this.showNotfcaton("Link copiado!", "success"))
+        .catch(() => this.showNotfcaton("Erro ao copiar", "error"));
+    }
+  }
+
+  clearData() {
+    if (confirm("Deseja limpar todos os dados e recarregar o perfil?")) {
+      this.loadUserData();
+      this.loadOvervewData();
+      if (document.getElementById("personalInfoForm")) {
+        document.getElementById("personalInfoForm").reset();
+      }
+      this.showNotfcaton("Dados recarregados com sucesso!", "success");
     }
   }
 
@@ -720,14 +751,14 @@ class UserProfle {
     this.closePasswordModal();
   }
 
-  getActvtycon(type) {
-    const cons = {
+  getActivityIcon(type) {
+    const icons = {
       create: "plus-circle",
       transfer: "arrow-left-right",
       trade: "graph-up",
       stake: "lock",
     };
-    return cons[type] || "circle";
+    return icons[type] || "circle";
   }
 
   formatCurrency(amount) {

@@ -41,10 +41,14 @@
                   <div class="flex-grow-1">
                     <div data-component="shared/components/section-title.html" data-st-icon="bi-gear" data-st-title="Configurações do Sistema" data-st-subtitle="Gerencie as configurações e preferências do TokenCafe"></div>
                   </div>
-                  <div class="d-flex gap-2">
+                  <div class="btn-row">
                     <button class="btn btn-outline-secondary" id="resetSettingsBtn">
                       <i class="bi bi-arrow-counterclockwise"></i>
                       Restaurar Padrões
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btnClearData">
+                      <i class="bi bi-eraser"></i>
+                      Limpar Dados
                     </button>
                     <button class="btn btn-outline-primary" id="saveAllSettingsBtn">
                       <i class="bi bi-save"></i>
@@ -101,12 +105,38 @@
                       Avançado
                     </button>
                   </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab" type="button" role="tab" data-tab="status">
+                      <span class="badge bg-primary me-1">7</span>
+                      <i class="bi bi-activity"></i>
+                      Diagnóstico
+                    </button>
+                  </li>
                 </ul>
               </div>
             </div>
 
             <!-- Conteúdo das Configurações -->
             <div class="settings-content">
+              <!-- Diagnóstico do Sistema -->
+              <div class="settings-section card bg-dark-elevated text-light mb-3 p-3 d-none" id="status">
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-activity" data-st-title="Diagnóstico do Sistema" data-st-subtitle="Verifique a saúde dos serviços e conexões"></div>
+                
+                <div class="settings-group">
+                    <h3>Verificação de Saúde</h3>
+                    <p class="setting-description mb-3">Execute um diagnóstico completo para verificar a conectividade com APIs, Blockchain e serviços externos.</p>
+                    
+                    <button id="btnCheckSystemStatus" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-heart-pulse me-2"></i>Verificar Status do Sistema
+                    </button>
+
+                    <!-- Área para SystemResponse ser injetado via JS (se necessário) ou apenas chamado via modal -->
+                    <div class="mt-4">
+                         <div data-component="shared/components/system-response.html"></div>
+                    </div>
+                </div>
+              </div>
+
               <!-- Configurações Gerais -->
               <div class="settings-section active card bg-dark-elevated text-light mb-3 p-3" id="general">
                 <!-- Título da seção (padrão unificado) -->

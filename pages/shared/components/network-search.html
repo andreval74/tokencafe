@@ -16,7 +16,7 @@
       <button type="button" id="nsClearBtn" class="btn btn-outline-secondary" title="Limpar dados">
         <i class="bi bi-x-circle"></i>
       </button>
-      
+
     </div>
     <small id="networkStatus" class="text-muted d-none mt-1">
       <span id="networkSwitchSpinner" class="spinner-border spinner-border-sm me-1" role="status"
@@ -42,70 +42,66 @@
       </span>
     </div>
   </div>
+  <!-- seleciona rede indicada -->
   <div id="networkAutocomplete" class="network-autocomplete list-group d-none"></div>
+  <!-- mostra informações da rede selecionada -->
   <div id="selected-network-info" class="card mb-4 d-none">
     <div class="card-body">
       <h6 class="mb-2">Rede Selecionada:</h6>
-      <div id="network-details">
-        <div class="row g-2 mb-3">
-          <div class="col-md-6">
-            <div class="d-flex align-items-baseline gap-2">
-              <span>Nome:</span>
-              <span class="text-tokencafe" id="networkNameCode"></span>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="d-flex align-items-baseline gap-2">
-              <span>Chain ID:</span>
-              <span class="text-tokencafe" id="chainIdCode"></span>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="d-flex align-items-baseline gap-2">
-              <span>Moeda:</span>
-              <span class="text-tokencafe" id="nativeCurrencyNameCode"></span>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="d-flex align-items-baseline gap-2">
-              <span>Símbolo:</span>
-              <span class="text-tokencafe" id="nativeCurrencySymbolCode"></span>
-            </div>
+      <div class="row g-2 small">
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Nome:</span>
+            <span class="text-tokencafe" id="networkNameCode"></span>
           </div>
         </div>
-
-        <div class="row g-2 mb-2">
-          <div class="col-md-6">
-            <div class="d-flex align-items-baseline gap-2">
-              <span>
-                URL RPC:
-                <a id="rpcUrlText" href="#" target="_blank" rel="noopener" class="text-decoration-none text-tokencafe">
-                  <span class="text-tokencafe" id="rpcUrlCode"></span>
-                </a>
-              </span>
-            </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Chain ID:</span>
+            <span class="text-tokencafe" id="chainIdCode"></span>
           </div>
-          <div class="col-md-6">
-            <div class="d-flex align-items-baseline gap-2">
-              <span>
-                Block Explorer:
-                <a id="explorerUrlText" href="#" target="_blank" rel="noopener"
-                  class="text-decoration-none text-tokencafe">
-                  <span class="text-tokencafe" id="explorerUrlCode"></span>
-                </a>
-              </span>
-            </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Moeda:</span>
+            <span class="text-tokencafe" id="nativeCurrencyNameCode"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Símbolo:</span>
+            <span class="text-tokencafe" id="nativeCurrencySymbolCode"></span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>
+              URL RPC:
+              <a id="rpcUrlText" href="#" target="_blank" rel="noopener" class="text-decoration-none text-tokencafe">
+                <span class="text-tokencafe" id="rpcUrlCode"></span>
+              </a>
+            </span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>
+              Block Explorer:
+              <a id="explorerUrlText" href="#" target="_blank" rel="noopener"
+                class="text-decoration-none text-tokencafe">
+                <span class="text-tokencafe" id="explorerUrlCode"></span>
+              </a>
+            </span>
           </div>
         </div>
       </div>
     </div>
+    <div id="apiHelp" class="alert alert-warning d-none" role="alert">
+      Detectamos um problema ao chamar a API. Clique em
+      <button id="apiFixBtn" class="btn btn-sm btn-outline-warning ms-1 me-1">Usar API de produção</button>
+      ou ajuste manualmente o parâmetro
+      <code>?api=</code>
+      na URL.
+    </div>
   </div>
-  <div id="apiHelp" class="alert alert-warning d-none" role="alert">
-    Detectamos um problema ao chamar a API. Clique em
-    <button id="apiFixBtn" class="btn btn-sm btn-outline-warning ms-1 me-1">Usar API de produção</button>
-    ou ajuste manualmente o parâmetro
-    <code>?api=</code>
-    na URL.
-  </div>
-</div>
-<script type="module" src="/js/shared/network-search.js"></script>
+  <script type="module" src="/js/shared/network-search.js"></script>

@@ -53,6 +53,16 @@ const btnText = document.getElementById("verifyBtnText");
     };
     window.fetch.isPatched = true;
   } catch (_) {}
+  document.addEventListener("contract:clear", () => {
+    clearForm();
+  });
+
+  const btnClearForm = document.getElementById("btnClearForm");
+  if (btnClearForm) {
+    btnClearForm.addEventListener("click", () => {
+      clearForm();
+    });
+  }
 })();
 
   async function ensureApiBase() {
@@ -252,7 +262,7 @@ async function ensureVerificationData(p) {
   return out;
 }
 
-async function checkVerifiedStatus(force = false, optAddr = null, optChainId = null) {
+window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, optAddr = null, optChainId = null) {
   try {
     const now = Date.now();
     if (!force && window.__lastVerifiedCheck && now - window.__lastVerifiedCheck < 1000) return;
@@ -263,7 +273,7 @@ async function checkVerifiedStatus(force = false, optAddr = null, optChainId = n
     const cid = optChainId ? parseInt(optChainId, 10) : parseInt(document.getElementById("f_chainId")?.value || nsEl?.dataset?.chainId || "0", 10);
     
     // Elements controlled by verification status
-    const codeSourceSection = document.getElementById("codeSourceSection");
+    // codeSourceSection already declared above; reuse existing reference
     const actionButtons = document.getElementById("actionButtons");
     
     // Tenta encontrar o badge de várias formas
@@ -286,7 +296,7 @@ async function checkVerifiedStatus(force = false, optAddr = null, optChainId = n
       if (actionButtons) actionButtons.classList.add("d-none");
       if (badge) {
         badge.textContent = "-";
-        badge.className = "badge bg-secondary";
+        badge.className = "badge bg-dark-elevated";
       }
       return;
     }
@@ -318,7 +328,7 @@ async function checkVerifiedStatus(force = false, optAddr = null, optChainId = n
     // const badge is already defined above
     const btnVerifyCol = document.getElementById("btnVerifyCol");
     const codeSourceSection = document.getElementById("codeSourceSection");
-    const actionButtons = document.getElementById("actionButtons");
+    // actionButtons already declared above; reuse existing reference
 
     if (badge) {
       if (isVerified) {
@@ -330,6 +340,13 @@ async function checkVerifiedStatus(force = false, optAddr = null, optChainId = n
         if (codeSourceSection) codeSourceSection.classList.add("d-none");
         if (actionButtons) actionButtons.classList.add("d-none");
         if (btnVerifyCol) btnVerifyCol.classList.add("d-none");
+        
+        // Disable automatic verification button permanently
+        const runBtn = document.getElementById("runVerifyBtn");
+        if (runBtn) {
+            runBtn.disabled = true;
+            runBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Verificado';
+        }
       } else {
         badge.textContent = "Não verificado";
         badge.className = "badge bg-danger";
@@ -408,30 +425,98 @@ async function runVerify() {
   const explorerUrl = getExplorerContractUrl(p.contractAddress, p.chainId);
   logStatus("Verificando...");
   const res = await runVerifyDirect(p);
+  
   if (res?.success) {
-    logStatus("Verificado no Explorer.");
+    logStatus("Verificado no Explorer com sucesso!");
     const link = res?.link || explorerUrl;
     
+    // Disable button on success
+    try {
+      if (runBtn) {
+        runBtn.disabled = true;
+        runBtn.classList.remove("btn-primary", "btn-outline-success");
+        runBtn.classList.add("btn-success", "disabled");
+        runBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Verificado';
+      }
+      if (spinner) spinner.classList.add("d-none");
+    } catch (_) {}
+
+    // Show success modal
+    showVerificationResultModal(
+      true,
+      "Contrato Verificado com Sucesso!",
+      `<div class="text-center">
+         <div class="mb-3"><i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i></div>
+         <p>O contrato foi verificado e publicado no explorer.</p>
+         <p class="text-muted small">Agora qualquer pessoa pode ler o código fonte e interagir com segurança.</p>
+       </div>`,
+      link
+    );
+
+    // Broadcast verification success
+    try {
+      const eventDetail = { 
+        contract: {
+            chainId: p.chainId, 
+            contractAddress: p.contractAddress, // standard field
+            address: p.contractAddress, // alias
+            tokenSymbol: p.contractName || 'Token', // Fallback
+            status: 'verified', 
+            link 
+        }
+      };
+      document.dispatchEvent(new CustomEvent('contract:verified', { detail: eventDetail }));
+    } catch (_) {}
+
     try {
       const histRaw = localStorage.getItem("tokencafe_verify_history");
       const hist = histRaw ? JSON.parse(histRaw) : [];
       hist.unshift({ ts: Date.now(), chainId: p.chainId, address: p.contractAddress, status: res.status, link });
       localStorage.setItem("tokencafe_verify_history", JSON.stringify(hist.slice(0, 10)));
     } catch (_) {}
+    return; // Stop here to keep button disabled
   } else {
     if (res?.status === "missing_files") {
       logStatus("Arquivos ausentes: adicione metadata.json ou a fonte .sol antes de verificar.");
+      showVerificationResultModal(
+        false,
+        "Arquivos Ausentes",
+        `<div class="text-center">
+           <div class="mb-3"><i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 3rem;"></i></div>
+           <p>Faltam arquivos essenciais para verificação.</p>
+           <p>Certifique-se de importar o código fonte (.sol) ou o arquivo de metadados (metadata.json).</p>
+         </div>`,
+        null
+      );
     } else {
       const sc = res?.statusCode ? ` (HTTP ${res.statusCode})` : "";
-      logStatus(`Falha/erro${sc}: ${res?.error || res?.status || "desconhecido"}.`);
+      const errMsg = res?.error || res?.status || "desconhecido";
+      logStatus(`Falha/erro${sc}: ${errMsg}.`);
+      
+      showVerificationResultModal(
+        false,
+        "Falha na Verificação",
+        `<div class="text-center">
+           <div class="mb-3"><i class="bi bi-x-circle-fill text-danger" style="font-size: 3rem;"></i></div>
+           <p>Ocorreu um erro ao tentar verificar o contrato.</p>
+           <div class="alert alert-secondary mt-3 text-start small font-monospace">${errMsg}</div>
+         </div>`,
+        null
+      );
     }
   }
   try {
-    runBtn.disabled = false;
-    spinner.classList.add("d-none");
-    btnText.textContent = "Verificar automaticamente";
+    if (runBtn) {
+        runBtn.disabled = false;
+        // Restore original state if needed, but keeping it simple
+    }
+    if (spinner) spinner.classList.add("d-none");
+    if (btnText) btnText.textContent = "Verificar automaticamente";
   } catch (_) {}
 }
+
+// showVerificationResultModal removed - using global function from base-system.js
+
 
 
 function clearForm() {
@@ -448,6 +533,19 @@ function clearForm() {
       const el = document.getElementById(id);
       if (el) el.textContent = "-";
     }
+    
+    // Reset verify button state
+    if (runBtn) {
+        runBtn.disabled = false;
+        runBtn.classList.remove("btn-success", "disabled");
+        runBtn.classList.add("btn-outline-success");
+        runBtn.innerHTML = '<span id="verifySpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span><i class="bi bi-shield-check me-1"></i><span id="verifyBtnText">Verificar</span>';
+        
+        // Re-bind references if needed (though they are global/const)
+        // const spinner = document.getElementById("verifySpinner");
+        // const btnText = document.getElementById("verifyBtnText");
+    }
+    
     localStorage.removeItem("tokencafe_contract_verify_payload");
     logStatus("Formulário limpo.");
   } catch (_) {}
@@ -490,7 +588,7 @@ function computeReadiness() {
     const badge = document.getElementById("verifyStatusBadge");
     if (!badge) return;
     let txt = "Aguardando";
-    let cls = "bg-secondary";
+    let cls = "bg-dark-elevated";
     if (!addr || !cid) {
       if (badge) badge.classList.add("d-none");
       logStatus("");
@@ -748,13 +846,13 @@ try {
   document.getElementById("copySourceBtn")?.addEventListener("click", () => {
     try {
       const txt = document.getElementById("f_sourceCode")?.value || document.getElementById("cardSourcePreview")?.textContent || "";
-      if (txt && navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt);
+      if (txt) window.copyToClipboard(txt);
     } catch (_) {}
   });
   document.getElementById("copyMetadataBtn")?.addEventListener("click", () => {
     try {
       const txt = document.getElementById("f_metadata")?.value || document.getElementById("cardMetadataPreview")?.textContent || "";
-      if (txt && navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt);
+      if (txt) window.copyToClipboard(txt);
     } catch (_) {}
   });
   document.getElementById("importSourceBtn")?.addEventListener("click", () => {
@@ -846,15 +944,6 @@ document.addEventListener("contract:found", (e) => {
     computeReadiness();
     setGlobalData(p);
     checkVerifiedStatus(true);
-    try {
-      const parts = [];
-      if (p.tokenSymbol) parts.push(`Símbolo: ${p.tokenSymbol}`);
-      if (p.tokenDecimals != null) parts.push(`Decimals: ${p.tokenDecimals}`);
-      if (p.tokenSupply) parts.push(`Supply: ${p.tokenSupply}`);
-      if (p.contractTokenBalance) parts.push(`Saldo contrato: ${p.contractTokenBalance}`);
-      if (p.contractNativeBalance) parts.push(`Saldo nativo: ${p.contractNativeBalance}`);
-      if (parts.length) logStatus(parts.join(" | "));
-    } catch {}
   } catch (_) {}
 });
 

@@ -63,7 +63,9 @@
               </label>
               <div class="input-group">
                 <input type="url" class="form-control monospace-input" id="customRpcUrl" placeholder="Inclua o RPC personalizado aqui." />
-                <button id="btn-test-custom-rpc" class="btn btn-outline-primary">Testar</button>
+                <button id="btn-test-custom-rpc" class="btn btn-outline-primary" title="Testar">
+                  <i class="bi bi-speedometer2"></i>
+                </button>
               </div>
             </div>
 
@@ -78,13 +80,22 @@
             <!-- Botão de ação -->
             <div class="mb-4 d-none" id="add-network-section">
               <div class="d-flex align-items-center mb-3"></div>
-              <div class="d-grid gap-2">
-                <button id="add-network-btn" class="btn btn-outline-primary btn-lg" disabled>
+              <div class="btn-row">
+                <button id="add-network-btn" class="btn btn-outline-primary" disabled>
                   <i class="bi bi-plus-lg me-2"></i>
                   Adicionar Rede ao MetaMask
                 </button>
+                <button id="clear-network-btn" class="btn btn-outline-secondary">
+                  <i class="bi bi-eraser me-2"></i>
+                  Limpar Dados
+                </button>
               </div>
             </div>
+          </div>
+
+          <!-- Componente de Resposta do Sistema -->
+          <div class="mb-4">
+            <div data-component="shared/components/system-response.html"></div>
           </div>
         </div>
       </div>

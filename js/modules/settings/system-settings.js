@@ -91,6 +91,7 @@ class SystemSettngs {
     // Botes prncpas
     document.getElementById("saveAllSettingsBtn")?.addEventListener("click", () => this.saveAllSettngs());
     document.getElementById("resetSettingsBtn")?.addEventListener("click", () => this.resetToDefaults());
+    document.getElementById("btnCheckSystemStatus")?.addEventListener("click", () => this.checkSystemStatus());
 
     // Confguraes geras
     this.setupGeneralLsteners();
@@ -256,8 +257,16 @@ class SystemSettngs {
    * Confgura o sstema de tabs
    */
   setupTabs() {
-    // Atva a prmera tab por padro
-    this.swtchTab("general");
+    // Verifica se há um parâmetro de tab na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam && document.querySelector(`[data-tab="${tabParam}"]`)) {
+        this.swtchTab(tabParam);
+    } else {
+        // Atva a prmera tab por padro
+        this.swtchTab("general");
+    }
   }
 
   /**
@@ -470,6 +479,25 @@ class SystemSettngs {
       this.showNotfcaton("Confguraes restauradas para o padro", "success");
       this.pendngChanges.clear();
     });
+  }
+
+  /**
+   * Limpar dados (alias para resetToDefaults ou recarregar)
+   * Neste contexto, optamos por recarregar as configurações salvas (descartar alterações não salvas)
+   * ou restaurar padrões se o usuário desejar um reset completo.
+   * Para atender ao pedido "limpar dados", vamos recarregar o estado salvo.
+   */
+  clearData() {
+    this.showConfrmModal(
+      "Limpar Dados",
+      "Deseja descartar todas as alterações não salvas e recarregar as configurações atuais?",
+      () => {
+        this.loadSettngs();
+        this.applyCurrentSettngs();
+        this.showNotfcaton("Dados recarregados com sucesso!", "success");
+        this.pendngChanges.clear();
+      }
+    );
   }
 
   /**
@@ -727,7 +755,93 @@ class SystemSettngs {
   }
 
   /**
-   * Mostra notfcao
+   * Verifica status do sistema
+   */
+  async checkSystemStatus() {
+    const systemResponse = new window.SystemResponse();
+    
+    // Initial loading state
+    if(window.showLoading) window.showLoading("Verificando status do sistema...");
+    
+    try {
+        const results = {
+            backend: { status: 'pending', label: 'API Backend' },
+            blockchain: { status: 'pending', label: 'Blockchain (MetaMask)' },
+            internet: { status: 'pending', label: 'Conexão Internet' }
+        };
+        
+        // 1. Check Internet
+        results.internet.status = navigator.onLine ? 'ok' : 'error';
+        
+        // 2. Check Backend
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const response = await fetch('https://tokencafe-api.onrender.com/health', { 
+                method: 'HEAD',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            results.backend.status = response.ok ? 'ok' : 'error';
+        } catch (e) {
+            results.backend.status = 'error';
+        }
+        
+        // 3. Check Blockchain
+        if (window.ethereum) {
+            results.blockchain.status = 'ok';
+            try {
+                // Just check if we can talk to it
+                await window.ethereum.request({ method: 'eth_chainId' });
+            } catch(e) {
+                // If user rejects or locked, it's still 'warning' or 'ok' presence wise
+                results.blockchain.status = 'warning'; 
+            }
+        } else {
+            results.blockchain.status = 'error';
+        }
+        
+        // Build report
+        const allOk = Object.values(results).every(r => r.status === 'ok');
+        const hasError = Object.values(results).some(r => r.status === 'error');
+        
+        let htmlContent = '<div class="text-start mt-3"><ul class="list-group list-group-flush bg-transparent">';
+        for (const [key, info] of Object.entries(results)) {
+            let icon = 'bi-check-circle-fill text-success';
+            let color = 'text-light';
+            if (info.status === 'error') { icon = 'bi-x-circle-fill text-danger'; color = 'text-danger'; }
+            if (info.status === 'warning') { icon = 'bi-exclamation-triangle-fill text-warning'; color = 'text-warning'; }
+            
+            htmlContent += `
+                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-secondary ${color}">
+                    <span>${info.label}</span>
+                    <i class="bi ${icon} fs-5"></i>
+                </li>`;
+        }
+        htmlContent += '</ul></div>';
+
+        systemResponse.show({
+            title: allOk ? "Sistema Operacional" : (hasError ? "Problemas Detectados" : "Atenção Necessária"),
+            subtitle: allOk ? "Todos os sistemas estão funcionando normalmente." : "Verifique os detalhes abaixo.",
+            icon: allOk ? "bi-hdd-network" : "bi-activity",
+            htmlContent: htmlContent,
+            badge: "Verificado em: " + new Date().toLocaleTimeString(),
+            actions: ['clear'],
+            onClear: () => {
+                // Optional
+            }
+        });
+        
+    } catch (error) {
+        console.error(error);
+        if(window.notify) window.notify("Erro ao verificar status", "error");
+    } finally {
+        if(window.hideLoading) window.hideLoading();
+    }
+  }
+
+  /**
+   * Mostra notfcao na tela
    */
   showNotfcaton(message, type = "nfo") {
     // mplementao bsca de notfcao

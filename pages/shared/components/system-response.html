@@ -1,0 +1,59 @@
+<div id="system-response-section" class="d-none">
+  <!-- Header / Title -->
+  <div class="d-flex align-items-center mb-3">
+    <div class="me-3 text-tokencafe fs-2">
+      <i id="sr-icon" class="bi bi-check-circle"></i>
+    </div>
+    <div>
+      <h5 id="sr-title" class="mb-0 fw-bold text-white">Resultado</h5>
+      <p id="sr-subtitle" class="text-muted mb-0 small">Ação concluída com sucesso</p>
+    </div>
+  </div>
+
+  <!-- Content / Input -->
+  <div id="sr-content-group" class="input-group mt-2">
+    <input id="sr-result-input" class="form-control" readonly aria-label="Resultado" />
+    
+    <!-- Copy Button (Moved inside input group) -->
+    <button class="btn btn-outline-secondary sr-action-btn" type="button" data-action="copy" data-type="copy" title="Copiar">
+        <i class="bi bi-clipboard"></i>
+    </button>
+
+    <!-- Open Button (Moved inside input group) -->
+    <button class="btn btn-outline-primary sr-action-btn" type="button" data-action="open" data-type="open" title="Abrir">
+        <i class="bi bi-box-arrow-up-right"></i>
+    </button>
+  </div>
+  
+  <div id="sr-custom-content" class="d-none text-light bg-dark-elevated p-3 rounded border border-secondary mt-2"></div>
+  
+  <!-- Optional Badge -->
+  <small id="sr-badge" class="text-success d-none mt-1">
+    <i class="bi bi-check-circle me-1"></i>
+    <span id="sr-badge-text"></span>
+  </small>
+
+  <!-- Actions Row -->
+  <div class="btn-row mt-3" id="sr-actions-row">
+    <!-- WhatsApp -->
+    <button class="btn btn-outline-success sr-action-btn" data-type="whatsapp" data-action="whatsapp" title="WhatsApp">
+      <i class="bi bi-whatsapp me-1"></i>WhatsApp
+    </button>
+    <!-- Telegram -->
+    <button class="btn btn-outline-info sr-action-btn" data-type="telegram" data-action="telegram" title="Telegram">
+      <i class="bi bi-telegram me-1"></i>Telegram
+    </button>
+    <!-- Email -->
+    <button class="btn btn-outline-warning sr-action-btn" data-type="email" data-action="email" title="Email">
+      <i class="bi bi-envelope me-1"></i>Email
+    </button>
+    <!-- Carteira -->
+    <button class="btn btn-outline-info sr-action-btn" data-type="add_wallet" data-action="add_wallet" title="Adicionar à Carteira">
+      <i class="bi bi-wallet2 me-1"></i>Carteira
+    </button>
+    <!-- Clear -->
+    <button class="btn btn-outline-secondary sr-action-btn" data-type="clear" data-action="clear" title="Limpar e Voltar">
+      <i class="bi bi-eraser me-1"></i>Limpar
+    </button>
+  </div>
+</div>

@@ -154,7 +154,8 @@ function readForm() {
   {
     const raw = String($("#initialSupply").value || "").replace(/\s+$/u, "");
     const sanitized = raw.replace(/[^0-9]/g, "");
-    state.form.token.initialSupply = parseInt(sanitized || "0", 10);
+    // Manter como string para suportar números grandes (> 2^53)
+    state.form.token.initialSupply = sanitized || "0";
   }
 
   // Entradas decimais (strings), não usar wei. Conversão será feita no backend.
@@ -220,7 +221,10 @@ function validateForm() {
   if (state.form.token.decimals < 0 || state.form.token.decimals > 18) {
     errors.push("Decimais devem estar entre 0 e 18.");
   }
-  if (state.form.token.initialSupply < 0) errors.push("Supply inicial deve ser ≥ 0.");
+  // Validação de supply como string/BigInt
+  if (!/^\d+$/.test(state.form.token.initialSupply)) {
+     errors.push("Supply inicial deve conter apenas números.");
+  }
 
   // Venda quando aplicável (entradas decimais)
   if (["erc20-directsale", "upgradeable-uups"].includes(state.form.group)) {
@@ -322,9 +326,9 @@ function validateTokenDecimalsInline() {
 
 function validateInitialSupplyInline() {
   const el = getEl("initialSupply");
-  const val = parseInt(el?.value || "0", 10);
-  if (!Number.isFinite(val) || val < 0) {
-    return setFieldInvalid(el, "Supply inicial deve ser ≥ 0.");
+  const raw = String(el?.value || "").trim();
+  if (!raw || !/^\d+$/.test(raw)) {
+    return setFieldInvalid(el, "Supply inicial deve conter apenas números.");
   }
   return clearFieldInvalid(el);
 }
@@ -382,10 +386,11 @@ function runAllFieldValidation() {
   return ok;
 }
 
-async function unusedConnectWallet() {
+async function connectWallet() {
   try {
     if (!window.ethereum) {
       log("MetaMask não encontrada. Instale a extensão para continuar.");
+      alert("MetaMask não encontrada. Instale a extensão para continuar.");
       return;
     }
     await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -397,6 +402,7 @@ async function unusedConnectWallet() {
     log(`Carteira conectada: ${address} (chainId ${chainId})`);
   } catch (err) {
     log(`Falha ao conectar carteira: ${err.message || err}`);
+    alert(`Falha ao conectar carteira: ${err.message || err}`);
   }
 }
 
@@ -428,7 +434,8 @@ async function checkApiConnectivity(apiBase) {
   const start = Date.now();
   try {
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 7000);
+    // Aumentado para 60s para permitir wake-up do Render (free tier)
+    const t = setTimeout(() => controller.abort(), 60000);
     const resp = await fetch(url, { method: "GET", signal: controller.signal });
     clearTimeout(t);
     const ms = Date.now() - start;
@@ -457,7 +464,7 @@ async function checkApiConnectivity(apiBase) {
           return "unknown:";
         }
       })();
-      log(`Dica: verifique CORS e mixed content. Página: ${pageProto}, API: ${apiProto}, online=${navigator.onLine}`);
+      log(`Dica: verifique CORS, mixed content e se o servidor (Render) está acordando. Página: ${pageProto}, API: ${apiProto}, online=${navigator.onLine}`);
     }
     return false;
   }
@@ -525,7 +532,7 @@ function generateTokenSourceV2(name, symbol, decimals, totalSupplyInt) {
   try {
     const contractName = sanitizeContractName(name);
     const d = parseInt(decimals, 10);
-    const ts = parseInt(totalSupplyInt, 10);
+    const ts = String(totalSupplyInt || "0");
     const src = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\ncontract ${contractName} {\n    string public name = "${String(name)}";\n    string public symbol = "${String(symbol)}";\n    uint8 public decimals = ${d};\n    uint256 public totalSupply;\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    constructor() {\n        totalSupply = ${ts} * 10**decimals;\n        balanceOf[msg.sender] = totalSupply;\n        emit Transfer(address(0), msg.sender, totalSupply);\n    }\n\n    function transfer(address to, uint256 value) public returns (bool) {\n        require(balanceOf[msg.sender] >= value, "Insufficient balance");\n        balanceOf[msg.sender] -= value;\n        balanceOf[to] += value;\n        emit Transfer(msg.sender, to, value);\n        return true;\n    }\n\n    function approve(address spender, uint256 value) public returns (bool) {\n        allowance[msg.sender][spender] = value;\n        emit Approval(msg.sender, spender, value);\n        return true;\n    }\n\n    function transferFrom(address from, address to, uint256 value) public returns (bool) {\n        require(balanceOf[from] >= value, "Insufficient balance");\n        require(allowance[from][msg.sender] >= value, "Allowance exceeded");\n        balanceOf[from] -= value;\n        balanceOf[to] += value;\n        allowance[from][msg.sender] -= value;\n        emit Transfer(from, to, value);\n        return true;\n    }\n}`;
     return { contractName, sourceCode: src.trim() };
   } catch (_) {
@@ -606,18 +613,21 @@ async function compileContract() {
   }
   try {
     let base = getApiBase();
+    // Tentativa de conexão, mas sem forçar localhost imediatamente se falhar (pode ser timeout do Render)
     const okConn = await checkApiConnectivity(base);
     if (!okConn) {
-      const local = "http://localhost:3000";
-      base = local;
-      setApiBase(local);
+      log("Aviso: Conectividade com API falhou (timeout ou CORS). Tentando usar a URL configurada mesmo assim...");
+      // Não mudar para localhost automaticamente para evitar quebra em produção/remote
+      // const local = "http://localhost:3000";
+      // base = local;
+      // setApiBase(local);
     }
 
     readForm();
     const name = state.form.token.name || "MyToken";
     const symbol = state.form.token.symbol || "MTK";
     const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
-    const totalSupply = Number.isFinite(state.form.token.initialSupply) ? state.form.token.initialSupply : 0;
+    const totalSupply = state.form.token.initialSupply || "0";
 
     const payload = { name, symbol, totalSupply, decimals };
     log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}...`);
@@ -697,7 +707,7 @@ async function compileContract() {
         const symbol = state.form.token.symbol || "MTK";
         const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
         const totalSupplyRaw = state.form.token.initialSupply || 0;
-        const totalSupplyInt = typeof totalSupplyRaw === "string" ? parseInt(totalSupplyRaw, 10) : Number(totalSupplyRaw);
+        const totalSupplyInt = String(totalSupplyRaw || "0");
         log(`Tentando fallback: gerar código local e compilar (${base}/api/compile-only)...`);
         const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
         try {
@@ -755,7 +765,7 @@ async function compileContract() {
         const symbol = state.form.token.symbol || "MTK";
         const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
         const totalSupplyRaw = state.form.token.initialSupply || 0;
-        const totalSupplyInt = typeof totalSupplyRaw === "string" ? parseInt(totalSupplyRaw, 10) : Number(totalSupplyRaw);
+        const totalSupplyInt = String(totalSupplyRaw || "0");
         log(`Tentando fallback: gerar código local e compilar (${base}/api/compile-only)...`);
         const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
         const resp2 = await fetchWithDiagnostics(`${base}/api/compile-only`, {
@@ -937,6 +947,36 @@ async function deployPlaceholder() {
         if (sh) sh.disabled = !isValidAddress(state?.deployed?.address);
       } catch (_) {}
       stopOpStatus("Deploy concluído (servidor)");
+
+      // Show success modal
+      if (window.showVerificationResultModal) {
+          window.showVerificationResultModal(
+            true,
+            "Deploy Concluído com Sucesso!",
+            `<div class="text-center">
+               <div class="mb-3"><i class="bi bi-rocket-takeoff-fill text-success" style="font-size: 3rem;"></i></div>
+               <p>O contrato foi implantado com sucesso!</p>
+               <p class="text-muted small">Endereço: ${state.deployed.address}</p>
+             </div>`,
+            explorerUrl
+          );
+      }
+
+      // Broadcast contract:found to other modules
+      try {
+          const eventDetail = { 
+            contract: {
+                chainId: chainId, 
+                contractAddress: state.deployed.address,
+                address: state.deployed.address,
+                tokenSymbol: state.form.token.symbol,
+                status: 'deployed',
+                link: explorerUrl
+            }
+          };
+          document.dispatchEvent(new CustomEvent('contract:found', { detail: eventDetail }));
+      } catch (_) {}
+
       // Verificação privada on-chain
       try {
         const addrVerify = state.deployed?.address;
@@ -1010,9 +1050,20 @@ async function deployPlaceholder() {
   }
   // Caso não haja compilação disponível, ou servidor falhar, usar fluxo MetaMask (placeholder)
   if (!state.wallet.signer) {
-    log("Conecte sua carteira para realizar o deploy pelo MetaMask.");
-    stopOpStatus("Carteira não conectada");
-    return;
+    log("Carteira não conectada. Solicitando conexão...");
+    try {
+      await connectWallet();
+    } catch (e) {
+      console.error(e);
+    }
+    
+    // Verifica novamente se conectou
+    if (!state.wallet.signer) {
+      log("Conecte sua carteira para realizar o deploy pelo MetaMask.");
+      alert("É necessário conectar sua carteira para realizar o deploy.");
+      stopOpStatus("Carteira não conectada");
+      return;
+    }
   }
   // Garantir que a rede selecionada corresponde à rede atual da carteira
   const selectedChainId = state.form?.network?.chainId;
@@ -1386,19 +1437,37 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
     const link = document.getElementById("erc20VerifyLink");
     const addrVerify = state.deployed?.address;
     const chainIdVerify = state.form?.network?.chainId;
+    
+    // Atualiza estado de verificação
+    const isVerified = (_bscOk === true) || (_sourOk === true) || (_privOk === true);
+    if (isVerified && state.deployed) {
+      state.deployed.verified = true;
+    }
+
     let url = null;
     url = bscUrl || sourUrl || (addrVerify && chainIdVerify ? getExplorerVerificationUrl(addrVerify, chainIdVerify) : null);
     if (link) {
       link.href = url || "#";
       const clickable = !!(addrVerify && chainIdVerify);
-      link.classList.toggle("disabled", !clickable);
-      try {
-        const hasMeta = !!state?.compilation?.metadata;
-        const netName = state.form?.network?.name || (chainIdVerify ? getNetworkNameByChainId(chainIdVerify) : "-") || "-";
-        link.textContent = `${hasMeta ? "Verificar automaticamente" : "Abrir verificação"} (${netName})`;
-        link.title = hasMeta ? "Verificação automática via Sourcify" : "Abrir verificador do explorer da rede";
-        if (window.bootstrap?.Tooltip) new bootstrap.Tooltip(link);
-      } catch (_) {}
+      
+      if (state.deployed?.verified) {
+         link.classList.add("disabled");
+         link.classList.remove("btn-outline-warning");
+         link.classList.add("btn-success");
+         link.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
+         link.title = "Contrato verificado com sucesso";
+      } else {
+        link.classList.toggle("disabled", !clickable);
+        link.classList.remove("btn-success");
+        link.classList.add("btn-outline-warning");
+        try {
+          const hasMeta = !!state?.compilation?.metadata;
+          const netName = state.form?.network?.name || (chainIdVerify ? getNetworkNameByChainId(chainIdVerify) : "-") || "-";
+          link.innerHTML = `<i class="bi bi-shield-check me-1"></i>${hasMeta ? "Verificar automaticamente" : "Abrir verificação"}`;
+          link.title = hasMeta ? "Verificação automática via Sourcify" : "Abrir verificador do explorer da rede";
+          if (window.bootstrap?.Tooltip) new bootstrap.Tooltip(link);
+        } catch (_) {}
+      }
     }
   } catch (_) {}
 }
@@ -1515,7 +1584,86 @@ async function initWalletIfConnected() {
   }
 }
 
+function setupClearButton() {
+  const btn = document.getElementById("btnClearForm");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    // Reset state
+    state.form.token.name = "";
+    state.form.token.symbol = "";
+    state.form.token.decimals = 18;
+    state.form.token.initialSupply = "1000000";
+    state.form.sale.priceDec = "0.001";
+    state.form.sale.minDec = "0.005";
+    state.form.sale.maxDec = "1.0";
+    state.form.sale.capUnits = 0n;
+    state.form.sale.payoutWallet = "";
+    state.form.vanity.mode = "none";
+    state.form.vanity.custom = "";
+    state.validated = false;
+    state.deployed.address = null;
+    state.deployed.transactionHash = null;
+    state.compilation = null;
+
+    // Reset inputs
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    setVal("tokenName", "");
+    setVal("tokenSymbol", "");
+    setVal("tokenDecimals", "18");
+    setVal("initialSupply", "1000000");
+    setVal("tokenPriceDec", "0.001");
+    setVal("minPurchaseDec", "0.005");
+    setVal("maxPurchaseDec", "1.0");
+    setVal("perWalletCap", "0");
+    setVal("payoutWallet", "");
+    setVal("vanityMode", "none");
+    setVal("vanityCustom", "");
+    
+    // Reset invalid feedbacks
+    document.querySelectorAll(".is-invalid").forEach(el => clearFieldInvalid(el));
+    
+    // Hide sections
+    const filesSection = document.getElementById("files-section");
+    if (filesSection) filesSection.classList.add("d-none");
+    
+    const erc20Details = document.getElementById("erc20-details");
+    if (erc20Details) erc20Details.classList.add("d-none");
+    
+    const openVerifica = document.getElementById("openVerificaContainer");
+    if (openVerifica) openVerifica.classList.add("d-none");
+
+    // Reset buttons
+    const btnCompile = document.getElementById("btnCompile");
+    if (btnCompile) {
+      btnCompile.disabled = false;
+      btnCompile.classList.remove("btn-outline-success", "btn-used-error");
+      btnCompile.classList.add("btn-outline-primary");
+      const tx = document.getElementById("compileBtnText");
+      if (tx) tx.textContent = "Compilar";
+    }
+    
+    const btnDeploy = getDeployButton();
+    if (btnDeploy) {
+      btnDeploy.disabled = true;
+      btnDeploy.classList.remove("btn-used-success", "btn-used-error");
+      btnDeploy.classList.add("btn-outline-success");
+    }
+
+    // Broadcast clear event to other modules
+    try {
+        document.dispatchEvent(new CustomEvent('contract:clear'));
+    } catch (_) {}
+
+    if (window.showFormSuccess) {
+      window.showFormSuccess("Formulário limpo com sucesso!");
+    } else {
+      log("Formulário limpo.");
+    }
+  });
+}
+
 async function bindUI() {
+  setupClearButton();
   // grupo altera visibilidade de venda
   $("#contractGroup").addEventListener("change", () => {
     readForm();
@@ -1932,10 +2080,14 @@ async function bindUI() {
   const btnCopyFile = document.getElementById("btnCopyFile");
   const btnSaveFile = document.getElementById("btnSaveFile");
   if (btnCopyFile)
-    btnCopyFile.addEventListener("click", () => {
+    btnCopyFile.addEventListener("click", async () => {
       const { content } = getSelectedFile();
       try {
-        navigator.clipboard.writeText(content || "");
+        if (window.copyToClipboard) {
+          window.copyToClipboard(content || "");
+        } else {
+          await navigator.clipboard.writeText(content || "");
+        }
         log("Conteúdo copiado.");
       } catch (_) {
         log("Falha ao copiar.");
@@ -2352,6 +2504,10 @@ async function bindUI() {
       m.show();
     } catch (_) {}
   }
+
+  // Removido showVerificationResultModal local para usar a global
+  // function showVerificationResultModal(success, message, link) { ... }
+
   const bscBtn = document.getElementById("erc20VerifyBscBtn");
   const sourBtn = document.getElementById("erc20VerifySourBtn");
   const privBtn = document.getElementById("erc20VerifyPrivBtn");
@@ -2437,6 +2593,53 @@ async function bindUI() {
   } catch (_) {}
 }
 
+// Sincronização de estado entre módulos
+window.addEventListener("contract:verified", (evt) => {
+  try {
+    const { address, link } = evt.detail || {};
+    // Se o endereço bater com o atual implantado
+    if (
+      state.deployed?.address && 
+      address && 
+      state.deployed.address.toLowerCase() === address.toLowerCase()
+    ) {
+      log(`Evento externo de verificação recebido para ${address}`);
+      state.deployed.verified = true;
+      
+      // Atualizar badges/links
+      updateVerificationBadges({ 
+        bscUrl: link, 
+        _bscOk: true 
+      });
+      
+      // Atualizar botões de verificação
+      const launch = document.getElementById("erc20VerifyLaunch");
+      if (launch) {
+        launch.disabled = true;
+        launch.innerHTML = '<i class="bi bi-check-circle"></i> Verificado';
+        launch.classList.remove("btn-outline-warning");
+        launch.classList.add("btn-success");
+      }
+      
+      const vLink = document.getElementById("erc20VerifyLink");
+      if (vLink) {
+         vLink.classList.add("disabled");
+         vLink.classList.remove("btn-outline-warning");
+         vLink.classList.add("btn-success");
+         vLink.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
+      }
+
+      // Atualizar modal de sucesso se estivermos na tela
+      if (window.showVerificationResultModal) {
+         // Não mostramos modal intrusivo, apenas atualizamos a UI
+         // window.showVerificationResultModal(true, "Contrato verificado via módulo externo!", link);
+      }
+    }
+  } catch (err) {
+    console.error("Erro ao processar contract:verified", err);
+  }
+});
+
 document.addEventListener("DOMContentLoaded", bindUI);
 
 // Importação automática de receita vinda do Tools
@@ -2511,12 +2714,17 @@ async function runVerifyDirect(p) {
     if (res?.link) updateVerificationBadges({ bscUrl: res.link });
     if (res?.success) {
       log(`✅ Verificação concluída (${res.status}). ${res.link || ""}`);
+      if (window.showVerificationResultModal) window.showVerificationResultModal(true, "Contrato verificado com sucesso!", res.link);
     } else if (res?.status === "pending") {
       log(`📤 Verificação enviada (explorer). ${res.link || ""}`);
+      if (window.showVerificationResultModal) window.showVerificationResultModal(true, "Verificação enviada para processamento. Pode levar alguns minutos.", res.link);
     } else {
-      log(`Falha/erro na verificação: ${res?.error || res?.status || "desconhecido"}`);
+      const errMsg = res?.error || res?.status || "Erro desconhecido";
+      log(`Falha/erro na verificação: ${errMsg}`);
+      if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Não foi possível verificar: ${errMsg}`, res?.link);
     }
   } catch (e) {
     log(`Erro na verificação: ${e?.message || e}`);
+    if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Erro interno: ${e?.message || e}`, null);
   }
 }

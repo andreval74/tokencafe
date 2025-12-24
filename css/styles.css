@@ -507,134 +507,144 @@ div[style*="gradient"] {
   color: var(--bs-body-color) !important;
 }
 
-/* Botões — definições legadas removidas. Variantes consolidadas ao final do arquivo. */
+/* ============================================================================
+   BUTTONS & ACTIONS SYSTEM
+   ============================================================================ */
 
+/* Base Button Style - Unified Typography */
+.btn {
+  font-family: var(--bs-body-font-family);
+  font-weight: 600 !important;
+  font-size: 1rem !important; /* Standardized size for all buttons */
+  letter-spacing: 0.3px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* Space between icon and text */
+}
+
+/* Button Sizes */
+.btn-lg {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem !important; /* Keep same font size, just bigger padding */
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.875rem !important; /* Slightly smaller only for explicitly small buttons */
+}
+
+/* Flex Row for Buttons - Full Width Behavior */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.btn-row .btn {
+  flex-grow: 1; /* Occupy available space */
+  flex-basis: 0; /* Equal distribution */
+  min-width: 120px; /* Minimum width before wrapping */
+}
+
+/* Input Group Buttons (Icon Only) */
+.input-group .btn {
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-group .btn i {
+  font-size: 1.1rem;
+}
+
+/* Disabled States */
 .btn:disabled,
 .btn.disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: transparent !important;
-}
-.btn-outline-primary:disabled,
-.btn-outline-secondary:disabled,
-.btn-outline-success:disabled,
-.btn-outline-warning:disabled,
-.btn-outline-info:disabled {
-  color: #adb5bd !important;
-  background-color: transparent !important;
-  border-color: #6c757d !important;
+  transform: none !important;
 }
 
-/* Estados "já usados" (sucesso/falha), desativados e com cor padrão Bootstrap */
-.btn-used-success:disabled,
-.btn-used-success.btn.disabled {
-  color: var(--tokencafe-success, var(--bs-success)) !important;
-  background-color: transparent !important;
-  border-color: var(--tokencafe-success, var(--bs-success)) !important;
-  opacity: 0.6;
-}
-.btn-used-error:disabled,
-.btn-used-error.btn.disabled {
-  color: var(--tokencafe-danger, var(--bs-danger)) !important;
-  background-color: transparent !important;
-  border-color: var(--tokencafe-danger, var(--bs-danger)) !important;
-  opacity: 0.6;
-}
-
-/* Outline disabled states keep color with slight transparency */
-.btn-outline-success:disabled,
-.btn-outline-success.btn.disabled {
-  color: var(--tokencafe-success, var(--bs-success)) !important;
-  border-color: var(--tokencafe-success, var(--bs-success)) !important;
-  background-color: transparent !important;
-  opacity: 0.6;
-}
-.btn-outline-danger:disabled,
-.btn-outline-danger.btn.disabled {
-  color: var(--tokencafe-danger, var(--bs-danger)) !important;
-  border-color: var(--tokencafe-danger, var(--bs-danger)) !important;
-  background-color: transparent !important;
-  opacity: 0.6;
-}
-
-/* Padrão outline para todas variantes e hover preenchendo */
-.btn-primary,
+/* Standard Outline Buttons with Hover Fill */
 .btn-outline-primary {
-  color: var(--bs-primary) !important;
-  background-color: transparent !important;
-  border: 1px solid var(--bs-primary) !important;
+  color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  background: transparent;
 }
-.btn-primary:hover,
-.btn-outline-primary:hover {
-  color: #fff !important;
-  background-color: var(--bs-primary) !important;
-  border-color: var(--bs-primary) !important;
+.btn-outline-primary:hover:not(:disabled) {
+  background: var(--bs-primary);
+  color: #fff;
 }
 
-.btn-success,
-.btn-outline-success {
-  color: var(--bs-success) !important;
-  background-color: transparent !important;
-  border: 1px solid var(--bs-success) !important;
-}
-.btn-success:hover,
-.btn-outline-success:hover {
-  color: #fff !important;
-  background-color: var(--bs-success) !important;
-  border-color: var(--bs-success) !important;
-}
-
-.btn-danger,
-.btn-outline-danger {
-  color: var(--bs-danger) !important;
-  background-color: transparent !important;
-  border: 1px solid var(--bs-danger) !important;
-}
-.btn-danger:hover,
-.btn-outline-danger:hover {
-  color: #fff !important;
-  background-color: var(--bs-danger) !important;
-  border-color: var(--bs-danger) !important;
-}
-
-.btn-warning,
-.btn-outline-warning {
-  color: var(--bs-warning) !important;
-  background-color: transparent !important;
-  border: 1px solid var(--bs-warning) !important;
-}
-.btn-warning:hover,
-.btn-outline-warning:hover {
-  color: #212529 !important;
-  background-color: var(--bs-warning) !important;
-  border-color: var(--bs-warning) !important;
-}
-
-.btn-info,
-.btn-outline-info {
-  color: var(--bs-info) !important;
-  background-color: transparent !important;
-  border: 1px solid var(--bs-info) !important;
-}
-.btn-info:hover,
-.btn-outline-info:hover {
-  color: #fff !important;
-  background-color: var(--bs-info) !important;
-  border-color: var(--bs-info) !important;
-}
-
-.btn-secondary,
 .btn-outline-secondary {
-  color: var(--bs-secondary) !important;
-  background-color: transparent !important;
-  border: 1px solid var(--bs-secondary) !important;
+  color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+  background: transparent;
 }
-.btn-secondary:hover,
-.btn-outline-secondary:hover {
-  color: #fff !important;
-  background-color: var(--bs-secondary) !important;
-  border-color: var(--bs-secondary) !important;
+.btn-outline-secondary:hover:not(:disabled) {
+  background: var(--bs-secondary);
+  color: #fff;
 }
+
+.btn-outline-success {
+  color: var(--bs-success);
+  border-color: var(--bs-success);
+  background: transparent;
+}
+.btn-outline-success:hover:not(:disabled) {
+  background: var(--bs-success);
+  color: #fff;
+}
+
+.btn-outline-danger {
+  color: var(--bs-danger);
+  border-color: var(--bs-danger);
+  background: transparent;
+}
+.btn-outline-danger:hover:not(:disabled) {
+  background: var(--bs-danger);
+  color: #fff;
+}
+
+.btn-outline-warning {
+  color: var(--bs-warning);
+  border-color: var(--bs-warning);
+  background: transparent;
+}
+.btn-outline-warning:hover:not(:disabled) {
+  background: var(--bs-warning);
+  color: #1a1a1a;
+}
+
+.btn-outline-info {
+  color: var(--bs-info);
+  border-color: var(--bs-info);
+  background: transparent;
+}
+.btn-outline-info:hover:not(:disabled) {
+  background: var(--bs-info);
+  color: #fff;
+}
+
+/* Used States (Success/Error feedback) */
+.btn-used-success {
+  color: var(--bs-success) !important;
+  border-color: var(--bs-success) !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+}
+
+.btn-used-error {
+  color: var(--bs-danger) !important;
+  border-color: var(--bs-danger) !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
 
 /* Bootstrap Alerts - Dark Theme */
 .alert-success {
