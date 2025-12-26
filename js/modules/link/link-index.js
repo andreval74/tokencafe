@@ -118,8 +118,8 @@ function initStatusMirror() {
             clearError();
             return;
           }
-          if (/Informe endereço e rede/i.test(raw)) {
-            setError("Informe endereço e rede.");
+          if (/Informe endereço e rede|Endereço inválido/i.test(raw)) {
+            setError("Endereço inválido ou não informado.");
             return;
           }
           if (/Tempo limite|sem dados/i.test(raw)) {
@@ -421,24 +421,6 @@ document.addEventListener('contract:found', (e) => {
     if (e.detail && e.detail.contract) {
         tokenFetched = true;
         setReadonlyMode(true);
-        // Mostrar modal de sucesso
-        const msg = `Token ${e.detail.contract.tokenSymbol || 'Encontrado'} detectado com sucesso!`;
-        
-        // Use global showVerificationResultModal if available
-        if (window.showVerificationResultModal) {
-            window.showVerificationResultModal(
-                true,
-                "Token Encontrado",
-                `<div class="text-center">
-                   <div class="mb-3"><i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i></div>
-                   <p>${msg}</p>
-                   <p class="text-muted small">Link gerado automaticamente.</p>
-                 </div>`,
-                null // No external link needed for this context
-            );
-        } else if (window.showFormSuccess) {
-            window.showFormSuccess(msg);
-        }
         
         // Desabilitar botão de busca para evitar cliques duplicados
         const btnSearch = document.getElementById(ids.btnTokenSearch);
@@ -462,22 +444,6 @@ document.addEventListener('contract:verified', (e) => {
             btnSearch.innerHTML = '<i class="bi bi-check-circle-fill"></i> Verificado';
             btnSearch.classList.remove('btn-primary', 'btn-success');
             btnSearch.classList.add('btn-success');
-        }
-        
-        // Exibir modal de verificação se disponível
-        if (window.showVerificationResultModal) {
-            window.showVerificationResultModal(
-                true,
-                "Contrato Verificado",
-                `<div class="text-center">
-                   <div class="mb-3"><i class="bi bi-patch-check-fill text-success" style="font-size: 3rem;"></i></div>
-                   <p>O contrato <strong>${e.detail.contract.tokenSymbol || 'Token'}</strong> foi verificado com sucesso!</p>
-                   <p class="text-muted small">Todas as funcionalidades estão ativas.</p>
-                 </div>`,
-                e.detail.explorerUrl
-            );
-        } else if (window.showFormSuccess) {
-            window.showFormSuccess(`Contrato ${e.detail.contract.tokenSymbol || ''} verificado com sucesso!`);
         }
     }
 });

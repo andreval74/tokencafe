@@ -147,7 +147,7 @@
         </div>
 
         <!-- Detalhes do Contrato -->
-        <div class="mb-4 mt-4" id="erc20-details">
+        <div class="mb-4 mt-4 d-none" id="erc20-details">
           <div data-component="shared/components/section-title.html" data-st-icon="bi-file-binary"
             data-st-title="Detalhes do Contrato" data-st-subtitle="Dados do contrato ERC-20"></div>
           <div class="border rounded p-3 bg-dark-elevated">
@@ -197,7 +197,7 @@
       </div>
 
       <!-- Download de Arquivos -->
-      <div class="mb-4 mt-4" id="files-section">
+      <div class="col-12 mb-4 mt-4 d-none" id="files-section">
         <div data-component="shared/components/section-title.html" data-st-icon="bi-file-arrow-down"
           data-st-title="Download de Arquivos" data-st-subtitle="Disponível após o deploy"></div>
         <div class="border rounded p-3 bg-dark-elevated">
@@ -255,6 +255,11 @@
       </div>
     </div>
   </div>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Ethers.js (v5.7.2 para compatibilidade com ethers.providers) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <script type="module" src="../../../js/shared/base-system.js"></script>
   <!--
   <script>

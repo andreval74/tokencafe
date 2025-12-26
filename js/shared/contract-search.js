@@ -42,6 +42,66 @@ function initContainer(container) {
     } catch (_) {}
   }
 
+  function clearVisualState() {
+      try {
+          const infoBtn = container.querySelector("#csInfoBtn");
+          const btn = container.querySelector("#contractSearchBtn") || document.getElementById("contractSearchBtn");
+          const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+          
+          if (infoBtn) infoBtn.disabled = true;
+          if (card) card.classList.add("d-none");
+          
+          if (btn) {
+             btn.disabled = false;
+             const icon = btn.querySelector("i");
+             if (icon) icon.className = "bi bi-search";
+          }
+          
+          showStatus("");
+
+          // Limpar campos de visualização
+          const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
+          const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
+          const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
+          const vSym = container.querySelector("#cs_viewSymbol") || document.getElementById("cs_viewSymbol");
+          const vDec = container.querySelector("#cs_viewDecimals") || document.getElementById("cs_viewDecimals");
+          const vSup = container.querySelector("#cs_viewSupply") || document.getElementById("cs_viewSupply");
+          const vTokBal = container.querySelector("#cs_viewTokenBalance") || document.getElementById("cs_viewTokenBalance");
+          const vNatBal = container.querySelector("#cs_viewNativeBalance") || document.getElementById("cs_viewNativeBalance");
+          const vStatus = container.querySelector("#cs_viewStatus") || document.getElementById("cs_viewStatus");
+          const vWalletStatus = container.querySelector("#cs_viewWalletStatus") || document.getElementById("cs_viewWalletStatus");
+          const topExp = container.querySelector("#csExplorerBtn") || document.getElementById("csExplorerBtn");
+
+          if (vAddr) {
+             vAddr.textContent = "";
+             vAddr.removeAttribute("href");
+          }
+          if (vCid) vCid.textContent = "";
+          if (vName) vName.textContent = "";
+          if (vSym) vSym.textContent = "";
+          if (vDec) vDec.textContent = "";
+          if (vSup) vSup.textContent = "";
+          if (vTokBal) vTokBal.textContent = "";
+          if (vNatBal) vNatBal.textContent = "";
+          if (vStatus) vStatus.innerHTML = "";
+          if (vWalletStatus) vWalletStatus.innerHTML = "-";
+          if (topExp) {
+            topExp.href = "#";
+            topExp.classList.add("disabled");
+          }
+          
+          const evt = new CustomEvent("contract:clear", { bubbles: true });
+          try { container.dispatchEvent(evt); } catch (_) {}
+          try { document.dispatchEvent(evt); } catch (_) {}
+      } catch (e) {
+          try { log("clear-error", e); } catch {}
+      }
+  }
+
+  // Inicialização explícita do botão info
+  const infoBtnInit = container.querySelector("#csInfoBtn");
+  if (infoBtnInit) infoBtnInit.disabled = true;
+
   function findChainId() {
     let raw = container.getAttribute("data-chainid") || "";
     if (!raw) {
@@ -371,22 +431,8 @@ function initContainer(container) {
   }
 
   async function updateVerificationBadge(container, chainId, address) {
-    const badge = container.querySelector("#verifyStatusBadge") || document.getElementById("verifyStatusBadge");
     const vStatus = container.querySelector("#cs_viewStatus") || document.querySelector("#cs_viewStatus"); // Get status element
     
-    if (!badge) return;
-    
-    const textSpan = badge.querySelector(".status-text");
-    const icon = badge.querySelector("i");
-    
-    if (textSpan) textSpan.textContent = "...";
-    else badge.textContent = "...";
-    
-    if (icon) icon.className = "bi bi-hourglass-split me-1";
-
-    badge.className = "badge bg-dark-elevated";
-    badge.classList.remove("d-none");
-
     try {
         // Try relative path first if on same origin, else use getApiBase
         let API_BASE = getApiBase();
@@ -420,24 +466,12 @@ function initContainer(container) {
         };
 
         if (js?.verified) {
-            if (textSpan) textSpan.textContent = "Verificado";
-            else badge.textContent = "Verificado";
-            if (icon) icon.className = "bi bi-check-circle-fill me-1";
-            badge.className = "badge bg-success";
             updateMainStatus(true);
         } else {
-            if (textSpan) textSpan.textContent = "Não verificado";
-            else badge.textContent = "Não verificado";
-            if (icon) icon.className = "bi bi-exclamation-triangle-fill me-1";
-            badge.className = "badge bg-danger";
             updateMainStatus(false);
         }
     } catch (e) {
         try { log("verify-error", e); } catch {}
-        if (textSpan) textSpan.textContent = "Erro verif.";
-        else badge.textContent = "Erro verif.";
-        if (icon) icon.className = "bi bi-question-circle me-1";
-        badge.className = "badge bg-secondary";
     }
   }
 
@@ -464,9 +498,9 @@ function initContainer(container) {
       log("input", { address: addrRaw, okAddr, chainId: chainIdRaw });
     } catch (_) {}
     if (!okAddr || !chainIdRaw) {
-      showStatus("Informe endereço e rede.");
+      showStatus("Endereço inválido ou não informado.");
       try {
-        const evtErr = new CustomEvent("form:error", { detail: { message: "Informe endereço e rede.", container }, bubbles: true });
+        const evtErr = new CustomEvent("form:error", { detail: { message: "Endereço inválido ou não informado.", container }, bubbles: true });
         document.dispatchEvent(evtErr);
       } catch (_) {}
       try {
@@ -723,12 +757,7 @@ function initContainer(container) {
 
       if (vStatus) {
         if (extra.tokenSymbol || extra.tokenDecimals != null) {
-          // Check verification badge
-          const badge = container.querySelector("#verifyStatusBadge") || document.getElementById("verifyStatusBadge");
-          const isVerified = badge && badge.classList.contains("bg-success"); // Simple check if badge updated
-          
-          let statusHtml = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Ativo</span>';
-          vStatus.innerHTML = statusHtml;
+          vStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Ativo</span>';
         } else {
           vStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Desconhecido</span>';
         }
@@ -755,20 +784,6 @@ function initContainer(container) {
       const card = container.querySelector("#selected-contract-info") || document.querySelector("#selected-contract-info");
       if (card) card.classList.remove("d-none");
       try {
-        const badgesContainer = container.querySelector("#csBadges") || document.getElementById("csBadges");
-        if (badgesContainer) badgesContainer.classList.remove("d-none");
-
-        const bAddr = container.querySelector("#csBadgeAddress") || document.querySelector("#csBadgeAddress");
-        const bName = container.querySelector("#csBadgeName") || document.querySelector("#csBadgeName");
-        const bSym = container.querySelector("#csBadgeSymbol") || document.querySelector("#csBadgeSymbol");
-        const bDec = container.querySelector("#csBadgeDecimals") || document.querySelector("#csBadgeDecimals");
-        const bCid = container.querySelector("#csBadgeChainId") || document.querySelector("#csBadgeChainId");
-        if (bAddr) bAddr.textContent = addrRaw;
-        if (bName) bName.textContent = extra.tokenName || "-";
-        if (bSym) bSym.textContent = extra.tokenSymbol || "-";
-        if (bDec) bDec.textContent = extra.tokenDecimals != null ? String(extra.tokenDecimals) : "-";
-        if (bCid) bCid.textContent = String(payload.chainId || "-");
-        
         updateVerificationBadge(container, chainIdRaw, addrRaw);
       } catch (e) {
         try {
@@ -781,7 +796,9 @@ function initContainer(container) {
       } catch {}
     }
     const hasData = !!(extra.tokenName || extra.tokenSymbol || extra.tokenDecimals != null || extra.tokenSupply || extra.contractTokenBalance || extra.contractNativeBalance);
+    const infoBtn = container.querySelector("#csInfoBtn");
     if (!hasData) {
+      if (infoBtn) infoBtn.disabled = true;
       const net = networkManager?.getNetworkById?.(parseInt(chainIdRaw, 10));
       const chainName = net?.name || "";
       const msg = chainName ? `Contrato não pertence à rede selecionada (${chainName}, chainId ${chainIdRaw}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
@@ -794,6 +811,7 @@ function initContainer(container) {
         log("no-data", { chainId: chainIdRaw, address: addrRaw });
       } catch (_) {}
     } else {
+      if (infoBtn) infoBtn.disabled = false;
       showStatus("");
       try {
         const evtOk = new CustomEvent("form:success", { detail: { message: "Contrato encontrado na rede selecionada.", container }, bubbles: true });
@@ -909,24 +927,12 @@ function initContainer(container) {
           }
           if (hiddenAddr) hiddenAddr.value = "";
           showStatus("");
-          // Limpar badges
-          const bAddr = container.querySelector("#csBadgeAddress") || document.getElementById("csBadgeAddress");
-          const bName = container.querySelector("#csBadgeName") || document.getElementById("csBadgeName");
-          const bSym = container.querySelector("#csBadgeSymbol") || document.getElementById("csBadgeSymbol");
-          const bDec = container.querySelector("#csBadgeDecimals") || document.getElementById("csBadgeDecimals");
-          const bCid = container.querySelector("#csBadgeChainId") || document.getElementById("csBadgeChainId");
-          const bVer = container.querySelector("#verifyStatusBadge") || document.getElementById("verifyStatusBadge"); // Limpar status de verificação
-          if (bAddr) bAddr.textContent = "-";
-          if (bName) bName.textContent = "-";
-          if (bSym) bSym.textContent = "-";
-          if (bDec) bDec.textContent = "-";
-          if (bCid) bCid.textContent = "-";
-          if (bVer) {
-            const ts = bVer.querySelector(".status-text");
-            if (ts) ts.textContent = "-";
-            else bVer.textContent = "-";
-            bVer.className = "badge bg-dark-elevated"; // Reset class
-            // bVer.classList.add("d-none"); // Don't hide, just reset
+
+          if (infoBtn) infoBtn.disabled = true;
+          if (btn) {
+             btn.disabled = false;
+             const icon = btn.querySelector("i");
+             if (icon) icon.className = "bi bi-search";
           }
           
           // Limpar visualização

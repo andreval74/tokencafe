@@ -14,6 +14,8 @@ function initContainer(container) {
   // Padronização: remover botão limpar do componente; comportamento de limpar ocorre ao apagar o input
   if (!input || !list) return;
 
+  if (infoBtn) infoBtn.disabled = true;
+
   const placeholder = container.getAttribute("data-ns-placeholder") || "Buscar por nome, chainId ou símbolo";
   const minChars = parseInt(container.getAttribute("data-ns-min-chars") || "1", 10);
   const showPopular = String(container.getAttribute("data-ns-show-popular") || "false") === "true";
@@ -46,58 +48,32 @@ function initContainer(container) {
   const rpcAnchorEl = container.querySelector("#rpcUrlText");
   const explorerCodeEl = container.querySelector("#explorerUrlCode");
   const explorerAnchorEl = container.querySelector("#explorerUrlText");
-  const badgeName = container.querySelector("#nsBadgeName");
-  const badgeSymbol = container.querySelector("#nsBadgeSymbol");
-  const badgeChainId = container.querySelector("#nsBadgeChainId");
-  const badgeAccount = container.querySelector("#nsBadgeAccount");
   const apiFixBtn = container.querySelector("#apiFixBtn");
   const inputGroupEl = container.querySelector(".input-group");
   const inputEl = container.querySelector("#networkSearch");
   const networkStatusEl = container.querySelector("#networkStatus");
 
-  async function handleCopyAccount() {
-    try {
-      const status = window.walletConnector?.getStatus?.() || {};
-      const full = status.account || (badgeAccount && badgeAccount.dataset ? badgeAccount.dataset.full : "") || "";
-      const addr = String(full || (badgeAccount ? badgeAccount.textContent : "")).replace(/\s+$/u, "");
-      if (!addr || addr === "-") {
-        return;
-      }
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-        await navigator.clipboard.writeText(addr);
-      } else {
-        const ta = document.createElement("textarea");
-        ta.value = addr;
-        document.body.appendChild(ta);
-        ta.select();
-        try {
-          document.execCommand("copy");
-        } catch (_) {}
-        ta.remove();
-      }
-      try {
-        const target = (badgeAccount && badgeAccount.parentElement) || badgeAccount;
-        const iconEl = target ? target.querySelector("i") : null;
-        const prevClass = iconEl ? iconEl.className : null;
-        if (iconEl) {
-          iconEl.className = "bi bi-check2 me-1";
-          setTimeout(() => {
-            if (prevClass) iconEl.className = prevClass;
-          }, 2000);
-        }
-      } catch (_) {}
-    } catch (_) {}
-  }
+  function clearState() {
+    selectedNetwork = null;
+    delete input.dataset.chainId;
 
-  try {
-    const target = (badgeAccount && badgeAccount.parentElement) || badgeAccount;
-    if (target) {
-      // Ocultar badge de conta; não faz sentido no campo de rede
-      target.classList.add("d-none");
-      // Remover qualquer handler de cópia
-      target.removeEventListener && target.removeEventListener("click", handleCopyAccount);
-    }
-  } catch (_) {}
+    if (detailsCard) detailsCard.classList.add("d-none");
+    if (infoBtn) infoBtn.disabled = true;
+    infoVisible = false;
+
+    // Resetar textos para evitar flash de dados antigos
+    if (nameEl) nameEl.textContent = "";
+    if (idEl) idEl.textContent = "";
+    if (currencyNameEl) currencyNameEl.textContent = "";
+    if (currencySymbolEl) currencySymbolEl.textContent = "";
+    if (rpcCodeEl) rpcCodeEl.textContent = "";
+    if (explorerCodeEl) explorerCodeEl.textContent = "";
+    if (rpcAnchorEl) rpcAnchorEl.removeAttribute("href");
+    if (explorerAnchorEl) explorerAnchorEl.removeAttribute("href");
+
+    const evt = new CustomEvent("network:clear", { bubbles: true });
+    container.dispatchEvent(evt);
+  }
 
   function updateDetailsCard(net) {
     if (!detailsCard) return;
@@ -105,9 +81,6 @@ function initContainer(container) {
     if (idEl) idEl.textContent = net?.chainId !== undefined ? String(net.chainId) : "";
     if (currencyNameEl) currencyNameEl.textContent = net?.nativeCurrency?.name || "";
     if (currencySymbolEl) currencySymbolEl.textContent = net?.nativeCurrency?.symbol || "";
-    if (badgeName) badgeName.textContent = net?.name || "-";
-    if (badgeSymbol) badgeSymbol.textContent = net?.nativeCurrency?.symbol || "-";
-    if (badgeChainId) badgeChainId.textContent = net?.chainId !== undefined ? String(net.chainId) : "-";
     const rpc = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc[0] : typeof net?.rpc === "string" ? net.rpc : "";
     const explorer = net?.explorers && net.explorers.length ? net.explorers[0].url || net.explorers[0] : "";
     if (rpcCodeEl) rpcCodeEl.textContent = rpc || "";
@@ -134,11 +107,6 @@ function initContainer(container) {
       }
       const chainDec = chainHex && String(chainHex).startsWith("0x") ? parseInt(chainHex, 16) : chainHex ? parseInt(chainHex, 10) : null;
       const unusedNet = chainDec ? networkManager?.getNetworkById?.(chainDec) : null;
-      // Não exibir a conta no componente de rede; manter oculto
-      if (badgeAccount) {
-        const target = badgeAccount.parentElement || badgeAccount;
-        target.classList.add("d-none");
-      }
     } catch (_) {}
   }
 
@@ -207,7 +175,7 @@ function initContainer(container) {
             <strong>${net.name}</strong>
             <small class="d-block text-muted">Chain ID: ${net.chainId}</small>
           </div>
-          <span class="badge bg-dark-elevated text-tokencafe">${net.nativeCurrency?.symbol || "N/A"}</span>
+          <span class="text-tokencafe small fw-bold">${net.nativeCurrency?.symbol || "N/A"}</span>
         </div>
       </div>
     `,
@@ -235,14 +203,6 @@ function initContainer(container) {
           } catch (_) {}
           try {
             window.localStorage && window.localStorage.setItem("tokencafe_last_chain_id", String(net.chainId));
-          } catch (_) {}
-          try {
-            const testnet = networkManager?.isTestnet ? networkManager.isTestnet(net) : /test|sepolia|goerli|rinkeby|kovan|mumbai/i.test(String(net.name || ""));
-            const badgeWraps = [badgeName?.parentElement, badgeSymbol?.parentElement, badgeChainId?.parentElement].filter(Boolean);
-            badgeWraps.forEach((w) => {
-              w.classList.remove("bg-dark-elevated", "bg-success", "bg-warning");
-              w.classList.add(testnet ? "bg-warning" : "bg-success");
-            });
           } catch (_) {}
           // atualizar detalhes sem abrir automaticamente
           updateDetailsCard(net);
@@ -308,31 +268,25 @@ function initContainer(container) {
     clearBtn.addEventListener("click", (e) => {
       try { e.preventDefault(); } catch (_) {}
       input.value = "";
-      delete input.dataset.chainId;
       hideList();
-      selectedNetwork = null;
-      infoVisible = false;
-      if (detailsCard) detailsCard.classList.add("d-none");
-      if (nameEl) nameEl.textContent = "";
-      if (idEl) idEl.textContent = "";
-      if (currencyNameEl) currencyNameEl.textContent = "";
-      if (currencySymbolEl) currencySymbolEl.textContent = "";
-      if (rpcCodeEl) rpcCodeEl.textContent = "";
-      if (explorerCodeEl) explorerCodeEl.textContent = "";
-      if (rpcAnchorEl) rpcAnchorEl.removeAttribute("href");
-      if (explorerAnchorEl) explorerAnchorEl.removeAttribute("href");
-      if (badgeName) badgeName.textContent = "-";
-      if (badgeSymbol) badgeSymbol.textContent = "-";
-      if (badgeChainId) badgeChainId.textContent = "-";
-      const evt = new CustomEvent("network:clear", { bubbles: true });
-      container.dispatchEvent(evt);
+      clearState();
     });
   }
 
   // Buscar ao digitar
   input.addEventListener("input", () => {
-    const query = String(input.value || "").replace(/\s+$/u, "");
+    const query = String(input.value || "").trim();
+
+    // Se o texto mudou e não corresponde mais à seleção atual, invalidar seleção
+    // Mas NÃO disparar eventos pesados a cada tecla para não travar a digitação
+    if (selectedNetwork && input.value !== selectedNetwork.name) {
+      clearState();
+    }
+
     if (!query) {
+      // Limpeza completa apenas quando o campo é totalmente esvaziado
+      clearState();
+
       if (showPopular) {
         try {
           const popular = networkManager?.getPopularNetworks?.(10) || [];
@@ -345,10 +299,6 @@ function initContainer(container) {
         list.innerHTML = "";
         hideList();
       }
-      selectedNetwork = null;
-      delete input.dataset.chainId;
-      const evt = new CustomEvent("network:clear", { bubbles: true });
-      container.dispatchEvent(evt);
       return;
     }
     if (query.length < minChars) return;
@@ -429,6 +379,28 @@ function initContainer(container) {
   }
 
   // Padrão de manutenção: sem botão "limpar" — limpar estado quando input fica vazio
+  container.addEventListener("network:reset", () => {
+    try {
+      input.value = "";
+      input.dataset.chainId = "";
+      selectedNetwork = null;
+      hideList();
+      if (detailsCard) detailsCard.classList.add("d-none");
+      const evt = new CustomEvent("network:selected", {
+        detail: { network: null, source: "reset" },
+        bubbles: true,
+      });
+      container.dispatchEvent(evt);
+      const evtClear = new CustomEvent("network:clear", { bubbles: true });
+      container.dispatchEvent(evtClear);
+      try {
+        window.__selectedNetwork = null;
+      } catch (_) {}
+      console.debug("NetworkSearch: resetado via evento externo.");
+    } catch (e) {
+      console.error("NetworkSearch: erro ao resetar", e);
+    }
+  });
 
   // Esconder ao perder foco (tempo curto para permitir clique)
   input.addEventListener("blur", () => {

@@ -3,7 +3,7 @@
 // Integra com carteira via ethers, usa busca de rede unificada e entradas decimais.
 
 const $ = (sel) => document.querySelector(sel);
-const unused$$ = (sel) => Array.from(document.querySelectorAll(sel));
+
 function getDeployButton() {
   try {
     return document.getElementById("btnDeploy") || document.getElementById("btnBuildDeploy");
@@ -522,10 +522,7 @@ function sanitizeContractName(rawName) {
   }
 }
 
-function unusedGenerateTokenSource(name, symbol, decimals, totalSupplyInt) {
-  // Redireciona para a versão corrigida V2
-  return generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
-}
+
 
 // V2: fonte ERC-20 corrigida para fallback de compilação
 function generateTokenSourceV2(name, symbol, decimals, totalSupplyInt) {
@@ -681,7 +678,7 @@ async function compileContract() {
       const sym = state.form?.token?.symbol || "TKN";
       const dec = Number.isFinite(state.form?.token?.decimals) ? state.form.token.decimals : 18;
       const supHuman = formatPtBR(state.form?.token?.initialSupply ?? 0);
-      updateERC20Details(sym, nm, dec, supHuman, "Compilado (artefatos prontos)", true);
+      updateERC20Details(sym, nm, dec, supHuman, "Compilado (artefatos prontos)", false);
     } catch (_) {}
     try {
       const c = document.getElementById("btnCompile");
@@ -1055,14 +1052,6 @@ async function deployPlaceholder() {
       await connectWallet();
     } catch (e) {
       console.error(e);
-    }
-    
-    // Verifica novamente se conectou
-    if (!state.wallet.signer) {
-      log("Conecte sua carteira para realizar o deploy pelo MetaMask.");
-      alert("É necessário conectar sua carteira para realizar o deploy.");
-      stopOpStatus("Carteira não conectada");
-      return;
     }
   }
   // Garantir que a rede selecionada corresponde à rede atual da carteira
@@ -1503,7 +1492,7 @@ function formatElapsed(ms) {
 function startOpStatus(message) {
   try {
     opStartedAt = Date.now();
-    setStatusContainerVisible();
+    // setStatusContainerVisible(); // Removido para manter oculto até conclusão
     const st = document.getElementById("contractStatus");
     if (st) st.textContent = `${message} — tempo: 0:00`;
     if (opTimer) clearInterval(opTimer);
@@ -1652,6 +1641,8 @@ function setupClearButton() {
     // Broadcast clear event to other modules
     try {
         document.dispatchEvent(new CustomEvent('contract:clear'));
+        const ns = document.querySelector('[data-component*="network-search.html"]');
+        if (ns) ns.dispatchEvent(new CustomEvent("network:reset"));
     } catch (_) {}
 
     if (window.showFormSuccess) {
@@ -2034,29 +2025,11 @@ async function bindUI() {
     log(`Arquivo baixado: ${filename}`);
   }
 
-  const unusedBtnPrev = document.querySelector("#btnPreviewFile");
   const btnDownloadSol = document.querySelector("#btnDownloadSol");
   const btnDownloadJson = document.querySelector("#btnDownloadJson");
   const btnDownloadAbi = document.querySelector("#btnDownloadAbi");
   const btnDownloadDeployedBytecode = document.querySelector("#btnDownloadDeployedBytecode");
-  function unusedDownloadSol() {
-    if (!state?.compilation?.sourceCode) {
-      log("Fonte indisponível: compile e faça deploy antes.");
-      return;
-    }
-    const name = (state?.compilation?.contractName || "MyToken").replace(/\s+/g, "");
-    const content = state.compilation.sourceCode;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${name}.sol`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
-    log(`Arquivo baixado: ${name}.sol`);
-  }
+
   if (btnDownloadSol)
     btnDownloadSol.addEventListener("click", () => {
       currentPreviewType = "sol";
@@ -2098,17 +2071,7 @@ async function bindUI() {
       downloadSelectedFile();
     });
 
-  function unusedDownloadTextFile(name, content, mime) {
-    const blob = new Blob([content], { type: mime || "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
-  }
+
   function buildRecipe() {
     const net = state.form?.network || {};
     const rec = {
@@ -2721,10 +2684,10 @@ async function runVerifyDirect(p) {
     } else {
       const errMsg = res?.error || res?.status || "Erro desconhecido";
       log(`Falha/erro na verificação: ${errMsg}`);
-      if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Não foi possível verificar: ${errMsg}`, res?.link);
+      // if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Não foi possível verificar: ${errMsg}`, res?.link);
     }
   } catch (e) {
     log(`Erro na verificação: ${e?.message || e}`);
-    if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Erro interno: ${e?.message || e}`, null);
+    // if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Erro interno: ${e?.message || e}`, null);
   }
 }

@@ -585,6 +585,10 @@ function clearNetworkForm(silent = false) {
     const el = document.getElementById(id);
     if (el) {
       el.value = "";
+      // Disparar evento input para notificar o componente network-search
+      // e garantir que clearState() seja chamado (desabilitando infoBtn, etc)
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+
       if (id === "networkSearch") {
         delete el.dataset.chainId;
       }
