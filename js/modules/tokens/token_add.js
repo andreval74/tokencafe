@@ -3,6 +3,7 @@
 
 import { NetworkManager } from "../../shared/network-manager.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
+import { SystemResponse } from "../../shared/system-response.js";
 import { getExplorerVerificationUrl } from "../contracts/explorer-utils.js";
 
 function qs(id) {
@@ -10,6 +11,7 @@ function qs(id) {
 }
 
 const utils = new SharedUtilities();
+const systemResponse = new SystemResponse();
 
 let selectedNetwork = null;
 // Base da API: usa configuração global (Render) ou localhost como fallback

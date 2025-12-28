@@ -228,9 +228,21 @@ class BaseSystem {
     // Aplicar por padrão em todas as páginas que carregam o Base System
     window.bindInputSanitizer();
 
-    // Padronização: delega mensagens de sucesso para notify
+    // Padronização: delega mensagens de sucesso para o Modal SystemResponse
     window.showFormSuccess = (message, _opts = {}) => {
       try {
+        if (window.SystemResponse) {
+            const sys = new window.SystemResponse();
+            sys.show({
+                type: 'success',
+                title: 'Sucesso',
+                subtitle: message,
+                content: _opts.content || '',
+                onClear: _opts.onClear
+            });
+            return;
+        }
+
         const container = _opts?.container || (document.querySelector(".container, .container-fluid") || document.body);
         if (typeof window.notify === "function") {
           return window.notify(String(message || "Sucesso"), "success", { container });
@@ -246,6 +258,18 @@ class BaseSystem {
     // Padronização: delega mensagens de erro para notify
     window.showFormError = (message, _opts = {}) => {
       try {
+        if (window.SystemResponse) {
+            const sys = new window.SystemResponse();
+            sys.show({
+                type: 'error',
+                title: 'Erro',
+                subtitle: message,
+                content: _opts.content || '',
+                onClear: _opts.onClear
+            });
+            return;
+        }
+
         const container = _opts?.container || (document.querySelector(".container, .container-fluid") || document.body);
         if (typeof window.notify === "function") {
           return window.notify(String(message || "Erro"), "error", { container });
@@ -261,6 +285,29 @@ class BaseSystem {
     // Padronização: modal de resultado de verificação
     window.showVerificationResultModal = (success, title, contentHtml, linkUrl) => {
       try {
+        if (window.SystemResponse) {
+           const sys = new window.SystemResponse();
+           
+           let finalContent = contentHtml || '';
+           if (linkUrl) {
+               finalContent += `
+               <div class="mt-3 text-center">
+                   <a href="${linkUrl}" target="_blank" rel="noopener" class="btn btn-outline-success">
+                       <i class="bi bi-box-arrow-up-right me-2"></i>Abrir no Explorer
+                   </a>
+               </div>
+               `;
+           }
+           
+           sys.show({
+               type: success ? 'success' : 'error',
+               title: title || (success ? 'Sucesso' : 'Erro'),
+               subtitle: '', 
+               content: finalContent
+           });
+           return;
+        }
+
         const modalEl = document.getElementById('verifyInfoModal');
         if (!modalEl) {
            // Se não houver modal, tenta usar notify

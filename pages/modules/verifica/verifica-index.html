@@ -127,34 +127,23 @@
               <i class="bi bi-shield-check me-1"></i>
               <span id="verifyBtnText">Verificar</span>
             </button>
+          </div>
+        </div>
+        
+        <div class="d-flex justify-content-end mt-4">
             <button id="btnClearForm" class="btn btn-outline-secondary">
               <i class="bi bi-eraser me-1"></i>
               Limpar Dados
             </button>
-          </div>
         </div>
+
         <div id="apiKeyField" class="d-none">
           <input id="f_apiKey" type="password" value="I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5" />
         </div>
         <div id="verifyStatus" class="small text-muted mt-2"></div>
       
-      <!-- Modal: Verificação (Padronizado) -->
-      <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-          <div class="modal-content bg-dark text-light border">
-            <div class="modal-header">
-              <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div id="verifyInfoContent" class="small"></div>
-            </div>
-            <div class="modal-footer">
-              <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir página de verificação</a>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Modal: Verificação removido (agora via Modal global) -->
+
       </div>
     </div>
   </div>

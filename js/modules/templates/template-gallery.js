@@ -611,7 +611,12 @@ contract YeldToken s ERC20 {
     }
   }
 
-  showNotfcaton(message, type = "nfo") {
+  showNotfcaton(message, type = "info") {
+    // Integração com sistema global
+    if (window.notify) {
+        window.notify(message, type);
+        return;
+    }
     const container = document.getElementById("createTemplateForm") || document.body;
     const onClear = () => {
       try {
@@ -620,11 +625,11 @@ contract YeldToken s ERC20 {
     };
     const t = String(type).toLowerCase();
     if (t === "success") {
-      window.showFormSuccess(message, { container, onClear });
+      window.showFormSuccess ? window.showFormSuccess(message, { container, onClear }) : alert(message);
     } else if (t === "error") {
-      window.showFormError(message, { container, onClear });
+      window.showFormError ? window.showFormError(message, { container, onClear }) : alert(message);
     } else {
-      window.showFormSuccess(message, { container, onClear });
+      window.showFormSuccess ? window.showFormSuccess(message, { container, onClear }) : alert(message);
     }
   }
 

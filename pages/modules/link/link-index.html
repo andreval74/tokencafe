@@ -57,32 +57,19 @@
         <div id="token-section" class="mb-4">
           <div data-component="shared/components/contract-search.html"></div>
         </div>
+
+        <div class="d-flex justify-content-end mb-4">
+            <button id="btnClearAll" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-2"></i>Limpar Dados
+            </button>
+        </div>
       </div>
 
       <!-- ===== SEÇÃO 3: LINK GERADO (SISTEMA PADRÃO) ===== -->
       <div class="mb-4">
-        <div data-component="shared/components/system-response.html"></div>
+        <!-- System Response agora é Modal Global -->
       </div>
 
-      <!-- Modal: Verificação (Padronizado) -->
-      <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-          <div class="modal-content bg-dark text-light border">
-            <div class="modal-header">
-              <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div id="verifyInfoContent" class="small"></div>
-            </div>
-            <div class="modal-footer">
-              <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir
-                página de verificação</a>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
   </div>

@@ -843,27 +843,41 @@ class SystemSettngs {
   /**
    * Mostra notfcao na tela
    */
-  showNotfcaton(message, type = "nfo") {
-    // mplementao bsca de notfcao
-    const notfcaton = document.createElement("div");
-    notfcaton.className = `notfcaton ${type}`;
-    notfcaton.innerHTML = `
-            <i class="bi bi-${type === "success" ? "check" : type === "error" ? "exclamation-triangle" : "info-circle"}"></i>
-            <span>${message}</span>
-        `;
-
-    document.body.appendChild(notfcaton);
-
-    setTimeout(() => {
-      notfcaton.classList.add("show");
-    }, 100);
-
-    setTimeout(() => {
-      notfcaton.classList.remove("show");
-      setTimeout(() => {
-        document.body.removeChild(notfcaton);
-      }, 300);
-    }, 3000);
+  showNotfcaton(message, type = "info") {
+    // Integração com sistema global de notificações (Modal)
+    if (window.notify) {
+        window.notify(message, type);
+        return;
+    }
+    
+    // Fallback legado (caso window.notify não esteja carregado)
+    const toast = document.createElement("div");
+    toast.className = `toast align-items-center text-white bg-${type === "error" ? "danger" : "success"} border-0 position-fixed bottom-0 end-0 m-3`;
+    toast.style.zIndex = "9999";
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    
+    // Tenta usar Bootstrap global
+    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        toast.addEventListener("hidden.bs.toast", () => {
+          document.body.removeChild(toast);
+        });
+    } else {
+        // Fallback simples sem bootstrap js
+        toast.style.display = 'block';
+        setTimeout(() => {
+             toast.remove();
+        }, 3000);
+    }
   }
 
   // Mtodos para gerencamento de redes (placeholders)

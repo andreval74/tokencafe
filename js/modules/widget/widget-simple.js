@@ -182,6 +182,9 @@ class WidgetSimple {
       form.addEventListener("submit", this.handleFormSubmit.bind(this));
     }
 
+    // Listener global para seleção de rede
+    document.addEventListener("network:selected", this.handleNetworkSelected.bind(this));
+
     // Botões de ação
     const copyCodeBtn = document.getElementById("copyCodeBtn");
     if (copyCodeBtn) {
@@ -700,6 +703,51 @@ class WidgetSimple {
   }
 
   /**
+   * Define o modo somente leitura para campos críticos
+   */
+  setReadonlyMode(enabled) {
+    const saleContractInput = document.getElementById("saleContract");
+    const validateBtn = document.getElementById("validateBtn");
+    
+    if (saleContractInput) {
+        saleContractInput.readOnly = enabled;
+        if (enabled) {
+            saleContractInput.classList.add('bg-light');
+            saleContractInput.title = "Para alterar, limpe o formulário";
+        } else {
+            saleContractInput.classList.remove('bg-light');
+            saleContractInput.title = "";
+        }
+    }
+    
+    if (validateBtn) {
+        validateBtn.disabled = enabled;
+    }
+  }
+
+  /**
+   * Manipula seleção de rede via componente
+   */
+  handleNetworkSelected(ev) {
+    const net = ev?.detail?.network;
+    if (!net) return;
+    
+    // Atualizar select oculto/visível se existir
+    const blockchainSelect = document.getElementById("blockchain");
+    if (blockchainSelect) {
+        blockchainSelect.value = String(net.chainId);
+        // Disparar change para atualizar símbolos
+        this.handleBlockchainChange();
+    }
+    
+    // Revelar grupo de contrato se estiver oculto
+    const contractGroup = document.getElementById("contractGroup");
+    if (contractGroup) {
+        contractGroup.classList.remove("d-none");
+    }
+  }
+
+  /**
    * Valida se o endereço Ethereum é válido
    */
   isValidEthereumAddress(address) {
@@ -776,6 +824,9 @@ class WidgetSimple {
 
         // Preenche campos auto-detectados
         this.populateAutoDetectedFields(validationResult.params);
+
+        // Bloquear campo de contrato
+        this.setReadonlyMode(true);
 
         // Detectar informações do token (nome/símbolo) se o contrato do token foi encontrado
         try {

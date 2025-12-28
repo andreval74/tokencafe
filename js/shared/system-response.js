@@ -1,149 +1,249 @@
 /**
  * SystemResponse.js
- * Gerencia a tela de resposta padrão do sistema (sucesso/resultado).
+ * Gerencia a exibição de respostas do sistema via Modal (Sucesso/Erro/Resultado).
+ * Substitui a antiga exibição inline.
  */
 export class SystemResponse {
   constructor() {
-    this.container = null;
+    this.modalId = "systemResponseModal";
+    this.modalInstance = null;
     this.config = null;
     this.initialized = false;
   }
 
   init() {
     if (this.initialized) return;
-    this.container = document.getElementById("system-response-section");
-    if (!this.container) return; // Componente ainda não carregado ou não presente
-
-    // Attach listeners
-    this.container.addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-action]");
-      if (!btn) return;
-      const action = btn.dataset.action;
-      this.handleAction(action);
-    });
-
+    this.ensureModalExists();
     this.initialized = true;
   }
 
   /**
-   * Exibe a tela de resposta
+   * Garante que o HTML do modal exista no DOM
+   */
+  ensureModalExists() {
+    if (document.getElementById(this.modalId)) return;
+
+    const modalHtml = `
+      <div class="modal fade" id="${this.modalId}" tabindex="-1" aria-labelledby="${this.modalId}Label" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content bg-dark text-light border-secondary shadow-lg">
+            <div class="modal-header border-bottom border-secondary">
+              <h5 class="modal-title d-flex align-items-center" id="${this.modalId}Label">
+                <i id="sr-modal-icon-title" class="bi bi-info-circle me-2"></i>
+                <span id="sr-modal-title">Resposta do Sistema</span>
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+              <div class="mb-3">
+                <i id="sr-modal-main-icon" class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+              </div>
+              <h5 id="sr-modal-subtitle" class="mb-3">Operação realizada com sucesso!</h5>
+              
+              <!-- Badge opcional -->
+              <div id="sr-modal-badge" class="mb-3 d-none">
+                <span id="sr-modal-badge-text" class="badge bg-success">Sucesso</span>
+              </div>
+
+              <!-- Conteúdo de Texto/Input -->
+              <div id="sr-modal-input-container" class="d-none mb-3">
+                <div class="input-group">
+                  <input type="text" id="sr-modal-input" class="form-control bg-dark-subtle text-light border-secondary" readonly>
+                  <button class="btn btn-outline-primary" type="button" id="sr-modal-btn-copy-input">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Conteúdo HTML Customizado -->
+              <div id="sr-modal-custom-content" class="d-none text-start bg-dark-subtle p-3 rounded border border-secondary"></div>
+            </div>
+            <div class="modal-footer border-top border-secondary justify-content-center flex-wrap" id="sr-modal-footer">
+              <!-- Botões de Ação Dinâmicos -->
+              <div id="sr-modal-actions" class="d-flex gap-2 flex-wrap justify-content-center w-100 mb-2 d-none">
+                <!-- Injetados via JS -->
+              </div>
+              <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" id="sr-modal-btn-ok">OK</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+    // Bind copy button default
+    const copyBtn = document.getElementById("sr-modal-btn-copy-input");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+            const input = document.getElementById("sr-modal-input");
+            if (input && input.value) this.copyToClipboard(input.value);
+        });
+    }
+
+    // Bind OK button to onClear/Callback
+    const okBtn = document.getElementById("sr-modal-btn-ok");
+    if (okBtn) {
+        okBtn.addEventListener("click", () => {
+             if (typeof this.config?.onClear === "function") {
+                this.config.onClear();
+             }
+        });
+    }
+  }
+
+  /**
+   * Exibe o modal de resposta
    * @param {Object} config
-   * @param {string} config.title - Título da seção
-   * @param {string} config.subtitle - Subtítulo da seção
-   * @param {string} config.icon - Classe do ícone (ex: 'bi-check-circle')
-   * @param {string} config.content - Conteúdo principal (link, hash, texto)
-   * @param {string} config.badge - Texto do badge de sucesso (opcional)
-   * @param {string[]} config.actions - Lista de ações visíveis: ['copy', 'whatsapp', 'telegram', 'email', 'open', 'clear']
-   * @param {Function} config.onClear - Callback executado ao limpar/fechar
    */
   show(config) {
-    if (!this.initialized) this.init();
-    if (!this.container) return;
-
+    this.init();
     this.config = config || {};
-    
-    // Set texts
-    const titleEl = document.getElementById("sr-title");
-    const subEl = document.getElementById("sr-subtitle");
-    const iconEl = document.getElementById("sr-icon");
-    const inputEl = document.getElementById("sr-result-input");
-    const customEl = document.getElementById("sr-custom-content");
-    const badgeEl = document.getElementById("sr-badge");
-    const badgeTextEl = document.getElementById("sr-badge-text");
 
-    if (titleEl) titleEl.textContent = config.title || "Resultado";
-    if (subEl) subEl.textContent = config.subtitle || "Ação concluída com sucesso";
-    if (iconEl) iconEl.className = `bi ${config.icon || "bi-check-circle"}`;
+    // Elements
+    const titleEl = document.getElementById("sr-modal-title");
+    const iconTitleEl = document.getElementById("sr-modal-icon-title");
+    const mainIconEl = document.getElementById("sr-modal-main-icon");
+    const subtitleEl = document.getElementById("sr-modal-subtitle");
+    const badgeEl = document.getElementById("sr-modal-badge");
+    const badgeTextEl = document.getElementById("sr-modal-badge-text");
+    const inputContainer = document.getElementById("sr-modal-input-container");
+    const inputEl = document.getElementById("sr-modal-input");
+    const customContentEl = document.getElementById("sr-modal-custom-content");
+    const actionsContainer = document.getElementById("sr-modal-actions");
+
+    // Defaults
+    const title = config.title || "Resultado";
+    const subtitle = config.subtitle || "Ação concluída";
+    const iconClass = config.icon || "bi-check-circle";
+    const isError = iconClass.includes("exclamation") || iconClass.includes("x-circle") || config.type === 'error';
     
-    // Content handling (Input vs Custom HTML)
-    if (config.htmlContent && customEl) {
-        if (inputEl) inputEl.classList.add("d-none");
-        customEl.classList.remove("d-none");
-        customEl.innerHTML = config.htmlContent;
-    } else {
-        if (customEl) customEl.classList.add("d-none");
-        if (inputEl) {
-            inputEl.classList.remove("d-none");
-            inputEl.value = config.content || "";
-        }
-    }
-    
+    // Set Content
+    if (titleEl) titleEl.textContent = title;
+    if (iconTitleEl) iconTitleEl.className = `bi ${iconClass} me-2 ${isError ? 'text-danger' : 'text-success'}`;
+    if (mainIconEl) mainIconEl.className = `bi ${iconClass} ${isError ? 'text-danger' : 'text-success'}`;
+    if (mainIconEl) mainIconEl.style.fontSize = "3rem";
+    if (subtitleEl) subtitleEl.textContent = subtitle;
+
     // Badge
     if (badgeEl && badgeTextEl) {
-      if (config.badge) {
-        badgeTextEl.textContent = config.badge;
-        badgeEl.classList.remove("d-none");
-      } else {
-        badgeEl.classList.add("d-none");
-      }
+        if (config.badge) {
+            badgeTextEl.textContent = config.badge;
+            badgeEl.classList.remove("d-none");
+        } else {
+            badgeEl.classList.add("d-none");
+        }
     }
 
-    // Toggle Actions
-    const allActions = ["copy", "whatsapp", "telegram", "email", "open", "clear", "add_wallet"];
-    const visibleActions = config.actions || ["copy", "clear"];
-    
-    allActions.forEach(action => {
-      const col = this.container.querySelector(`.sr-action-btn[data-type="${action}"]`);
-      if (col) {
-        if (visibleActions.includes(action)) {
-          col.classList.remove("d-none");
-        } else {
-          col.classList.add("d-none");
+    // Input vs Custom Content
+    if (config.htmlContent) {
+        if (inputContainer) inputContainer.classList.add("d-none");
+        if (customContentEl) {
+            customContentEl.innerHTML = config.htmlContent;
+            customContentEl.classList.remove("d-none");
         }
-      }
-    });
+    } else if (config.content) {
+        if (customContentEl) customContentEl.classList.add("d-none");
+        if (inputContainer && inputEl) {
+            inputEl.value = config.content;
+            inputContainer.classList.remove("d-none");
+        }
+    } else {
+        // Nada a mostrar
+        if (inputContainer) inputContainer.classList.add("d-none");
+        if (customContentEl) customContentEl.classList.add("d-none");
+    }
 
-    // Show container
-    this.container.classList.remove("d-none");
-    
-    // Scroll to view
-    this.container.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Actions
+    if (actionsContainer) {
+        actionsContainer.innerHTML = "";
+        const actions = config.actions || [];
+        
+        if (actions.length > 0) {
+            actionsContainer.classList.remove("d-none");
+            actions.forEach(action => {
+                const btn = this.createActionButton(action, config.content);
+                if (btn) actionsContainer.appendChild(btn);
+            });
+        } else {
+            actionsContainer.classList.add("d-none");
+        }
+    }
+
+    // Show Modal
+    const modalEl = document.getElementById(this.modalId);
+    if (modalEl) {
+        // Use Bootstrap API
+        // @ts-ignore
+        if (typeof bootstrap !== "undefined") {
+            // @ts-ignore
+            this.modalInstance = new bootstrap.Modal(modalEl);
+            this.modalInstance.show();
+        } else {
+            // Fallback simples
+            modalEl.classList.add("show");
+            modalEl.style.display = "block";
+            document.body.classList.add("modal-open");
+            // Adicionar backdrop manualmente se necessário
+        }
+    }
+  }
+
+  createActionButton(action, content) {
+      const btn = document.createElement("button");
+      btn.className = "btn btn-outline-light btn-sm d-flex align-items-center gap-2";
+      
+      switch (action) {
+          case "copy":
+              btn.innerHTML = '<i class="bi bi-clipboard"></i> Copiar';
+              btn.onclick = () => this.copyToClipboard(content);
+              break;
+          case "whatsapp":
+              btn.innerHTML = '<i class="bi bi-whatsapp"></i> WhatsApp';
+              btn.onclick = () => this.shareWhatsApp(content);
+              break;
+          case "telegram":
+              btn.innerHTML = '<i class="bi bi-telegram"></i> Telegram';
+              btn.onclick = () => this.shareTelegram(content);
+              break;
+          case "email":
+              btn.innerHTML = '<i class="bi bi-envelope"></i> Email';
+              btn.onclick = () => this.shareEmail(content);
+              break;
+          case "add_wallet":
+              btn.innerHTML = '<i class="bi bi-wallet2"></i> Add Wallet';
+              btn.onclick = () => this.addToWallet();
+              break;
+          case "open":
+               btn.innerHTML = '<i class="bi bi-box-arrow-up-right"></i> Abrir';
+               btn.onclick = () => { if(content) window.open(content, "_blank"); };
+               break;
+          default:
+              return null;
+      }
+      return btn;
   }
 
   hide() {
-    if (this.container) {
-      this.container.classList.add("d-none");
-    }
-  }
-
-  handleAction(action) {
-    const content = this.config?.content || "";
-    
-    switch (action) {
-      case "copy":
-        this.copyToClipboard(content);
-        break;
-      case "whatsapp":
-        this.shareWhatsApp(content);
-        break;
-      case "telegram":
-        this.shareTelegram(content);
-        break;
-      case "email":
-              this.shareEmail(content);
-              break;
-            case "add_wallet":
-              this.addToWallet();
-              break;
-            case "open":
-              if (content) window.open(content, "_blank");
-              break;
-      case "clear":
-        this.hide();
-        if (typeof this.config?.onClear === "function") {
-          this.config.onClear();
+    if (this.modalInstance) {
+        this.modalInstance.hide();
+    } else {
+        const modalEl = document.getElementById(this.modalId);
+        if (modalEl) {
+             modalEl.classList.remove("show");
+             modalEl.style.display = "none";
+             document.body.classList.remove("modal-open");
         }
-        break;
     }
   }
 
+  // Métodos de Ação (Mantidos iguais)
   async addToWallet() {
     const data = this.config?.tokenData;
     if (!data || !data.address || !window.ethereum) {
-       if (window.notify) window.notify("Dados do token incompletos ou carteira não encontrada.", "error");
+       if (window.notify) window.notify("Dados incompletos ou carteira não encontrada.", "error");
        return;
     }
-    
     try {
       await window.ethereum.request({
         method: 'wallet_watchAsset',
@@ -157,10 +257,10 @@ export class SystemResponse {
           },
         },
       });
-      if (window.notify) window.notify("Solicitação enviada à carteira!", "success");
+      if (window.notify) window.notify("Solicitação enviada!", "success");
     } catch (error) {
       console.error(error);
-      if (window.notify) window.notify("Erro ao adicionar token: " + error.message, "error");
+      if (window.notify) window.notify("Erro: " + error.message, "error");
     }
   }
 
@@ -170,10 +270,8 @@ export class SystemResponse {
       window.copyToClipboard(text);
     } else {
       navigator.clipboard.writeText(text).then(() => {
-        if (window.notify) window.notify("Copiado com sucesso!", "success");
-      }).catch(() => {
-        if (window.notify) window.notify("Erro ao copiar.", "error");
-      });
+        if (window.notify) window.notify("Copiado!", "success");
+      }).catch(() => {});
     }
   }
 
@@ -192,3 +290,4 @@ export class SystemResponse {
     window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(text)}`, "_self");
   }
 }
+

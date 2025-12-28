@@ -1,123 +1,128 @@
 // Sistema unificado de mensagens de sucesso/erro
-// IIFE para evitar poluição global e múltiplas inicializações
-// Expõe SuccessErrorUI e a função global window.notify
+// Substitui a antiga exibição inline pelo Modal Global (SystemResponse)
+// Mantém compatibilidade com chamadas antigas (window.notify, SuccessErrorUI)
+
 (() => {
-  try {
-    if (window.SuccessErrorUI && typeof window.notify === "function") return;
-  } catch (_) {}
+  // Evitar múltiplas inicializações se já estiver configurado corretamente
+  if (window.SuccessErrorUI && window.SuccessErrorUI.__isModern) return;
 
-  const ICONS = {
-    success: '<i class="bi bi-check-circle me-2"></i>',
-    error: '<i class="bi bi-exclamation-triangle me-2"></i>',
-  };
+  console.log("🔄 Inicializando Sistema Unificado de Notificações (Modal Global)...");
 
-  function findContainer(container) {
-    if (container && container.nodeType === 1) return container;
-    try {
-      const active = document.activeElement;
-      const form = active ? active.closest("form") : null;
-      if (form) return form;
-    } catch (_) {}
-    try {
-      const main = document.querySelector(".container, .container-fluid") || document.body;
-      return main;
-    } catch (_) {
-      return document.body;
+  // Função auxiliar para garantir acesso ao SystemResponse
+  function getSystemResponse() {
+    if (window.SystemResponse) {
+      return new window.SystemResponse();
     }
-  }
-
-  function ensureMessageHost() {
-    const hostId = "tc-footer-message-host";
-    let host = document.getElementById(hostId);
-    if (!host) {
-      host = document.createElement("div");
-      host.id = hostId;
-      host.className = "container mt-2";
-      try {
-        const wrappers = document.querySelectorAll('[data-component*="section-footer.html"]');
-        const lastWrapper = wrappers && wrappers.length ? wrappers[wrappers.length - 1] : null;
-        if (lastWrapper && lastWrapper.parentNode) {
-          lastWrapper.parentNode.insertBefore(host, lastWrapper);
-        } else {
-          const dividers = document.querySelectorAll('.section-divider');
-          const lastDivider = dividers && dividers.length ? dividers[dividers.length - 1] : null;
-          if (lastDivider && lastDivider.parentNode) {
-            lastDivider.parentNode.insertBefore(host, lastDivider);
-          } else {
-            document.body.appendChild(host);
-          }
-        }
-      } catch (_) {
-        try { document.body.appendChild(host); } catch (_) {}
-      }
-    }
-    return host;
-  }
-
-  function clearForm(container) {
-    const root = findContainer(container);
-    try {
-      const fields = root.querySelectorAll("input, textarea, select");
-      fields.forEach((el) => {
-        const tag = (el.tagName || "").toLowerCase();
-        const type = String(el.type || "").toLowerCase();
-        if (tag === "input") {
-          if (type === "checkbox" || type === "radio") {
-            el.checked = false;
-          } else {
-            el.value = "";
-          }
-        } else if (tag === "textarea") {
-          el.value = "";
-        } else if (tag === "select") {
-          el.selectedIndex = 0;
-        }
-        el.classList.remove("is-valid", "is-invalid");
-      });
-    } catch (_) {}
-  }
-
-  function renderMessage(type, message, _onClear, _container) {
-    const host = ensureMessageHost();
-    try {
-      while (host.firstChild) host.removeChild(host.firstChild);
-    } catch (_) {}
-    const wrap = document.createElement("small");
-    wrap.className = `${type === "success" ? "text-success" : "text-danger"} d-block mt-1`;
-    wrap.innerHTML = `${ICONS[type] || ""}${message || ""}`;
-    host.appendChild(wrap);
-    if (type === "success") {
-      try {
-        setTimeout(() => {
-          try { if (wrap.parentElement === host) host.removeChild(wrap); } catch (_) {}
-        }, 1500);
-      } catch (_) {}
-    }
-    return wrap;
+    // Fallback: Tenta encontrar no escopo global se não estiver em window.SystemResponse explicitamente
+    // (Caso SystemResponse tenha sido carregado mas não atribuído a window.SystemResponse ainda)
+    return null;
   }
 
   function showSuccess(message, opts = {}) {
-    const { onClear, container } = opts || {};
-    return renderMessage("success", message, onClear, container);
+    const sys = getSystemResponse();
+    if (sys) {
+        sys.show({
+            title: "Sucesso",
+            subtitle: message,
+            type: "success",
+            icon: "bi-check-circle",
+            onClear: opts.onClear
+        });
+        return;
+    }
+    
+    // Fallback legado
+    console.log("Success (Fallback):", message);
+    alert("✅ " + message);
+    if (opts.onClear) opts.onClear();
   }
 
   function showError(message, opts = {}) {
-    const { onClear, container } = opts || {};
-    return renderMessage("error", message, onClear, container);
+    const sys = getSystemResponse();
+    if (sys) {
+        sys.show({
+            title: "Erro",
+            subtitle: message,
+            type: "error",
+            icon: "bi-exclamation-triangle",
+            onClear: opts.onClear
+        });
+        return;
+    }
+
+    // Fallback legado
+    console.error("Error (Fallback):", message);
+    alert("❌ " + message);
+    if (opts.onClear) opts.onClear();
   }
 
-  window.SuccessErrorUI = { showSuccess, showError, clearForm };
+  function clearForm(container) {
+     try {
+        const root = container && container.nodeType === 1 ? container : (document.querySelector(container) || document.body);
+        const fields = root.querySelectorAll("input, textarea, select");
+        fields.forEach((el) => {
+            if (el.type === "hidden" || el.readOnly || el.disabled) return;
+            
+            const tag = (el.tagName || "").toLowerCase();
+            const type = String(el.type || "").toLowerCase();
+            
+            if (tag === "input") {
+                if (type === "checkbox" || type === "radio") {
+                    el.checked = false;
+                } else {
+                    el.value = "";
+                }
+            } else if (tag === "textarea") {
+                el.value = "";
+            } else if (tag === "select") {
+                el.selectedIndex = 0;
+            }
+            el.classList.remove("is-valid", "is-invalid");
+        });
+     } catch(e) {
+         console.warn("Erro ao limpar formulário:", e);
+     }
+  }
+
+  // Expor API global
+  window.SuccessErrorUI = { 
+      showSuccess, 
+      showError, 
+      clearForm,
+      __isModern: true 
+  };
+  
+  // Compatibilidade Legada
+  window.showFormSuccess = (msg, opts) => showSuccess(msg, opts);
+  window.showFormError = (msg, opts) => showError(msg, opts);
 
   window.notify = (message, type = "info", opts = {}) => {
-    try {
-      const t = String(type).toLowerCase();
-      const container = opts.container || (document.querySelector(".container, .container-fluid") || document.body);
-      const onClear = typeof opts.onClear === "function" ? opts.onClear : undefined;
-      if (t === "success" || t === "info") return showSuccess(message, { container, onClear });
-      return showError(message, { container, onClear });
-    } catch (_) {
-      try { alert(message); } catch (_) {}
-      return null;
+    const t = String(type).toLowerCase();
+    if (t === "success") return showSuccess(message, opts);
+    if (t === "error") return showError(message, opts);
+    
+    const sys = getSystemResponse();
+    if (sys) {
+        let icon = "bi-info-circle";
+        let modalType = "info";
+        if (t === "warning") {
+            icon = "bi-exclamation-triangle";
+            modalType = "warning";
+        }
+        
+        sys.show({
+            title: t === "warning" ? "Atenção" : "Informação",
+            subtitle: message,
+            type: modalType,
+            icon: icon,
+            onClear: opts.onClear
+        });
+        return;
     }
+    
+    alert(message);
+    if (opts.onClear) opts.onClear();
   };
+
+  console.log("✅ Sistema Unificado de Notificações configurado.");
 })();

@@ -773,31 +773,36 @@ class UserProfle {
   }
 
   showNotfcaton(message, type = "info") {
-    const notfcaton = document.createElement("div");
-    notfcaton.className = `notfcaton notfcaton-${type}`;
-    notfcaton.innerHTML = `
-            <div class="notfcaton-content">
-                <i class="bi bi-${type === "success" ? "check-circle" : type === "error" ? "exclamation-circle" : "info-circle"}"></i>
-                <span>${message}</span>
-            </div>
-            <button class="notfcaton-close">
-                <i class="bi bi-x"></i>
-            </button>
-        `;
-
-    document.body.appendChild(notfcaton);
-
-    setTimeout(() => {
-      if (notfcaton.parentNode) {
-        notfcaton.parentNode.removeChild(notfcaton);
-      }
-    }, 5000);
-
-    notfcaton.querySelector(".notfcaton-close").addEventListener("click", () => {
-      if (notfcaton.parentNode) {
-        notfcaton.parentNode.removeChild(notfcaton);
-      }
-    });
+    // Integração com sistema global
+    if (window.notify) {
+        window.notify(message, type);
+        return;
+    }
+    
+    // Fallback simples
+    const toast = document.createElement("div");
+    toast.className = `toast align-items-center text-white bg-${type === "error" ? "danger" : "success"} border-0 position-fixed bottom-0 end-0 m-3`;
+    toast.style.zIndex = "9999";
+    toast.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body">
+          ${message}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    
+    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        toast.addEventListener("hidden.bs.toast", () => {
+          document.body.removeChild(toast);
+        });
+    } else {
+         toast.style.display = 'block';
+         setTimeout(() => toast.remove(), 3000);
+    }
   }
 
   delay(ms) {

@@ -368,7 +368,7 @@ function updateGeneratedLink() {
         badge: hasMeta ? "Dados do contrato confirmados (símbolo/decimais)" : null,
         actions: ['copy', 'whatsapp', 'telegram', 'email', 'open', 'clear'],
         onClear: () => {
-             clearAll();
+             document.dispatchEvent(new Event('contract:clear'));
         }
     });
     clearError();
@@ -722,6 +722,7 @@ function clearTokenOnly() {
 }
 
 function clearAll() {
+  setReadonlyMode(false);
   setValue(ids.tokenAddress, "");
   setValue(ids.tokenName, "");
   setValue(ids.tokenSymbol, "");
