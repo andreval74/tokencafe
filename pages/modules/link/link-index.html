@@ -58,10 +58,55 @@
           <div data-component="shared/components/contract-search.html"></div>
         </div>
 
+        <!-- ===== SEÇÃO 3: LINK GERADO ===== -->
+        <div id="generate-section" class="mb-4 d-none">
+
+          <!-- Header Padronizado -->
+          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-link-45deg me-2"
+            data-st-title="Link Gerado" data-st-subtitle="Seu link está pronto para ser compartilhado"></div>
+
+          <div class="card bg-dark border-secondary shadow-lg">
+            <div class="card-body">
+
+              <div class="input-group mb-3">
+                <span class="input-group-text bg-dark border-secondary text-secondary">
+                  <i class="bi bi-globe"></i>
+                </span>
+                <input type="text" id="generatedLink" class="form-control bg-dark text-light border-secondary" readonly
+                  placeholder="https://..." onclick="this.select()">
+                <button class="btn btn-primary" type="button" id="btnCopyLink" title="Copiar Link">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+                <button class="btn btn-outline-light" type="button" id="btnOpenLink" title="Abrir Link">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </button>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+                <button id="btnShareWhatsAppSmall" class="btn btn-outline-success flex-fill">
+                  <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                </button>
+                <button id="btnShareTelegramSmall" class="btn btn-outline-info flex-fill">
+                  <i class="bi bi-telegram me-2"></i>Telegram
+                </button>
+                <button id="btnShareEmailSmall" class="btn btn-outline-secondary flex-fill">
+                  <i class="bi bi-envelope me-2"></i>Email
+                </button>
+                <button id="btnAddNetworkSmall" class="btn btn-outline-primary flex-fill">
+                  <i class="bi bi-hdd-network me-2"></i>Adicionar Carteira
+                </button>
+                <button id="btnAddToMetaMaskSmall" class="btn btn-outline-warning flex-fill">
+                  <i class="bi bi-wallet2 me-2"></i>Adicionar Token
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="d-flex justify-content-end mb-4">
-            <button id="btnClearAll" class="btn btn-outline-danger">
-                <i class="bi bi-trash me-2"></i>Limpar Dados
-            </button>
+          <button id="btnClearAll" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-2"></i>Limpar Dados
+          </button>
         </div>
       </div>
 

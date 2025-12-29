@@ -56,13 +56,6 @@ const btnText = document.getElementById("verifyBtnText");
   document.addEventListener("contract:clear", () => {
     clearForm();
   });
-
-  const btnClearForm = document.getElementById("btnClearForm");
-  if (btnClearForm) {
-    btnClearForm.addEventListener("click", () => {
-      clearForm();
-    });
-  }
 })();
 
   async function ensureApiBase() {

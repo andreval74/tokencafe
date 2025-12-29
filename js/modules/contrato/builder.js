@@ -1654,7 +1654,7 @@ function setupClearButton() {
 }
 
 async function bindUI() {
-  setupClearButton();
+  // setupClearButton removido - usa btnClearAll global
   // grupo altera visibilidade de venda
   $("#contractGroup").addEventListener("change", () => {
     readForm();

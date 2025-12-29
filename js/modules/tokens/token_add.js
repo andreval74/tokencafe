@@ -339,7 +339,7 @@ function setupCreateFlow() {
             image: ""
         },
         onClear: () => {
-            const clearBtn = qs("btnClearForm");
+            const clearBtn = document.getElementById("btnClearAll");
             if (clearBtn) clearBtn.click();
             if (secVeri) secVeri.classList.add("d-none");
         }
@@ -350,46 +350,7 @@ function setupCreateFlow() {
   });
 }
 
-function setupClearButton() {
-  const btn = qs("btnClearForm");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    // Reset inputs
-    const setVal = (id, val) => { const el = qs(id); if (el) el.value = val; };
-    setVal("tokenName", "");
-    setVal("tokenSymbol", "");
-    setVal("tokenDecimals", "18"); // Reset to default 18
-    setVal("decimals", "18"); // Ensure hidden/select fields are reset too
-    setVal("totalSupply", "");
-    setVal("ownerAddress", "");
-    setVal("tokenImage", "");
-    setVal("contractName", "");
-    
-    // Checkboxes (Advanced features)
-    const setCheck = (id, val) => { const el = qs(id); if (el) el.checked = val; };
-    setCheck("featureMintable", false);
-    setCheck("featureBurnable", false);
-    setCheck("featurePausable", false);
-    setCheck("featureOwnable", true);
-    setCheck("optimizerEnabled", true);
-
-    // Hide result sections
-    const secResult = document.getElementById("section-result");
-    const secVeri = document.getElementById("section-veri");
-    if (secResult) secResult.classList.add("d-none");
-    if (secVeri) secVeri.classList.add("d-none");
-
-    // Hide Create button (since validation will fail)
-    const createBtn = qs("create-token-btn");
-    if (createBtn) createBtn.style.display = "none";
-    
-    // Clear status
-    const addr = qs("contract-address-display");
-    if (addr) addr.value = "";
-    const hash = qs("transaction-hash-display");
-    if (hash) hash.value = "";
-  });
-}
+// function setupClearButton() { ... } // REMOVIDO
 
 function init() {
   setupInputs();
@@ -397,7 +358,7 @@ function init() {
   initNetworkDetection();
   setupResultActions();
   setupCreateFlow();
-  setupClearButton();
+  // setupClearButton(); // REMOVIDO: Usar global btnClearAll
   setupContractPreview();
   setupVerifyAction();
   setupAutoVerifyButton();

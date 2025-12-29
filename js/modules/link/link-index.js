@@ -114,6 +114,13 @@ function initStatusMirror() {
         // Observer logic moved to ensure element exists
         const sync = () => {
           const raw = String(el.textContent || "").replace(/\s+$/u, "");
+          
+          // Ignorar se já tivermos um token buscado com sucesso (evita erros falsos pós-busca)
+          if (tokenFetched) {
+              clearError();
+              return;
+          }
+
           if (!raw) {
             clearError();
             return;
@@ -217,6 +224,33 @@ function decodeString(hex) {
 async function readTokenMetaFromRpc(address, net) {
   try {
     if (!isValidAddress(address)) return {};
+    
+    // Tentar via window.ethereum se estiver na rede correta (mais confiável)
+    if (window.ethereum && net?.chainId) {
+        try {
+            const curChain = await window.ethereum.request({ method: 'eth_chainId' });
+            if (parseInt(curChain, 16) === Number(net.chainId)) {
+                const [symHex, decHex, nameHex] = await Promise.all([
+                    window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x95d89b41" }, "latest"] }).catch(() => null),
+                    window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x313ce567" }, "latest"] }).catch(() => null),
+                    window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x06fdde03" }, "latest"] }).catch(() => null)
+                ]);
+                
+                const symbol = decodeString(symHex);
+                const name = decodeString(nameHex);
+                let decimals = null;
+                try {
+                    const h = String(decHex || "").replace(/^0x/, "");
+                    if (h) decimals = parseInt(h, 16);
+                } catch (_) {}
+                
+                if (name || symbol || decimals != null) {
+                    return { name, symbol, decimals };
+                }
+            }
+        } catch (_) {}
+    }
+
     const rpc = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc[0] : getFallbackRpc(net?.chainId);
     if (!rpc) return {};
     const bodies = [
@@ -355,9 +389,28 @@ function buildLink() {
 function updateGeneratedLink() {
   const url = buildLink();
   
-  if (url && tokenFetched) {
-    const sym = document.getElementById(ids.tokenSymbol)?.value;
-    const dec = document.getElementById(ids.tokenDecimals)?.value;
+  // Atualizar input visível na seção estática
+  setValue(ids.generatedLink, url);
+  
+  // Remove is-invalid from symbol if filled
+  const sEl = document.getElementById(ids.tokenSymbol);
+  if (sEl && sEl.value && sEl.value !== "TKN") {
+      sEl.classList.remove("is-invalid");
+  }
+
+  // Garantir que a seção de links gerados seja exibida se houver URL
+  const genSection = document.getElementById("generate-section");
+  if (url && genSection) {
+      genSection.classList.remove("d-none");
+  } else if (!url && genSection) {
+      genSection.classList.add("d-none");
+  }
+
+  const sym = document.getElementById(ids.tokenSymbol)?.value;
+  const dec = document.getElementById(ids.tokenDecimals)?.value;
+  const manualData = sym && dec && sym !== "TKN";
+
+  if (url && (tokenFetched || manualData)) {
     const hasMeta = sym && dec && sym !== "TKN";
     
     systemResponse.show({
@@ -366,9 +419,9 @@ function updateGeneratedLink() {
         icon: "bi-link-45deg",
         content: url,
         badge: hasMeta ? "Dados do contrato confirmados (símbolo/decimais)" : null,
-        actions: ['copy', 'whatsapp', 'telegram', 'email', 'open', 'clear'],
+        actions: ['copy', 'whatsapp', 'telegram', 'email', 'open'],
         onClear: () => {
-             document.dispatchEvent(new Event('contract:clear'));
+             // Apenas fecha o modal, mantendo os dados na tela para visualização
         }
     });
     clearError();
@@ -379,14 +432,13 @@ function updateGeneratedLink() {
       setError("Endereço inválido ou não informado.");
     } else if (!selectedNetwork) {
       setError("Rede não selecionada.");
-    } else if (!tokenFetched) {
+    } else if (!tokenFetched && !manualData) {
       const netName = selectedNetwork?.name || "";
       const cid = selectedNetwork?.chainId != null ? String(selectedNetwork.chainId) : "";
       const msg = netName && cid ? `Contrato não pertence à rede selecionada (${netName}, chainId ${cid}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
       setError(msg);
     }
   }
-  if (tokenFetched) renderTokenView();
 }
 
 // Escutar evento de limpeza global
@@ -613,13 +665,23 @@ async function addTokenToMetaMask() {
       const meta = await readTokenMetaFromRpc(address, net);
       if (meta.symbol) symbol = meta.symbol;
       if (meta.decimals != null) decimals = meta.decimals;
+      
+      if (!symbol || symbol === "TKN") {
+          window.notify && window.notify("Símbolo do token não identificado. Por favor, preencha o campo Símbolo manualmente.", "warning");
+          const sEl = document.getElementById(ids.tokenSymbol);
+          if (sEl) {
+              sEl.focus();
+              sEl.classList.add("is-invalid");
+          }
+          return;
+      }
+
       const sEl = document.getElementById(ids.tokenSymbol);
       const dEl = document.getElementById(ids.tokenDecimals);
       if (sEl && (!sEl.value || sEl.value === "TKN")) sEl.value = (symbol || "");
       if (dEl && (!dEl.value || !Number.isFinite(parseInt(dEl.value, 10)))) dEl.value = Number.isFinite(decimals) ? String(decimals) : "";
       try {
         updateGeneratedLink();
-        renderTokenView();
       } catch (_) {}
       const badge = document.getElementById("metaValidatedBadge");
       if (badge && (symbol || Number.isFinite(decimals))) badge.classList.remove("d-none");
@@ -851,7 +913,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (meta.name || meta.symbol || meta.decimals != null) tokenFetched = true;
           try {
             updateGeneratedLink();
-            renderTokenView();
+            // renderTokenView() removido
           } catch (_) {}
           const badge = document.getElementById("metaValidatedBadge");
           if (badge && (meta.symbol || meta.decimals != null)) badge.classList.remove("d-none");
@@ -908,6 +970,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById(ids.btnAddNetwork)?.addEventListener("click", addNetworkToWallet);
   document.getElementById(ids.btnClearAll)?.addEventListener("click", clearAll);
   document.getElementById(ids.btnClearToken)?.addEventListener("click", clearTokenOnly);
+  document.getElementById("btnAddNetworkSmall")?.addEventListener("click", addNetworkToWallet);
+  document.getElementById("btnAddToMetaMaskSmall")?.addEventListener("click", addTokenToMetaMask);
+  
   // Atualizar link em tempo real
   document.getElementById(ids.tokenAddress)?.addEventListener("input", () => {
     const el = document.getElementById(ids.tokenAddress);
@@ -1023,37 +1088,7 @@ function shareEmailSmall() {
     window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self");
   } catch (_) {}
 }
-function renderTokenView() {
-  try {
-    const address = String(document.getElementById(ids.tokenAddress)?.value || "").replace(/\s+$/u, "");
-    const name = String(document.getElementById(ids.tokenName)?.value || "").replace(/\s+$/u, "");
-    const symbol = String(document.getElementById(ids.tokenSymbol)?.value || "").replace(/\s+$/u, "");
-    const decimals = String(document.getElementById(ids.tokenDecimals)?.value || "").replace(/\s+$/u, "");
-    const urlParams = new URLSearchParams(location.search);
-    const chainIdParam = urlParams.get("chainId");
-    const explorerParam = urlParams.get("explorer");
-    const explorer = selectedNetwork?.explorers?.[0]?.url || explorerParam || getFallbackExplorer(selectedNetwork?.chainId || chainIdParam);
-    const tv = document.getElementById("tokenView");
-    if (!tv) return;
-    const chainName = selectedNetwork?.name || (chainIdParam ? networkManager.getNetworkById(chainIdParam)?.name || getFallbackChainName(chainIdParam) : "");
-    const chainId = selectedNetwork?.chainId || chainIdParam || "";
-    const addrEl = document.getElementById("viewAddress");
-    const chainNameEl = document.getElementById("viewChainName");
-    const chainIdEl = document.getElementById("viewChainId");
-    const nameEl = document.getElementById("viewName");
-    const symbolEl = document.getElementById("viewSymbol");
-    const decEl = document.getElementById("viewDecimals");
-    const expA = document.getElementById("viewExplorer");
-    if (addrEl) addrEl.textContent = address;
-    if (chainNameEl) chainNameEl.textContent = chainName;
-    if (chainIdEl) chainIdEl.textContent = String(chainId || "");
-    if (nameEl) nameEl.textContent = name;
-    if (symbolEl) symbolEl.textContent = symbol;
-    if (decEl) decEl.textContent = String(decimals || "");
-    if (expA) {
-      expA.href = explorer ? `${String(explorer).replace(/\/$/, "")}/address/${address}` : "#";
-      expA.classList.toggle("disabled", !explorer || !isValidAddress(address));
-    }
-    tv.classList.remove("d-none");
-  } catch {}
+// renderTokenView removido conforme solicitação
+function unusedRenderTokenViewStub() {
+  // Stub
 }

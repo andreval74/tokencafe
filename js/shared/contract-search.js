@@ -102,6 +102,26 @@ function initContainer(container) {
   const infoBtnInit = container.querySelector("#csInfoBtn");
   if (infoBtnInit) infoBtnInit.disabled = true;
 
+  // Adicionar listener para resetar estado interno quando solicitado externamente
+  container.addEventListener('contract:clear', () => {
+      isSearching = false;
+      showStatus("");
+      // Garantir que o botão de busca esteja habilitado
+      const btn = container.querySelector("#contractSearchBtn") || document.getElementById("contractSearchBtn");
+      const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
+      if (btn) btn.disabled = false;
+      if (sp) sp.classList.add("d-none");
+      
+      // Limpar badges de verificação
+      const vStatus = container.querySelector("#cs_viewStatus") || document.getElementById("cs_viewStatus");
+      if (vStatus) {
+          // Remove badges mantendo texto base se necessário, ou limpa tudo se for o comportamento desejado
+          // Aqui optamos por limpar, pois clearVisualState já deve ter cuidado dos textos
+          const badges = vStatus.querySelectorAll('.badge');
+          badges.forEach(b => b.remove());
+      }
+  });
+
   function findChainId() {
     let raw = container.getAttribute("data-chainid") || "";
     if (!raw) {
@@ -784,7 +804,7 @@ function initContainer(container) {
       const card = container.querySelector("#selected-contract-info") || document.querySelector("#selected-contract-info");
       if (card) card.classList.remove("d-none");
       try {
-        updateVerificationBadge(container, chainIdRaw, addrRaw);
+        // updateVerificationBadge(container, chainIdRaw, addrRaw);
       } catch (e) {
         try {
           log("error", e);
@@ -913,64 +933,6 @@ function initContainer(container) {
           try {
             log("error", e);
           } catch {}
-        }
-      });
-    }
-    if (clearBtn) {
-      clearBtn.addEventListener("click", () => {
-        try {
-          const addrInput = container.querySelector("#f_address");
-          const hiddenAddr = container.querySelector("#tokenAddress") || document.getElementById("tokenAddress");
-          if (addrInput) {
-            addrInput.value = "";
-            addrInput.classList.remove("is-valid", "is-invalid");
-          }
-          if (hiddenAddr) hiddenAddr.value = "";
-          showStatus("");
-
-          if (infoBtn) infoBtn.disabled = true;
-          if (btn) {
-             btn.disabled = false;
-             const icon = btn.querySelector("i");
-             if (icon) icon.className = "bi bi-search";
-          }
-          
-          // Limpar visualização
-          const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
-          const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
-          const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
-          const vSym = container.querySelector("#cs_viewSymbol") || document.getElementById("cs_viewSymbol");
-          const vDec = container.querySelector("#cs_viewDecimals") || document.getElementById("cs_viewDecimals");
-          const vSup = container.querySelector("#cs_viewSupply") || document.getElementById("cs_viewSupply");
-          const vTokBal = container.querySelector("#cs_viewTokenBalance") || document.getElementById("cs_viewTokenBalance");
-          const vNatBal = container.querySelector("#cs_viewNativeBalance") || document.getElementById("cs_viewNativeBalance");
-          const vStatus = container.querySelector("#cs_viewStatus") || document.getElementById("cs_viewStatus");
-          // const vExp = container.querySelector("#cs_viewExplorer") || document.getElementById("cs_viewExplorer"); // Removed
-          const topExp = container.querySelector("#csExplorerBtn") || document.getElementById("csExplorerBtn");
-          if (vAddr) {
-             vAddr.textContent = "";
-             vAddr.removeAttribute("href");
-          }
-          if (vCid) vCid.textContent = "";
-          if (vName) vName.textContent = "";
-          if (vSym) vSym.textContent = "";
-          if (vDec) vDec.textContent = "";
-          if (vSup) vSup.textContent = "";
-          if (vTokBal) vTokBal.textContent = "";
-          if (vNatBal) vNatBal.textContent = "";
-          if (vStatus) vStatus.innerHTML = "";
-          // if (vExp) vExp.removeAttribute("href"); // Removed
-          if (topExp) {
-            topExp.href = "#";
-            topExp.classList.add("disabled");
-          }
-          const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
-          if (card) card.classList.add("d-none");
-          const evt = new CustomEvent("contract:clear", { bubbles: true });
-          try { container.dispatchEvent(evt); } catch (_) {}
-          try { document.dispatchEvent(evt); } catch (_) {}
-        } catch (e) {
-          try { log("error", e); } catch {}
         }
       });
     }

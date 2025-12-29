@@ -206,11 +206,6 @@ class WidgetSimple {
       copyEmbedBtn.addEventListener("click", this.handleCopyEmbed.bind(this));
     }
 
-    const clearFormBtn = document.getElementById("btnClearForm");
-    if (clearFormBtn) {
-      clearFormBtn.addEventListener("click", this.handleClearForm.bind(this));
-    }
-
     // Validação em tempo real do endereço do contrato
     const saleContractInput = document.getElementById("saleContract");
     if (saleContractInput) {

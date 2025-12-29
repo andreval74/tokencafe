@@ -142,10 +142,6 @@ async function addToWallet() {
         badge: "Adicionado",
         actions: ['copy', 'open', 'clear'],
         onClear: () => {
-             // Limpar a busca
-             const clearBtn = document.getElementById("csClearBtn") || document.querySelector("#tokenForm button[title='Limpar dados']");
-             if (clearBtn) clearBtn.click();
-             
              // Resetar botão local
              const addBtn = document.getElementById("addToWalletButton");
              if (addBtn) {

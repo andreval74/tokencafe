@@ -22,7 +22,8 @@ class BaseSystem {
    * Inicializar sistema base
    */
   async init() {
-    if (this.initialized) return;
+    if (this.initialized || window.__BaseSystemInitialized) return;
+    window.__BaseSystemInitialized = true;
 
     console.log("🚀 TokenCafe - Base System Unified iniciando...");
 
@@ -174,6 +175,17 @@ class BaseSystem {
       if (scrollBtn) {
         e.preventDefault();
         window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      const reloadBtn = e.target.closest('[data-action="reload-page"]') || e.target.closest('#btnClearAll');
+      if (reloadBtn) {
+        e.preventDefault();
+        // Forçar limpeza de inputs para evitar restauração de cache do navegador
+        try {
+          const inputs = document.querySelectorAll("input, textarea");
+          inputs.forEach(el => el.value = "");
+        } catch (_) {}
+        window.location.reload();
       }
     });
 

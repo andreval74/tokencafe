@@ -270,6 +270,8 @@ function initContainer(container) {
       input.value = "";
       hideList();
       clearState();
+      // Garantir foco de volta ao input após limpar
+      input.focus();
     });
   }
 

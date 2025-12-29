@@ -107,7 +107,7 @@ function setupEventListeners() {
     showNextSection("network-section");
   });
   document.addEventListener("network:clear", () => {
-    clearNetworkForm();
+    clearNetworkForm({ clearSearch: false });
   });
 
   // Toggle de informações a partir do botão I do componente
@@ -460,13 +460,9 @@ async function addNetworkToMetaMask() {
         title: "Rede Adicionada",
         subtitle: "A rede foi adicionada com sucesso à sua carteira.",
         icon: "bi-hdd-network",
-        content: `Chain ID: ${networkData.chainId} | RPC: ${networkData.rpc[0]}`,
-        badge: "Configuração aplicada",
-        actions: ['copy', 'clear'],
         onClear: () => {
-             clearNetworkForm(true);
-             hideAllSections();
-             showNextSection("network-section");
+             // Reload completo para garantir limpeza total e prevenir estados inconsistentes
+             window.location.reload();
         }
     });
 
@@ -579,21 +575,20 @@ function attemptFocusRetry(selector, tries = 5, delayMs = 150) {
 }
 
 // Limpar dados do formulário e preview
-function clearNetworkForm(silent = false) {
-  const ids = ["networkSearch"];
-  ids.forEach((id) => {
-    const el = document.getElementById(id);
+function clearNetworkForm(options = {}) {
+  const silent = typeof options === "boolean" ? options : (options.silent || false);
+  const clearSearch = options.clearSearch !== false;
+
+  if (clearSearch) {
+    const el = document.getElementById("networkSearch");
     if (el) {
       el.value = "";
       // Disparar evento input para notificar o componente network-search
       // e garantir que clearState() seja chamado (desabilitando infoBtn, etc)
       el.dispatchEvent(new Event("input", { bubbles: true }));
-
-      if (id === "networkSearch") {
-        delete el.dataset.chainId;
-      }
+      delete el.dataset.chainId;
     }
-  });
+  }
 
   // Limpar textos/links
   const rpcCodeEl = document.getElementById("rpcUrlCode");

@@ -71,25 +71,6 @@ export class SystemResponse {
     `;
 
     document.body.insertAdjacentHTML("beforeend", modalHtml);
-
-    // Bind copy button default
-    const copyBtn = document.getElementById("sr-modal-btn-copy-input");
-    if (copyBtn) {
-        copyBtn.addEventListener("click", () => {
-            const input = document.getElementById("sr-modal-input");
-            if (input && input.value) this.copyToClipboard(input.value);
-        });
-    }
-
-    // Bind OK button to onClear/Callback
-    const okBtn = document.getElementById("sr-modal-btn-ok");
-    if (okBtn) {
-        okBtn.addEventListener("click", () => {
-             if (typeof this.config?.onClear === "function") {
-                this.config.onClear();
-             }
-        });
-    }
   }
 
   /**
@@ -97,6 +78,9 @@ export class SystemResponse {
    * @param {Object} config
    */
   show(config) {
+    // Garante que qualquer modal anterior seja fechado corretamente antes de abrir um novo
+    this.hide();
+    
     this.init();
     this.config = config || {};
 
@@ -111,6 +95,24 @@ export class SystemResponse {
     const inputEl = document.getElementById("sr-modal-input");
     const customContentEl = document.getElementById("sr-modal-custom-content");
     const actionsContainer = document.getElementById("sr-modal-actions");
+    const okBtn = document.getElementById("sr-modal-btn-ok");
+    const copyBtn = document.getElementById("sr-modal-btn-copy-input");
+
+    // Re-bind actions to ensure current config context
+    if (okBtn) {
+        okBtn.onclick = () => {
+             if (typeof this.config?.onClear === "function") {
+                this.config.onClear();
+             }
+        };
+    }
+
+    if (copyBtn) {
+        copyBtn.onclick = () => {
+            const val = document.getElementById("sr-modal-input")?.value;
+            if (val) this.copyToClipboard(val);
+        };
+    }
 
     // Defaults
     const title = config.title || "Resultado";
@@ -218,6 +220,14 @@ export class SystemResponse {
                btn.innerHTML = '<i class="bi bi-box-arrow-up-right"></i> Abrir';
                btn.onclick = () => { if(content) window.open(content, "_blank"); };
                break;
+          case "clear":
+               btn.innerHTML = '<i class="bi bi-trash"></i> Limpar';
+               btn.className = "btn btn-outline-danger btn-sm d-flex align-items-center gap-2";
+               btn.onclick = () => {
+                   if (this.config.onClear) this.config.onClear();
+                   this.hide();
+               };
+               break;
           default:
               return null;
       }
@@ -225,16 +235,42 @@ export class SystemResponse {
   }
 
   hide() {
+    // Tentativa principal usando Bootstrap
     if (this.modalInstance) {
-        this.modalInstance.hide();
-    } else {
-        const modalEl = document.getElementById(this.modalId);
-        if (modalEl) {
-             modalEl.classList.remove("show");
-             modalEl.style.display = "none";
-             document.body.classList.remove("modal-open");
+        try {
+            this.modalInstance.hide();
+        } catch (e) {
+            console.error("Erro ao fechar modal via Bootstrap:", e);
         }
     }
+    
+    // Fallback manual para esconder o elemento
+    const modalEl = document.getElementById(this.modalId);
+    if (modalEl) {
+        modalEl.classList.remove("show");
+        modalEl.style.display = "none";
+        modalEl.setAttribute("aria-hidden", "true");
+        modalEl.removeAttribute("aria-modal");
+        modalEl.removeAttribute("role");
+    }
+
+    // Limpeza forçada e agressiva de backdrops e classes do body
+    const forceCleanup = () => {
+        // Remover todos os backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        
+        // Limpar classes do body
+        document.body.classList.remove('modal-open');
+        
+        // Resetar estilos inline que o Bootstrap adiciona
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    };
+
+    forceCleanup();
+    // Repetir limpeza para garantir que animações não recriem o backdrop
+    setTimeout(forceCleanup, 100);
+    setTimeout(forceCleanup, 300);
   }
 
   // Métodos de Ação (Mantidos iguais)

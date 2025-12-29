@@ -832,52 +832,8 @@
       buyWithBNB();
     });
 
-    // Bind evento para Limpar Dados
-    $("#btnClearForm")?.addEventListener("click", () => {
-      // Reset inputs
-      const saleInput = $("#saleAddress");
-      if (saleInput) saleInput.value = "";
-      
-      const qtyInput = $("#qty");
-      if (qtyInput) qtyInput.value = 1;
-      
-      // Reset status and logs
-      const walletStatus = $("#walletStatus");
-      if (walletStatus && !signer) walletStatus.textContent = ""; // Keep wallet if connected? No, user said "Limpar Dados" usually clears form data. But wallet connection is global. Let's keep wallet info if connected, but maybe clear specific logs.
-      
-      const output = $("#output");
-      if (output) output.textContent = "";
-      
-      // Reset painéis
-      ["saleToken", "tokenDecimals", "destWallet", "bnbPrice", "perWalletCap", "contractTokenBalance", "alreadyPurchased", "totalCost", "saleBnbBalance", "destBnbBalance", "buyerBnbBalance", "buyerTokenBalance"].forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = "-";
-      });
-      
-      // Re-enable buttons
-      const readBtn = $("#readBtn");
-      if (readBtn) {
-          readBtn.disabled = false;
-          readBtn.innerHTML = '<i class="bi bi-search me-2"></i> Ler dados do contrato';
-      }
-      
-      const certifyBtn = $("#certifyBtn");
-      if (certifyBtn) {
-          certifyBtn.disabled = false;
-          certifyBtn.innerHTML = '<i class="bi bi-shield-check me-2"></i> Certificar contrato (tBNB)';
-      }
-      
-      const buyBtn = $("#buyBtn");
-      if (buyBtn) {
-          buyBtn.disabled = false;
-          buyBtn.innerHTML = '<i class="bi bi-cash-coin me-2"></i> Comprar com tBNB';
-      }
-      
-      // Show success message
-      if (window.showFormSuccess) {
-          window.showFormSuccess("Dados limpos com sucesso!");
-      }
-    });
+    // Bind evento para Limpar Dados - REMOVIDO: Usar global btnClearAll
+
 
     // Integrar eventos de seleção de rede
     document.addEventListener("network:selected", (ev) => {
