@@ -76,11 +76,6 @@ function setReadonlyMode(enabled) {
             else el.classList.remove('bg-light');
         }
     });
-
-    const btnSearch = document.getElementById(ids.btnTokenSearch);
-    if (btnSearch) {
-        btnSearch.disabled = enabled;
-    }
 }
 
 const isValidAddress = (addr) => utils.isValidEthereumAddress(addr);
@@ -107,43 +102,9 @@ function clearError() {
   } catch (_) {}
 }
 
-function initStatusMirror() {
-  try {
-    const el = document.getElementById("contractSearchStatusText");
-    if (el) {
-        // Observer logic moved to ensure element exists
-        const sync = () => {
-          const raw = String(el.textContent || "").replace(/\s+$/u, "");
-          
-          // Ignorar se já tivermos um token buscado com sucesso (evita erros falsos pós-busca)
-          if (tokenFetched) {
-              clearError();
-              return;
-          }
-
-          if (!raw) {
-            clearError();
-            return;
-          }
-          if (/Informe endereço e rede|Endereço inválido/i.test(raw)) {
-            setError("Endereço inválido ou não informado.");
-            return;
-          }
-          if (/Tempo limite|sem dados/i.test(raw)) {
-            const netName = selectedNetwork?.name || "";
-            const cid = selectedNetwork?.chainId != null ? String(selectedNetwork.chainId) : "";
-            const msg = netName && cid ? `Contrato não pertence à rede selecionada (${netName}, chainId ${cid}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
-            setError(msg);
-            return;
-          }
-          clearError();
-        };
-        sync();
-        const obs = new MutationObserver(sync);
-        obs.observe(el, { characterData: true, childList: true, subtree: true });
-    }
-  } catch (_) {}
-}
+// Função initStatusMirror removida para padronização com outros módulos.
+// O feedback de erro deve vir do próprio componente de busca ou de validações locais,
+// sem duplicar mensagens via MutationObserver.
 
 // Fallbacks mínimos para redes populares quando rpcs.json não fornece URLs
 function getFallbackRpc(chainId) {
@@ -444,26 +405,22 @@ function updateGeneratedLink() {
 // Escutar evento de limpeza global
 document.addEventListener('contract:clear', () => {
     tokenFetched = false;
-    selectedNetwork = null;
-    hide("token-section");
+    // selectedNetwork = null; // Manter a rede selecionada para nova busca
+    // hide("token-section"); // Manter seção visível para nova busca
     hide("generate-section");
     clearError();
     setReadonlyMode(false); // Reset readonly state
+    
     // Reset inputs
     const idsToReset = [
         ids.tokenAddress, ids.tokenName, ids.tokenSymbol, 
         ids.tokenDecimals, ids.tokenImage, ids.generatedLink
     ];
     idsToReset.forEach(id => setValue(id, ""));
-    
-    // Re-habilitar botões se necessário
-    const btnSearch = document.getElementById(ids.btnTokenSearch);
-    if (btnSearch) {
-        btnSearch.disabled = false;
-        btnSearch.innerHTML = '<i class="bi bi-search"></i>';
-        btnSearch.classList.remove('btn-success');
-        btnSearch.classList.add('btn-primary');
-    }
+
+    // Reset badges
+    const badge = document.getElementById("metaValidatedBadge");
+    if (badge) badge.classList.add("d-none");
     
     window.showFormSuccess && window.showFormSuccess("Dados limpos com sucesso!");
 });
@@ -474,13 +431,6 @@ document.addEventListener('contract:found', (e) => {
         tokenFetched = true;
         setReadonlyMode(true);
         
-        // Desabilitar botão de busca para evitar cliques duplicados
-        const btnSearch = document.getElementById(ids.btnTokenSearch);
-        if (btnSearch) {
-            btnSearch.disabled = true;
-            btnSearch.innerHTML = '<i class="bi bi-check-circle"></i>';
-        }
-        
         // Gerar link automaticamente
         updateGeneratedLink();
     }
@@ -488,16 +438,7 @@ document.addEventListener('contract:found', (e) => {
 
 // Escutar evento de contrato verificado
 document.addEventListener('contract:verified', (e) => {
-    if (e.detail && e.detail.contract) {
-        // Atualizar status visual se houver algum indicador de verificação
-        const btnSearch = document.getElementById(ids.btnTokenSearch);
-        if (btnSearch) {
-            btnSearch.disabled = true;
-            btnSearch.innerHTML = '<i class="bi bi-check-circle-fill"></i> Verificado';
-            btnSearch.classList.remove('btn-primary', 'btn-success');
-            btnSearch.classList.add('btn-success');
-        }
-    }
+    // Apenas log ou ações que não envolvam o botão de busca
 });
 
 function copyLink() {
@@ -839,7 +780,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     await networkManager.init();
   } catch {}
-  initStatusMirror();
+  // initStatusMirror(); // Removido
   // Garantir que a seção de rede siga o padrão visual
   const netSection = document.getElementById("network-section");
   if (netSection) netSection.classList.remove("d-none");
@@ -928,6 +869,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateGeneratedLink();
         const genSection = document.getElementById("generate-section");
         if (genSection) genSection.classList.remove("d-none");
+        
+        // Lock UI and update button after populating data
+        setReadonlyMode(true);
+        const btnSearch = document.getElementById(ids.btnTokenSearch);
+        if (btnSearch) {
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = '<i class="bi bi-check-circle"></i>';
+        }
       } else {
         if (ts) ts.classList.remove("d-none");
         try {
@@ -936,24 +885,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     } catch (_) {}
   });
-  document.addEventListener("contract:clear", () => {
-    try {
-      setValue(ids.tokenAddress, "");
-      setValue(ids.tokenName, "");
-      setValue(ids.tokenSymbol, "");
-      setValue(ids.tokenDecimals, "");
-      setValue(ids.tokenImage, "");
-      setValue(ids.generatedLink, "");
-      tokenFetched = false;
-      const badge = document.getElementById("metaValidatedBadge");
-      if (badge) badge.classList.add("d-none");
-      const genSection = document.getElementById("generate-section");
-      if (genSection) genSection.classList.add("d-none");
-      const tokenSection = document.getElementById("token-section");
-      if (tokenSection) tokenSection.classList.remove("d-none");
-      updateGeneratedLink();
-    } catch (_) {}
-  });
+  // Listener secundário removido (consolidado acima)
   document.getElementById(ids.btnCopyLink)?.addEventListener("click", copyLink);
   // Botão "Compartilhar link"
   document.getElementById(ids.btnShareLink)?.addEventListener("click", shareLink);

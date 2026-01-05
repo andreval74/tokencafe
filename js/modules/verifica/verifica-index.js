@@ -314,13 +314,16 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
           badge.textContent = "Erro na busca";
           badge.className = "badge bg-secondary";
         }
+        // Em caso de erro, mostrar o formulário para permitir verificação manual
+        if (codeSourceSection) codeSourceSection.classList.remove("d-none");
+        if (actionButtons) actionButtons.classList.remove("d-none");
+        if (btnVerifyCol) btnVerifyCol.classList.remove("d-none");
       } catch (_) {}
       return;
     }
     const isVerified = !!js?.verified;
     // const badge is already defined above
-    const btnVerifyCol = document.getElementById("btnVerifyCol");
-    const codeSourceSection = document.getElementById("codeSourceSection");
+    // btnVerifyCol and codeSourceSection declared at top
     // actionButtons already declared above; reuse existing reference
 
     if (badge) {
@@ -754,6 +757,12 @@ nsContainer.addEventListener("network:selected", (evt) => {
     if (cidEl) cidEl.value = String(net.chainId);
     const addr = document.getElementById("f_address")?.value || "";
     const cUrl = getExplorerContractUrl(addr, net.chainId);
+    
+    // Show contract section when network is selected
+    const cSec = document.getElementById("contract-section");
+    if (cSec) cSec.classList.remove("d-none");
+
+    const openBtn = document.getElementById("explorerVerifyLink");
     if (openBtn) {
       openBtn.href = cUrl || "#";
       openBtn.classList.toggle("disabled", !cUrl);
@@ -765,6 +774,10 @@ nsContainer.addEventListener("network:selected", (evt) => {
 });
 nsContainer.addEventListener("network:clear", () => {
   try {
+    // Hide contract section when network is cleared
+    const cSec = document.getElementById("contract-section");
+    if (cSec) cSec.classList.add("d-none");
+
     const cidEl = document.getElementById("f_chainId");
     if (cidEl) cidEl.value = "";
   } catch (_) {}
@@ -892,6 +905,20 @@ document.addEventListener("contract:found", (e) => {
   try {
     const p = e && e.detail ? e.detail.contract : null;
     if (!p) return;
+
+    // Se for carteira (EOA), limpar campos de verificação mas não emitir alerta duplicado
+    if (p.assetType === "wallet" || p.isContract === false) {
+       // Limpar campos de verificação para evitar confusão
+       const vFields = ["f_contractName", "f_sourceCode", "f_metadata", "f_compilerVersion", "f_contractNameFQN"];
+       vFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = ""; });
+       
+       const vTexts = ["cardContractName", "cardFQN", "cardCompilerVersion", "cardSourcePreview", "cardMetadataPreview"];
+       vTexts.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = "-"; });
+
+       computeReadiness();
+       return;
+    }
+
     const set = (id, v) => {
       const el = document.getElementById(id);
       if (el) el.value = v != null ? String(v) : "";
@@ -945,8 +972,9 @@ try {
     try {
       const cidEl = document.getElementById("f_chainId");
       if (cidEl) cidEl.value = "";
-      const statusEl = document.getElementById("verifyStatus");
-      if (statusEl) statusEl.textContent = "Selecione uma rede antes de verificar.";
+      // Mensagem removida a pedido do usuário
+      // const statusEl = document.getElementById("verifyStatus");
+      // if (statusEl) statusEl.textContent = "Selecione uma rede antes de verificar.";
       computeReadiness();
     } catch (_) {}
   });

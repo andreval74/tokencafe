@@ -20,12 +20,11 @@ function endgrp() {
 function initContainer(container) {
   if (!container || container.getAttribute("data-cs-initialized") === "true") return;
 
-  const verifyContext = !!document.getElementById("f_chainId") || !!document.getElementById("f_contractName") || !!document.getElementById("f_codeformat");
-  const linkContext = !!container.querySelector("#f_address") || !!container.querySelector("#tokenAddress") || !!document.getElementById("tokenAddress");
-  if (!verifyContext && !linkContext) return;
+  // Removida checagem de contexto específica para permitir uso genérico
   let btn = container.querySelector("#contractSearchBtn");
   if (!btn) {
     try {
+      // Fallback para ID global se não encontrar no container (não ideal, mas mantém compatibilidade)
       btn = document.getElementById("contractSearchBtn");
     } catch {
       btn = null;
@@ -35,6 +34,7 @@ function initContainer(container) {
 
   function showStatus(msg) {
     try {
+      // Prioriza busca no container, fallback para global
       const wrap = container.querySelector("#contractSearchStatus") || document.getElementById("contractSearchStatus");
       const textEl = container.querySelector("#contractSearchStatusText") || document.getElementById("contractSearchStatusText");
       if (textEl) textEl.textContent = msg || "";
@@ -53,13 +53,16 @@ function initContainer(container) {
           
           if (btn) {
              btn.disabled = false;
+             btn.removeAttribute("data-mode");
+             btn.classList.remove("btn-secondary", "btn-primary");
+             btn.classList.add("btn-outline-primary");
              const icon = btn.querySelector("i");
              if (icon) icon.className = "bi bi-search";
           }
           
           showStatus("");
 
-          // Limpar campos de visualização
+          // Limpar campos de visualização - Prioriza container
           const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
           const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
           const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
@@ -96,6 +99,46 @@ function initContainer(container) {
       } catch (e) {
           try { log("clear-error", e); } catch {}
       }
+  }
+ 
+  async function refreshWalletStatus() {
+    try {
+      const vWalletStatus = container.querySelector("#cs_viewWalletStatus") || document.getElementById("cs_viewWalletStatus");
+      if (!vWalletStatus) return;
+      const addr = sessionStorage.getItem("tokencafe_last_contract") || "";
+      const chainId = sessionStorage.getItem("tokencafe_last_chain") || "";
+      const decStr = sessionStorage.getItem("tokencafe_last_decimals") || "";
+      const dec = /^\d+$/.test(decStr) ? parseInt(decStr, 10) : 18;
+      if (!/^0x[0-9a-fA-F]{40}$/.test(addr) || !chainId) return;
+      let userAddr = null;
+      try {
+        if (typeof window !== "undefined" && window.ethereum && window.ethereum.request) {
+          const accts = await window.ethereum.request({ method: "eth_accounts" }).catch(() => []);
+          if (accts && accts.length) userAddr = accts[0];
+        }
+      } catch (_) {}
+      if (!userAddr) {
+        vWalletStatus.innerHTML = '<span class="text-muted"><i class="bi bi-dash-circle me-1"></i>Carteira não conectada ou verificação falhou</span>';
+        return;
+      }
+      const rpc = getPrimaryRpc(chainId);
+      const body = { jsonrpc: "2.0", id: 99, method: "eth_call", params: [{ to: String(addr), data: "0x70a08231" + String(userAddr).toLowerCase().replace(/^0x/, "").padStart(64, "0") }, "latest"] };
+      const js = await fetchJsonWithTimeout(rpc, body, MAX_TIMEOUT_MS);
+      const balHex = js && js.result ? String(js.result) : null;
+      if (balHex && balHex !== "0x") {
+        try {
+          const b = BigInt(balHex);
+          if (b > 0n) {
+            const val = formatUnits(balHex, dec);
+            vWalletStatus.innerHTML = `<span class="text-success"><i class="bi bi-wallet2 me-1"></i>Encontrado na carteira (Saldo: ${val})</span>`;
+            return;
+          }
+        } catch (_) {}
+      }
+      vWalletStatus.innerHTML = '<span class="text-secondary"><i class="bi bi-wallet me-1"></i>Não encontrado na carteira conectada</span>';
+    } catch (e) {
+      try { log("wallet-refresh-error", e); } catch {}
+    }
   }
 
   // Inicialização explícita do botão info
@@ -450,6 +493,30 @@ function initContainer(container) {
     }
   }
 
+  async function checkIsContract(addr, chainId) {
+    try {
+      // Tentar via window.ethereum se disponível e na mesma rede (mais rápido e confiável para evitar rate limits públicos)
+      if (typeof window !== "undefined" && window.ethereum && window.ethereum.request) {
+         try {
+           const curChain = await window.ethereum.request({ method: 'eth_chainId' });
+           if (parseInt(curChain, 16) === Number(chainId)) {
+              const code = await window.ethereum.request({ method: 'eth_getCode', params: [String(addr), 'latest'] });
+              return code !== "0x" && code !== "0x0";
+           }
+         } catch (_) {}
+      }
+
+      const rpc = getPrimaryRpc(chainId);
+      const body = { jsonrpc: "2.0", id: 10, method: "eth_getCode", params: [String(addr), "latest"] };
+      const js = await fetchJsonWithTimeout(rpc, body, MAX_TIMEOUT_MS);
+      const code = js && js.result ? String(js.result) : "0x";
+      return code !== "0x" && code !== "0x0";
+    } catch (_) {
+      // Em caso de erro total, retornar null para indicar incerteza em vez de true
+      return null;
+    }
+  }
+
   async function updateVerificationBadge(container, chainId, address) {
     const vStatus = container.querySelector("#cs_viewStatus") || document.querySelector("#cs_viewStatus"); // Get status element
     
@@ -518,11 +585,18 @@ function initContainer(container) {
       log("input", { address: addrRaw, okAddr, chainId: chainIdRaw });
     } catch (_) {}
     if (!okAddr || !chainIdRaw) {
-      showStatus("Endereço inválido ou não informado.");
-      try {
-        const evtErr = new CustomEvent("form:error", { detail: { message: "Endereço inválido ou não informado.", container }, bubbles: true });
-        document.dispatchEvent(evtErr);
-      } catch (_) {}
+      if (!addrRaw || !String(addrRaw).trim().length) {
+        try {
+          clearVisualState();
+          showStatus("");
+        } catch (_) {}
+      } else {
+        showStatus("Endereço inválido ou não informado.");
+        try {
+          const evtErr = new CustomEvent("form:error", { detail: { message: "Endereço inválido ou não informado.", container }, bubbles: true });
+          document.dispatchEvent(evtErr);
+        } catch (_) {}
+      }
       try {
         log("invalid-input");
       } catch (_) {}
@@ -530,7 +604,14 @@ function initContainer(container) {
         const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
         const btnEl = container.querySelector("#contractSearchBtn") || document.getElementById("contractSearchBtn");
         if (sp) sp.classList.add("d-none");
-        if (btnEl) btnEl.disabled = false;
+        if (btnEl) {
+          btnEl.disabled = false;
+          btnEl.removeAttribute("data-mode");
+          btnEl.classList.remove("btn-secondary");
+          btnEl.classList.add("btn-primary");
+          const icon = btnEl.querySelector("i");
+          if (icon) icon.className = "bi bi-search";
+        }
       } catch (e) {
         try {
           log("error", e);
@@ -570,9 +651,30 @@ function initContainer(container) {
     try {
       log("start-core-calls");
     } catch (_) {}
+    const isContractPromise = checkIsContract(addrRaw, chainIdRaw);
     const snPromise = detectSymbolName(addrRaw, chainIdRaw);
     const infoPromise = fetchERC20Info(addrRaw, chainIdRaw);
-    const [sn, info] = await Promise.all([withTimeout(snPromise, GLOBAL_LIMIT_MS, { symbol: null, name: null }), withTimeout(infoPromise, GLOBAL_LIMIT_MS, { decimals: null, totalSupply: null, tokenBalance: null, nativeBalance: null })]);
+    const [isC_raw, sn, info] = await Promise.all([
+      withTimeout(isContractPromise, GLOBAL_LIMIT_MS, null),
+      withTimeout(snPromise, GLOBAL_LIMIT_MS, { symbol: null, name: null }),
+      withTimeout(infoPromise, GLOBAL_LIMIT_MS, { decimals: null, totalSupply: null, tokenBalance: null, nativeBalance: null })
+    ]);
+    
+    // Lógica de fallback inteligente para isContract
+    let isC = isC_raw;
+    if (isC === null) {
+        // Se a verificação falhou ou deu timeout
+        if ((sn && sn.symbol) || (info && info.decimals != null)) {
+            // Se tem símbolo ou decimais, quase certamente é contrato
+            isC = true;
+        } else {
+             // Se não tem dados de token, assumimos carteira por padrão se a verificação falhou?
+             // Melhor ser conservador: se tem saldo nativo e nenhum dado de token, provável carteira.
+             // Vamos manter null se realmente não sabemos, ou true para permitir fluxo se necessário?
+             // O usuário quer diferenciar.
+             isC = false; // Assumir carteira se não conseguimos provar que é contrato e não tem dados de token
+        }
+    }
     try {
       log("core-results", { sn, info });
     } catch (_) {}
@@ -677,8 +779,12 @@ function initContainer(container) {
         log("error", e);
       } catch {}
     }
+    try {
+      sessionStorage.setItem("tokencafe_last_chain", String(chainIdRaw));
+    } catch (_) {}
     // Completar saldos antes de emitir, para uma única emissão consolidada
     const extra = {
+      isContract: isC,
       tokenSymbol: (sn && sn.symbol ? sn.symbol : null) || symbolFallback || null,
       tokenName: (sn && sn.name ? sn.name : null) || nameFallback || null,
       tokenDecimals: (info && typeof info.decimals === "number" ? info.decimals : null) ?? (typeof decimalsFallback === "number" ? decimalsFallback : null),
@@ -686,6 +792,10 @@ function initContainer(container) {
       contractTokenBalance: (info && info.tokenBalance ? info.tokenBalance : null) || tokenBalFallback || null,
       contractNativeBalance: info && info.nativeBalance ? info.nativeBalance : null,
     };
+    try {
+      const isToken = !!(extra.isContract && (extra.tokenSymbol || extra.tokenDecimals != null));
+      extra.assetType = !extra.isContract ? "wallet" : isToken ? "token" : "contract";
+    } catch (_) {}
     try {
       const rpc = getPrimaryRpc(chainIdRaw);
       let userAddr = null;
@@ -767,19 +877,25 @@ function initContainer(container) {
       // Wallet Status Logic
       if (vWalletStatus) {
          if (extra.walletBalance && BigInt(extra.walletBalance) > 0n) {
-             vWalletStatus.innerHTML = `<span class="text-success"><i class="bi bi-wallet2 me-1"></i>Encontrado na carteira (Saldo: ${formatUnits(extra.walletBalance, extra.tokenDecimals)})</span>`;
+             const val = formatUnits(extra.walletBalance, extra.tokenDecimals);
+             vWalletStatus.innerHTML = `<span class="text-success"><i class="bi bi-wallet2 me-1"></i>Encontrado na carteira (Saldo: ${val})</span>`;
          } else if (extra.walletBalance === "0" || extra.walletBalance === 0n || extra.walletBalance === "0x0") {
              vWalletStatus.innerHTML = '<span class="text-secondary"><i class="bi bi-wallet me-1"></i>Não encontrado na carteira conectada</span>';
          } else {
              vWalletStatus.innerHTML = '<span class="text-muted"><i class="bi bi-dash-circle me-1"></i>Carteira não conectada ou verificação falhou</span>';
          }
       }
+      try {
+        sessionStorage.setItem("tokencafe_last_decimals", String(extra.tokenDecimals != null ? extra.tokenDecimals : 18));
+      } catch (_) {}
 
       if (vStatus) {
-        if (extra.tokenSymbol || extra.tokenDecimals != null) {
-          vStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Ativo</span>';
+        if (!extra.isContract) {
+           vStatus.innerHTML = '<span class="text-info"><i class="bi bi-person-badge me-1"></i>Carteira (EOA)</span>';
+        } else if (extra.tokenSymbol || extra.tokenDecimals != null) {
+          vStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Token (ERC-20)</span>';
         } else {
-          vStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Desconhecido</span>';
+          vStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Carteira (EOA) encontrada</span>';
         }
       }
       try {
@@ -804,7 +920,7 @@ function initContainer(container) {
       const card = container.querySelector("#selected-contract-info") || document.querySelector("#selected-contract-info");
       if (card) card.classList.remove("d-none");
       try {
-        // updateVerificationBadge(container, chainIdRaw, addrRaw);
+        updateVerificationBadge(container, chainIdRaw, addrRaw);
       } catch (e) {
         try {
           log("error", e);
@@ -821,7 +937,11 @@ function initContainer(container) {
       if (infoBtn) infoBtn.disabled = true;
       const net = networkManager?.getNetworkById?.(parseInt(chainIdRaw, 10));
       const chainName = net?.name || "";
-      const msg = chainName ? `Contrato não pertence à rede selecionada (${chainName}, chainId ${chainIdRaw}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
+      let msg = chainName ? `Contrato não pertence à rede selecionada (${chainName}, chainId ${chainIdRaw}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
+      
+      if (!extra.isContract) {
+         msg = "Endereço localizado é uma Carteira Pessoal (EOA), não um contrato.";
+      }
       showStatus(msg);
       try {
         const evtErr = new CustomEvent("form:error", { detail: { message: msg, container }, bubbles: true });
@@ -832,27 +952,51 @@ function initContainer(container) {
       } catch (_) {}
     } else {
       if (infoBtn) infoBtn.disabled = false;
-      showStatus("");
-      try {
-        const evtOk = new CustomEvent("form:success", { detail: { message: "Contrato encontrado na rede selecionada.", container }, bubbles: true });
-        document.dispatchEvent(evtOk);
-      } catch (_) {}
+      // Se for EOA (não contrato), emitir notificação de alerta se disponível
+      if (!extra.isContract) {
+         if (window.notify) {
+             window.notify("O endereço informado é uma Carteira Pessoal (EOA), não um contrato. A verificação pode não se aplicar.", "warning", { timeout: 8000 });
+         } else {
+             // Fallback
+             showStatus("Atenção: Endereço de Carteira Pessoal (não é um contrato).");
+         }
+      } else {
+         showStatus("");
+      }
+        try {
+          const isToken = !!(extra.isContract && (extra.tokenSymbol || extra.tokenDecimals != null));
+          const successMsg = !extra.isContract
+            ? "Endereço de Carteira (EOA) encontrado."
+            : isToken
+              ? "Token (ERC-20) encontrado na rede selecionada."
+              : "Carteira (EOA) encontrada na rede selecionada.";
+          const evtOk = new CustomEvent("form:success", { detail: { message: successMsg, container }, bubbles: true });
+          document.dispatchEvent(evtOk);
+        } catch (_) {}
     }
     try {
       const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
       const btnEl = container.querySelector("#contractSearchBtn") || document.getElementById("contractSearchBtn");
       if (sp) sp.classList.add("d-none");
-      // MUDANÇA: Manter desabilitado se sucesso, para evitar duplo clique. Re-habilitar apenas se erro/sem dados ou via Limpar.
+      // MUDANÇA: Se sucesso, mudar botão para modo limpar (X)
       if (!hasData) {
-          if (btnEl) btnEl.disabled = false;
-      } else {
-          // Sucesso: manter desabilitado (o usuário deve usar Limpar para nova busca)
-          // Mas garantimos que se for "submit", o form não reenvie.
           if (btnEl) {
-              btnEl.disabled = true;
-              // Opcional: mudar ícone para check
+             btnEl.disabled = false;
+             btnEl.removeAttribute("data-mode");
+             btnEl.classList.remove("btn-secondary", "btn-primary");
+             btnEl.classList.add("btn-outline-primary");
+             const icon = btnEl.querySelector("i");
+             if (icon) icon.className = "bi bi-search";
+          }
+      } else {
+          // Sucesso: habilitar botão para limpar
+          if (btnEl) {
+              btnEl.disabled = false;
+              btnEl.setAttribute("data-mode", "clear");
+              btnEl.classList.remove("btn-primary", "btn-outline-primary");
+              btnEl.classList.add("btn-secondary");
               const icon = btnEl.querySelector("i");
-              if (icon) icon.className = "bi bi-check-circle";
+              if (icon) icon.className = "bi bi-x-lg";
           }
       }
     } catch (e) {
@@ -872,14 +1016,29 @@ function initContainer(container) {
     if (btn && t !== "submit") {
       let _lastClick = 0;
       let _timer = null;
-      btn.addEventListener("click", () => {
-        const now = Date.now();
-        if (now - _lastClick < 800) return;
-        _lastClick = now;
-        if (_timer) clearTimeout(_timer);
-        _timer = setTimeout(() => {
-          runSearch();
-        }, 150);
+      btn.addEventListener("click", (e) => {
+        try {
+          if (btn.getAttribute("data-mode") === "clear") {
+            e.preventDefault();
+            e.stopPropagation();
+            clearVisualState();
+            const addrField = container.querySelector("#f_address") || container.querySelector("#tokenAddress") || document.getElementById("f_address") || document.getElementById("tokenAddress");
+             if (addrField) {
+                 addrField.value = "";
+                 addrField.dispatchEvent(new Event('input'));
+             }
+            return;
+          }
+          const now = Date.now();
+          if (now - _lastClick < 800) return;
+          _lastClick = now;
+          if (_timer) clearTimeout(_timer);
+          _timer = setTimeout(() => {
+            runSearch();
+          }, 150);
+        } catch (e) {
+          try { log("error", e); } catch {}
+        }
       });
     }
   } catch (e) {
@@ -888,12 +1047,36 @@ function initContainer(container) {
     } catch {}
   }
   try {
+    document.addEventListener("wallet:chainChanged", () => refreshWalletStatus());
+    document.addEventListener("wallet:connected", () => refreshWalletStatus());
+    document.addEventListener("wallet:accountChanged", () => refreshWalletStatus());
+    document.addEventListener("wallet:disconnected", () => refreshWalletStatus());
+    container.addEventListener("network:switchResult", () => refreshWalletStatus());
+    if (window.ethereum && typeof window.ethereum.on === "function") {
+      window.ethereum.on("chainChanged", () => refreshWalletStatus());
+      window.ethereum.on("accountsChanged", () => refreshWalletStatus());
+    }
+  } catch (_) {}
+  try {
     const form = container.querySelector("#tokenForm");
     if (form) {
       form.addEventListener("submit", (e) => {
         try {
           e.preventDefault();
         } catch (_) {}
+        const btn = container.querySelector("#contractSearchBtn") || document.getElementById("contractSearchBtn");
+        if (btn && btn.getAttribute("data-mode") === "clear") {
+            // Se estiver em modo limpar, não faz nada além de garantir estado limpo (já tratado no click)
+            // Se o usuário apertar Enter, o click pode não ter disparado se o foco não estiver no botão
+            // Então replicamos a lógica de limpeza aqui.
+            clearVisualState();
+            const addrField = container.querySelector("#f_address") || container.querySelector("#tokenAddress") || document.getElementById("f_address") || document.getElementById("tokenAddress");
+             if (addrField) {
+                 addrField.value = "";
+                 addrField.dispatchEvent(new Event('input'));
+             }
+            return;
+        }
         runSearch();
       });
     }

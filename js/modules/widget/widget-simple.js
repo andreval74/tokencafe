@@ -668,34 +668,10 @@ class WidgetSimple {
       } else {
           this.showError(error.message);
       }
-    } finally {
-      this.hideLoading();
-    }
+  } finally {
+    this.hideLoading();
   }
-    if (price) price.value = "0.01";
-    
-    const min = document.getElementById("minPurchase");
-    if (min) min.value = "0.01";
-
-    const max = document.getElementById("maxPurchase");
-    if (max) max.value = "10";
-    
-    const btnText = document.getElementById("buyButtonText");
-    if (btnText) btnText.value = "Comprar Tokens";
-
-    // Clear validation status
-    const validationStatus = document.getElementById("validationStatus");
-    if (validationStatus) validationStatus.innerHTML = "";
-
-    // Reset preview
-    this.showPreview();
-    
-    if (window.showFormSuccess) {
-      window.showFormSuccess("Formulário limpo com sucesso!");
-    } else {
-      this.showSuccess("Formulário limpo com sucesso!");
-    }
-  }
+}
 
   /**
    * Define o modo somente leitura para campos críticos
