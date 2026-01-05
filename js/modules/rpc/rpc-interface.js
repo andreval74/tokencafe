@@ -759,7 +759,9 @@ class RPCInterface {
   }
 
   hideMessage(type) {
-    try { void type; } catch (_) {}
+    try {
+      void type;
+    } catch (_) {}
   }
 
   /**

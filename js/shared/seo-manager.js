@@ -14,11 +14,7 @@ class SEOManager {
    */
   async loadStructuredData() {
     try {
-      const candidatePaths = [
-        this.structuredDataPath,
-        "../shared/data/structured-data.json",
-        "../../shared/data/structured-data.json",
-      ];
+      const candidatePaths = [this.structuredDataPath, "../shared/data/structured-data.json", "../../shared/data/structured-data.json"];
       let structuredData = null;
       for (const p of candidatePaths) {
         try {

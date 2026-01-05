@@ -328,7 +328,9 @@ export class NetworkManager {
 
     const sanitize = (u) => {
       try {
-        const s = String(u || "").replace(/[`'\"]/g, "").trim();
+        const s = String(u || "")
+          .replace(/[`'\"]/g, "")
+          .trim();
         return s;
       } catch (_) {
         return "";

@@ -266,7 +266,9 @@ function initContainer(container) {
 
   if (clearBtn) {
     clearBtn.addEventListener("click", (e) => {
-      try { e.preventDefault(); } catch (_) {}
+      try {
+        e.preventDefault();
+      } catch (_) {}
       input.value = "";
       hideList();
       clearState();

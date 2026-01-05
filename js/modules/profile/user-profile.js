@@ -177,7 +177,8 @@ class UserProfle {
         window.copyToClipboard(this.userData.address);
         this.showNotfcaton("Endereço copiado!", "success");
       } else {
-        navigator.clipboard.writeText(this.userData.address)
+        navigator.clipboard
+          .writeText(this.userData.address)
           .then(() => this.showNotfcaton("Endereço copiado!", "success"))
           .catch(() => this.showNotfcaton("Erro ao copiar", "error"));
       }
@@ -618,7 +619,8 @@ class UserProfle {
       this.showNotfcaton("Link copiado!", "success");
     } else {
       // Fallback para copiar URL
-      navigator.clipboard.writeText(profleUrl)
+      navigator.clipboard
+        .writeText(profleUrl)
         .then(() => this.showNotfcaton("Link copiado!", "success"))
         .catch(() => this.showNotfcaton("Erro ao copiar", "error"));
     }
@@ -775,10 +777,10 @@ class UserProfle {
   showNotfcaton(message, type = "info") {
     // Integração com sistema global
     if (window.notify) {
-        window.notify(message, type);
-        return;
+      window.notify(message, type);
+      return;
     }
-    
+
     // Fallback simples
     const toast = document.createElement("div");
     toast.className = `toast align-items-center text-white bg-${type === "error" ? "danger" : "success"} border-0 position-fixed bottom-0 end-0 m-3`;
@@ -792,16 +794,16 @@ class UserProfle {
       </div>
     `;
     document.body.appendChild(toast);
-    
-    if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
-        toast.addEventListener("hidden.bs.toast", () => {
-          document.body.removeChild(toast);
-        });
+
+    if (typeof bootstrap !== "undefined" && bootstrap.Toast) {
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+      toast.addEventListener("hidden.bs.toast", () => {
+        document.body.removeChild(toast);
+      });
     } else {
-         toast.style.display = 'block';
-         setTimeout(() => toast.remove(), 3000);
+      toast.style.display = "block";
+      setTimeout(() => toast.remove(), 3000);
     }
   }
 

@@ -149,7 +149,9 @@ function updateVanityVisibility() {
 function readForm() {
   state.form.group = $("#contractGroup").value;
   state.form.token.name = String($("#tokenName").value || "").replace(/\s+$/u, "");
-  state.form.token.symbol = String($("#tokenSymbol").value || "").replace(/\s+$/u, "").toUpperCase();
+  state.form.token.symbol = String($("#tokenSymbol").value || "")
+    .replace(/\s+$/u, "")
+    .toUpperCase();
   state.form.token.decimals = parseInt($("#tokenDecimals").value || "18", 10);
   {
     const raw = String($("#initialSupply").value || "").replace(/\s+$/u, "");
@@ -223,7 +225,7 @@ function validateForm() {
   }
   // Validação de supply como string/BigInt
   if (!/^\d+$/.test(state.form.token.initialSupply)) {
-     errors.push("Supply inicial deve conter apenas números.");
+    errors.push("Supply inicial deve conter apenas números.");
   }
 
   // Venda quando aplicável (entradas decimais)
@@ -521,8 +523,6 @@ function sanitizeContractName(rawName) {
     return "Token";
   }
 }
-
-
 
 // V2: fonte ERC-20 corrigida para fallback de compilação
 function generateTokenSourceV2(name, symbol, decimals, totalSupplyInt) {
@@ -947,31 +947,31 @@ async function deployPlaceholder() {
 
       // Show success modal
       if (window.showVerificationResultModal) {
-          window.showVerificationResultModal(
-            true,
-            "Deploy Concluído com Sucesso!",
-            `<div class="text-center">
+        window.showVerificationResultModal(
+          true,
+          "Deploy Concluído com Sucesso!",
+          `<div class="text-center">
                <div class="mb-3"><i class="bi bi-rocket-takeoff-fill text-success" style="font-size: 3rem;"></i></div>
                <p>O contrato foi implantado com sucesso!</p>
                <p class="text-muted small">Endereço: ${state.deployed.address}</p>
              </div>`,
-            explorerUrl
-          );
+          explorerUrl,
+        );
       }
 
       // Broadcast contract:found to other modules
       try {
-          const eventDetail = { 
-            contract: {
-                chainId: chainId, 
-                contractAddress: state.deployed.address,
-                address: state.deployed.address,
-                tokenSymbol: state.form.token.symbol,
-                status: 'deployed',
-                link: explorerUrl
-            }
-          };
-          document.dispatchEvent(new CustomEvent('contract:found', { detail: eventDetail }));
+        const eventDetail = {
+          contract: {
+            chainId: chainId,
+            contractAddress: state.deployed.address,
+            address: state.deployed.address,
+            tokenSymbol: state.form.token.symbol,
+            status: "deployed",
+            link: explorerUrl,
+          },
+        };
+        document.dispatchEvent(new CustomEvent("contract:found", { detail: eventDetail }));
       } catch (_) {}
 
       // Verificação privada on-chain
@@ -1328,8 +1328,8 @@ async function deployPlaceholder() {
       }
     } catch (_) {}
 
-  const unusedAutoToggle = document.getElementById("autoVerifyToggle");
-  const autoEnabled = true;
+    const unusedAutoToggle = document.getElementById("autoVerifyToggle");
+    const autoEnabled = true;
     if (autoEnabled) {
       const payload = buildVerifyPayloadFromState();
       if (payload) await runVerifyDirect(payload);
@@ -1426,9 +1426,9 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
     const link = document.getElementById("erc20VerifyLink");
     const addrVerify = state.deployed?.address;
     const chainIdVerify = state.form?.network?.chainId;
-    
+
     // Atualiza estado de verificação
-    const isVerified = (_bscOk === true) || (_sourOk === true) || (_privOk === true);
+    const isVerified = _bscOk === true || _sourOk === true || _privOk === true;
     if (isVerified && state.deployed) {
       state.deployed.verified = true;
     }
@@ -1438,20 +1438,19 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
     if (link) {
       link.href = url || "#";
       const clickable = !!(addrVerify && chainIdVerify);
-      
+
       if (state.deployed?.verified) {
-         link.classList.add("disabled");
-         link.classList.remove("btn-outline-warning");
-         link.classList.add("btn-success");
-         link.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
-         link.title = "Contrato verificado com sucesso";
+        link.classList.add("disabled");
+        link.classList.remove("btn-outline-warning");
+        link.classList.add("btn-success");
+        link.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
+        link.title = "Contrato verificado com sucesso";
       } else {
         link.classList.toggle("disabled", !clickable);
         link.classList.remove("btn-success");
         link.classList.add("btn-outline-warning");
         try {
           const hasMeta = !!state?.compilation?.metadata;
-          const netName = state.form?.network?.name || (chainIdVerify ? getNetworkNameByChainId(chainIdVerify) : "-") || "-";
           link.innerHTML = `<i class="bi bi-shield-check me-1"></i>${hasMeta ? "Verificar automaticamente" : "Abrir verificação"}`;
           link.title = hasMeta ? "Verificação automática via Sourcify" : "Abrir verificador do explorer da rede";
           if (window.bootstrap?.Tooltip) new bootstrap.Tooltip(link);
@@ -1461,24 +1460,10 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
   } catch (_) {}
 }
 
-function getNetworkNameByChainId(chainId) {
-  try {
-    const nm = window.networkManager;
-    const net = nm?.getNetworkById?.(chainId);
-    return net?.name || `chainId ${chainId}`;
-  } catch (_) {
-    return `chainId ${chainId}`;
-  }
-}
+// Removido: getNetworkNameByChainId (não utilizado)
 
 let opTimer = null;
 let opStartedAt = 0;
-function setStatusContainerVisible() {
-  try {
-    const c = document.getElementById("erc20-details");
-    if (c) c.classList.remove("d-none");
-  } catch (_) {}
-}
 function formatElapsed(ms) {
   try {
     const total = Math.floor(ms / 1000);
@@ -1573,85 +1558,8 @@ async function initWalletIfConnected() {
   }
 }
 
-function setupClearButton() {
-  const btn = document.getElementById("btnClearForm");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    // Reset state
-    state.form.token.name = "";
-    state.form.token.symbol = "";
-    state.form.token.decimals = 18;
-    state.form.token.initialSupply = "1000000";
-    state.form.sale.priceDec = "0.001";
-    state.form.sale.minDec = "0.005";
-    state.form.sale.maxDec = "1.0";
-    state.form.sale.capUnits = 0n;
-    state.form.sale.payoutWallet = "";
-    state.form.vanity.mode = "none";
-    state.form.vanity.custom = "";
-    state.validated = false;
-    state.deployed.address = null;
-    state.deployed.transactionHash = null;
-    state.compilation = null;
-
-    // Reset inputs
-    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-    setVal("tokenName", "");
-    setVal("tokenSymbol", "");
-    setVal("tokenDecimals", "18");
-    setVal("initialSupply", "1000000");
-    setVal("tokenPriceDec", "0.001");
-    setVal("minPurchaseDec", "0.005");
-    setVal("maxPurchaseDec", "1.0");
-    setVal("perWalletCap", "0");
-    setVal("payoutWallet", "");
-    setVal("vanityMode", "none");
-    setVal("vanityCustom", "");
-    
-    // Reset invalid feedbacks
-    document.querySelectorAll(".is-invalid").forEach(el => clearFieldInvalid(el));
-    
-    // Hide sections
-    const filesSection = document.getElementById("files-section");
-    if (filesSection) filesSection.classList.add("d-none");
-    
-    const erc20Details = document.getElementById("erc20-details");
-    if (erc20Details) erc20Details.classList.add("d-none");
-    
-    const openVerifica = document.getElementById("openVerificaContainer");
-    if (openVerifica) openVerifica.classList.add("d-none");
-
-    // Reset buttons
-    const btnCompile = document.getElementById("btnCompile");
-    if (btnCompile) {
-      btnCompile.disabled = false;
-      btnCompile.classList.remove("btn-outline-success", "btn-used-error");
-      btnCompile.classList.add("btn-outline-primary");
-      const tx = document.getElementById("compileBtnText");
-      if (tx) tx.textContent = "Compilar";
-    }
-    
-    const btnDeploy = getDeployButton();
-    if (btnDeploy) {
-      btnDeploy.disabled = true;
-      btnDeploy.classList.remove("btn-used-success", "btn-used-error");
-      btnDeploy.classList.add("btn-outline-success");
-    }
-
-    // Broadcast clear event to other modules
-    try {
-        document.dispatchEvent(new CustomEvent('contract:clear'));
-        const ns = document.querySelector('[data-component*="network-search.html"]');
-        if (ns) ns.dispatchEvent(new CustomEvent("network:reset"));
-    } catch (_) {}
-
-    if (window.showFormSuccess) {
-      window.showFormSuccess("Formulário limpo com sucesso!");
-    } else {
-      log("Formulário limpo.");
-    }
-  });
-}
+// Removido: setupClearButton (não utilizado; limpeza usa btnClearAll global)
+// Removido: setupClearButton (não utilizado; limpeza usa btnClearAll global)
 
 async function bindUI() {
   // setupClearButton removido - usa btnClearAll global
@@ -1756,9 +1664,7 @@ async function bindUI() {
           if (Array.isArray(net?.rpc) && net.rpc.length) rpcParam = net.rpc[0];
           else if (typeof net?.rpc === "string" && net.rpc) rpcParam = net.rpc;
           else if (cid) rpcParam = getFallbackRpcByChainId(cid);
-          const qs = (addr && cid)
-            ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}`
-            : "";
+          const qs = addr && cid ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}` : "";
           if (lc) lc.classList.remove("d-none");
           if (lb) {
             lb.classList.toggle("disabled", !qs);
@@ -1820,9 +1726,7 @@ async function bindUI() {
             if (Array.isArray(net?.rpc) && net.rpc.length) rpcParam = net.rpc[0];
             else if (typeof net?.rpc === "string" && net.rpc) rpcParam = net.rpc;
             else if (cid) rpcParam = getFallbackRpcByChainId(cid);
-            const qs = (addr && cid)
-              ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}`
-              : "";
+            const qs = addr && cid ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}` : "";
             if (lc) lc.classList.remove("d-none");
             if (lb) {
               lb.classList.toggle("disabled", !qs);
@@ -2070,7 +1974,6 @@ async function bindUI() {
     btnSaveFile.addEventListener("click", () => {
       downloadSelectedFile();
     });
-
 
   function buildRecipe() {
     const net = state.form?.network || {};
@@ -2561,20 +2464,16 @@ window.addEventListener("contract:verified", (evt) => {
   try {
     const { address, link } = evt.detail || {};
     // Se o endereço bater com o atual implantado
-    if (
-      state.deployed?.address && 
-      address && 
-      state.deployed.address.toLowerCase() === address.toLowerCase()
-    ) {
+    if (state.deployed?.address && address && state.deployed.address.toLowerCase() === address.toLowerCase()) {
       log(`Evento externo de verificação recebido para ${address}`);
       state.deployed.verified = true;
-      
+
       // Atualizar badges/links
-      updateVerificationBadges({ 
-        bscUrl: link, 
-        _bscOk: true 
+      updateVerificationBadges({
+        bscUrl: link,
+        _bscOk: true,
       });
-      
+
       // Atualizar botões de verificação
       const launch = document.getElementById("erc20VerifyLaunch");
       if (launch) {
@@ -2583,19 +2482,19 @@ window.addEventListener("contract:verified", (evt) => {
         launch.classList.remove("btn-outline-warning");
         launch.classList.add("btn-success");
       }
-      
+
       const vLink = document.getElementById("erc20VerifyLink");
       if (vLink) {
-         vLink.classList.add("disabled");
-         vLink.classList.remove("btn-outline-warning");
-         vLink.classList.add("btn-success");
-         vLink.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
+        vLink.classList.add("disabled");
+        vLink.classList.remove("btn-outline-warning");
+        vLink.classList.add("btn-success");
+        vLink.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
       }
 
       // Atualizar modal de sucesso se estivermos na tela
       if (window.showVerificationResultModal) {
-         // Não mostramos modal intrusivo, apenas atualizamos a UI
-         // window.showVerificationResultModal(true, "Contrato verificado via módulo externo!", link);
+        // Não mostramos modal intrusivo, apenas atualizamos a UI
+        // window.showVerificationResultModal(true, "Contrato verificado via módulo externo!", link);
       }
     }
   } catch (err) {

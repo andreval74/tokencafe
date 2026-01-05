@@ -45,17 +45,17 @@
             e.preventDefault();
             try {
               await window.walletConnector?.connect?.("metamask");
-          } catch (err) {
-            console.warn("tools-header: falha ao conectar", err);
-            try {
-              const container = document.querySelector(".container, .container-fluid") || document.body;
-              if (typeof window.notify === "function") {
-                window.notify("Erro ao conectar: " + (err?.message || err), "error", { container });
-              } else {
-                console.error("Erro ao conectar: " + (err?.message || err));
-              }
-            } catch (_) {}
-          }
+            } catch (err) {
+              console.warn("tools-header: falha ao conectar", err);
+              try {
+                const container = document.querySelector(".container, .container-fluid") || document.body;
+                if (typeof window.notify === "function") {
+                  window.notify("Erro ao conectar: " + (err?.message || err), "error", { container });
+                } else {
+                  console.error("Erro ao conectar: " + (err?.message || err));
+                }
+              } catch (_) {}
+            }
           },
           { capture: true },
         );

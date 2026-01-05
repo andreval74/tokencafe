@@ -5,7 +5,6 @@ const statusEl = document.getElementById("verifyStatus");
 const runBtn = document.getElementById("runVerify");
 const spinner = document.getElementById("verifySpinner");
 const btnText = document.getElementById("verifyBtnText");
- 
 
 (function () {
   try {
@@ -58,7 +57,7 @@ const btnText = document.getElementById("verifyBtnText");
   });
 })();
 
-  async function ensureApiBase() {
+async function ensureApiBase() {
   try {
     const el = document.getElementById("apiHelp");
     let base = window.TOKENCAFE_API_BASE || window.localStorage?.getItem("api_base") || null;
@@ -132,9 +131,6 @@ function getPayload() {
   }
 }
 
- 
- 
-
 function setGlobalData(p) {
   try {
     const parsed = p?.metadata ? JSON.parse(p.metadata) : null;
@@ -157,7 +153,7 @@ function fillVisibleForm(p) {
     set("f_contractName", p?.contractName || "");
     set("f_sourceCode", p?.sourceCode || "");
     set("f_metadata", p?.metadata || "");
-    
+
     setGlobalData(p);
     const t = (id, v) => {
       const el = document.getElementById(id);
@@ -211,7 +207,9 @@ async function ensureVerificationData(p) {
     const typedKey = apiKeyInput ? String(apiKeyInput.value || "") : "";
     if (typedKey) {
       out.apiKey = typedKey;
-      try { window.localStorage && window.localStorage.setItem("bscscan_api_key", typedKey); } catch (_) {}
+      try {
+        window.localStorage && window.localStorage.setItem("bscscan_api_key", typedKey);
+      } catch (_) {}
     }
   } catch (_) {}
   try {
@@ -246,8 +244,8 @@ async function ensureVerificationData(p) {
     out.compilerVersion = out.compilerVersion || "v0.8.30+commit.73712a01";
   }
   // Ensure version starts with 'v' if it looks like a version number
-  if (out.compilerVersion && !out.compilerVersion.startsWith('v') && /^[0-9]/.test(out.compilerVersion)) {
-    out.compilerVersion = 'v' + out.compilerVersion;
+  if (out.compilerVersion && !out.compilerVersion.startsWith("v") && /^[0-9]/.test(out.compilerVersion)) {
+    out.compilerVersion = "v" + out.compilerVersion;
   }
   out.codeformat = out.codeformat || "solidity-single-file";
   out.optimizationUsed = out.optimizationUsed ?? 1;
@@ -260,28 +258,28 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
     const now = Date.now();
     if (!force && window.__lastVerifiedCheck && now - window.__lastVerifiedCheck < 1000) return;
     window.__lastVerifiedCheck = now;
-    
+
     const addr = optAddr || document.getElementById("f_address")?.value || "";
     const nsEl = document.getElementById("networkSearch");
     const cid = optChainId ? parseInt(optChainId, 10) : parseInt(document.getElementById("f_chainId")?.value || nsEl?.dataset?.chainId || "0", 10);
-    
+
     // Elements controlled by verification status
     // codeSourceSection already declared above; reuse existing reference
     const actionButtons = document.getElementById("actionButtons");
-    
+
     // Tenta encontrar o badge de várias formas
     let badge = document.getElementById("verifyStatusBadge");
     if (!badge) {
-        badge = document.querySelector("#verifyStatusBadge");
+      badge = document.querySelector("#verifyStatusBadge");
     }
     if (!badge) {
-        const comp = document.querySelector('[data-component*="contract-search.html"]');
-        if (comp) badge = comp.querySelector("#verifyStatusBadge");
+      const comp = document.querySelector('[data-component*="contract-search.html"]');
+      if (comp) badge = comp.querySelector("#verifyStatusBadge");
     }
     if (!badge) {
-        // Tenta encontrar pelo container de badges
-        const badges = document.getElementById("csBadges");
-        if (badges) badge = badges.querySelector("#verifyStatusBadge");
+      // Tenta encontrar pelo container de badges
+      const badges = document.getElementById("csBadges");
+      if (badges) badge = badges.querySelector("#verifyStatusBadge");
     }
 
     if (!addr || !cid) {
@@ -331,23 +329,23 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
         badge.textContent = "Verificado";
         badge.className = "badge bg-success";
         badge.classList.remove("d-none");
-        
+
         // Hide form and action buttons (since verified)
         if (codeSourceSection) codeSourceSection.classList.add("d-none");
         if (actionButtons) actionButtons.classList.add("d-none");
         if (btnVerifyCol) btnVerifyCol.classList.add("d-none");
-        
+
         // Disable automatic verification button permanently
         const runBtn = document.getElementById("runVerifyBtn");
         if (runBtn) {
-            runBtn.disabled = true;
-            runBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Verificado';
+          runBtn.disabled = true;
+          runBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Verificado';
         }
       } else {
         badge.textContent = "Não verificado";
         badge.className = "badge bg-danger";
         badge.classList.remove("d-none");
-        
+
         // Show form and verify button
         if (codeSourceSection) codeSourceSection.classList.remove("d-none");
         if (actionButtons) actionButtons.classList.remove("d-none");
@@ -356,13 +354,13 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
     } else {
       // Se não encontrou o badge, tenta forçar a exibição do form se não verificado
       if (!isVerified) {
-         if (codeSourceSection) codeSourceSection.classList.remove("d-none");
-         if (actionButtons) actionButtons.classList.remove("d-none");
-         if (btnVerifyCol) btnVerifyCol.classList.remove("d-none");
+        if (codeSourceSection) codeSourceSection.classList.remove("d-none");
+        if (actionButtons) actionButtons.classList.remove("d-none");
+        if (btnVerifyCol) btnVerifyCol.classList.remove("d-none");
       }
     }
     if (btnText) btnText.textContent = isVerified ? "Já verificado" : "Verificar automaticamente";
-    
+
     // Texto do explorer status removido conforme solicitação
     const txtEl = document.getElementById("explorerStatusText");
     if (txtEl) txtEl.classList.add("d-none");
@@ -383,7 +381,7 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
       }
     } catch (_) {}
   } catch (_) {}
-}
+};
 
 async function runVerify() {
   try {
@@ -421,11 +419,11 @@ async function runVerify() {
   const explorerUrl = getExplorerContractUrl(p.contractAddress, p.chainId);
   logStatus("Verificando...");
   const res = await runVerifyDirect(p);
-  
+
   if (res?.success) {
     logStatus("Verificado no Explorer com sucesso!");
     const link = res?.link || explorerUrl;
-    
+
     // Disable button on success
     try {
       if (runBtn) {
@@ -446,22 +444,22 @@ async function runVerify() {
          <p>O contrato foi verificado e publicado no explorer.</p>
          <p class="text-muted small">Agora qualquer pessoa pode ler o código fonte e interagir com segurança.</p>
        </div>`,
-      link
+      link,
     );
 
     // Broadcast verification success
     try {
-      const eventDetail = { 
+      const eventDetail = {
         contract: {
-            chainId: p.chainId, 
-            contractAddress: p.contractAddress, // standard field
-            address: p.contractAddress, // alias
-            tokenSymbol: p.contractName || 'Token', // Fallback
-            status: 'verified', 
-            link 
-        }
+          chainId: p.chainId,
+          contractAddress: p.contractAddress, // standard field
+          address: p.contractAddress, // alias
+          tokenSymbol: p.contractName || "Token", // Fallback
+          status: "verified",
+          link,
+        },
       };
-      document.dispatchEvent(new CustomEvent('contract:verified', { detail: eventDetail }));
+      document.dispatchEvent(new CustomEvent("contract:verified", { detail: eventDetail }));
     } catch (_) {}
 
     try {
@@ -482,13 +480,13 @@ async function runVerify() {
            <p>Faltam arquivos essenciais para verificação.</p>
            <p>Certifique-se de importar o código fonte (.sol) ou o arquivo de metadados (metadata.json).</p>
          </div>`,
-        null
+        null,
       );
     } else {
       const sc = res?.statusCode ? ` (HTTP ${res.statusCode})` : "";
       const errMsg = res?.error || res?.status || "desconhecido";
       logStatus(`Falha/erro${sc}: ${errMsg}.`);
-      
+
       showVerificationResultModal(
         false,
         "Falha na Verificação",
@@ -497,14 +495,14 @@ async function runVerify() {
            <p>Ocorreu um erro ao tentar verificar o contrato.</p>
            <div class="alert alert-secondary mt-3 text-start small font-monospace">${errMsg}</div>
          </div>`,
-        null
+        null,
       );
     }
   }
   try {
     if (runBtn) {
-        runBtn.disabled = false;
-        // Restore original state if needed, but keeping it simple
+      runBtn.disabled = false;
+      // Restore original state if needed, but keeping it simple
     }
     if (spinner) spinner.classList.add("d-none");
     if (btnText) btnText.textContent = "Verificar automaticamente";
@@ -512,8 +510,6 @@ async function runVerify() {
 }
 
 // showVerificationResultModal removed - using global function from base-system.js
-
-
 
 function clearForm() {
   try {
@@ -529,19 +525,19 @@ function clearForm() {
       const el = document.getElementById(id);
       if (el) el.textContent = "-";
     }
-    
+
     // Reset verify button state
     if (runBtn) {
-        runBtn.disabled = false;
-        runBtn.classList.remove("btn-success", "disabled");
-        runBtn.classList.add("btn-outline-success");
-        runBtn.innerHTML = '<span id="verifySpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span><i class="bi bi-shield-check me-1"></i><span id="verifyBtnText">Verificar</span>';
-        
-        // Re-bind references if needed (though they are global/const)
-        // const spinner = document.getElementById("verifySpinner");
-        // const btnText = document.getElementById("verifyBtnText");
+      runBtn.disabled = false;
+      runBtn.classList.remove("btn-success", "disabled");
+      runBtn.classList.add("btn-outline-success");
+      runBtn.innerHTML = '<span id="verifySpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span><i class="bi bi-shield-check me-1"></i><span id="verifyBtnText">Verificar</span>';
+
+      // Re-bind references if needed (though they are global/const)
+      // const spinner = document.getElementById("verifySpinner");
+      // const btnText = document.getElementById("verifyBtnText");
     }
-    
+
     localStorage.removeItem("tokencafe_contract_verify_payload");
     logStatus("Formulário limpo.");
   } catch (_) {}
@@ -568,7 +564,10 @@ async function checkExplorerStatus() {
     const txt = document.getElementById("explorerStatusText");
     const link = document.getElementById("explorerVerifyLink");
     const cUrl = getExplorerContractUrl(addr, cid);
-    if (link) { link.href = cUrl || "#"; link.textContent = cUrl ? "Abrir verificação no explorer" : "-"; }
+    if (link) {
+      link.href = cUrl || "#";
+      link.textContent = cUrl ? "Abrir verificação no explorer" : "-";
+    }
     if (sec) sec.classList.remove("d-none");
     if (txt) txt.textContent = js?.verified ? "Explorer: verificado" : "Explorer: não verificado";
   } catch (_) {}
@@ -607,7 +606,9 @@ function computeReadiness() {
     badge.textContent = txt;
     badge.className = "badge " + cls;
     checkVerifiedStatus();
-    try { safeCheckExplorerStatus(); } catch (_) {}
+    try {
+      safeCheckExplorerStatus();
+    } catch (_) {}
   } catch (_) {}
 }
 
@@ -702,13 +703,13 @@ document.getElementById("pasteSourceBtn")?.addEventListener("click", async (e) =
     if (srcEl) srcEl.value = text;
     const prev = document.getElementById("cardSourcePreview");
     if (prev) prev.textContent = text || "-";
-    
+
     // Tentativa simples de extrair o nome do contrato
     const m = text.match(/contract\s+([A-Za-z0-9_]+)/);
     const cName = m && m[1] ? m[1] : "";
     const cnEl = document.getElementById("f_contractName");
     if (cnEl && cName) cnEl.value = cName;
-    
+
     computeReadiness();
     logStatus("Código colado da área de transferência.");
   } catch (err) {
@@ -726,7 +727,7 @@ document.getElementById("clearSourceBtn")?.addEventListener("click", (e) => {
     if (prev) prev.textContent = "-";
     const cnEl = document.getElementById("f_contractName");
     if (cnEl) cnEl.value = "";
-    
+
     computeReadiness();
     logStatus("Código fonte limpo.");
   } catch (_) {}
@@ -738,12 +739,16 @@ document.getElementById("f_metadata")?.addEventListener("change", updateCompiler
 document.getElementById("f_address")?.addEventListener("input", () => {
   updateOpenContractLink();
   computeReadiness();
-  try { safeCheckExplorerStatus(); } catch (_) {}
+  try {
+    safeCheckExplorerStatus();
+  } catch (_) {}
 });
 document.getElementById("f_chainId")?.addEventListener("input", () => {
   updateOpenContractLink();
   computeReadiness();
-  try { safeCheckExplorerStatus(); } catch (_) {}
+  try {
+    safeCheckExplorerStatus();
+  } catch (_) {}
 });
 
 const nsContainer = document.querySelector('[data-component*="network-search.html"]')?.parentElement || document;
@@ -757,7 +762,7 @@ nsContainer.addEventListener("network:selected", (evt) => {
     if (cidEl) cidEl.value = String(net.chainId);
     const addr = document.getElementById("f_address")?.value || "";
     const cUrl = getExplorerContractUrl(addr, net.chainId);
-    
+
     // Show contract section when network is selected
     const cSec = document.getElementById("contract-section");
     if (cSec) cSec.classList.remove("d-none");
@@ -769,7 +774,9 @@ nsContainer.addEventListener("network:selected", (evt) => {
     }
     // Sem autofill automático por repositório
     computeReadiness();
-    try { safeCheckExplorerStatus(); } catch (_) {}
+    try {
+      safeCheckExplorerStatus();
+    } catch (_) {}
   } catch (_) {}
 });
 nsContainer.addEventListener("network:clear", () => {
@@ -791,7 +798,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     updateCompilerReadOnly();
     computeReadiness();
-    try { safeCheckExplorerStatus(); } catch (_) {}
+    try {
+      safeCheckExplorerStatus();
+    } catch (_) {}
   } catch (_) {}
   // Importação rápida via URL (GitHub/raw): ?src=URL&meta=URL&name=ContractName
   try {
@@ -908,15 +917,21 @@ document.addEventListener("contract:found", (e) => {
 
     // Se for carteira (EOA), limpar campos de verificação mas não emitir alerta duplicado
     if (p.assetType === "wallet" || p.isContract === false) {
-       // Limpar campos de verificação para evitar confusão
-       const vFields = ["f_contractName", "f_sourceCode", "f_metadata", "f_compilerVersion", "f_contractNameFQN"];
-       vFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = ""; });
-       
-       const vTexts = ["cardContractName", "cardFQN", "cardCompilerVersion", "cardSourcePreview", "cardMetadataPreview"];
-       vTexts.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = "-"; });
+      // Limpar campos de verificação para evitar confusão
+      const vFields = ["f_contractName", "f_sourceCode", "f_metadata", "f_compilerVersion", "f_contractNameFQN"];
+      vFields.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
 
-       computeReadiness();
-       return;
+      const vTexts = ["cardContractName", "cardFQN", "cardCompilerVersion", "cardSourcePreview", "cardMetadataPreview"];
+      vTexts.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = "-";
+      });
+
+      computeReadiness();
+      return;
     }
 
     const set = (id, v) => {

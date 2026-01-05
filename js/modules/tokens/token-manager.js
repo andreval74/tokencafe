@@ -48,8 +48,8 @@ class TokenManager {
         this.searchTerm = "";
         this.currentFilter = "all";
         filterButtons.forEach((b) => {
-            if(b.dataset.filter === "all") b.classList.add("active");
-            else b.classList.remove("active");
+          if (b.dataset.filter === "all") b.classList.add("active");
+          else b.classList.remove("active");
         });
         this.filterAndRenderTokens();
       });
@@ -62,8 +62,8 @@ class TokenManager {
         this.searchTerm = "";
         this.currentFilter = "all";
         filterButtons.forEach((b) => {
-            if(b.dataset.filter === "all") b.classList.add("active");
-            else b.classList.remove("active");
+          if (b.dataset.filter === "all") b.classList.add("active");
+          else b.classList.remove("active");
         });
         this.refreshTokens();
         this.showSuccess("Dados limpos e atualizados!");

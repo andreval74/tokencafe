@@ -44,13 +44,15 @@ app.use(express.json({ limit: "10mb" }));
 // DEBUG PATHS
 const pagesPath = path.join(__dirname, "..", "pages");
 console.log("Serving /pages from:", pagesPath);
-const fs = require('fs');
+const fs = require("fs");
 if (fs.existsSync(pagesPath)) {
   console.log("✅ Pages directory exists");
   try {
-     const files = fs.readdirSync(path.join(pagesPath, "modules", "verifica"));
-     console.log("✅ Verified verifica folder content:", files);
-  } catch(e) { console.log("⚠️ Could not list verifica folder:", e.message); }
+    const files = fs.readdirSync(path.join(pagesPath, "modules", "verifica"));
+    console.log("✅ Verified verifica folder content:", files);
+  } catch (e) {
+    console.log("⚠️ Could not list verifica folder:", e.message);
+  }
 } else {
   console.error("❌ Pages directory NOT FOUND at:", pagesPath);
 }
@@ -213,7 +215,7 @@ app.post("/api/compile-only", async (req, res) => {
     // Compilar (não custa gas, só processamento)
     const compiled = await compileContract(sourceCode, contractName, optimization);
 
-  res.json({
+    res.json({
       success: true,
       compilation: {
         abi: compiled.abi,
@@ -406,7 +408,6 @@ function getExplorerApiKeyFromEnv() {
   }
 }
 
-
 app.post("/api/verify-bscscan", async (req, res) => {
   try {
     const p = req.body || {};
@@ -419,8 +420,8 @@ app.post("/api/verify-bscscan", async (req, res) => {
     const optimizationUsed = p.optimizationUsed === 0 || p.optimizationUsed === false ? 0 : 1;
     const runs = parseInt(p.runs || 200, 10);
     const codeformat = p.codeformat || "solidity-single-file";
-  const constructorArguments = (p.constructorArguments || "").replace(/^0x/, "");
-  if (!chainId || !addr || !apiKey || !sourceCode || !contractName || !compilerVersion) return res.status(400).json({ success: false, error: "Campos obrigatórios ausentes" });
+    const constructorArguments = (p.constructorArguments || "").replace(/^0x/, "");
+    if (!chainId || !addr || !apiKey || !sourceCode || !contractName || !compilerVersion) return res.status(400).json({ success: false, error: "Campos obrigatórios ausentes" });
     const explorerUrl = getExplorerVerificationUrl(chainId, addr);
     if (isV2SupportedChain(chainId)) {
       const form = new URLSearchParams();
@@ -445,20 +446,20 @@ app.post("/api/verify-bscscan", async (req, res) => {
       try {
         js = JSON.parse(text);
       } catch (e) {
-         // Fallback to V1 if V2 returns non-JSON (HTML/Error)
-         js = null; 
+        // Fallback to V1 if V2 returns non-JSON (HTML/Error)
+        js = null;
       }
-      
+
       console.log(`[Verify] Chain ${chainId} Response:`, text.substring(0, 200));
 
       const ok = String(js?.status || "") === "1";
       const guid = js?.result || null;
       if (ok) return res.json({ success: true, guid, explorerUrl, message: js?.message });
-      
+
       // If V2 returned a valid response but status is 0, it means submission failed (e.g. compilation error)
       // Since V1 is deprecated for these chains, falling back is useless and masks the error.
       if (js && (js.status === "0" || js.result)) {
-          return res.json({ success: false, explorerUrl, error: js.result || "Verification failed", message: js.message });
+        return res.json({ success: false, explorerUrl, error: js.result || "Verification failed", message: js.message });
       }
     }
     // V1 direto (ou fallback) para redes não suportadas pelo V2
@@ -482,7 +483,7 @@ app.post("/api/verify-bscscan", async (req, res) => {
       // So V1 IS deprecated and rejecting requests.
       // So we MUST use V2.
       // So why did V2 fail before?
-      // Before we had: 
+      // Before we had:
       // isV2SupportedChain(97) = true.
       // URL = "https://api-testnet.bscscan.com/v2/api?chainid=97"
       // Payload had chainid=97.
@@ -492,9 +493,9 @@ app.post("/api/verify-bscscan", async (req, res) => {
       // Endpoints: https://api.bscscan.com/v2/api?chainid=56
       // So for testnet: https://api-testnet.bscscan.com/v2/api?chainid=97
       // We were doing exactly that.
-      
+
       // Let's revert isV2SupportedChain to include 97, but log the response from V2 to see why it wasn't working or if it was falling through.
-      
+
       lf.append("contractaddress", addr);
       lf.append("sourceCode", sourceCode);
       lf.append("codeformat", codeformat);
@@ -572,10 +573,14 @@ app.post("/api/verify-bscscan-status", async (req, res) => {
     let resp = await fetch(url, { method: "GET" });
     let text = await resp.text();
     let js;
-    try { js = JSON.parse(text); } catch(e) { js = null; }
-    
+    try {
+      js = JSON.parse(text);
+    } catch (e) {
+      js = null;
+    }
+
     let ok = String(js?.status || "") === "1";
-    
+
     // Only fallback if V2 failed to return valid JSON (network error or severe API failure)
     // Status "0" is a valid response (Pending or Fail), so we should NOT fallback in that case.
     if (!resp.ok || !js) {
@@ -584,8 +589,12 @@ app.post("/api/verify-bscscan-status", async (req, res) => {
         const url2 = `${legacy}?${qs.toString()}`;
         const r2 = await fetch(url2, { method: "GET" });
         const t2 = await r2.text();
-        let j2; 
-        try { j2 = JSON.parse(t2); } catch(e) { j2 = null; }
+        let j2;
+        try {
+          j2 = JSON.parse(t2);
+        } catch (e) {
+          j2 = null;
+        }
 
         ok = String(j2?.status || "") === "1";
         return res.json({ success: ok, message: j2?.result || j2?.message || js?.result || js?.message || "" });

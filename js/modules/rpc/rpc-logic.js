@@ -186,7 +186,7 @@ async function connectWallet() {
     }
   } catch (error) {
     console.error("Erro ao conectar:", error);
-    window.notify && window.notify(`Erro ao conectar: ${error.message}` , "error");
+    window.notify && window.notify(`Erro ao conectar: ${error.message}`, "error");
   } finally {
     window.hideLoading && hideLoading();
   }
@@ -454,16 +454,16 @@ async function addNetworkToMetaMask() {
 
     // Registrar RPC escolhido como já adicionado para esta rede
     addKnownRpc(networkData.chainId, networkData.rpc[0]);
-    
+
     // Show System Response
     systemResponse.show({
-        title: "Rede Adicionada",
-        subtitle: "A rede foi adicionada com sucesso à sua carteira.",
-        icon: "bi-hdd-network",
-        onClear: () => {
-             // Reload completo para garantir limpeza total e prevenir estados inconsistentes
-             window.location.reload();
-        }
+      title: "Rede Adicionada",
+      subtitle: "A rede foi adicionada com sucesso à sua carteira.",
+      icon: "bi-hdd-network",
+      onClear: () => {
+        // Reload completo para garantir limpeza total e prevenir estados inconsistentes
+        window.location.reload();
+      },
     });
 
     hideAllSections();
@@ -576,7 +576,7 @@ function attemptFocusRetry(selector, tries = 5, delayMs = 150) {
 
 // Limpar dados do formulário e preview
 function clearNetworkForm(options = {}) {
-  const silent = typeof options === "boolean" ? options : (options.silent || false);
+  const silent = typeof options === "boolean" ? options : options.silent || false;
   const clearSearch = options.clearSearch !== false;
 
   if (clearSearch) {
@@ -648,32 +648,45 @@ function clearNetworkForm(options = {}) {
 // Testar se um RPC está online chamando eth_chainId
 async function testRpcUrl(rpcUrl, expectedChainId) {
   const utils = getUtils();
-  const valid = utils && typeof utils.isValidUrl === "function" ? utils.isValidUrl(rpcUrl) : (() => { try { const u = new URL(rpcUrl); return !!u.protocol && (u.protocol === "http:" || u.protocol === "https:"); } catch { return false; } })();
+  const valid =
+    utils && typeof utils.isValidUrl === "function"
+      ? utils.isValidUrl(rpcUrl)
+      : (() => {
+          try {
+            const u = new URL(rpcUrl);
+            return !!u.protocol && (u.protocol === "http:" || u.protocol === "https:");
+          } catch {
+            return false;
+          }
+        })();
   if (!valid) return false;
   try {
-    const resp = utils && typeof utils.fetchWithTimeout === "function" ? await utils.fetchWithTimeout(
-      rpcUrl,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "eth_chainId",
-          params: [],
-          id: 1,
-        }),
-      },
-      5000,
-    ) : await (async () => {
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 5000);
-      try {
-        const r = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", method: "eth_chainId", params: [], id: 1 }), signal: controller.signal });
-        return r;
-      } finally {
-        clearTimeout(id);
-      }
-    })();
+    const resp =
+      utils && typeof utils.fetchWithTimeout === "function"
+        ? await utils.fetchWithTimeout(
+            rpcUrl,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "eth_chainId",
+                params: [],
+                id: 1,
+              }),
+            },
+            5000,
+          )
+        : await (async () => {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 5000);
+            try {
+              const r = await fetch(rpcUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", method: "eth_chainId", params: [], id: 1 }), signal: controller.signal });
+              return r;
+            } finally {
+              clearTimeout(id);
+            }
+          })();
     if (!resp.ok) return false;
     const data = await resp.json().catch(() => null);
     if (!data || (!data.result && !data.chainId)) return false;
@@ -758,7 +771,9 @@ async function renderRpcOptions(network) {
   const section = document.getElementById("rpc-options-section");
   const listEl = document.getElementById("rpc-options-list");
   if (!section || !listEl) return;
-  try { section.classList.remove("d-none"); } catch (_) {}
+  try {
+    section.classList.remove("d-none");
+  } catch (_) {}
 
   // Se há RPC manual preenchido, esconder a lista
   const customVal = String(document.getElementById("customRpcUrl")?.value || "").replace(/\s+$/u, "");

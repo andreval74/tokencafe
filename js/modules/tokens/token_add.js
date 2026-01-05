@@ -323,26 +323,26 @@ function setupCreateFlow() {
     if (hash && !hash.value) hash.value = "0x" + "0".repeat(64);
 
     const contractAddress = addr ? addr.value : "";
-    
+
     // Show System Response
     systemResponse.show({
-        title: "Token Criado!",
-        subtitle: "Seu contrato inteligente foi implantado com sucesso.",
-        icon: "bi-check-circle",
-        content: contractAddress,
-        badge: "Implantado",
-        actions: ['copy', 'add_wallet', 'open', 'clear'],
-        tokenData: {
-            address: contractAddress,
-            symbol: qs("tokenSymbol")?.value || "TKN",
-            decimals: parseInt(qs("decimals")?.value || 18),
-            image: ""
-        },
-        onClear: () => {
-            const clearBtn = document.getElementById("btnClearAll");
-            if (clearBtn) clearBtn.click();
-            if (secVeri) secVeri.classList.add("d-none");
-        }
+      title: "Token Criado!",
+      subtitle: "Seu contrato inteligente foi implantado com sucesso.",
+      icon: "bi-check-circle",
+      content: contractAddress,
+      badge: "Implantado",
+      actions: ["copy", "add_wallet", "open", "clear"],
+      tokenData: {
+        address: contractAddress,
+        symbol: qs("tokenSymbol")?.value || "TKN",
+        decimals: parseInt(qs("decimals")?.value || 18),
+        image: "",
+      },
+      onClear: () => {
+        const clearBtn = document.getElementById("btnClearAll");
+        if (clearBtn) clearBtn.click();
+        if (secVeri) secVeri.classList.add("d-none");
+      },
     });
 
     // Iniciar verificação automática (Sourcify e BscScan)
@@ -392,8 +392,8 @@ function setLink(id, url) {
   }
 }
 
-  // Removido showVerificationResultModal local para usar a global
-  // function showVerificationResultModal(success, message, link) { ... }
+// Removido showVerificationResultModal local para usar a global
+// function showVerificationResultModal(success, message, link) { ... }
 
 async function autoVerifyContract() {
   try {

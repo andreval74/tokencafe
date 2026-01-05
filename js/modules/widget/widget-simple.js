@@ -543,7 +543,8 @@ class WidgetSimple {
         this.showSuccess("Endereço copiado!");
       } else {
         // Fallback
-        navigator.clipboard.writeText(saleContractInput.value)
+        navigator.clipboard
+          .writeText(saleContractInput.value)
           .then(() => this.showSuccess("Endereço copiado!"))
           .catch(() => this.showError("Erro ao copiar"));
       }
@@ -556,7 +557,7 @@ class WidgetSimple {
   handleClearForm() {
     // Reset inputs
     const ids = ["saleContract", "tokenPrice", "minPurchase", "maxPurchase", "receiverWallet", "tokenContract"];
-    ids.forEach(id => {
+    ids.forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = "";
     });
@@ -564,15 +565,15 @@ class WidgetSimple {
     // Reset defaults
     const price = document.getElementById("tokenPrice");
     if (price) price.value = "0.01";
-    
+
     // Clear validation status
     const validationStatus = document.getElementById("validationStatus");
     if (validationStatus) validationStatus.innerHTML = "";
-    
+
     // Reset state
     this.state.contractValidated = false;
     this.state.autoDetectedParams = {};
-    
+
     // Enable buttons
     const validateBtn = document.getElementById("validateBtn");
     if (validateBtn) {
@@ -587,7 +588,7 @@ class WidgetSimple {
 
     // Reset preview
     this.showPreview();
-    
+
     // Notify
     if (window.showFormSuccess) {
       window.showFormSuccess("Formulário limpo com sucesso!");
@@ -596,137 +597,6 @@ class WidgetSimple {
 
   /**
    * Valida o contrato informado
-   */
-  async handleContractValidation() {
-    const saleContractInput = document.getElementById("saleContract");
-    const address = saleContractInput?.value;
-
-    if (!address || !this.isValidEthereumAddress(address)) {
-      this.showError("Endereço de contrato inválido");
-      return;
-    }
-
-    this.showLoading("Validando contrato...");
-    
-    try {
-      // Usar provider conectado ou fallback
-      if (!this.state.provider) {
-         // Tenta provider da carteira se conectado
-         if (window.ethereum) {
-             this.state.provider = new ethers.providers.Web3Provider(window.ethereum);
-         } else {
-             // Fallback para RPC público da rede selecionada
-             const blockchainSelect = document.getElementById("blockchain");
-             const chainId = blockchainSelect?.value || "97";
-             const net = this.supportedNetworks[chainId];
-             if (net) {
-                 this.state.provider = new ethers.providers.JsonRpcProvider(net.rpcUrl);
-             }
-         }
-      }
-
-      const saleInfo = await this.detectSaleContract(address);
-      
-      if (saleInfo) {
-        this.state.contractValidated = true;
-        this.state.autoDetectedParams = saleInfo;
-        
-        // Disable validate button
-        const validateBtn = document.getElementById("validateBtn");
-        if (validateBtn) {
-          validateBtn.disabled = true;
-          validateBtn.textContent = "Validado";
-          validateBtn.classList.remove("btn-primary");
-          validateBtn.classList.add("btn-success");
-        }
-        
-        // Enable next step
-        const goToStep5 = document.getElementById("goToStep5");
-        if (goToStep5) goToStep5.disabled = false;
-
-        // Show success modal
-        if (typeof showVerificationResultModal === 'function') {
-            showVerificationResultModal('Contrato Validado', 'Contrato de venda verificado com sucesso!', 'success');
-        } else {
-            this.showSuccess("Contrato validado com sucesso!");
-        }
-
-        // Update UI with detected params
-        if (saleInfo.pricePerToken) {
-           const priceEl = document.getElementById("tokenPrice");
-           if (priceEl) priceEl.value = saleInfo.pricePerToken;
-        }
-        
-        this.showPreview();
-      } else {
-        throw new Error("Contrato não é uma venda válida ou ABI desconhecida.");
-      }
-    } catch (error) {
-      console.error("Erro na validação:", error);
-      if (typeof showVerificationResultModal === 'function') {
-          showVerificationResultModal('Falha na Validação', error.message || "Erro desconhecido", 'error');
-      } else {
-          this.showError(error.message);
-      }
-  } finally {
-    this.hideLoading();
-  }
-}
-
-  /**
-   * Define o modo somente leitura para campos críticos
-   */
-  setReadonlyMode(enabled) {
-    const saleContractInput = document.getElementById("saleContract");
-    const validateBtn = document.getElementById("validateBtn");
-    
-    if (saleContractInput) {
-        saleContractInput.readOnly = enabled;
-        if (enabled) {
-            saleContractInput.classList.add('bg-light');
-            saleContractInput.title = "Para alterar, limpe o formulário";
-        } else {
-            saleContractInput.classList.remove('bg-light');
-            saleContractInput.title = "";
-        }
-    }
-    
-    if (validateBtn) {
-        validateBtn.disabled = enabled;
-    }
-  }
-
-  /**
-   * Manipula seleção de rede via componente
-   */
-  handleNetworkSelected(ev) {
-    const net = ev?.detail?.network;
-    if (!net) return;
-    
-    // Atualizar select oculto/visível se existir
-    const blockchainSelect = document.getElementById("blockchain");
-    if (blockchainSelect) {
-        blockchainSelect.value = String(net.chainId);
-        // Disparar change para atualizar símbolos
-        this.handleBlockchainChange();
-    }
-    
-    // Revelar grupo de contrato se estiver oculto
-    const contractGroup = document.getElementById("contractGroup");
-    if (contractGroup) {
-        contractGroup.classList.remove("d-none");
-    }
-  }
-
-  /**
-   * Valida se o endereço Ethereum é válido
-   */
-  isValidEthereumAddress(address) {
-    return /^0x[a-fA-F0-9]{40}$/.test(address);
-  }
-
-  /**
-   * Manipula validação do contrato
    */
   async handleContractValidation() {
     const saleContractInput = document.getElementById("saleContract");
@@ -739,29 +609,24 @@ class WidgetSimple {
     const contractAddress = String(saleContractInput.value || "").replace(/\s+$/u, "");
     const chainId = blockchainSelect.value;
 
-    // Validações básicas
     if (!contractAddress) {
       this.showError("Por favor, insira o endereço do contrato");
       return;
     }
-
     if (!chainId) {
       this.showError("Por favor, selecione uma blockchain");
       return;
     }
-
     if (!this.isValidEthereumAddress(contractAddress)) {
       this.showError("Endereço Ethereum inválido");
       return;
     }
 
-    // Desabilita botão e mostra loading
     validateBtn.disabled = true;
     validateBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Validando...';
     validationStatus.innerHTML = '<div class="alert alert-info alert-sm"><i class="bi bi-hourglass-split me-2"></i>Validando contrato...</div>';
 
     try {
-      // Criar provider para a rede selecionada (com fallback via NetworkManager)
       let networkConfig = this.supportedNetworks[chainId];
       if (!networkConfig) {
         const selNet = typeof window !== "undefined" ? window.__selectedNetwork : null;
@@ -775,31 +640,20 @@ class WidgetSimple {
           };
         }
       }
-
       if (!networkConfig || !networkConfig.rpcUrl) {
         throw new Error("Rede não suportada ou sem RPC válido");
       }
-
       this.state.provider = new ethers.providers.JsonRpcProvider(networkConfig.rpcUrl);
 
-      // Validar contrato
       const validationResult = await this.validateContract(contractAddress, chainId);
 
       if (validationResult.isValid) {
-        // Sucesso na validação
         validationStatus.innerHTML = '<div class="alert alert-success alert-sm"><i class="bi bi-check-circle me-2"></i>Contrato válido! Parâmetros detectados automaticamente.</div>';
         this.state.contractValidated = true;
         this.state.autoDetectedParams = validationResult.params;
-        // Capturar a função de compra detectada (se houver) para configuração
         this.state.purchaseFunctionName = validationResult.purchaseFunction && validationResult.purchaseFunction.name ? validationResult.purchaseFunction.name : "buy";
-
-        // Preenche campos auto-detectados
         this.populateAutoDetectedFields(validationResult.params);
-
-        // Bloquear campo de contrato
         this.setReadonlyMode(true);
-
-        // Detectar informações do token (nome/símbolo) se o contrato do token foi encontrado
         try {
           const tokenAddr = validationResult?.params?.tokenContract;
           if (tokenAddr && tokenAddr !== ethers.constants.AddressZero) {
@@ -808,14 +662,9 @@ class WidgetSimple {
               this.state.tokenInfo = tokenInfo;
             }
           }
-        } catch (e) {
-          console.warn("Falhou ao detectar token info:", e);
-        }
-
-        // Mostra preview
+        } catch (e) {}
         this.showPreview();
       } else {
-        // Falha na validação
         validationStatus.innerHTML = `<div class="alert alert-danger alert-sm"><i class="bi bi-x-circle me-2"></i>${validationResult.error}</div>`;
         this.state.contractValidated = false;
       }
@@ -824,10 +673,61 @@ class WidgetSimple {
       validationStatus.innerHTML = `<div class="alert alert-danger alert-sm"><i class="bi bi-x-circle me-2"></i>Erro: ${error.message}</div>`;
       this.state.contractValidated = false;
     } finally {
-      // Reabilita botão
       validateBtn.disabled = false;
       validateBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Validar';
     }
+  }
+
+  /**
+   * Define o modo somente leitura para campos críticos
+   */
+  setReadonlyMode(enabled) {
+    const saleContractInput = document.getElementById("saleContract");
+    const validateBtn = document.getElementById("validateBtn");
+
+    if (saleContractInput) {
+      saleContractInput.readOnly = enabled;
+      if (enabled) {
+        saleContractInput.classList.add("bg-light");
+        saleContractInput.title = "Para alterar, limpe o formulário";
+      } else {
+        saleContractInput.classList.remove("bg-light");
+        saleContractInput.title = "";
+      }
+    }
+
+    if (validateBtn) {
+      validateBtn.disabled = enabled;
+    }
+  }
+
+  /**
+   * Manipula seleção de rede via componente
+   */
+  handleNetworkSelected(ev) {
+    const net = ev?.detail?.network;
+    if (!net) return;
+
+    // Atualizar select oculto/visível se existir
+    const blockchainSelect = document.getElementById("blockchain");
+    if (blockchainSelect) {
+      blockchainSelect.value = String(net.chainId);
+      // Disparar change para atualizar símbolos
+      this.handleBlockchainChange();
+    }
+
+    // Revelar grupo de contrato se estiver oculto
+    const contractGroup = document.getElementById("contractGroup");
+    if (contractGroup) {
+      contractGroup.classList.remove("d-none");
+    }
+  }
+
+  /**
+   * Valida se o endereço Ethereum é válido
+   */
+  isValidEthereumAddress(address) {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
   }
 
   /**
@@ -1538,7 +1438,7 @@ class WidgetSimple {
     if (previewCard) {
       previewCard.style.display = "block";
     }
-    
+
     // Atualizar preview de código
     this.updateCodePreview(config);
   }
@@ -1547,12 +1447,12 @@ class WidgetSimple {
    * Atualiza os campos de código gerado (HTML/Embed)
    */
   updateCodePreview(config) {
-     const codeBlock = document.getElementById("generatedCode");
-     const embedBlock = document.getElementById("generatedEmbed");
-     
-     if (codeBlock) {
-         // Exemplo de código para integração via Script
-         const scriptCode = `<!-- Widget TokenCafe -->
+    const codeBlock = document.getElementById("generatedCode");
+    const embedBlock = document.getElementById("generatedEmbed");
+
+    if (codeBlock) {
+      // Exemplo de código para integração via Script
+      const scriptCode = `<!-- Widget TokenCafe -->
 <div id="tokencafe-widget-${Date.now()}"></div>
 <script>
   (function() {
@@ -1560,47 +1460,15 @@ class WidgetSimple {
     // Integração simplificada
     console.log("Widget Config:", config);
   })();
-</script>`; 
-         codeBlock.value = scriptCode;
-     }
-     
-     if (embedBlock) {
-         const encoded = encodeURIComponent(JSON.stringify(config));
-         const embedCode = `<iframe src="https://tokencafe.app/embed?config=${encoded}" width="400" height="600" frameborder="0"></iframe>`;
-         embedBlock.value = embedCode;
-     }
-  }
+</script>`;
+      codeBlock.value = scriptCode;
+    }
 
-  /**
-   * Copia o código HTML gerado
-   */
-  handleCopyCode() {
-      const codeBlock = document.getElementById("generatedCode");
-      if (codeBlock && codeBlock.value) {
-          if (window.copyToClipboard) {
-              window.copyToClipboard(codeBlock.value);
-          } else {
-              navigator.clipboard.writeText(codeBlock.value)
-                  .then(() => this.showSuccess("Código copiado!"))
-                  .catch(() => this.showError("Erro ao copiar"));
-          }
-      }
-  }
-
-  /**
-   * Copia o código Embed gerado
-   */
-  handleCopyEmbed() {
-      const embedBlock = document.getElementById("generatedEmbed");
-      if (embedBlock && embedBlock.value) {
-          if (window.copyToClipboard) {
-              window.copyToClipboard(embedBlock.value);
-          } else {
-              navigator.clipboard.writeText(embedBlock.value)
-                  .then(() => this.showSuccess("Embed copiado!"))
-                  .catch(() => this.showError("Erro ao copiar"));
-          }
-      }
+    if (embedBlock) {
+      const encoded = encodeURIComponent(JSON.stringify(config));
+      const embedCode = `<iframe src="https://tokencafe.app/embed?config=${encoded}" width="400" height="600" frameborder="0"></iframe>`;
+      embedBlock.value = embedCode;
+    }
   }
 
   /**
@@ -2396,7 +2264,8 @@ class WidgetSimple {
         window.copyToClipboard(embedCode.textContent);
         this.showSuccess("Código de incorporação copiado!");
       } else {
-        navigator.clipboard.writeText(embedCode.textContent)
+        navigator.clipboard
+          .writeText(embedCode.textContent)
           .then(() => this.showSuccess("Código de incorporação copiado!"))
           .catch(() => this.showError("Erro ao copiar código"));
       }
@@ -2448,29 +2317,6 @@ class WidgetSimple {
     URL.revokeObjectURL(url);
 
     this.showSuccess("Configuração baixada com sucesso!");
-  }
-
-  /**
-   * Manipha cópia de código embed
-   */
-  handleCopyEmbed() {
-    const embedCode = document.getElementById("embedCode");
-    if (embedCode) {
-      if (window.copyToClipboard) {
-        window.copyToClipboard(embedCode.textContent);
-        this.showSuccess("Código de incorporação copiado!");
-      } else {
-        navigator.clipboard
-          .writeText(embedCode.textContent)
-          .then(() => {
-            this.showSuccess("Código de incorporação copiado!");
-          })
-          .catch((err) => {
-            console.error("Erro ao copiar:", err);
-            this.showError("Erro ao copiar código");
-          });
-      }
-    }
   }
 
   /**

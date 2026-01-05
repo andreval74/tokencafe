@@ -120,18 +120,18 @@ class BaseSystem {
           textArea.focus();
           textArea.select();
           try {
-            document.execCommand('copy');
+            document.execCommand("copy");
             if (window.showFormSuccess) window.showFormSuccess("Copiado para a área de transferência!");
             else if (window.notify) window.notify("Copiado!", "success");
           } catch (err) {
-            console.error('Fallback: Oops, unable to copy', err);
+            console.error("Fallback: Oops, unable to copy", err);
             if (window.showFormError) window.showFormError("Falha ao copiar");
             else if (window.notify) window.notify("Falha ao copiar", "error");
           }
           document.body.removeChild(textArea);
         }
       } catch (err) {
-        console.error('Failed to copy: ', err);
+        console.error("Failed to copy: ", err);
         if (window.showFormError) window.showFormError("Falha ao copiar");
         else if (window.notify) window.notify("Falha ao copiar", "error");
       }
@@ -177,13 +177,13 @@ class BaseSystem {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      const reloadBtn = e.target.closest('[data-action="reload-page"]') || e.target.closest('#btnClearAll');
+      const reloadBtn = e.target.closest('[data-action="reload-page"]') || e.target.closest("#btnClearAll");
       if (reloadBtn) {
         e.preventDefault();
         // Forçar limpeza de inputs para evitar restauração de cache do navegador
         try {
           const inputs = document.querySelectorAll("input, textarea");
-          inputs.forEach(el => el.value = "");
+          inputs.forEach((el) => (el.value = ""));
         } catch (_) {}
         window.location.reload();
       }
@@ -207,7 +207,6 @@ class BaseSystem {
         if (el.dataset && String(el.dataset.trim).toLowerCase() === "off") return false;
         return true;
       };
-      const trimTrailing = (v) => (typeof v === "string" ? v.replace(/\s+$/u, "") : v);
       const trimFull = (v) => (typeof v === "string" ? v.replace(/\s+$/u, "") : v);
       const collapseSpaces = (v) => (typeof v === "string" ? v.replace(/\s{2,}/g, " ") : v);
       const getMode = (el) => {
@@ -223,17 +222,17 @@ class BaseSystem {
       ["change", "blur"].forEach((ev) => {
         document.addEventListener(
           ev,
-        (e) => {
-          const el = e.target;
-          if (!shouldSanitize(el)) return;
-          const mode = getMode(el);
-          const before = el.value;
-          let after = trimFull(before);
-          if (mode === "collapse") after = collapseSpaces(after);
-          if (after !== before) el.value = after;
-        },
-        true,
-      );
+          (e) => {
+            const el = e.target;
+            if (!shouldSanitize(el)) return;
+            const mode = getMode(el);
+            const before = el.value;
+            let after = trimFull(before);
+            if (mode === "collapse") after = collapseSpaces(after);
+            if (after !== before) el.value = after;
+          },
+          true,
+        );
       });
     };
 
@@ -244,18 +243,18 @@ class BaseSystem {
     window.showFormSuccess = (message, _opts = {}) => {
       try {
         if (window.SystemResponse) {
-            const sys = new window.SystemResponse();
-            sys.show({
-                type: 'success',
-                title: 'Sucesso',
-                subtitle: message,
-                content: _opts.content || '',
-                onClear: _opts.onClear
-            });
-            return;
+          const sys = new window.SystemResponse();
+          sys.show({
+            type: "success",
+            title: "Sucesso",
+            subtitle: message,
+            content: _opts.content || "",
+            onClear: _opts.onClear,
+          });
+          return;
         }
 
-        const container = _opts?.container || (document.querySelector(".container, .container-fluid") || document.body);
+        const container = _opts?.container || document.querySelector(".container, .container-fluid") || document.body;
         if (typeof window.notify === "function") {
           return window.notify(String(message || "Sucesso"), "success", { container });
         }
@@ -271,18 +270,18 @@ class BaseSystem {
     window.showFormError = (message, _opts = {}) => {
       try {
         if (window.SystemResponse) {
-            const sys = new window.SystemResponse();
-            sys.show({
-                type: 'error',
-                title: 'Erro',
-                subtitle: message,
-                content: _opts.content || '',
-                onClear: _opts.onClear
-            });
-            return;
+          const sys = new window.SystemResponse();
+          sys.show({
+            type: "error",
+            title: "Erro",
+            subtitle: message,
+            content: _opts.content || "",
+            onClear: _opts.onClear,
+          });
+          return;
         }
 
-        const container = _opts?.container || (document.querySelector(".container, .container-fluid") || document.body);
+        const container = _opts?.container || document.querySelector(".container, .container-fluid") || document.body;
         if (typeof window.notify === "function") {
           return window.notify(String(message || "Erro"), "error", { container });
         }
@@ -298,72 +297,72 @@ class BaseSystem {
     window.showVerificationResultModal = (success, title, contentHtml, linkUrl) => {
       try {
         if (window.SystemResponse) {
-           const sys = new window.SystemResponse();
-           
-           let finalContent = contentHtml || '';
-           if (linkUrl) {
-               finalContent += `
+          const sys = new window.SystemResponse();
+
+          let finalContent = contentHtml || "";
+          if (linkUrl) {
+            finalContent += `
                <div class="mt-3 text-center">
                    <a href="${linkUrl}" target="_blank" rel="noopener" class="btn btn-outline-success">
                        <i class="bi bi-box-arrow-up-right me-2"></i>Abrir no Explorer
                    </a>
                </div>
                `;
-           }
-           
-           sys.show({
-               type: success ? 'success' : 'error',
-               title: title || (success ? 'Sucesso' : 'Erro'),
-               subtitle: '', 
-               content: finalContent
-           });
-           return;
+          }
+
+          sys.show({
+            type: success ? "success" : "error",
+            title: title || (success ? "Sucesso" : "Erro"),
+            subtitle: "",
+            content: finalContent,
+          });
+          return;
         }
 
-        const modalEl = document.getElementById('verifyInfoModal');
+        const modalEl = document.getElementById("verifyInfoModal");
         if (!modalEl) {
-           // Se não houver modal, tenta usar notify
-           if (success) window.showFormSuccess(title || "Verificado com sucesso!");
-           else window.showFormError(title || "Falha na verificação");
-           return;
+          // Se não houver modal, tenta usar notify
+          if (success) window.showFormSuccess(title || "Verificado com sucesso!");
+          else window.showFormError(title || "Falha na verificação");
+          return;
         }
-        
-        const titleEl = document.getElementById('verifyInfoTitle');
-        const contentEl = document.getElementById('verifyInfoContent');
-        const linkEl = document.getElementById('verifyOpenLink');
-        
+
+        const titleEl = document.getElementById("verifyInfoTitle");
+        const contentEl = document.getElementById("verifyInfoContent");
+        const linkEl = document.getElementById("verifyOpenLink");
+
         if (titleEl) {
           titleEl.textContent = title;
           titleEl.className = success ? "modal-title text-success" : "modal-title text-danger";
         }
-        
+
         if (contentEl) {
           contentEl.innerHTML = contentHtml;
         }
-        
+
         if (linkEl) {
           if (linkUrl) {
             linkEl.href = linkUrl;
-            linkEl.classList.remove('d-none');
+            linkEl.classList.remove("d-none");
             linkEl.textContent = "Abrir no Explorer";
           } else {
-            linkEl.classList.add('d-none');
+            linkEl.classList.add("d-none");
           }
         }
-        
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+
+        if (typeof bootstrap !== "undefined" && bootstrap.Modal) {
           const modal = new bootstrap.Modal(modalEl);
           modal.show();
         } else {
-          modalEl.style.display = 'block';
-          modalEl.classList.add('show');
+          modalEl.style.display = "block";
+          modalEl.classList.add("show");
           // Simple close handler for fallback
           const closeBtns = modalEl.querySelectorAll('[data-bs-dismiss="modal"]');
-          closeBtns.forEach(btn => {
-             btn.onclick = () => {
-                 modalEl.style.display = 'none';
-                 modalEl.classList.remove('show');
-             };
+          closeBtns.forEach((btn) => {
+            btn.onclick = () => {
+              modalEl.style.display = "none";
+              modalEl.classList.remove("show");
+            };
           });
         }
       } catch (e) {
@@ -503,7 +502,9 @@ class BaseSystem {
       const ns = document.getElementById("networkSearch");
       if (ns) {
         ns.readOnly = false;
-        try { delete ns.dataset.chainId; } catch (_) {}
+        try {
+          delete ns.dataset.chainId;
+        } catch (_) {}
         const ac = document.getElementById("networkAutocomplete");
         if (ac) ac.classList.remove("d-none");
         if (!ns.placeholder) ns.placeholder = "Buscar por nome, chainId ou símbolo";

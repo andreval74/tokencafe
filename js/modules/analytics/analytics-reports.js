@@ -389,11 +389,15 @@ class AnalytcsReports {
                         <strong>${token.name}</strong>
                         <div class="d-flex align-items-center gap-2">
                           <small>${token.symbol}</small>
-                          ${token.address ? `
+                          ${
+                            token.address
+                              ? `
                             <button class="btn btn-sm btn-link p-0 text-muted" onclick="window.copyToClipboard('${token.address}')" title="Copiar Endereço">
                               <i class="bi bi-clipboard" style="font-size: 0.8rem;"></i>
                             </button>
-                          ` : ''}
+                          `
+                              : ""
+                          }
                         </div>
                     </div>
                 </td>
@@ -448,13 +452,15 @@ class AnalytcsReports {
     if (!modal || !content) return;
 
     // Encontrar dados do token
-    const token = this.data.tokenDetals.find(t => t.symbol === tokenSymbol) || { name: tokenSymbol, symbol: tokenSymbol, address: "" };
+    const token = this.data.tokenDetals.find((t) => t.symbol === tokenSymbol) || { name: tokenSymbol, symbol: tokenSymbol, address: "" };
 
     content.innerHTML = `
             <div class="advanced-analytcs">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4>Analytics Detalhado - ${token.name} <small class="text-muted">(${token.symbol})</small></h4>
-                    ${token.address ? `
+                    ${
+                      token.address
+                        ? `
                     <div class="input-group" style="max-width: 300px;">
                         <span class="input-group-text bg-dark border-secondary text-muted">Contrato</span>
                         <input type="text" class="form-control bg-dark text-white border-secondary form-control-sm" value="${token.address}" readonly>
@@ -462,7 +468,9 @@ class AnalytcsReports {
                             <i class="bi bi-clipboard"></i>
                         </button>
                     </div>
-                    ` : ''}
+                    `
+                        : ""
+                    }
                 </div>
                 
                 <div class="row mb-4">
@@ -494,8 +502,8 @@ class AnalytcsReports {
                         <div class="card bg-dark border-secondary">
                             <div class="card-body text-center">
                                 <h6 class="text-muted">Variação</h6>
-                                <h3 class="${(token.change || 0) >= 0 ? 'text-success' : 'text-danger'}">
-                                    ${(token.change || 0) >= 0 ? '+' : ''}${(token.change || 0)}%
+                                <h3 class="${(token.change || 0) >= 0 ? "text-success" : "text-danger"}">
+                                    ${(token.change || 0) >= 0 ? "+" : ""}${token.change || 0}%
                                 </h3>
                             </div>
                         </div>

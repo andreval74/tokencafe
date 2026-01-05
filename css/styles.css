@@ -645,7 +645,6 @@ div[style*="gradient"] {
   background: rgba(239, 68, 68, 0.1) !important;
 }
 
-
 /* Bootstrap Alerts - Dark Theme */
 .alert-success {
   --bs-alert-bg: rgba(16, 185, 129, 0.1);

@@ -1,70 +1,9 @@
 import { NetworkManager } from "../../shared/network-manager.js";
-import { SharedUtilities } from "../../core/shared_utilities_es6.js";
+import { getFallbackRpc, getFallbackExplorer, getFallbackChainName, getFallbackNativeCurrency } from "../../shared/network-fallback.js";
 
 const networkManager = new NetworkManager();
-const utils = new SharedUtilities();
 
 let lastContractData = null;
-
-function getFallbackRpc(chainId) {
-  switch (Number(chainId)) {
-    case 56:
-      return "https://bsc-dataseed.binance.org";
-    case 97:
-      return "https://bsc-testnet.publicnode.com";
-    case 1:
-      return "https://eth.llamarpc.com";
-    case 137:
-      return "https://polygon-rpc.com";
-    default:
-      return "";
-  }
-}
-
-function getFallbackExplorer(chainId) {
-  switch (Number(chainId)) {
-    case 56:
-      return "https://bscscan.com";
-    case 97:
-      return "https://testnet.bscscan.com";
-    case 1:
-      return "https://etherscan.io";
-    case 137:
-      return "https://polygonscan.com";
-    default:
-      return "";
-  }
-}
-
-function getFallbackChainName(chainId) {
-  switch (Number(chainId)) {
-    case 56:
-      return "BNB Smart Chain";
-    case 97:
-      return "BNB Smart Chain Testnet";
-    case 1:
-      return "Ethereum Mainnet";
-    case 137:
-      return "Polygon Mainnet";
-    default:
-      return "";
-  }
-}
-
-function getFallbackNativeCurrency(chainId) {
-  switch (Number(chainId)) {
-    case 56:
-      return { name: "BNB", symbol: "BNB", decimals: 18 };
-    case 97:
-      return { name: "BNB", symbol: "tBNB", decimals: 18 };
-    case 1:
-      return { name: "ETH", symbol: "ETH", decimals: 18 };
-    case 137:
-      return { name: "MATIC", symbol: "MATIC", decimals: 18 };
-    default:
-      return { name: "Unknown", symbol: "TKN", decimals: 18 };
-  }
-}
 
 async function addToWallet() {
   try {
@@ -77,16 +16,16 @@ async function addToWallet() {
       return;
     }
 
-    const { contractAddress: address, tokenSymbol, tokenDecimals, chainId, tokenName } = lastContractData;
+    const { contractAddress: address, tokenSymbol, tokenDecimals, chainId } = lastContractData;
     const image = ""; // TODO: support image param if available
-    
+
     // Check wallet balance again or rely on last check?
     // User can click "Add" even if balance 0.
-    
+
     // Switch chain logic
     const targetHex = "0x" + Number(chainId).toString(16);
     const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
-    
+
     if (!currentHex || String(parseInt(currentHex, 16)) !== String(chainId)) {
       try {
         await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: targetHex }] });
@@ -97,7 +36,7 @@ async function addToWallet() {
           const rpcUrls = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc : [getFallbackRpc(chainId)].filter(Boolean);
           const explorerUrl = net?.explorers?.[0]?.url || getFallbackExplorer(chainId);
           const nc = net?.nativeCurrency || getFallbackNativeCurrency(chainId);
-          
+
           const addParams = {
             chainId: targetHex,
             chainName: net?.name || getFallbackChainName(chainId) || `Chain ${chainId}`,
@@ -135,22 +74,22 @@ async function addToWallet() {
 
     // Show System Response
     systemResponse.show({
-        title: "Token Adicionado",
-        subtitle: "O token foi enviado para sua carteira com sucesso.",
-        icon: "bi-check-circle",
-        content: address,
-        badge: "Adicionado",
-        actions: ['copy', 'open', 'clear'],
-        onClear: () => {
-             // Resetar botão local
-             const addBtn = document.getElementById("addToWalletButton");
-             if (addBtn) {
-                addBtn.disabled = true;
-                addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar à Carteira';
-                addBtn.classList.add("btn-outline-primary");
-                addBtn.classList.remove("btn-success");
-             }
+      title: "Token Adicionado",
+      subtitle: "O token foi enviado para sua carteira com sucesso.",
+      icon: "bi-check-circle",
+      content: address,
+      badge: "Adicionado",
+      actions: ["copy", "open", "clear"],
+      onClear: () => {
+        // Resetar botão local
+        const addBtn = document.getElementById("addToWalletButton");
+        if (addBtn) {
+          addBtn.disabled = true;
+          addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar à Carteira';
+          addBtn.classList.add("btn-outline-primary");
+          addBtn.classList.remove("btn-success");
         }
+      },
     });
 
     // Hide button temporarily or just let it stay disabled (handled by onClear or status update)
@@ -169,31 +108,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   // User asked: "o campo onde fica o numero do contrato deve ficar no modo read para não ser alterado"
   // We apply this always for this specific page as requested
   const waitForInput = setInterval(() => {
-      const input = document.getElementById("f_address") || document.getElementById("tokenAddress");
-      if (input) {
-          input.readOnly = true;
-          // Also maybe hide the search button if it's auto-triggered? 
-          // But user might want to re-trigger search if it failed?
-          // If read-only, they can't change it.
-          // If the input is empty, read-only makes it unusable unless populated by URL.
-          // We should check if URL has params.
-          const params = new URLSearchParams(location.search);
-          if (!params.get("address")) {
-              // If no address in URL, maybe we shouldn't lock it?
-              // But user said "must be read mode". 
-              // I'll assume this page is INTENDED for link sharing.
-              // If empty, I'll show a notification or placeholder?
-              // Or I'll just leave it read-only and let the user realize they need a link.
-              // However, for testing, I might want to paste.
-              // I'll stick to strict interpretation: "deve ficar no modo read".
-          }
-          clearInterval(waitForInput);
+    const input = document.getElementById("f_address") || document.getElementById("tokenAddress");
+    if (input) {
+      input.readOnly = true;
+      // Also maybe hide the search button if it's auto-triggered?
+      // But user might want to re-trigger search if it failed?
+      // If read-only, they can't change it.
+      // If the input is empty, read-only makes it unusable unless populated by URL.
+      // We should check if URL has params.
+      const params = new URLSearchParams(location.search);
+      if (!params.get("address")) {
+        // If no address in URL, maybe we shouldn't lock it?
+        // But user said "must be read mode".
+        // I'll assume this page is INTENDED for link sharing.
+        // If empty, I'll show a notification or placeholder?
+        // Or I'll just leave it read-only and let the user realize they need a link.
+        // However, for testing, I might want to paste.
+        // I'll stick to strict interpretation: "deve ficar no modo read".
       }
+      clearInterval(waitForInput);
+    }
   }, 100);
 
   const params = new URLSearchParams(location.search);
   const pAddress = params.get("address");
-  const pChainId = params.get("chainId");
+  // Removido: pChainId não utilizado
 
   // Setup button listener
   const addBtn = document.getElementById("addToWalletButton");
@@ -210,12 +149,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Logic to enable/disable button based on wallet status
     // The contract-search component already displays the status text.
     // We just need to handle the button.
-    
+
     if (addBtn) {
       const bal = data.walletBalance;
-      const isRegistered = bal && bal !== "0x" && bal !== "0" && bal !== 0n; // Simple check, refine if needed
-      
-      // Check bigInt
+      // Check BigInt para verificar saldo > 0
       let hasBalance = false;
       try {
         if (bal && BigInt(bal) > 0n) hasBalance = true;
@@ -251,27 +188,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       const input = document.getElementById("f_address");
       const btn = document.getElementById("contractSearchBtn");
       const title = document.getElementById("cs_title");
-      
+
       if (input && btn) {
         clearInterval(waitForInput);
-        
+
         // Override component UI for "Link" mode
         if (title) title.innerText = "Adicionar Token";
         input.value = pAddress;
         input.readOnly = true;
-        
+
         // Hide clear button if exists, as input is readonly
         const clearBtn = document.getElementById("csClearBtn");
         if (clearBtn) clearBtn.style.display = "none";
-        
+
         // Trigger search
         // Give a small delay to ensure listeners are attached
         setTimeout(() => {
-            btn.click();
+          btn.click();
         }, 100);
       }
     }, 100);
-    
+
     // Safety timeout
     setTimeout(() => clearInterval(waitForInput), 10000);
   }

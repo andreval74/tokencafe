@@ -4,6 +4,7 @@
 import { NetworkManager } from "../../shared/network-manager.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { SystemResponse } from "../../shared/system-response.js";
+import { getFallbackRpc, getFallbackExplorer } from "../../shared/network-fallback.js";
 
 const networkManager = new NetworkManager();
 const utils = new SharedUtilities();
@@ -40,7 +41,6 @@ let tokenFetched = false;
 let readonlyLinkMode = false;
 // Sucesso visual não exibe mensagem fixa para não sobrepor botões
 
-
 function setValue(id, value) {
   const el = document.getElementById(id);
   if (el) el.value = value ?? "";
@@ -62,20 +62,17 @@ function hide(id) {
 }
 
 function setReadonlyMode(enabled) {
-    readonlyLinkMode = enabled;
-    const inputs = [
-        ids.tokenAddress, ids.tokenName, ids.tokenSymbol, 
-        ids.tokenDecimals, ids.tokenImage
-    ];
-    
-    inputs.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.readOnly = enabled;
-            if (enabled) el.classList.add('bg-light');
-            else el.classList.remove('bg-light');
-        }
-    });
+  readonlyLinkMode = enabled;
+  const inputs = [ids.tokenAddress, ids.tokenName, ids.tokenSymbol, ids.tokenDecimals, ids.tokenImage];
+
+  inputs.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.readOnly = enabled;
+      if (enabled) el.classList.add("bg-light");
+      else el.classList.remove("bg-light");
+    }
+  });
 }
 
 const isValidAddress = (addr) => utils.isValidEthereumAddress(addr);
@@ -83,7 +80,7 @@ const isValidAddress = (addr) => utils.isValidEthereumAddress(addr);
 // Mensagem padronizada de erro (rodapé)
 function setError(msg) {
   try {
-    const container = document.getElementById("token-section") || (document.querySelector(".container, .container-fluid") || document.body);
+    const container = document.getElementById("token-section") || document.querySelector(".container, .container-fluid") || document.body;
     if (typeof window.notify === "function") {
       window.notify(String(msg || "Erro"), "error", { container });
       return;
@@ -106,51 +103,7 @@ function clearError() {
 // O feedback de erro deve vir do próprio componente de busca ou de validações locais,
 // sem duplicar mensagens via MutationObserver.
 
-// Fallbacks mínimos para redes populares quando rpcs.json não fornece URLs
-function getFallbackRpc(chainId) {
-  switch (Number(chainId)) {
-    case 56: // BNB Smart Chain Mainnet
-      return "https://bsc-dataseed.binance.org";
-    case 97: // BNB Smart Chain Testnet
-      return "https://bsc-testnet.publicnode.com";
-    case 1: // Ethereum Mainnet
-      return "https://eth.llamarpc.com";
-    case 137: // Polygon Mainnet
-      return "https://polygon-rpc.com";
-    default:
-      return "";
-  }
-}
-
-function getFallbackExplorer(chainId) {
-  switch (Number(chainId)) {
-    case 56:
-      return "https://bscscan.com";
-    case 97:
-      return "https://testnet.bscscan.com";
-    case 1:
-      return "https://etherscan.io";
-    case 137:
-      return "https://polygonscan.com";
-    default:
-      return "";
-  }
-}
-
-function getFallbackChainName(chainId) {
-  switch (Number(chainId)) {
-    case 56:
-      return "BNB Smart Chain";
-    case 97:
-      return "BNB Smart Chain Testnet";
-    case 1:
-      return "Ethereum Mainnet";
-    case 137:
-      return "Polygon Mainnet";
-    default:
-      return "";
-  }
-}
+// Removido: função não utilizada
 
 function decodeString(hex) {
   const h = String(hex || "").replace(/^0x/, "");
@@ -185,31 +138,27 @@ function decodeString(hex) {
 async function readTokenMetaFromRpc(address, net) {
   try {
     if (!isValidAddress(address)) return {};
-    
+
     // Tentar via window.ethereum se estiver na rede correta (mais confiável)
     if (window.ethereum && net?.chainId) {
-        try {
-            const curChain = await window.ethereum.request({ method: 'eth_chainId' });
-            if (parseInt(curChain, 16) === Number(net.chainId)) {
-                const [symHex, decHex, nameHex] = await Promise.all([
-                    window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x95d89b41" }, "latest"] }).catch(() => null),
-                    window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x313ce567" }, "latest"] }).catch(() => null),
-                    window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x06fdde03" }, "latest"] }).catch(() => null)
-                ]);
-                
-                const symbol = decodeString(symHex);
-                const name = decodeString(nameHex);
-                let decimals = null;
-                try {
-                    const h = String(decHex || "").replace(/^0x/, "");
-                    if (h) decimals = parseInt(h, 16);
-                } catch (_) {}
-                
-                if (name || symbol || decimals != null) {
-                    return { name, symbol, decimals };
-                }
-            }
-        } catch (_) {}
+      try {
+        const curChain = await window.ethereum.request({ method: "eth_chainId" });
+        if (parseInt(curChain, 16) === Number(net.chainId)) {
+          const [symHex, decHex, nameHex] = await Promise.all([window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x95d89b41" }, "latest"] }).catch(() => null), window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x313ce567" }, "latest"] }).catch(() => null), window.ethereum.request({ method: "eth_call", params: [{ to: address, data: "0x06fdde03" }, "latest"] }).catch(() => null)]);
+
+          const symbol = decodeString(symHex);
+          const name = decodeString(nameHex);
+          let decimals = null;
+          try {
+            const h = String(decHex || "").replace(/^0x/, "");
+            if (h) decimals = parseInt(h, 16);
+          } catch (_) {}
+
+          if (name || symbol || decimals != null) {
+            return { name, symbol, decimals };
+          }
+        }
+      } catch (_) {}
     }
 
     const rpc = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc[0] : getFallbackRpc(net?.chainId);
@@ -349,22 +298,22 @@ function buildLink() {
 
 function updateGeneratedLink() {
   const url = buildLink();
-  
+
   // Atualizar input visível na seção estática
   setValue(ids.generatedLink, url);
-  
+
   // Remove is-invalid from symbol if filled
   const sEl = document.getElementById(ids.tokenSymbol);
   if (sEl && sEl.value && sEl.value !== "TKN") {
-      sEl.classList.remove("is-invalid");
+    sEl.classList.remove("is-invalid");
   }
 
   // Garantir que a seção de links gerados seja exibida se houver URL
   const genSection = document.getElementById("generate-section");
   if (url && genSection) {
-      genSection.classList.remove("d-none");
+    genSection.classList.remove("d-none");
   } else if (!url && genSection) {
-      genSection.classList.add("d-none");
+    genSection.classList.add("d-none");
   }
 
   const sym = document.getElementById(ids.tokenSymbol)?.value;
@@ -373,17 +322,17 @@ function updateGeneratedLink() {
 
   if (url && (tokenFetched || manualData)) {
     const hasMeta = sym && dec && sym !== "TKN";
-    
+
     systemResponse.show({
-        title: "Link Gerado",
-        subtitle: "Copie, compartilhe ou teste o link",
-        icon: "bi-link-45deg",
-        content: url,
-        badge: hasMeta ? "Dados do contrato confirmados (símbolo/decimais)" : null,
-        actions: ['copy', 'whatsapp', 'telegram', 'email', 'open'],
-        onClear: () => {
-             // Apenas fecha o modal, mantendo os dados na tela para visualização
-        }
+      title: "Link Gerado",
+      subtitle: "Copie, compartilhe ou teste o link",
+      icon: "bi-link-45deg",
+      content: url,
+      badge: hasMeta ? "Dados do contrato confirmados (símbolo/decimais)" : null,
+      actions: ["copy", "whatsapp", "telegram", "email", "open"],
+      onClear: () => {
+        // Apenas fecha o modal, mantendo os dados na tela para visualização
+      },
     });
     clearError();
   } else {
@@ -403,42 +352,39 @@ function updateGeneratedLink() {
 }
 
 // Escutar evento de limpeza global
-document.addEventListener('contract:clear', () => {
-    tokenFetched = false;
-    // selectedNetwork = null; // Manter a rede selecionada para nova busca
-    // hide("token-section"); // Manter seção visível para nova busca
-    hide("generate-section");
-    clearError();
-    setReadonlyMode(false); // Reset readonly state
-    
-    // Reset inputs
-    const idsToReset = [
-        ids.tokenAddress, ids.tokenName, ids.tokenSymbol, 
-        ids.tokenDecimals, ids.tokenImage, ids.generatedLink
-    ];
-    idsToReset.forEach(id => setValue(id, ""));
+document.addEventListener("contract:clear", () => {
+  tokenFetched = false;
+  // selectedNetwork = null; // Manter a rede selecionada para nova busca
+  // hide("token-section"); // Manter seção visível para nova busca
+  hide("generate-section");
+  clearError();
+  setReadonlyMode(false); // Reset readonly state
 
-    // Reset badges
-    const badge = document.getElementById("metaValidatedBadge");
-    if (badge) badge.classList.add("d-none");
-    
-    window.showFormSuccess && window.showFormSuccess("Dados limpos com sucesso!");
+  // Reset inputs
+  const idsToReset = [ids.tokenAddress, ids.tokenName, ids.tokenSymbol, ids.tokenDecimals, ids.tokenImage, ids.generatedLink];
+  idsToReset.forEach((id) => setValue(id, ""));
+
+  // Reset badges
+  const badge = document.getElementById("metaValidatedBadge");
+  if (badge) badge.classList.add("d-none");
+
+  window.showFormSuccess && window.showFormSuccess("Dados limpos com sucesso!");
 });
 
 // Escutar evento de contrato encontrado para feedback e travar botão
-document.addEventListener('contract:found', (e) => {
-    if (e.detail && e.detail.contract) {
-        tokenFetched = true;
-        setReadonlyMode(true);
-        
-        // Gerar link automaticamente
-        updateGeneratedLink();
-    }
+document.addEventListener("contract:found", (e) => {
+  if (e.detail && e.detail.contract) {
+    tokenFetched = true;
+    setReadonlyMode(true);
+
+    // Gerar link automaticamente
+    updateGeneratedLink();
+  }
 });
 
 // Escutar evento de contrato verificado
-document.addEventListener('contract:verified', (e) => {
-    // Apenas log ou ações que não envolvam o botão de busca
+document.addEventListener("contract:verified", () => {
+  // Apenas log ou ações que não envolvam o botão de busca
 });
 
 function copyLink() {
@@ -574,7 +520,6 @@ function unusedPreviewLink() {
   if (url) window.open(url, "_blank");
 }
 
-
 async function addTokenToMetaMask() {
   try {
     const address = String(document.getElementById(ids.tokenAddress)?.value || "").replace(/\s+$/u, "");
@@ -606,20 +551,20 @@ async function addTokenToMetaMask() {
       const meta = await readTokenMetaFromRpc(address, net);
       if (meta.symbol) symbol = meta.symbol;
       if (meta.decimals != null) decimals = meta.decimals;
-      
+
       if (!symbol || symbol === "TKN") {
-          window.notify && window.notify("Símbolo do token não identificado. Por favor, preencha o campo Símbolo manualmente.", "warning");
-          const sEl = document.getElementById(ids.tokenSymbol);
-          if (sEl) {
-              sEl.focus();
-              sEl.classList.add("is-invalid");
-          }
-          return;
+        window.notify && window.notify("Símbolo do token não identificado. Por favor, preencha o campo Símbolo manualmente.", "warning");
+        const sEl = document.getElementById(ids.tokenSymbol);
+        if (sEl) {
+          sEl.focus();
+          sEl.classList.add("is-invalid");
+        }
+        return;
       }
 
       const sEl = document.getElementById(ids.tokenSymbol);
       const dEl = document.getElementById(ids.tokenDecimals);
-      if (sEl && (!sEl.value || sEl.value === "TKN")) sEl.value = (symbol || "");
+      if (sEl && (!sEl.value || sEl.value === "TKN")) sEl.value = symbol || "";
       if (dEl && (!dEl.value || !Number.isFinite(parseInt(dEl.value, 10)))) dEl.value = Number.isFinite(decimals) ? String(decimals) : "";
       try {
         updateGeneratedLink();
@@ -666,7 +611,7 @@ async function addTokenToMetaMask() {
       await window.ethereum.request({ method: "wallet_watchAsset", params: { type: "ERC20", options: { address, symbol, decimals, image } } });
     } catch (err) {
       const meta = await readTokenMetaFromRpc(address, net);
-        const sym2 = (meta.symbol || symbol || "TKN").slice(0, 32);
+      const sym2 = (meta.symbol || symbol || "TKN").slice(0, 32);
       const dec2 = Number.isFinite(meta.decimals) ? meta.decimals : decimals;
       await window.ethereum.request({ method: "wallet_watchAsset", params: { type: "ERC20", options: { address, symbol: sym2, decimals: dec2, image } } });
     }
@@ -773,7 +718,9 @@ function clearAll() {
     const expSpan = document.getElementById("explorerUrlCode");
     if (expSpan) expSpan.textContent = "";
   }
-  try { location.reload(); } catch (_) {}
+  try {
+    location.reload();
+  } catch (_) {}
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -869,13 +816,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateGeneratedLink();
         const genSection = document.getElementById("generate-section");
         if (genSection) genSection.classList.remove("d-none");
-        
+
         // Lock UI and update button after populating data
         setReadonlyMode(true);
         const btnSearch = document.getElementById(ids.btnTokenSearch);
         if (btnSearch) {
-            btnSearch.disabled = true;
-            btnSearch.innerHTML = '<i class="bi bi-check-circle"></i>';
+          btnSearch.disabled = true;
+          btnSearch.innerHTML = '<i class="bi bi-check-circle"></i>';
         }
       } else {
         if (ts) ts.classList.remove("d-none");
@@ -904,7 +851,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById(ids.btnClearToken)?.addEventListener("click", clearTokenOnly);
   document.getElementById("btnAddNetworkSmall")?.addEventListener("click", addNetworkToWallet);
   document.getElementById("btnAddToMetaMaskSmall")?.addEventListener("click", addTokenToMetaMask);
-  
+
   // Atualizar link em tempo real
   document.getElementById(ids.tokenAddress)?.addEventListener("input", () => {
     const el = document.getElementById(ids.tokenAddress);

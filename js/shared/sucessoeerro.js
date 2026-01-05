@@ -21,16 +21,16 @@
   function showSuccess(message, opts = {}) {
     const sys = getSystemResponse();
     if (sys) {
-        sys.show({
-            title: "Sucesso",
-            subtitle: message,
-            type: "success",
-            icon: "bi-check-circle",
-            onClear: opts.onClear
-        });
-        return;
+      sys.show({
+        title: "Sucesso",
+        subtitle: message,
+        type: "success",
+        icon: "bi-check-circle",
+        onClear: opts.onClear,
+      });
+      return;
     }
-    
+
     // Fallback legado
     console.log("Success (Fallback):", message);
     alert("✅ " + message);
@@ -40,14 +40,14 @@
   function showError(message, opts = {}) {
     const sys = getSystemResponse();
     if (sys) {
-        sys.show({
-            title: "Erro",
-            subtitle: message,
-            type: "error",
-            icon: "bi-exclamation-triangle",
-            onClear: opts.onClear
-        });
-        return;
+      sys.show({
+        title: "Erro",
+        subtitle: message,
+        type: "error",
+        icon: "bi-exclamation-triangle",
+        onClear: opts.onClear,
+      });
+      return;
     }
 
     // Fallback legado
@@ -57,41 +57,41 @@
   }
 
   function clearForm(container) {
-     try {
-        const root = container && container.nodeType === 1 ? container : (document.querySelector(container) || document.body);
-        const fields = root.querySelectorAll("input, textarea, select");
-        fields.forEach((el) => {
-            if (el.type === "hidden" || el.readOnly || el.disabled) return;
-            
-            const tag = (el.tagName || "").toLowerCase();
-            const type = String(el.type || "").toLowerCase();
-            
-            if (tag === "input") {
-                if (type === "checkbox" || type === "radio") {
-                    el.checked = false;
-                } else {
-                    el.value = "";
-                }
-            } else if (tag === "textarea") {
-                el.value = "";
-            } else if (tag === "select") {
-                el.selectedIndex = 0;
-            }
-            el.classList.remove("is-valid", "is-invalid");
-        });
-     } catch(e) {
-         console.warn("Erro ao limpar formulário:", e);
-     }
+    try {
+      const root = container && container.nodeType === 1 ? container : document.querySelector(container) || document.body;
+      const fields = root.querySelectorAll("input, textarea, select");
+      fields.forEach((el) => {
+        if (el.type === "hidden" || el.readOnly || el.disabled) return;
+
+        const tag = (el.tagName || "").toLowerCase();
+        const type = String(el.type || "").toLowerCase();
+
+        if (tag === "input") {
+          if (type === "checkbox" || type === "radio") {
+            el.checked = false;
+          } else {
+            el.value = "";
+          }
+        } else if (tag === "textarea") {
+          el.value = "";
+        } else if (tag === "select") {
+          el.selectedIndex = 0;
+        }
+        el.classList.remove("is-valid", "is-invalid");
+      });
+    } catch (e) {
+      console.warn("Erro ao limpar formulário:", e);
+    }
   }
 
   // Expor API global
-  window.SuccessErrorUI = { 
-      showSuccess, 
-      showError, 
-      clearForm,
-      __isModern: true 
+  window.SuccessErrorUI = {
+    showSuccess,
+    showError,
+    clearForm,
+    __isModern: true,
   };
-  
+
   // Compatibilidade Legada
   window.showFormSuccess = (msg, opts) => showSuccess(msg, opts);
   window.showFormError = (msg, opts) => showError(msg, opts);
@@ -100,26 +100,26 @@
     const t = String(type).toLowerCase();
     if (t === "success") return showSuccess(message, opts);
     if (t === "error") return showError(message, opts);
-    
+
     const sys = getSystemResponse();
     if (sys) {
-        let icon = "bi-info-circle";
-        let modalType = "info";
-        if (t === "warning") {
-            icon = "bi-exclamation-triangle";
-            modalType = "warning";
-        }
-        
-        sys.show({
-            title: t === "warning" ? "Atenção" : "Informação",
-            subtitle: message,
-            type: modalType,
-            icon: icon,
-            onClear: opts.onClear
-        });
-        return;
+      let icon = "bi-info-circle";
+      let modalType = "info";
+      if (t === "warning") {
+        icon = "bi-exclamation-triangle";
+        modalType = "warning";
+      }
+
+      sys.show({
+        title: t === "warning" ? "Atenção" : "Informação",
+        subtitle: message,
+        type: modalType,
+        icon: icon,
+        onClear: opts.onClear,
+      });
+      return;
     }
-    
+
     alert(message);
     if (opts.onClear) opts.onClear();
   };

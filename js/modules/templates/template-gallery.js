@@ -614,8 +614,8 @@ contract YeldToken s ERC20 {
   showNotfcaton(message, type = "info") {
     // Integração com sistema global
     if (window.notify) {
-        window.notify(message, type);
-        return;
+      window.notify(message, type);
+      return;
     }
     const container = document.getElementById("createTemplateForm") || document.body;
     const onClear = () => {

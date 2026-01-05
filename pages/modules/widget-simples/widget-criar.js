@@ -834,7 +834,6 @@
 
     // Bind evento para Limpar Dados - REMOVIDO: Usar global btnClearAll
 
-
     // Integrar eventos de seleção de rede
     document.addEventListener("network:selected", (ev) => {
       const net = ev?.detail?.network;
