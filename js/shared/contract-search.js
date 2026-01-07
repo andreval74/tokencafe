@@ -1,5 +1,5 @@
 import { networkManager } from "./network-manager.js";
-import { getApiBase } from "./verify-utils.js";
+import { getApiBase, getVerificationStatus } from "./verify-utils.js";
 import { getFallbackExplorer, getFallbackRpc } from "./network-fallback.js";
 let isSearching = false;
 function log() {
@@ -42,6 +42,30 @@ function initContainer(container) {
       if (wrap) wrap.classList.toggle("d-none", !msg);
     } catch (_) {}
   }
+
+  // Configuração de modo de visualização (sem campos)
+  try {
+    const isViewOnly = String(container.getAttribute("data-cs-view-only") || "false") === "true";
+    const titleAttr = container.getAttribute("data-cs-title");
+    const subtitleAttr = container.getAttribute("data-cs-subtitle");
+    const titleEl = container.querySelector("#cs_title");
+    const subtitleEl = container.querySelector("#cs_subtitle");
+    if (titleAttr && titleEl) titleEl.textContent = titleAttr;
+    if (subtitleEl) {
+      if (subtitleAttr) subtitleEl.textContent = subtitleAttr;
+      else if (isViewOnly) subtitleEl.textContent = "Contrato enviado pelo link";
+    }
+    if (isViewOnly) {
+      const formEl = container.querySelector("#tokenForm");
+      const statusEl = container.querySelector("#contractSearchStatus");
+      const inputGroupEl = container.querySelector(".input-group");
+      const infoBtnInit = container.querySelector("#csInfoBtn");
+      if (formEl) formEl.classList.add("d-none");
+      if (statusEl) statusEl.classList.add("d-none");
+      if (inputGroupEl) inputGroupEl.classList.add("d-none");
+      if (infoBtnInit) infoBtnInit.classList.add("d-none");
+    }
+  } catch (_) {}
 
   function clearVisualState() {
     try {
@@ -137,7 +161,8 @@ function initContainer(container) {
           const b = BigInt(balHex);
           if (b > 0n) {
             const val = formatUnits(balHex, dec);
-            vWalletStatus.innerHTML = `<span class="text-success"><i class="bi bi-wallet2 me-1"></i>Encontrado na carteira (Saldo: ${val})</span>`;
+            const valFmt = formatDecimalValue(val);
+            vWalletStatus.innerHTML = `<span class="text-tokencafe"><i class="bi bi-wallet2 me-1"></i>Encontrado na carteira (Saldo: ${valFmt})</span>`;
             return;
           }
         } catch (_) {}
@@ -156,22 +181,7 @@ function initContainer(container) {
 
   // Adicionar listener para resetar estado interno quando solicitado externamente
   container.addEventListener("contract:clear", () => {
-    isSearching = false;
-    showStatus("");
-    // Garantir que o botão de busca esteja habilitado
-    const btn = container.querySelector("#contractSearchBtn") || document.getElementById("contractSearchBtn");
-    const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
-    if (btn) btn.disabled = false;
-    if (sp) sp.classList.add("d-none");
-
-    // Limpar badges de verificação
-    const vStatus = container.querySelector("#cs_viewStatus") || document.getElementById("cs_viewStatus");
-    if (vStatus) {
-      // Remove badges mantendo texto base se necessário, ou limpa tudo se for o comportamento desejado
-      // Aqui optamos por limpar, pois clearVisualState já deve ter cuidado dos textos
-      const badges = vStatus.querySelectorAll(".badge");
-      badges.forEach((b) => b.remove());
-    }
+    performClear(false);
   });
 
   function findChainId() {
@@ -491,15 +501,32 @@ function initContainer(container) {
     }
   }
 
+  function formatDecimalValue(val) {
+    if (!val && val !== 0 && val !== "0") return "";
+    try {
+      const s = String(val);
+      const parts = s.split(".");
+      let whole = parts[0];
+      if (whole === "") whole = "0"; // Fix for ".123"
+      const frac = parts.length > 1 ? parts[1] : "";
+      const wholeFmt = BigInt(whole).toLocaleString("pt-BR");
+      return frac ? `${wholeFmt},${frac.substring(0, 8)}` : wholeFmt;
+    } catch (_) {
+      return val;
+    }
+  }
+
   async function checkIsContract(addr, chainId) {
     try {
-      // Tentar via window.ethereum se disponível e na mesma rede (mais rápido e confiável para evitar rate limits públicos)
+      // Tentar via window.ethereum se disponível e na mesma rede
       if (typeof window !== "undefined" && window.ethereum && window.ethereum.request) {
         try {
           const curChain = await window.ethereum.request({ method: "eth_chainId" });
           if (parseInt(curChain, 16) === Number(chainId)) {
             const code = await window.ethereum.request({ method: "eth_getCode", params: [String(addr), "latest"] });
-            return code !== "0x" && code !== "0x0";
+            const isC = code !== "0x" && code !== "0x0";
+            log("checkIsContract:metamask", { address: addr, chainId, isContract: isC });
+            return isC;
           }
         } catch (_) {}
       }
@@ -508,52 +535,104 @@ function initContainer(container) {
       const body = { jsonrpc: "2.0", id: 10, method: "eth_getCode", params: [String(addr), "latest"] };
       const js = await fetchJsonWithTimeout(rpc, body, MAX_TIMEOUT_MS);
       const code = js && js.result ? String(js.result) : "0x";
-      return code !== "0x" && code !== "0x0";
-    } catch (_) {
-      // Em caso de erro total, retornar null para indicar incerteza em vez de true
+      const isC = code !== "0x" && code !== "0x0";
+      log("checkIsContract:rpc", { address: addr, chainId, isContract: isC, rpc });
+      return isC;
+    } catch (e) {
+      log("checkIsContract:error", e);
       return null;
     }
   }
 
   async function updateVerificationBadge(container, chainId, address) {
-    const vStatus = container.querySelector("#cs_viewStatus") || document.querySelector("#cs_viewStatus"); // Get status element
+    const vStatus = container.querySelector("#cs_viewStatus") || document.querySelector("#cs_viewStatus");
 
     try {
-      // Try relative path first if on same origin, else use getApiBase
-      let API_BASE = getApiBase();
-      // If we are on localhost:3000, use relative to avoid CORS/Protocol issues if mixed
-      if (typeof window !== "undefined" && window.location.host === "localhost:3000") {
-        API_BASE = "";
+      const js = await getVerificationStatus(chainId, address);
+      
+      // Update compiler version if available
+      const vCv = container.querySelector("#cs_viewCompilerVersion") || document.querySelector("#cs_viewCompilerVersion");
+      const vOpt = container.querySelector("#cs_viewOptimization") || document.querySelector("#cs_viewOptimization");
+      const vOth = container.querySelector("#cs_viewOtherSettings") || document.querySelector("#cs_viewOtherSettings");
+
+      if (vCv) {
+        const cv = js?.compilerVersion || js?.explorer?.compilerVersion || "-";
+        vCv.textContent = cv;
+      }
+      
+      // Update Optimization & Other Settings
+      // Esses dados vêm geralmente em js.explorer (Etherscan/BscScan response)
+      // js.explorer = { optimizationUsed: "1", runs: "200", ... }
+      if (vOpt) {
+          const opt = js?.explorer?.optimizationUsed; // "1" or "0" typically
+          if (opt === "1" || opt === 1 || opt === true || opt === "true") {
+              // Se tiver runs, mostra junto
+              const runs = js?.explorer?.runs ? ` (Runs: ${js.explorer.runs})` : "";
+              vOpt.textContent = "Sim" + runs;
+              vOpt.className = "text-tokencafe";
+          } else if (opt === "0" || opt === 0 || opt === false || opt === "false") {
+              vOpt.textContent = "Não";
+              vOpt.className = "text-secondary";
+          } else {
+              vOpt.textContent = "-";
+              vOpt.className = "text-tokencafe";
+          }
       }
 
-      const resp = await fetch(`${API_BASE}/api/explorer-getsourcecode`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chainId: Number(chainId), address }),
-      });
-
-      if (!resp.ok) throw new Error(`API Error: ${resp.status}`);
-
-      const js = await resp.json();
+      if (vOth) {
+          // Tentar capturar evmVersion ou licenseType se disponível
+          const evm = js?.explorer?.evmVersion || "";
+          const lic = js?.explorer?.licenseType || "";
+          const proxy = js?.explorer?.proxy === "1" ? "Proxy" : "";
+          
+          const parts = [];
+          if (evm && evm !== "Default") parts.push(`EVM: ${evm}`);
+          if (lic && lic !== "None" && lic !== "Unlicense") parts.push(`Licença: ${lic}`);
+          if (proxy) parts.push(proxy);
+          
+          vOth.textContent = parts.length > 0 ? parts.join(", ") : "-";
+      }
 
       // Helper to update main status field
-      const updateMainStatus = (isVerif) => {
+      const updateMainStatus = (status) => {
         if (!vStatus) return;
-        // Keep existing "Ativo" or "Desconhecido" but add verification info
-        // We check if it already has verification info to avoid dupes
-        if (vStatus.innerHTML.includes("Verificado") || vStatus.innerHTML.includes("Não verificado")) return;
+        
+        // Remove verificado/não verificado anterior se houver (para evitar duplicação em re-runs)
+        const oldBadges = vStatus.querySelectorAll(".badge-verif-status");
+        oldBadges.forEach(el => el.remove());
 
-        if (isVerif) {
-          vStatus.innerHTML += ' <span class="badge bg-success-subtle text-success border border-success ms-2"><i class="bi bi-shield-check me-1"></i>Verificado</span>';
+        if (status === 'verified') {
+          const span = document.createElement("span");
+          span.className = "badge bg-success-subtle text-success border border-success ms-2 badge-verif-status";
+          span.innerHTML = '<i class="bi bi-shield-check me-1"></i>Verificado';
+          vStatus.appendChild(span);
+        } else if (status === 'error') {
+          const span = document.createElement("span");
+          span.className = "badge bg-secondary-subtle text-secondary border border-secondary ms-2 badge-verif-status";
+          span.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>Erro status';
+          span.title = "Não foi possível verificar o status no explorer";
+          vStatus.appendChild(span);
         } else {
-          vStatus.innerHTML += ' <span class="badge bg-danger-subtle text-danger border border-danger ms-2"><i class="bi bi-shield-x me-1"></i>Não verificado</span>';
+          const span = document.createElement("span");
+          span.className = "badge bg-danger-subtle text-danger border border-danger ms-2 badge-verif-status";
+          span.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
+          vStatus.appendChild(span);
         }
       };
 
-      if (js?.verified) {
-        updateMainStatus(true);
+      // Update warning visibility
+      const warningDiv = container.querySelector("#cs_verifiedWarning");
+      if (warningDiv) {
+          if (js?.verified) warningDiv.classList.remove("d-none");
+          else warningDiv.classList.add("d-none");
+      }
+
+      if (js?.error) {
+        updateMainStatus('error');
+      } else if (js?.verified) {
+        updateMainStatus('verified');
       } else {
-        updateMainStatus(false);
+        updateMainStatus('not_verified');
       }
     } catch (e) {
       try {
@@ -880,15 +959,16 @@ function initContainer(container) {
       if (vName) vName.textContent = extra.tokenName || "";
       if (vSym) vSym.textContent = extra.tokenSymbol || "";
       if (vDec) vDec.textContent = extra.tokenDecimals != null ? String(extra.tokenDecimals) : "";
-      if (vSup) vSup.textContent = extra.tokenSupply || "";
-      if (vTokBal) vTokBal.textContent = extra.contractTokenBalance || "";
-      if (vNatBal) vNatBal.textContent = extra.contractNativeBalance || "";
+      if (vSup) vSup.textContent = formatDecimalValue(extra.tokenSupply);
+      if (vTokBal) vTokBal.textContent = formatDecimalValue(extra.contractTokenBalance);
+      if (vNatBal) vNatBal.textContent = formatDecimalValue(extra.contractNativeBalance);
 
       // Wallet Status Logic
       if (vWalletStatus) {
         if (extra.walletBalance && BigInt(extra.walletBalance) > 0n) {
           const val = formatUnits(extra.walletBalance, extra.tokenDecimals);
-          vWalletStatus.innerHTML = `<span class="text-success"><i class="bi bi-wallet2 me-1"></i>Encontrado na carteira (Saldo: ${val})</span>`;
+          const valFmt = formatDecimalValue(val);
+          vWalletStatus.innerHTML = `<span class="text-tokencafe"><i class="bi bi-wallet2 me-1"></i>Encontrado na carteira (Saldo: ${valFmt})</span>`;
         } else if (extra.walletBalance === "0" || extra.walletBalance === 0n || extra.walletBalance === "0x0") {
           vWalletStatus.innerHTML = '<span class="text-secondary"><i class="bi bi-wallet me-1"></i>Não encontrado na carteira conectada</span>';
         } else {
@@ -903,7 +983,7 @@ function initContainer(container) {
         if (!extra.isContract) {
           vStatus.innerHTML = '<span class="text-info"><i class="bi bi-person-badge me-1"></i>Carteira (EOA)</span>';
         } else if (extra.tokenSymbol || extra.tokenDecimals != null) {
-          vStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Token (ERC-20)</span>';
+          vStatus.innerHTML = '<span class="text-tokencafe"><i class="bi bi-check-circle-fill me-1"></i>Token (ERC-20)</span>';
         } else {
           vStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Carteira (EOA) encontrada</span>';
         }
@@ -989,8 +1069,8 @@ function initContainer(container) {
         if (btnEl) {
           btnEl.disabled = false;
           btnEl.removeAttribute("data-mode");
-          btnEl.classList.remove("btn-secondary", "btn-primary");
-          btnEl.classList.add("btn-outline-primary");
+          btnEl.classList.remove("btn-secondary", "btn-primary", "btn-outline-primary");
+          btnEl.classList.add("btn-outline-secondary");
           const icon = btnEl.querySelector("i");
           if (icon) icon.className = "bi bi-search";
         }
@@ -999,10 +1079,10 @@ function initContainer(container) {
         if (btnEl) {
           btnEl.disabled = false;
           btnEl.setAttribute("data-mode", "clear");
-          btnEl.classList.remove("btn-primary", "btn-outline-primary");
-          btnEl.classList.add("btn-secondary");
+          btnEl.classList.remove("btn-secondary", "btn-primary", "btn-outline-primary");
+          btnEl.classList.add("btn-outline-secondary");
           const icon = btnEl.querySelector("i");
-          if (icon) icon.className = "bi bi-x-lg";
+          if (icon) icon.className = "bi bi-x-circle";
         }
       }
     } catch (e) {
@@ -1017,6 +1097,19 @@ function initContainer(container) {
     isSearching = false;
   }
 
+  function performFullClear() {
+    try {
+      clearVisualState();
+      const addrField = container.querySelector("#f_address") || container.querySelector("#tokenAddress") || document.getElementById("f_address") || document.getElementById("tokenAddress");
+      if (addrField) {
+        addrField.value = "";
+        addrField.dispatchEvent(new Event("input"));
+      }
+    } catch (_) {}
+  }
+
+
+
   try {
     const t = String(btn?.getAttribute("type") || "").toLowerCase();
     if (btn && t !== "submit") {
@@ -1027,12 +1120,7 @@ function initContainer(container) {
           if (btn.getAttribute("data-mode") === "clear") {
             e.preventDefault();
             e.stopPropagation();
-            clearVisualState();
-            const addrField = container.querySelector("#f_address") || container.querySelector("#tokenAddress") || document.getElementById("f_address") || document.getElementById("tokenAddress");
-            if (addrField) {
-              addrField.value = "";
-              addrField.dispatchEvent(new Event("input"));
-            }
+            performFullClear();
             return;
           }
           const now = Date.now();
@@ -1131,6 +1219,33 @@ function initContainer(container) {
       log("error", e);
     } catch {}
   }
+
+  // Auto-trigger se houver parâmetros na URL (especialmente útil para view-only)
+  try {
+    const params = new URLSearchParams(location.search);
+    const pAddr = params.get("address");
+    
+    if (pAddr && /^0x[a-fA-F0-9]{40}$/.test(pAddr)) {
+        // Preencher input se estiver vazio
+        const addrField = container.querySelector("#f_address") || document.getElementById("f_address");
+        if (addrField && !addrField.value) {
+            addrField.value = pAddr;
+            // Se houver chainId na URL, garantir que o buscador de rede saiba
+            // (O buscador de rede geralmente roda independente, mas o contract-search lê dele ou da URL)
+        }
+        
+        // Disparar busca após breve delay para garantir que tudo esteja carregado
+        setTimeout(() => {
+            // Verificar novamente se não foi disparado
+            if (!container.querySelector("#selected-contract-info:not(.d-none)")) {
+                runSearch();
+            }
+        }, 800);
+    }
+  } catch(e) {
+      try { log("auto-trigger-error", e); } catch {}
+  }
+
   // Padrão de manutenção: sem botão "limpar" — limpeza é feita ao alterar a entrada
   container.setAttribute("data-cs-initialized", "true");
 }

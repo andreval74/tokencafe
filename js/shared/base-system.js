@@ -314,7 +314,7 @@ class BaseSystem {
             type: success ? "success" : "error",
             title: title || (success ? "Sucesso" : "Erro"),
             subtitle: "",
-            content: finalContent,
+            htmlContent: finalContent,
           });
           return;
         }

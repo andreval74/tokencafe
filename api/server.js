@@ -408,7 +408,7 @@ function getExplorerApiKeyFromEnv() {
   }
 }
 
-app.post("/api/verify-bscscan", async (req, res) => {
+app.post("/api/verify-contract", async (req, res) => {
   try {
     const p = req.body || {};
     const chainId = parseInt(p.chainId || 0, 10);
@@ -517,11 +517,11 @@ app.post("/api/verify-bscscan", async (req, res) => {
   }
 });
 
-app.post("/api/explorer-getsourcecode", async (req, res) => {
+app.get("/api/explorer-getsourcecode", async (req, res) => {
   try {
-    const chainId = parseInt(req.body?.chainId || 0, 10);
-    const address = toChecksumAddress(req.body?.address || req.body?.contractAddress || "");
-    const apiKey = req.body?.apiKey || getExplorerApiKeyFromEnv();
+    const chainId = parseInt(req.query?.chainId || req.body?.chainId || 0, 10);
+    const address = toChecksumAddress(req.query?.address || req.body?.address || req.body?.contractAddress || "");
+    const apiKey = req.query?.apiKey || req.body?.apiKey || getExplorerApiKeyFromEnv();
     if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address)) return res.status(400).json({ success: false, error: "Dados inválidos" });
     const base = getExplorerApiUrl(chainId);
     const qs = new URLSearchParams();
@@ -548,13 +548,95 @@ app.post("/api/explorer-getsourcecode", async (req, res) => {
         const f2 = arr2[0] || {};
         const src2 = String(f2?.SourceCode || "");
         const ver2 = !!src2 && src2.length > 0;
-        return res.json({ success: true, verified: ver2, explorer: { status: st2, contractName: f2?.ContractName || "", compilerVersion: f2?.CompilerVersion || "", abi: f2?.ABI || "", implementation: f2?.Implementation || "" } });
+        return res.json({ 
+            success: true, 
+            verified: ver2, 
+            explorer: { 
+                status: st2, 
+                contractName: f2?.ContractName || "", 
+                compilerVersion: f2?.CompilerVersion || "", 
+                abi: f2?.ABI || "", 
+                implementation: f2?.Implementation || "",
+                optimizationUsed: f2?.OptimizationUsed || "",
+                runs: f2?.Runs || "",
+                evmVersion: f2?.EVMVersion || "",
+                licenseType: f2?.LicenseType || "",
+                proxy: f2?.Proxy || ""
+            } 
+        });
       } catch (_) {}
     }
-    return res.json({ success: true, verified, explorer: { status, contractName: first?.ContractName || "", compilerVersion: first?.CompilerVersion || "", abi: first?.ABI || "", implementation: first?.Implementation || "" } });
+    return res.json({ 
+        success: true, 
+        verified, 
+        explorer: { 
+            status, 
+            contractName: first?.ContractName || "", 
+            compilerVersion: first?.CompilerVersion || "", 
+            abi: first?.ABI || "", 
+            implementation: first?.Implementation || "",
+            optimizationUsed: first?.OptimizationUsed || "",
+            runs: first?.Runs || "",
+            evmVersion: first?.EVMVersion || "",
+            licenseType: first?.LicenseType || "",
+            proxy: first?.Proxy || ""
+        } 
+    });
   } catch (e) {
     return res.status(500).json({ success: false, error: e?.message || String(e) });
   }
+});
+
+// Alias POST para compatibilidade
+app.post("/api/explorer-getsourcecode", async (req, res) => {
+    // Reutiliza a lógica do GET, extraindo params do body
+    const chainId = parseInt(req.body?.chainId || req.query?.chainId || 0, 10);
+    const address = toChecksumAddress(req.body?.address || req.body?.contractAddress || req.query?.address || "");
+    const apiKey = req.body?.apiKey || req.query?.apiKey || getExplorerApiKeyFromEnv();
+    
+    // Constrói fake req object ou chama função extraída (mas aqui vou duplicar chamada interna para simplificar sem refatorar tudo)
+    // Melhor: redirecionar para o handler do GET? Não, req structure é diferente.
+    // Vou apenas copiar a lógica crítica de chamada.
+    
+    try {
+        if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address)) return res.status(400).json({ success: false, error: "Dados inválidos" });
+        
+        const base = getExplorerApiUrl(chainId);
+        const qs = new URLSearchParams();
+        qs.append("module", "contract");
+        qs.append("action", "getsourcecode");
+        qs.append("address", address);
+        if (apiKey) qs.append("apikey", apiKey);
+        const url = `${base}&${qs.toString()}`;
+        
+        let resp = await fetch(url, { method: "GET" });
+        let js = await resp.json();
+        const status = String(js?.status || "0");
+        const resultArr = Array.isArray(js?.result) ? js.result : [];
+        const first = resultArr[0] || {};
+        const src = String(first?.SourceCode || "");
+        const verified = !!src && src.length > 0;
+        
+        if (!resp.ok || status !== "1") {
+             // Fallback logic copy
+             try {
+                const legacy = getLegacyExplorerApiUrl(chainId);
+                const url2 = `${legacy}?${qs.toString()}`;
+                const r2 = await fetch(url2, { method: "GET" });
+                const j2 = await r2.json();
+                const st2 = String(j2?.status || "0");
+                const arr2 = Array.isArray(j2?.result) ? j2.result : [];
+                const f2 = arr2[0] || {};
+                const src2 = String(f2?.SourceCode || "");
+                const ver2 = !!src2 && src2.length > 0;
+                return res.json({ success: true, verified: ver2 });
+             } catch (_) {}
+        }
+        
+        return res.json({ success: true, verified });
+    } catch (e) {
+        return res.status(500).json({ success: false, error: e.message });
+    }
 });
 
 app.post("/api/verify-bscscan-status", async (req, res) => {
@@ -621,7 +703,7 @@ app.use((req, res) => {
   res.status(404).json({
     success: false,
     error: "Endpoint não encontrado",
-    availableEndpoints: ["GET /health", "POST /api/compile-only", "POST /api/generate-token"],
+    availableEndpoints: ["GET /health", "POST /api/compile-only", "POST /api/generate-token", "GET/POST /api/explorer-getsourcecode"],
   });
 });
 

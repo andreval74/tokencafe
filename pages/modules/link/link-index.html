@@ -54,7 +54,7 @@
         </div>
 
         <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->
-        <div id="token-section" class="mb-4">
+        <div id="token-section" class="mb-4 d-none">
           <div data-component="shared/components/contract-search.html"></div>
         </div>
 
@@ -74,10 +74,12 @@
                 </span>
                 <input type="text" id="generatedLink" class="form-control bg-dark text-light border-secondary" readonly
                   placeholder="https://..." onclick="this.select()">
-                <button class="btn btn-primary" type="button" id="btnCopyLink" title="Copiar Link">
+
+                <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
                   <i class="bi bi-clipboard"></i>
                 </button>
-                <button class="btn btn-outline-light" type="button" id="btnOpenLink" title="Abrir Link">
+
+                <button class="btn btn-outline-light" type="button" id="viewAddressBtn" title="Visualizar na Rede">
                   <i class="bi bi-box-arrow-up-right"></i>
                 </button>
               </div>
@@ -102,8 +104,8 @@
             </div>
           </div>
         </div>
-
-        <div class="d-flex justify-content-end mb-4">
+        <!-- Botões de ação -->
+        <div class="d-flex gap-2 justify-content-end mt-4 d-none" id="add-network-section">
           <button id="btnClearAll" class="btn btn-outline-danger">
             <i class="bi bi-trash me-2"></i>Limpar Dados
           </button>

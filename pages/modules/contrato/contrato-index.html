@@ -132,8 +132,8 @@
 
         <!-- Ação de Compilar e Deploy -->
         <div class="mb-4" id="actions-section">
-          <div class="btn-row">
-            <button id="btnBuildDeploy" class="btn btn-outline-success">
+          <div class="d-flex gap-2">
+            <button id="btnBuildDeploy" class="btn btn-outline-success flex-grow-1">
               <span id="buildSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"
                 aria-hidden="true"></span>
               <i class="bi bi-tools me-1"></i>
@@ -145,6 +145,8 @@
             </button>
           </div>
         </div>
+
+        <!-- Botão Limpar Dados (Abaixo) removido daqui -->
 
         <!-- Detalhes do Contrato -->
         <div class="mb-4 mt-4 d-none" id="erc20-details">
@@ -226,6 +228,9 @@
           </small>
         </div>
       </div>
+      
+      <!-- Container para mover o botão Limpar Dados após deploy -->
+      <div id="cleanup-action-container" class="d-flex justify-content-end mb-4"></div>
     </div>
   </div>
 

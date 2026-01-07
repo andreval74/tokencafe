@@ -1,5 +1,5 @@
 import { getExplorerContractUrl } from "./explorer-utils.js";
-import { completePayload, runVerifyDirect, getApiBase, getVerifyApiKey } from "../../shared/verify-utils.js";
+import { completePayload, runVerifyDirect, getApiBase, getVerifyApiKey, getVerificationStatus } from "../../shared/verify-utils.js";
 
 const statusEl = document.getElementById("verifyStatus");
 const runBtn = document.getElementById("runVerify");
@@ -55,6 +55,114 @@ const btnText = document.getElementById("verifyBtnText");
   document.addEventListener("contract:clear", () => {
     clearForm();
   });
+
+  // Matrix Flow Logic
+  document.addEventListener("network:selected", (e) => {
+    const net = e.detail.network;
+    if (net) {
+      const tokenSection = document.getElementById("token-section");
+      if (tokenSection) tokenSection.classList.remove("d-none");
+      
+      // Atualizar campo hidden de chainId
+      const fChainId = document.getElementById("f_chainId");
+      if (fChainId) fChainId.value = net.chainId;
+
+      // Se mudar a rede, esconder a seção de resultado até buscar novo contrato
+      const generateSection = document.getElementById("generate-section");
+      if (generateSection) generateSection.classList.add("d-none");
+    }
+  });
+
+  document.addEventListener("contract:found", (e) => {
+    const contract = e.detail.contract;
+    if (contract) {
+      const generateSection = document.getElementById("generate-section");
+      const walletWarning = document.getElementById("walletWarning");
+      const runVerifyBtn = document.getElementById("runVerify");
+      const codeSourceSection = document.getElementById("codeSourceSection");
+      const colContractName = document.getElementById("col-contract-name");
+      const colCompilerVersion = document.getElementById("col-compiler-version");
+
+      // generateSection visibility is now handled by checkVerifiedStatus
+      // if (generateSection) generateSection.classList.remove("d-none");
+
+      // Check if it is a wallet (EOA)
+      const isWallet = contract.assetType === "wallet" || contract.isContract === false;
+
+      if (isWallet) {
+        if (walletWarning) walletWarning.classList.remove("d-none");
+        if (runVerifyBtn) {
+            runVerifyBtn.disabled = true;
+        }
+        if (codeSourceSection) codeSourceSection.classList.add("d-none");
+        if (colContractName) colContractName.classList.add("d-none");
+        if (colCompilerVersion) colCompilerVersion.classList.add("d-none");
+        // Ensure generateSection is hidden for wallets
+        if (generateSection) generateSection.classList.add("d-none");
+      } else {
+        if (walletWarning) walletWarning.classList.add("d-none");
+        if (runVerifyBtn) runVerifyBtn.disabled = false;
+        
+        // RESET VISIBILITY: Hide form sections while checking status
+        // This prevents the form from remaining visible if it was shown for a previous contract
+        if (generateSection) generateSection.classList.add("d-none");
+        if (codeSourceSection) codeSourceSection.classList.add("d-none");
+        if (colContractName) colContractName.classList.add("d-none");
+        if (colCompilerVersion) colCompilerVersion.classList.add("d-none");
+        if (actionButtons) document.getElementById("actionButtons")?.classList.add("d-none");
+        if (runVerifyBtn) runVerifyBtn.classList.add("d-none");
+
+        // Auto-detect contract name on source code change
+        const fSrc = document.getElementById("f_sourceCode");
+    if (fSrc) {
+      fSrc.addEventListener("input", () => {
+        const val = fSrc.value || "";
+        // Regex simples para capturar "contract NomeDoContrato"
+        // Pega o último contrato definido ou tenta achar um que pareça o principal
+        // Estratégia: pegar o último 'contract Xyz' que não seja interface ou library (embora library possa ser verificada)
+        const matches = [...val.matchAll(/contract\s+([a-zA-Z0-9_]+)/g)];
+        if (matches.length > 0) {
+          // Assume o último contrato do arquivo como o principal (comum em arquivos flat)
+          const lastMatch = matches[matches.length - 1];
+          const name = lastMatch[1];
+          const fName = document.getElementById("f_contractName");
+          if (fName) fName.value = name;
+        }
+      });
+    }
+
+    // Tentar preencher campos se disponíveis
+    if (contract.contractName) {
+      const fName = document.getElementById("f_contractName");
+      if (fName && !fName.value) fName.value = contract.contractName;
+    }
+        
+        // Verificar status atual
+        window.checkVerifiedStatus && window.checkVerifiedStatus(true, contract.contractAddress, contract.chainId);
+      }
+    }
+  });
+
+  const btnClearAll = document.getElementById("btnClearAll");
+  if (btnClearAll) {
+    btnClearAll.addEventListener("click", () => {
+      // Limpar formulários e esconder seções
+      clearForm();
+      
+      const generateSection = document.getElementById("generate-section");
+      const walletWarning = document.getElementById("walletWarning");
+      
+      if (generateSection) generateSection.classList.add("d-none");
+      if (walletWarning) walletWarning.classList.add("d-none");
+      
+      document.getElementById("col-contract-name")?.classList.add("d-none");
+      document.getElementById("col-compiler-version")?.classList.add("d-none");
+
+      // Disparar eventos de limpeza para componentes
+      document.dispatchEvent(new CustomEvent("contract:clear"));
+    });
+  }
+
 })();
 
 async function ensureApiBase() {
@@ -263,9 +371,14 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
     const nsEl = document.getElementById("networkSearch");
     const cid = optChainId ? parseInt(optChainId, 10) : parseInt(document.getElementById("f_chainId")?.value || nsEl?.dataset?.chainId || "0", 10);
 
-    // Elements controlled by verification status
-    // codeSourceSection already declared above; reuse existing reference
+    // Elements
+    const generateSection = document.getElementById("generate-section");
+    const codeSourceSection = document.getElementById("codeSourceSection");
     const actionButtons = document.getElementById("actionButtons");
+    const runBtn = document.getElementById("runVerify");
+    const colCn = document.getElementById("col-contract-name");
+    const colCv = document.getElementById("col-compiler-version");
+    const sourceCodeActions = document.getElementById("sourceCodeActions");
 
     // Tenta encontrar o badge de várias formas
     let badge = document.getElementById("verifyStatusBadge");
@@ -283,6 +396,7 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
     }
 
     if (!addr || !cid) {
+      if (generateSection) generateSection.classList.add("d-none");
       if (codeSourceSection) codeSourceSection.classList.add("d-none");
       if (actionButtons) actionButtons.classList.add("d-none");
       if (badge) {
@@ -293,7 +407,7 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
     }
 
     if (badge) {
-      badge.textContent = "Verificando...";
+      badge.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Verificando...';
       badge.className = "badge bg-secondary";
       badge.classList.remove("d-none");
     } else {
@@ -303,63 +417,155 @@ window.checkVerifiedStatus = async function checkVerifiedStatus(force = false, o
     const API_BASE = getApiBase();
     let js = null;
     try {
-      const resp = await fetch(`${API_BASE}/api/explorer-getsourcecode`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ chainId: cid, address: addr }) });
-      js = await resp.json();
+      js = await getVerificationStatus(cid, addr);
     } catch (e) {
+      // Fallback para erro não tratado
       try {
         console.error("[verifica]", "Explorer status fetch falhou", e?.message || String(e));
         if (badge) {
-          badge.textContent = "Erro na busca";
+          badge.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Erro na busca';
           badge.className = "badge bg-secondary";
+          badge.title = "Clique para abrir verificação manual";
+          badge.style.cursor = "pointer";
+          badge.onclick = () => {
+             if (confirm("Deseja abrir o formulário de verificação manual?")) {
+                 if (generateSection) generateSection.classList.remove("d-none");
+                 if (codeSourceSection) codeSourceSection.classList.remove("d-none");
+                 if (actionButtons) actionButtons.classList.remove("d-none");
+                 if (runBtn) runBtn.classList.remove("d-none");
+                 if (colCn) colCn.classList.add("d-none");
+                 if (colCv) colCv.classList.add("d-none");
+             }
+          };
         }
-        // Em caso de erro, mostrar o formulário para permitir verificação manual
-        if (codeSourceSection) codeSourceSection.classList.remove("d-none");
-        if (actionButtons) actionButtons.classList.remove("d-none");
-        if (btnVerifyCol) btnVerifyCol.classList.remove("d-none");
+        
+        // CORREÇÃO: Esconder formulário também no catch
+        if (generateSection) generateSection.classList.add("d-none");
+        if (codeSourceSection) codeSourceSection.classList.add("d-none");
+        if (actionButtons) actionButtons.classList.add("d-none");
+        if (runBtn) runBtn.classList.add("d-none");
       } catch (_) {}
       return;
     }
-    const isVerified = !!js?.verified;
-    // const badge is already defined above
-    // btnVerifyCol and codeSourceSection declared at top
-    // actionButtons already declared above; reuse existing reference
 
-    if (badge) {
-      if (isVerified) {
-        badge.textContent = "Verificado";
+    if (js?.error) {
+      console.warn("[verifica]", "Status check returned error:", js.message);
+      console.log("[verifica] Full JS:", JSON.stringify(js));
+      
+      if (badge) {
+        badge.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Erro na busca';
+        badge.className = "badge bg-secondary";
+        badge.title = js.message || "Erro desconhecido";
+      }
+
+      // NOVO COMPORTAMENTO: Esconder formulário em caso de erro para evitar poluição visual
+      // O usuário pode clicar no badge ou usar um botão de "Forçar Verificação" se desejar (futura impl)
+      if (generateSection) generateSection.classList.add("d-none");
+      if (codeSourceSection) codeSourceSection.classList.add("d-none");
+      if (actionButtons) actionButtons.classList.add("d-none");
+      if (runBtn) runBtn.classList.add("d-none");
+
+      // Adicionar link para forçar exibição manual se necessário
+      if (badge && !badge.querySelector(".retry-link")) {
+         // Pequeno hack para permitir retry clicando no badge
+         badge.style.cursor = "pointer";
+         badge.onclick = () => {
+            if (confirm("Deseja abrir o formulário de verificação manual?")) {
+                if (generateSection) generateSection.classList.remove("d-none");
+                if (codeSourceSection) codeSourceSection.classList.remove("d-none");
+                if (actionButtons) actionButtons.classList.remove("d-none");
+                if (runBtn) runBtn.classList.remove("d-none");
+                // Manter campos extras ocultos
+                if (colCn) colCn.classList.add("d-none");
+                if (colCv) colCv.classList.add("d-none");
+            }
+         };
+         badge.title = "Clique para abrir verificação manual";
+      }
+
+      return;
+    }
+
+    const isVerified = !!js?.verified;
+    console.log("[verifica]", "Verified status:", isVerified, "Contract:", addr);
+
+    // Reset warning alert visibility
+    // document.getElementById("verifiedWarningAlert")?.classList.add("d-none"); // REMOVIDO: Usar apenas o badge superior
+
+    if (isVerified) {
+      // VISUAL UPDATE: VERIFIED
+      if (badge) {
+        badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Verificado';
         badge.className = "badge bg-success";
         badge.classList.remove("d-none");
+      }
 
-        // Hide form and action buttons (since verified)
-        if (codeSourceSection) codeSourceSection.classList.add("d-none");
-        if (actionButtons) actionButtons.classList.add("d-none");
-        if (btnVerifyCol) btnVerifyCol.classList.add("d-none");
+      // HIDE FORM SECTIONS
+      if (generateSection) generateSection.classList.add("d-none");
+      if (colCn) colCn.classList.add("d-none");
+      if (colCv) colCv.classList.add("d-none");
+      if (codeSourceSection) codeSourceSection.classList.add("d-none");
+      if (actionButtons) actionButtons.classList.add("d-none");
+      if (runBtn) runBtn.classList.add("d-none");
 
-        // Disable automatic verification button permanently
-        const runBtn = document.getElementById("runVerifyBtn");
-        if (runBtn) {
-          runBtn.disabled = true;
-          runBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Verificado';
-        }
-      } else {
-        badge.textContent = "Não verificado";
+      // SHOW WARNING: ALREADY VERIFIED
+      let warningAlert = document.getElementById("verifiedWarningAlert");
+      if (!warningAlert) {
+          warningAlert = document.createElement("div");
+          warningAlert.id = "verifiedWarningAlert";
+          warningAlert.className = "alert alert-success mt-3 text-center";
+          warningAlert.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Este contrato já foi verificado e seu código fonte está disponível.';
+          // Insert after the search component or at the top of the main container
+          const root = document.querySelector(".contract-search-component") || document.getElementById("generate-section")?.parentNode;
+          if (root) root.appendChild(warningAlert);
+      }
+      warningAlert.classList.remove("d-none");
+
+      // Populate hidden fields just in case
+      if (js?.sourceCode) {
+          const fSrc = document.getElementById("f_sourceCode");
+          if (fSrc) {
+              fSrc.value = js.sourceCode;
+              fSrc.readOnly = true;
+          }
+      }
+      if (js?.metadata) {
+           const fMeta = document.getElementById("f_metadata");
+           if (fMeta) fMeta.value = js.metadata;
+      }
+
+    } else {
+      // VISUAL UPDATE: NOT VERIFIED
+      if (badge) {
+        badge.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
         badge.className = "badge bg-danger";
         badge.classList.remove("d-none");
-
-        // Show form and verify button
-        if (codeSourceSection) codeSourceSection.classList.remove("d-none");
-        if (actionButtons) actionButtons.classList.remove("d-none");
-        if (btnVerifyCol) btnVerifyCol.classList.remove("d-none");
       }
-    } else {
-      // Se não encontrou o badge, tenta forçar a exibição do form se não verificado
-      if (!isVerified) {
-        if (codeSourceSection) codeSourceSection.classList.remove("d-none");
-        if (actionButtons) actionButtons.classList.remove("d-none");
-        if (btnVerifyCol) btnVerifyCol.classList.remove("d-none");
+      
+      // Hide warning if exists
+      const warningAlert = document.getElementById("verifiedWarningAlert");
+      if (warningAlert) warningAlert.classList.add("d-none");
+
+      // SHOW FORM SECTIONS
+      if (generateSection) generateSection.classList.remove("d-none");
+      if (codeSourceSection) codeSourceSection.classList.remove("d-none");
+      if (actionButtons) actionButtons.classList.remove("d-none");
+      
+      // SIMPLIFICATION: Keep extra fields HIDDEN by default
+      if (colCn) colCn.classList.add("d-none");
+      if (colCv) colCv.classList.add("d-none");
+      
+      if (sourceCodeActions) sourceCodeActions.classList.remove("d-none");
+      const fSrc = document.getElementById("f_sourceCode");
+      if (fSrc) fSrc.readOnly = false;
+
+      if (runBtn) {
+          runBtn.classList.remove("d-none");
+          runBtn.disabled = false;
       }
     }
-    if (btnText) btnText.textContent = isVerified ? "Já verificado" : "Verificar automaticamente";
+
+    if (btnText) btnText.textContent = isVerified ? "Já verificado" : "Verificar Contrato";
 
     // Texto do explorer status removido conforme solicitação
     const txtEl = document.getElementById("explorerStatusText");
@@ -539,7 +745,7 @@ function clearForm() {
     }
 
     localStorage.removeItem("tokencafe_contract_verify_payload");
-    logStatus("Formulário limpo.");
+    // logStatus("Formulário limpo."); // Removido conforme solicitação
   } catch (_) {}
 }
 
@@ -619,20 +825,37 @@ function updateCompilerReadOnly() {
     const lock = document.getElementById("compVerLockIcon");
     const help = document.getElementById("compVerHelp");
     if (!cv) return;
+
+    // Default latest version
+    const LATEST_VERSION = "v0.8.30+commit.73712a01";
+    let foundVersion = null;
+
     if (metaRaw) {
       try {
         const m = JSON.parse(metaRaw);
-        const ver = m?.compiler?.version || "";
-        if (ver) cv.value = String(ver);
-        cv.readOnly = !!ver;
-      } catch (_) {
-        cv.readOnly = false;
-      }
-    } else {
-      cv.readOnly = false;
+        foundVersion = m?.compiler?.version || null;
+      } catch (_) {}
     }
-    if (lock) lock.classList.toggle("d-none", !cv.readOnly);
-    if (help) help.classList.toggle("d-none", !cv.readOnly);
+
+    // Set version: from metadata OR latest
+    if (foundVersion) {
+        cv.value = foundVersion;
+    } else {
+        // Only overwrite if empty or not set to a specific version yet? 
+        // User said: "se não tiver busque a ultima versão".
+        // So if we don't have metadata version, we force latest.
+        cv.value = LATEST_VERSION;
+    }
+    
+    // Always readonly
+    cv.readOnly = true;
+
+    // Lock icon and help text always visible
+    if (lock) lock.classList.remove("d-none");
+    if (help) {
+        help.textContent = foundVersion ? "Versão obtida do metadata.json" : "Versão padrão (última)";
+        help.classList.remove("d-none");
+    }
   } catch (_) {}
 }
 

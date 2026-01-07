@@ -1256,6 +1256,15 @@ async function deployPlaceholder() {
     } catch (_) {}
     stopOpStatus("Deploy concluído");
 
+    // Move Limpar Dados button to bottom container after deploy
+    try {
+      const clearButton = document.getElementById("btnClearAll");
+      const bottomContainer = document.getElementById("cleanup-action-container");
+      if (clearButton && bottomContainer) {
+        bottomContainer.appendChild(clearButton);
+      }
+    } catch (_) {}
+
     try {
       const rec = buildRecipe();
       rec.deployment = rec.deployment || {};

@@ -1,9 +1,104 @@
 import { NetworkManager } from "../../shared/network-manager.js";
+import { SystemResponse } from "../../shared/system-response.js";
 import { getFallbackRpc, getFallbackExplorer, getFallbackChainName, getFallbackNativeCurrency } from "../../shared/network-fallback.js";
 
 const networkManager = new NetworkManager();
+const systemResponse = new SystemResponse();
 
 let lastContractData = null;
+
+async function switchNetwork() {
+  if (!lastContractData || !lastContractData.chainId) {
+    window.notify && window.notify("Rede de destino desconhecida", "error");
+    return;
+  }
+
+  const chainId = lastContractData.chainId;
+  const targetHex = "0x" + Number(chainId).toString(16);
+
+  try {
+    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: targetHex }] });
+    // A recarga da página ou evento chainChanged lidará com a atualização da UI
+  } catch (switchErr) {
+    if (switchErr && (switchErr.code === 4902 || /unrecognized|unknown/i.test(String(switchErr.message || "")))) {
+      // Add chain
+      const net = networkManager.getNetworkById(chainId);
+      const rpcUrls = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc : [getFallbackRpc(chainId)].filter(Boolean);
+      const explorerUrl = net?.explorers?.[0]?.url || getFallbackExplorer(chainId);
+      const nc = net?.nativeCurrency || getFallbackNativeCurrency(chainId);
+
+      const addParams = {
+        chainId: targetHex,
+        chainName: net?.name || getFallbackChainName(chainId) || `Chain ${chainId}`,
+        nativeCurrency: {
+          name: nc.name,
+          symbol: nc.symbol,
+          decimals: parseInt(String(nc.decimals), 10),
+        },
+        rpcUrls,
+        blockExplorerUrls: explorerUrl ? [explorerUrl] : [],
+      };
+      try {
+        await window.ethereum.request({ method: "wallet_addEthereumChain", params: [addParams] });
+      } catch (addErr) {
+        window.notify && window.notify(`Erro ao adicionar rede: ${addErr.message}`, "error");
+      }
+    } else {
+      window.notify && window.notify(`Erro ao trocar rede: ${switchErr.message}`, "error");
+    }
+  }
+}
+
+async function checkNetwork() {
+  const switchBtn = document.getElementById("btnSwitchNetwork");
+  const addBtn = document.getElementById("addToWalletButton");
+
+  if (!lastContractData || !window.ethereum) {
+    if (switchBtn) switchBtn.classList.add("d-none");
+    if (addBtn) addBtn.disabled = true;
+    return;
+  }
+
+  const { chainId } = lastContractData;
+  const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
+
+  if (!currentHex || String(parseInt(currentHex, 16)) !== String(chainId)) {
+    // Rede incorreta
+    if (switchBtn) {
+        switchBtn.classList.remove("d-none");
+        switchBtn.onclick = switchNetwork; // Garantir listener
+    }
+    if (addBtn) {
+        addBtn.disabled = true;
+        addBtn.title = "Troque a rede primeiro";
+    }
+  } else {
+    // Rede correta
+    if (switchBtn) switchBtn.classList.add("d-none");
+    if (addBtn) {
+        // Verificar saldo para decidir se habilita ou mostra "Já adicionado"
+        // (Lógica duplicada do contract:found, mas necessária para atualização dinâmica)
+        const bal = lastContractData.walletBalance;
+        let hasBalance = false;
+        try {
+          if (bal && BigInt(bal) > 0n) hasBalance = true;
+        } catch (_) {}
+
+        if (hasBalance) {
+          addBtn.disabled = true;
+          addBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Já Adicionado';
+          addBtn.classList.remove("btn-outline-primary", "btn-outline-warning");
+          addBtn.classList.add("btn-success");
+        } else {
+          addBtn.disabled = false;
+          addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar Token';
+          addBtn.classList.remove("btn-success", "btn-outline-primary");
+          addBtn.classList.add("btn-outline-warning");
+          addBtn.title = "";
+        }
+    }
+  }
+}
 
 async function addToWallet() {
   try {
@@ -16,43 +111,28 @@ async function addToWallet() {
       return;
     }
 
-    const { contractAddress: address, tokenSymbol, tokenDecimals, chainId } = lastContractData;
+    let { contractAddress: address, tokenSymbol, tokenDecimals, chainId } = lastContractData || {};
+    
+    // Fallback: tentar recuperar dados dos parâmetros da URL ou elementos da página se lastContractData estiver incompleto
+    if (!address || !chainId) {
+        const params = new URLSearchParams(location.search);
+        address = address || params.get("address");
+        chainId = chainId || params.get("chainId");
+    }
+    
+    if (!address || !chainId) {
+         window.notify && window.notify("Dados do token incompletos (endereço ou rede)", "error");
+         return;
+    }
+    
     const image = ""; // TODO: support image param if available
 
-    // Check wallet balance again or rely on last check?
-    // User can click "Add" even if balance 0.
-
-    // Switch chain logic
-    const targetHex = "0x" + Number(chainId).toString(16);
+    // Verificação final de rede
     const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
-
     if (!currentHex || String(parseInt(currentHex, 16)) !== String(chainId)) {
-      try {
-        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: targetHex }] });
-      } catch (switchErr) {
-        if (switchErr && (switchErr.code === 4902 || /unrecognized|unknown/i.test(String(switchErr.message || "")))) {
-          // Add chain
-          const net = networkManager.getNetworkById(chainId);
-          const rpcUrls = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc : [getFallbackRpc(chainId)].filter(Boolean);
-          const explorerUrl = net?.explorers?.[0]?.url || getFallbackExplorer(chainId);
-          const nc = net?.nativeCurrency || getFallbackNativeCurrency(chainId);
-
-          const addParams = {
-            chainId: targetHex,
-            chainName: net?.name || getFallbackChainName(chainId) || `Chain ${chainId}`,
-            nativeCurrency: {
-              name: nc.name,
-              symbol: nc.symbol,
-              decimals: parseInt(String(nc.decimals), 10),
-            },
-            rpcUrls,
-            blockExplorerUrls: explorerUrl ? [explorerUrl] : [],
-          };
-          await window.ethereum.request({ method: "wallet_addEthereumChain", params: [addParams] });
-        } else {
-          throw switchErr;
-        }
-      }
+        window.notify && window.notify("Por favor, troque para a rede correta antes de adicionar o token.", "warning");
+        checkNetwork(); // Atualiza UI para mostrar botão de troca
+        return;
     }
 
     // Watch Asset
@@ -77,23 +157,12 @@ async function addToWallet() {
       title: "Token Adicionado",
       subtitle: "O token foi enviado para sua carteira com sucesso.",
       icon: "bi-check-circle",
-      content: address,
-      badge: "Adicionado",
-      actions: ["copy", "open", "clear"],
       onClear: () => {
         // Resetar botão local
-        const addBtn = document.getElementById("addToWalletButton");
-        if (addBtn) {
-          addBtn.disabled = true;
-          addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar à Carteira';
-          addBtn.classList.add("btn-outline-primary");
-          addBtn.classList.remove("btn-success");
-        }
+        checkNetwork(); // Revalida estado
       },
     });
 
-    // Hide button temporarily or just let it stay disabled (handled by onClear or status update)
-    // window.notify && window.notify("Token enviado para a carteira", "success");
   } catch (e) {
     window.notify && window.notify(`Erro ao adicionar token: ${e.message}`, "error");
   }
@@ -104,40 +173,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     await networkManager.init();
   } catch {}
 
-  // Set input to Read-Only if needed
-  // User asked: "o campo onde fica o numero do contrato deve ficar no modo read para não ser alterado"
-  // We apply this always for this specific page as requested
+  // Set input to Read-Only
   const waitForInput = setInterval(() => {
     const input = document.getElementById("f_address") || document.getElementById("tokenAddress");
     if (input) {
       input.readOnly = true;
-      // Also maybe hide the search button if it's auto-triggered?
-      // But user might want to re-trigger search if it failed?
-      // If read-only, they can't change it.
-      // If the input is empty, read-only makes it unusable unless populated by URL.
-      // We should check if URL has params.
-      const params = new URLSearchParams(location.search);
-      if (!params.get("address")) {
-        // If no address in URL, maybe we shouldn't lock it?
-        // But user said "must be read mode".
-        // I'll assume this page is INTENDED for link sharing.
-        // If empty, I'll show a notification or placeholder?
-        // Or I'll just leave it read-only and let the user realize they need a link.
-        // However, for testing, I might want to paste.
-        // I'll stick to strict interpretation: "deve ficar no modo read".
-      }
       clearInterval(waitForInput);
     }
   }, 100);
 
   const params = new URLSearchParams(location.search);
   const pAddress = params.get("address");
-  // Removido: pChainId não utilizado
 
-  // Setup button listener
+  // Setup button listeners
   const addBtn = document.getElementById("addToWalletButton");
   if (addBtn) {
     addBtn.addEventListener("click", addToWallet);
+  }
+  
+  const switchBtn = document.getElementById("btnSwitchNetwork");
+  if (switchBtn) {
+    switchBtn.addEventListener("click", switchNetwork);
   }
 
   // Listen for contract search results
@@ -145,71 +201,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = e.detail?.contract;
     if (!data) return;
     lastContractData = data;
-
-    // Logic to enable/disable button based on wallet status
-    // The contract-search component already displays the status text.
-    // We just need to handle the button.
-
-    if (addBtn) {
-      const bal = data.walletBalance;
-      // Check BigInt para verificar saldo > 0
-      let hasBalance = false;
-      try {
-        if (bal && BigInt(bal) > 0n) hasBalance = true;
-      } catch (_) {}
-
-      if (hasBalance) {
-        addBtn.disabled = true;
-        addBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Já Adicionado';
-        addBtn.classList.remove("btn-outline-primary");
-        addBtn.classList.add("btn-success");
-      } else {
-        addBtn.disabled = false;
-        addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar à Carteira';
-        addBtn.classList.add("btn-outline-primary");
-        addBtn.classList.remove("btn-success");
-      }
-    }
+    
+    // Check network immediately
+    checkNetwork();
   });
 
   document.addEventListener("contract:clear", () => {
     lastContractData = null;
+    const addBtn = document.getElementById("addToWalletButton");
+    const switchBtn = document.getElementById("btnSwitchNetwork");
+    
+    if (switchBtn) switchBtn.classList.add("d-none");
     if (addBtn) {
       addBtn.disabled = true;
-      addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar à Carteira';
-      addBtn.classList.add("btn-outline-primary");
-      addBtn.classList.remove("btn-success");
+      addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar Token';
+      addBtn.classList.add("btn-outline-warning");
+      addBtn.classList.remove("btn-success", "btn-outline-primary");
     }
   });
+  
+  // Monitor chain changes
+  if (window.ethereum) {
+      window.ethereum.on('chainChanged', () => {
+          // Recarregar página é comum, mas aqui tentaremos apenas atualizar UI
+          checkNetwork();
+      });
+  }
 
   // Wait for component to load and trigger search
   if (pAddress) {
     const waitForInput = setInterval(() => {
-      const input = document.getElementById("f_address");
-      const btn = document.getElementById("contractSearchBtn");
-      const title = document.getElementById("cs_title");
-
-      if (input && btn) {
+        // ... (existing logic in contract-search handles auto-trigger via URL params)
+        // Just ensure we don't block anything
         clearInterval(waitForInput);
-
-        // Override component UI for "Link" mode
-        if (title) title.innerText = "Adicionar Token";
-        input.value = pAddress;
-        input.readOnly = true;
-
-        // Hide clear button if exists, as input is readonly
-        const clearBtn = document.getElementById("csClearBtn");
-        if (clearBtn) clearBtn.style.display = "none";
-
-        // Trigger search
-        // Give a small delay to ensure listeners are attached
-        setTimeout(() => {
-          btn.click();
-        }, 100);
-      }
-    }, 100);
-
-    // Safety timeout
-    setTimeout(() => clearInterval(waitForInput), 10000);
+    }, 500);
   }
 });

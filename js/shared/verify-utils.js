@@ -18,66 +18,72 @@ export function getVerifyApiKey() {
     const fromQuery = sp.get("bscapi");
     if (fromQuery) return fromQuery;
   } catch (_) {}
+  
   try {
-    if (typeof window.TOKENCAFE_BSCSCAN_API_KEY !== "undefined" && window.TOKENCAFE_BSCSCAN_API_KEY) {
-      return window.TOKENCAFE_BSCSCAN_API_KEY;
-    }
-  } catch (_) {}
-  try {
-    return window.localStorage ? window.localStorage.getItem("bscscan_api_key") : null;
+     // Tenta pegar do localStorage se houver (feature futura)
+     return window.localStorage?.getItem("default_bsc_api_key") || "";
   } catch (_) {
-    return null;
+      return "";
   }
 }
 
-export function completePayload(p) {
-  const meta = p?.metadata ? JSON.parse(p.metadata) : null;
-  return {
-    ...p,
-    compilerVersion: p?.compilerVersion || meta?.compiler?.version || null,
-    optimizationUsed: p?.optimizationUsed ?? true,
-    runs: p?.runs ?? 200,
-    codeformat: p?.codeformat || "solidity-single-file",
-    contractNameFQN: p?.contractNameFQN || (p?.contractName ? `${p.contractName}.sol:${p.contractName}` : null),
-    apiKey: p?.apiKey || getVerifyApiKey(),
-  };
+export function completePayload(payload) {
+    // Garante campos mínimos
+    if (!payload.module) payload.module = "contract";
+    if (!payload.action) payload.action = "verifysourcecode";
+    if (!payload.codeformat) payload.codeformat = "solidity-standard-json-input"; 
+    // Se for single file, o backend ajusta ou o caller ajusta
+    return payload;
 }
 
-export async function runVerifyDirect(p) {
-  const API_BASE = getApiBase();
-  const addr = p?.contractAddress;
-  const cid = p?.chainId;
-  if (!addr || !cid) return { success: false, status: "invalid" };
-  const p2 = completePayload(p);
-  try {
-    const up = await fetch(`${API_BASE}/api/verify-bscscan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(p2),
-    });
-    const js = await up.json().catch(async () => ({ success: false, error: await up.text() }));
-    if (!up.ok || !js?.success) {
-      return { success: false, status: "error", error: js?.error || js?.message || "Falha no envio para explorer" };
-    }
-    const guid = js?.guid || "";
-    const explorerUrl = js?.explorerUrl || null;
-    if (!guid) return { success: false, status: "error", error: "GUID ausente" };
-    for (let i = 0; i < 3; i++) {
-      await new Promise((r) => setTimeout(r, 4000));
-      try {
-        const chk = await fetch(`${API_BASE}/api/verify-bscscan-status`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chainId: cid, guid, apiKey: p2.apiKey }),
+export async function runVerifyDirect(payload) {
+    const API_BASE = getApiBase();
+    const url = `${API_BASE}/api/verify-contract`; // Proxy endpoint
+    
+    try {
+        const resp = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
         });
-        const cj = await chk.json();
-        if (cj?.success) return { success: true, status: "explorer", link: explorerUrl || null };
-      } catch (_) {}
+        const js = await resp.json();
+        return js;
+    } catch (e) {
+        return { status: "0", message: "Network/Server Error: " + String(e), result: "" };
     }
-    return { success: false, status: "pending", link: explorerUrl || null };
-  } catch (e) {
-    return { success: false, status: "error", error: e?.message || String(e) };
-  }
 }
 
-// Sem suporte a lote via explorer por enquanto
+export async function getVerificationStatus(chainId, address) {
+    const API_BASE = getApiBase();
+    const url = `${API_BASE}/api/explorer-getsourcecode?chainId=${chainId}&address=${address}`;
+    
+    // Check cache
+    const cacheKey = `verif_status_v2_${chainId}_${address}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+        try {
+            return JSON.parse(cached);
+        } catch (_) {}
+    }
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+        
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const js = await resp.json();
+        
+        // Cache ONLY if verified is true (to allow re-checking if verification is pending or failed previously)
+        if (js && js.success && js.verified) {
+            sessionStorage.setItem(cacheKey, JSON.stringify(js));
+        }
+        return js;
+    } catch (e) {
+        console.error("[verify-utils] getVerificationStatus error:", e);
+        // Return object with error property so caller handles it
+        return { success: false, error: true, message: e.message || String(e) };
+    }
+}

@@ -310,10 +310,13 @@ function updateGeneratedLink() {
 
   // Garantir que a seção de links gerados seja exibida se houver URL
   const genSection = document.getElementById("generate-section");
+  const addNetSection = document.getElementById("add-network-section");
   if (url && genSection) {
     genSection.classList.remove("d-none");
+    if (addNetSection) addNetSection.classList.remove("d-none");
   } else if (!url && genSection) {
     genSection.classList.add("d-none");
+    if (addNetSection) addNetSection.classList.add("d-none");
   }
 
   const sym = document.getElementById(ids.tokenSymbol)?.value;
@@ -321,19 +324,8 @@ function updateGeneratedLink() {
   const manualData = sym && dec && sym !== "TKN";
 
   if (url && (tokenFetched || manualData)) {
-    const hasMeta = sym && dec && sym !== "TKN";
-
-    systemResponse.show({
-      title: "Link Gerado",
-      subtitle: "Copie, compartilhe ou teste o link",
-      icon: "bi-link-45deg",
-      content: url,
-      badge: hasMeta ? "Dados do contrato confirmados (símbolo/decimais)" : null,
-      actions: ["copy", "whatsapp", "telegram", "email", "open"],
-      onClear: () => {
-        // Apenas fecha o modal, mantendo os dados na tela para visualização
-      },
-    });
+    // systemResponse.show removido conforme solicitação do usuário
+    // Apenas mantém a seção de link gerado visível na tela
     clearError();
   } else {
     systemResponse.hide();
@@ -683,6 +675,7 @@ function clearAll() {
   show("network-section");
   hide("token-section");
   hide("generate-section");
+  hide("add-network-section");
   hide("token-info");
   (function () {
     const loading = document.getElementById("tokenLoading");

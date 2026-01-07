@@ -24,13 +24,13 @@
   <link href="../../../css/styles.css" rel="stylesheet" />
 </head>
 
-<body class="bg-page-black">
-  <!-- Header padrão com status de carteira (componente) -->
-  <div data-component="tools-header.html" data-icon="fa-wallet" data-icon-alt="TokenCafe"
-    data-title="Gerenciador de Carteira" data-subtitle="Conecte e gerencie sua carteira Web3"></div>
+  <body class="bg-page-black">
+    <!-- Header padrão com status de carteira (componente) -->
+    <div data-component="tools-header.html" data-icon="fa-wallet" data-icon-alt="TokenCafe"
+      data-title="Gerenciador de Carteira" data-subtitle="Conecte e gerencie sua carteira Web3"></div>
 
-  <!--corpo do html-->
-  <div class="container">
+    <!--corpo do html-->
+    <div class="container">
     <div class="g-4">
       <div class="col-12">
         <!-- Seção Informações da Carteira -->
@@ -100,6 +100,13 @@
             <label for="customRpcs" class="form-label">RPCs Personalizados</label>
             <textarea id="customRpcs" class="form-control monospace-input" rows="3" readonly
               placeholder="Nenhum RPC personalizado configurado"></textarea>
+          </div>
+
+          <!-- Botões de ação -->
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button id="btnClearAll" class="btn btn-outline-danger">
+              <i class="bi bi-trash me-2"></i>Limpar Dados
+            </button>
           </div>
         </div>
       </div>

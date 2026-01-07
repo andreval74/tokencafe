@@ -9,20 +9,24 @@
     </div>
     <form id="tokenForm" class="mt-1" novalidate>
       <div class="input-group">
-        <input type="text" id="f_address" class="form-control" placeholder="Endereço 0x... do contrato/token" autocomplete="off" pattern="^0x[a-fA-F0-9]{40}$" />
-        <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('f_address').value)" title="Copiar">
+        <input type="text" id="f_address" class="form-control" placeholder="Endereço 0x... do contrato/token"
+          autocomplete="off" pattern="^0x[a-fA-F0-9]{40}$" />
+        <button class="btn btn-outline-secondary" type="button"
+          onclick="window.copyToClipboard?.(document.getElementById('f_address').value)" title="Copiar">
           <i class="bi bi-clipboard"></i>
-        </button>
-        <button type="submit" id="contractSearchBtn" class="btn btn-outline-primary" title="Buscar dados via RPC" aria-label="Buscar dados via RPC">
-          <i class="bi bi-search"></i>
         </button>
         <button type="button" id="csInfoBtn" class="btn btn-outline-info" title="Ver detalhes do contrato">
           <i class="bi bi-info-circle"></i>
         </button>
+        <button type="submit" id="contractSearchBtn" class="btn btn-outline-secondary" title="Limpar Dados"
+          aria-label="Limpar Dados">
+          <i class="bi bi-search"></i>
+        </button>
       </div>
       <input id="tokenAddress" type="hidden" class="d-none" />
       <small id="contractSearchStatus" class="text-muted d-none mt-1">
-        <span id="contractSearchSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status" aria-hidden="true"></span>
+        <span id="contractSearchSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"
+          aria-hidden="true"></span>
         <span id="contractSearchStatusText"></span>
       </small>
     </form>
@@ -32,16 +36,19 @@
     <div class="card-body">
       <h6 class="mb-2">Contrato/Token:</h6>
       <div class="row g-2 small">
-        <div class="col-6">
+        <div class="col-12">
           <div class="d-flex align-items-baseline gap-2">
             <span>Endereço:</span>
-            <a id="cs_viewAddress" href="#" target="_blank" rel="noopener" class="text-tokencafe text-decoration-none"></a>
-            <button class="btn btn-sm btn-link text-white p-0" onclick="window.copyToClipboard?.(document.getElementById('cs_viewAddress').textContent)" title="Copiar endereço">
+            <a id="cs_viewAddress" href="#" target="_blank" rel="noopener"
+              class="text-tokencafe text-decoration-none text-break"></a>
+            <button class="btn btn-sm btn-link text-white p-0"
+              onclick="window.copyToClipboard?.(document.getElementById('cs_viewAddress').textContent)"
+              title="Copiar endereço">
               <i class="bi bi-clipboard"></i>
             </button>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
           <div class="d-flex align-items-baseline gap-2">
             <span>Rede (Chain ID):</span>
             <span id="cs_viewChainId" class="text-tokencafe"></span>
@@ -89,6 +96,24 @@
             <span id="cs_viewNativeBalance" class="text-tokencafe"></span>
           </div>
         </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Compilador:</span>
+            <span id="cs_viewCompilerVersion" class="text-tokencafe">-</span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Otimização:</span>
+            <span id="cs_viewOptimization" class="text-tokencafe">-</span>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Outras configs:</span>
+            <span id="cs_viewOtherSettings" class="text-tokencafe">-</span>
+          </div>
+        </div>
         <div class="col-12">
           <div class="d-flex align-items-baseline gap-2">
             <span>Status na Carteira:</span>
@@ -96,6 +121,8 @@
           </div>
         </div>
       </div>
+      
+      
     </div>
   </div>
 </div>

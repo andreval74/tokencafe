@@ -37,7 +37,8 @@ function initWalletManager() {
   });
 
   // Limpar Dados Button
-  document.getElementById("btn-clear-data")?.addEventListener("click", async () => {
+  const btnClear = document.getElementById("btnClearAll") || document.getElementById("btn-clear-data");
+  btnClear?.addEventListener("click", async () => {
     if (walletConnector && typeof walletConnector.disconnect === "function") {
       await walletConnector.disconnect();
     }
