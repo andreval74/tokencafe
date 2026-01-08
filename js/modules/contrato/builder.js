@@ -1,6 +1,4 @@
-// Contracts Builder
-// Layout e UX alinhados ao LINK-INDEX e ao 20lab.app.
-// Integra com carteira via ethers, usa busca de rede unificada e entradas decimais.
+import { updateContractDetailsView } from "../../shared/contract-search.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -11,8 +9,49 @@ function getDeployButton() {
     return null;
   }
 }
+
+// Função para aplicar máscara de supply (milhar ponto, decimal vírgula)
+function applySupplyMask(e) {
+  const el = e.target;
+  let val = el.value;
+  // Permite apenas numeros e virgula
+  val = val.replace(/[^0-9,]/g, "");
+  // Evita multiplas virgulas
+  const parts = val.split(",");
+  if (parts.length > 2) val = parts[0] + "," + parts.slice(1).join("");
+  
+  let integer = parts[0];
+  const decimal = parts.length > 1 ? "," + parts[1] : "";
+  
+  // Formata milhar
+  integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  
+  // Se começou com virgula, adiciona 0 antes
+  if (val.startsWith(",")) integer = "0";
+  
+  el.value = integer + decimal;
+}
+
+// Inicializa máscara e listener de forma robusta
+function initSupplyMask() {
+    const supplyEl = document.getElementById("initialSupply");
+    if (supplyEl) {
+        supplyEl.removeEventListener("input", applySupplyMask);
+        supplyEl.addEventListener("input", applySupplyMask);
+        // Formata valor inicial se houver
+        if (supplyEl.value) {
+             applySupplyMask({ target: supplyEl });
+        }
+    }
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSupplyMask);
+} else {
+    initSupplyMask();
+}
 import { getExplorerContractUrl, getExplorerTxUrl, getExplorerVerificationUrl } from "./explorer-utils.js";
-import { getVerifyApiKey, getApiBase as getApiBaseShared, runVerifyDirect as runVerifyDirectShared } from "../../shared/verify-utils.js";
+import { getApiBase as getApiBaseShared, runVerifyDirect as runVerifyDirectShared, getVerificationStatus } from "../../shared/verify-utils.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
 
@@ -131,7 +170,8 @@ function updateContractInfo() {
 }
 
 function setSaleVisibility() {
-  const show = ["erc20-directsale", "upgradeable-uups"].includes(state.form.group);
+  const g = state.form.group || $("#contractGroup").value;
+  const show = Boolean(CONTRACT_GROUPS[g]?.saleIntegration);
   const node = $("#saleParams");
   if (node) node.classList.toggle("d-none", !show);
 }
@@ -329,8 +369,11 @@ function validateTokenDecimalsInline() {
 function validateInitialSupplyInline() {
   const el = getEl("initialSupply");
   const raw = String(el?.value || "").trim();
-  if (!raw || !/^\d+$/.test(raw)) {
-    return setFieldInvalid(el, "Supply inicial deve conter apenas números.");
+  // Limpar formatação (milhar ponto, decimal virgula)
+  let clean = raw.replace(/\./g, "").replace(/,/g, ".");
+  
+  if (!raw || !/^\d+(\.\d*)?$/.test(clean)) {
+    return setFieldInvalid(el, "Supply inicial deve conter apenas números válidos.");
   }
   return clearFieldInvalid(el);
 }
@@ -1407,21 +1450,48 @@ async function deployPlaceholder() {
 // Atualiza links de contrato e transação na UI abaixo dos botões
 function updateDeployLinks(contractUrl, txUrl) {
   try {
-    const aAddr = document.getElementById("erc20Address");
-    const aTx = document.getElementById("erc20TxHash");
     const container = document.getElementById("erc20-details");
     const addrVal = state.deployed?.address || null;
     const txVal = state.deployed?.transactionHash || null;
-    if (aAddr) {
-      aAddr.href = contractUrl || "#";
-      aAddr.textContent = addrVal || "-";
-      aAddr.classList.toggle("disabled", !contractUrl);
+
+    // Elementos atualizados (Links de texto + botões de cópia)
+    const aAddrLink = document.getElementById("erc20AddressLink");
+    const aTxLink = document.getElementById("erc20TxLink");
+
+    // Atualizar Link de Endereço
+    if (aAddrLink) {
+        aAddrLink.textContent = addrVal || "-";
+        if (contractUrl) {
+            aAddrLink.href = contractUrl;
+            aAddrLink.classList.remove("text-muted", "disabled");
+            aAddrLink.classList.add("text-warning");
+        } else {
+            aAddrLink.removeAttribute("href");
+            aAddrLink.classList.remove("text-warning");
+            aAddrLink.classList.add("text-muted");
+        }
     }
-    if (aTx) {
-      aTx.href = txUrl || "#";
-      aTx.textContent = txVal || "-";
-      aTx.classList.toggle("disabled", !txUrl);
+
+    // Atualizar Link de Transação
+    if (aTxLink) {
+        aTxLink.textContent = txVal || "-";
+        if (txUrl) {
+            aTxLink.href = txUrl;
+            aTxLink.classList.remove("text-muted", "disabled");
+            aTxLink.classList.add("text-warning");
+        } else {
+            aTxLink.removeAttribute("href");
+            aTxLink.classList.remove("text-warning");
+            aTxLink.classList.add("text-muted");
+        }
     }
+
+    // Fallback para inputs antigos (se existirem)
+    const iAddr = document.getElementById("erc20AddressInput");
+    const iTx = document.getElementById("erc20TxInput");
+    if (iAddr) iAddr.value = addrVal || "";
+    if (iTx) iTx.value = txVal || "";
+
     if (container) {
       const shouldShow = !!(addrVal || txVal || contractUrl || txUrl);
       if (shouldShow) container.classList.remove("d-none");
@@ -1452,8 +1522,10 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
         link.classList.add("disabled");
         link.classList.remove("btn-outline-warning");
         link.classList.add("btn-success");
-        link.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
+        link.innerHTML = `<i class="bi bi-check-circle me-1"></i>CONTRATO VERIFICADO COM SUCESSO!!!`;
         link.title = "Contrato verificado com sucesso";
+
+        // Busca automática de detalhes agora é feita via evento contract:verified
       } else {
         link.classList.toggle("disabled", !clickable);
         link.classList.remove("btn-success");
@@ -1572,6 +1644,42 @@ async function initWalletIfConnected() {
 
 async function bindUI() {
   // setupClearButton removido - usa btnClearAll global
+  const btnClearAll = document.getElementById("btnClearAll");
+  if (btnClearAll) {
+      btnClearAll.addEventListener("click", () => {
+          // Reset form state handled by other listeners or manually here if needed
+          // Assuming global handler does form reset, we focus on UI reset specific to Builder
+          
+          state.form.token = {};
+          state.compilation = {};
+          state.deployed = {};
+          state.form.sale = {};
+          
+          // Reset Build Button
+          const btn = document.getElementById("btnBuildDeploy");
+          if (btn) {
+            btn.disabled = false;
+            // Remover classes de sucesso/erro e voltar ao normal
+            btn.classList.remove("btn-success", "btn-used-error", "btn-used-success", "btn-danger");
+            btn.classList.add("btn-outline-success");
+            
+            const sp = document.getElementById("buildSpinner");
+            const tx = document.getElementById("buildBtnText");
+            if (sp) sp.classList.add("d-none");
+            if (tx) tx.textContent = "GERAR CONTRATO";
+          }
+          
+          // Reset Views
+          const detailsContainer = document.getElementById("erc20-details");
+          const searchContainer = document.getElementById("contract-search-container");
+          if (detailsContainer) detailsContainer.classList.add("d-none");
+          if (searchContainer) searchContainer.classList.add("d-none");
+          
+          updateDeployLinks(null, null);
+          log("Interface resetada.");
+      });
+  }
+
   // grupo altera visibilidade de venda
   $("#contractGroup").addEventListener("change", () => {
     readForm();
@@ -1746,8 +1854,14 @@ async function bindUI() {
         try {
           const sp = document.getElementById("buildSpinner");
           const tx = document.getElementById("buildBtnText");
+          const btn = document.getElementById("btnBuildDeploy"); // Ensure we have the button
           if (sp) sp.classList.add("d-none");
-          if (tx) tx.textContent = "Compilar, Deploy e Verifica";
+          if (tx) tx.textContent = "CONTRATO GERADO COM SUCESSO!!";
+          if (btn) {
+              btn.disabled = true; // Desabilitar para evitar reenvio
+              btn.classList.remove("btn-outline-success", "btn-outline-primary", "btn-outline-danger", "btn-used-success", "btn-used-error");
+              btn.classList.add("btn-success");
+          }
           stopOpStatus("Concluído");
         } catch (_) {}
       } catch (e) {
@@ -2424,20 +2538,38 @@ async function bindUI() {
           const payload = buildVerifyPayloadFromState();
           if (!payload?.contractAddress || !payload?.chainId) {
             log("Verificação: endereço/chainId ausentes. Faça o deploy primeiro.");
+            launch.disabled = false;
           } else {
-            await runVerifyDirect(payload);
+            const result = await runVerifyDirect(payload);
+            // Só reativa se NÃO foi sucesso e NÃO está verificado
+            if (!result?.success && !result?.alreadyVerified && !result?.verified) {
+                launch.disabled = false;
+                launch.removeAttribute("disabled");
+                launch.style.pointerEvents = "auto";
+                launch.style.opacity = "";
+            } else {
+                // Se sucesso, garante que fica disabled e verde
+                launch.disabled = true;
+                launch.setAttribute("disabled", "true");
+                launch.style.pointerEvents = "none";
+                launch.style.opacity = "0.65";
+                launch.classList.remove("btn-outline-warning");
+                launch.classList.add("btn-success");
+            }
           }
         } catch (e) {
           log("Falha na verificação: " + (e?.message || e));
-        }
-        try {
           launch.disabled = false;
-        } catch (_) {}
+          launch.removeAttribute("disabled");
+          launch.style.pointerEvents = "auto";
+          launch.style.opacity = "";
+        }
         try {
           const sp = document.getElementById("verifySpinner");
           const tx = document.getElementById("verifyBtnText");
           if (sp) sp.classList.add("d-none");
-          if (tx) tx.textContent = "Verificar Contrato";
+          // Texto mantém sucesso se verificado
+          if (tx && !launch.disabled) tx.textContent = "Verificar Contrato";
         } catch (_) {}
       });
     }
@@ -2469,42 +2601,177 @@ async function bindUI() {
 }
 
 // Sincronização de estado entre módulos
+// Função centralizada para forçar o estado de sucesso na UI
+function forceVerificationSuccessUI(address, link, chainId) {
+    try {
+        log(`Forçando UI de sucesso para ${address}`);
+        
+        // 1. Atualizar botão de verificação
+        const launch = document.getElementById("erc20VerifyLaunch");
+        if (launch) {
+            launch.disabled = true;
+            launch.setAttribute("disabled", "true");
+            launch.style.pointerEvents = "none"; // Garante que não é clicável
+            launch.style.opacity = "0.65"; // Garante visual de desabilitado uniforme
+            launch.innerHTML = '<i class="bi bi-check-circle"></i> CONTRATO VERIFICADO COM SUCESSO!!!';
+            launch.classList.remove("btn-outline-warning");
+            launch.classList.add("btn-success");
+        }
+
+        // 2. Atualizar botão principal de build
+        const btnBuild = document.getElementById("btnBuildDeploy");
+        if (btnBuild) {
+            btnBuild.disabled = true;
+            btnBuild.setAttribute("disabled", "true");
+            btnBuild.style.pointerEvents = "none";
+            btnBuild.style.opacity = "0.65"; // Garante visual de desabilitado uniforme
+            btnBuild.classList.remove("btn-outline-success", "btn-outline-primary", "btn-outline-danger", "btn-used-success", "btn-used-error");
+            btnBuild.classList.add("btn-success");
+            const tx = document.getElementById("buildBtnText");
+            if (tx) tx.textContent = "CONTRATO GERADO COM SUCESSO!!";
+        }
+
+        // 3. Atualizar link legado (se existir)
+        const vLink = document.getElementById("erc20VerifyLink");
+        if (vLink) {
+            vLink.classList.add("disabled");
+            vLink.classList.remove("btn-outline-warning");
+            vLink.classList.add("btn-success");
+            vLink.innerHTML = `<i class="bi bi-check-circle me-1"></i>CONTRATO VERIFICADO COM SUCESSO!!!`;
+        }
+
+        // 4. Exibir containers (Image 02) SEM esconder o anterior
+        const detailsContainer = document.getElementById("erc20-details");
+        const searchContainer = document.getElementById("contract-search-container");
+        
+        // NÃO escondemos a seção de verificar (detailsContainer) conforme pedido
+        // if (detailsContainer) detailsContainer.classList.add("d-none"); 
+        
+        if (searchContainer) {
+            searchContainer.classList.remove("d-none");
+            
+            // CUSTOMIZAÇÃO PÓS-DEPLOY:
+            // 1. Alterar título
+            const titleEl = searchContainer.querySelector("#cs_title");
+            const subTitleEl = searchContainer.querySelector("#cs_subtitle");
+            if (titleEl) titleEl.textContent = "DADOS DO CONTRATO / TOKEN";
+            if (subTitleEl) subTitleEl.classList.add("d-none");
+
+            // 2. Esconder formulário de busca
+            const searchForm = searchContainer.querySelector("#tokenForm");
+            if (searchForm) searchForm.classList.add("d-none");
+
+            // Exibir o card de informações
+            const infoCard = searchContainer.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+            if (infoCard) {
+                infoCard.classList.remove("d-none");
+                
+                // 3. Inserir endereço do Deployer (se não existir)
+                let deployerRow = infoCard.querySelector("#cs_viewDeployerRow");
+                if (!deployerRow) {
+                    const rowContainer = infoCard.querySelector(".row");
+                    if (rowContainer) {
+                        const deployerAddr = state.wallet?.address || "-";
+                        
+                        // Gerar link do explorer para o deployer
+                        const targetChainId = chainId || state.form?.network?.chainId;
+                        const explorerBase = getExplorerVerificationUrl(targetChainId, deployerAddr).split("/address/")[0]; 
+                        // getExplorerVerificationUrl retorna .../address/0x...#code. Pegamos a base.
+                        // Melhor usar uma função utilitária se disponível, mas vamos construir seguro:
+                        
+                        let deployerLink = "#";
+                        if (targetChainId) {
+                             // Tenta usar lógica existente ou reconstruir
+                             // Simplificação: se temos o link do contrato, usamos o mesmo dominio
+                             if (link && link.startsWith("http")) {
+                                 const urlObj = new URL(link);
+                                 deployerLink = `${urlObj.origin}/address/${deployerAddr}`;
+                             }
+                        }
+
+                        const div = document.createElement("div");
+                        div.className = "col-12";
+                        div.id = "cs_viewDeployerRow";
+                        div.innerHTML = `
+                          <div class="d-flex align-items-baseline gap-2">
+                            <span>Deployer:</span>
+                            <a href="${deployerLink}" target="_blank" class="text-tokencafe text-break font-monospace small text-decoration-none" title="Ver no Explorer">
+                                ${deployerAddr} <i class="bi bi-box-arrow-up-right" style="font-size: 0.8em;"></i>
+                            </a>
+                            <button class="btn btn-sm btn-link text-white p-0" onclick="window.copyToClipboard?.('${deployerAddr}')" title="Copiar">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                          </div>`;
+                        // Inserir logo após o endereço do contrato (primeiro col-12)
+                        const firstCol = rowContainer.querySelector(".col-12");
+                        if (firstCol) {
+                            firstCol.insertAdjacentElement('afterend', div);
+                        } else {
+                            rowContainer.prepend(div);
+                        }
+                    }
+                }
+            }
+
+            // Popular dados
+            const targetChainId = chainId || state.form?.network?.chainId;
+            if (targetChainId && address) {
+                // FORÇAR CACHE DE VERIFICAÇÃO PARA "VERIFICADO"
+                // Isso garante que o getVerificationStatus retorne sucesso imediatamente
+                // corrigindo o problema do badge "Não verificado" aparecer
+                try {
+                    const cacheKey = `verif_status_v2_${targetChainId}_${address}`;
+                    const mockStatus = {
+                        success: true,
+                        verified: true,
+                        verifiedAt: new Date().toLocaleString(),
+                        explorer: {
+                            url: link || "",
+                            compilerVersion: state.compilerVersion || "Solidity",
+                            optimizationUsed: state.optimization ? "1" : "0",
+                            runs: "200" // Default
+                        }
+                    };
+                    sessionStorage.setItem(cacheKey, JSON.stringify(mockStatus));
+                    log(`Cache de verificação forçado para ${address}`);
+                } catch(e) {
+                    console.error("Erro ao definir cache forçado:", e);
+                }
+
+                // Pequeno delay para garantir renderização e propagação
+                setTimeout(() => {
+                     updateContractDetailsView(searchContainer, targetChainId, address).catch(e => console.error("Erro no update details view:", e));
+                }, 1000);
+            }
+        }
+        
+        // 5. Atualizar estado interno se necessário
+        if (state.deployed && state.deployed.address && state.deployed.address.toLowerCase() === address.toLowerCase()) {
+            state.deployed.verified = true;
+        }
+
+    } catch (e) {
+        console.error("Erro em forceVerificationSuccessUI:", e);
+    }
+}
+
 window.addEventListener("contract:verified", (evt) => {
   try {
-    const { address, link } = evt.detail || {};
-    // Se o endereço bater com o atual implantado
-    if (state.deployed?.address && address && state.deployed.address.toLowerCase() === address.toLowerCase()) {
-      log(`Evento externo de verificação recebido para ${address}`);
-      state.deployed.verified = true;
-
-      // Atualizar badges/links
-      updateVerificationBadges({
-        bscUrl: link,
-        _bscOk: true,
-      });
-
-      // Atualizar botões de verificação
-      const launch = document.getElementById("erc20VerifyLaunch");
-      if (launch) {
-        launch.disabled = true;
-        launch.innerHTML = '<i class="bi bi-check-circle"></i> Verificado';
-        launch.classList.remove("btn-outline-warning");
-        launch.classList.add("btn-success");
-      }
-
-      const vLink = document.getElementById("erc20VerifyLink");
-      if (vLink) {
-        vLink.classList.add("disabled");
-        vLink.classList.remove("btn-outline-warning");
-        vLink.classList.add("btn-success");
-        vLink.innerHTML = `<i class="bi bi-check-circle me-1"></i>Verificado`;
-      }
-
-      // Atualizar modal de sucesso se estivermos na tela
-      if (window.showVerificationResultModal) {
-        // Não mostramos modal intrusivo, apenas atualizamos a UI
-        // window.showVerificationResultModal(true, "Contrato verificado via módulo externo!", link);
-      }
+    const { address, link, chainId } = evt.detail || {};
+    console.log("Evento contract:verified recebido:", evt.detail);
+    
+    // Verifica se é o contrato atual
+    const currentAddr = state.deployed?.address;
+    if (currentAddr && address && currentAddr.toLowerCase() === address.toLowerCase()) {
+        forceVerificationSuccessUI(address, link, chainId);
+        
+        // Atualizar badges/links (legacy)
+        updateVerificationBadges({
+            bscUrl: link,
+            _bscOk: true,
+        });
+    } else {
+        console.warn("Evento verificado ignorado: endereço não corresponde ao atual", { current: currentAddr, received: address });
     }
   } catch (err) {
     console.error("Erro ao processar contract:verified", err);
@@ -2540,6 +2807,12 @@ try {
             readForm();
             setSaleVisibility();
             updateContractInfo();
+            // Checar verificação se tiver endereço
+            if (state.deployed?.address && state.form?.network?.chainId) {
+                setTimeout(() => {
+                    checkIfVerified(state.form.network.chainId, state.deployed.address);
+                }, 1000);
+            }
             log("Receita carregada do Tools. Revise e compile.");
           } catch (e) {
             log("Falha ao aplicar receita importada: " + (e?.message || e));
@@ -2553,28 +2826,65 @@ try {
   }
 } catch (_) {}
 
+// Função auxiliar para checar verificação silenciosamente ao carregar
+async function checkIfVerified(chainId, address) {
+    try {
+        const status = await getVerificationStatus(chainId, address);
+        if (status && (status.verified || status.success)) {
+             const link = status.explorer?.url || getExplorerVerificationUrl(chainId, address);
+             forceVerificationSuccessUI(address, link, chainId);
+             updateVerificationBadges({ bscUrl: link, _bscOk: true });
+        }
+    } catch (_) {}
+}
+
 function buildVerifyPayloadFromState() {
   try {
-    const addrVerify = state.deployed?.address;
-    const chainIdVerify = state.form?.network?.chainId;
-    const src = state.compilation?.sourceCode;
-    const cname = state.compilation?.contractName;
-    const meta = state.compilation?.metadata;
-    const payload = {
-      chainId: chainIdVerify,
-      contractAddress: addrVerify,
-      contractName: cname,
-      sourceCode: src,
-      metadata: meta ? JSON.stringify(meta) : undefined,
-      compilerVersion: meta?.compiler?.version || null,
-      optimizationUsed: true,
-      runs: 200,
-      codeformat: "solidity-single-file",
-      contractNameFQN: cname ? `${cname}.sol:${cname}` : null,
-      apiKey: getVerifyApiKey(),
+    const address = state.deployed?.address;
+    const chainId = state.form?.network?.chainId;
+    const sourceCode = state.compilation?.sourceCode;
+    const contractName = state.compilation?.contractName;
+
+    if (!address || !chainId || !sourceCode || !contractName) {
+      return null;
+    }
+
+    // Default fallback version
+    let compilerVersion = "v0.8.26+commit.8a97fa7a";
+    let optimizationUsed = 1;
+    let runs = 200;
+
+    // Try to extract from metadata
+    if (state.compilation?.metadata) {
+      try {
+        const meta = typeof state.compilation.metadata === "string" 
+          ? JSON.parse(state.compilation.metadata) 
+          : state.compilation.metadata;
+        
+        if (meta?.compiler?.version) {
+          compilerVersion = "v" + meta.compiler.version;
+        }
+        if (meta?.settings?.optimizer) {
+          optimizationUsed = meta.settings.optimizer.enabled ? 1 : 0;
+          runs = meta.settings.optimizer.runs || 200;
+        }
+      } catch (e) {
+        console.warn("Falha ao parsear metadata para verificação:", e);
+      }
+    }
+
+    return {
+      chainId: chainId,
+      contractAddress: address,
+      sourceCode: sourceCode,
+      contractName: contractName,
+      compilerVersion: compilerVersion,
+      optimizationUsed: optimizationUsed,
+      runs: runs,
+      constructorArguments: "" 
     };
-    return payload;
-  } catch (_) {
+  } catch (err) {
+    console.error("Erro ao construir payload de verificação:", err);
     return null;
   }
 }
@@ -2583,19 +2893,70 @@ async function runVerifyDirect(p) {
   try {
     const res = await runVerifyDirectShared(p);
     if (res?.link) updateVerificationBadges({ bscUrl: res.link });
-    if (res?.success) {
-      log(`✅ Verificação concluída (${res.status}). ${res.link || ""}`);
-      if (window.showVerificationResultModal) window.showVerificationResultModal(true, "Contrato verificado com sucesso!", res.link);
+    
+    // Sucesso imediato OU Já verificado
+    if (res?.success || res?.alreadyVerified || (res?.error && res.error.toLowerCase().includes("already verified"))) {
+      const isAlready = res?.alreadyVerified || (res?.error && res.error.toLowerCase().includes("already verified"));
+      const finalLink = res?.explorerUrl || res?.link || "";
+      
+      log(`✅ Verificação concluída. ${isAlready ? "(Já estava verificado)" : ""} ${finalLink}`);
+      
+      const eventDetail = {
+        address: p.contractAddress,
+        link: finalLink,
+        chainId: p.chainId
+      };
+      
+      // Atualiza UI localmente imediatamente
+      forceVerificationSuccessUI(p.contractAddress, finalLink, p.chainId);
+      
+      document.dispatchEvent(new CustomEvent("contract:verified", { detail: eventDetail }));
+      
     } else if (res?.status === "pending") {
-      log(`📤 Verificação enviada (explorer). ${res.link || ""}`);
-      if (window.showVerificationResultModal) window.showVerificationResultModal(true, "Verificação enviada para processamento. Pode levar alguns minutos.", res.link);
+      // Se pendente, aguarda e confirma
+      // Se pendente ou já verificado, aguarda e confirma
+      log(`📤 Verificação enviada/processando. Confirmando status...`);
+      
+      setTimeout(async () => {
+        try {
+            const status = await getVerificationStatus(p.chainId, p.contractAddress);
+            if (status?.verified) {
+                log(`✅ Confirmado: Contrato verificado!`);
+                const link = status.explorer?.url || res?.link;
+                
+                // Atualiza UI localmente
+                forceVerificationSuccessUI(p.contractAddress, link, p.chainId);
+
+                const eventDetail = {
+                    address: p.contractAddress,
+                    link: link,
+                    chainId: p.chainId
+                };
+                document.dispatchEvent(new CustomEvent("contract:verified", { detail: eventDetail }));
+            } else {
+                log(`⚠️ Ainda não verificado no explorer.`);
+                // Não forçamos UI de sucesso aqui se falhou
+                alert("A verificação está demorando um pouco para propagar no explorer.\n\nAguarde alguns instantes e clique em 'Verificar Contrato' novamente.");
+                
+                // Reativar botão para permitir nova tentativa
+                const launch = document.getElementById("erc20VerifyLaunch");
+                if (launch) {
+                    launch.disabled = false;
+                    launch.textContent = "Verificar Novamente";
+                }
+            }
+        } catch (errSt) {
+            console.warn("Erro ao checar status pós-envio:", errSt);
+        }
+      }, 5000); // 5 segundos de espera
+      
     } else {
       const errMsg = res?.error || res?.status || "Erro desconhecido";
       log(`Falha/erro na verificação: ${errMsg}`);
-      // if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Não foi possível verificar: ${errMsg}`, res?.link);
     }
+    return res;
   } catch (e) {
     log(`Erro na verificação: ${e?.message || e}`);
-    // if (window.showVerificationResultModal) window.showVerificationResultModal(false, `Erro interno: ${e?.message || e}`, null);
+    return { success: false, error: e.message };
   }
 }

@@ -1247,7 +1247,327 @@ function initContainer(container) {
   }
 
   // Padrão de manutenção: sem botão "limpar" — limpeza é feita ao alterar a entrada
+  // Export helper to update details view programmatically
+  async function updateContractDetailsView(container, chainId, address) {
+    if (!container || !chainId || !address) return;
+    
+    // Clear previous state
+    const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
+    const vSym = container.querySelector("#cs_viewSymbol") || document.getElementById("cs_viewSymbol");
+    const vDec = container.querySelector("#cs_viewDecimals") || document.getElementById("cs_viewDecimals");
+    const vSup = container.querySelector("#cs_viewSupply") || document.getElementById("cs_viewSupply");
+    const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
+    const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
+    
+    if (vName) vName.textContent = "...";
+    if (vSym) vSym.textContent = "...";
+    if (vDec) vDec.textContent = "...";
+    if (vSup) vSup.textContent = "...";
+
+    try {
+      // Parallel fetch of basic info
+      const [sn, info] = await Promise.all([
+        detectSymbolName(address, chainId),
+        fetchERC20Info(address, chainId)
+      ]);
+
+      if (vAddr) {
+        vAddr.textContent = address;
+        const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+        const base = net?.explorers?.[0]?.url || getFallbackExplorer(chainId) || "";
+        if (base) {
+            vAddr.href = `${String(base).replace(/\/$/, "")}/address/${address}`;
+        }
+      }
+      
+      if (vCid) {
+        const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+        vCid.textContent = net ? `${chainId} - ${net.name}` : String(chainId);
+      }
+
+      if (vName) vName.textContent = sn.name || "-";
+      if (vSym) vSym.textContent = sn.symbol || "-";
+      if (vDec) vDec.textContent = info.decimals != null ? String(info.decimals) : "-";
+      if (vSup) vSup.textContent = info.totalSupply ? formatDecimalValue(info.totalSupply) : "-";
+
+      // Also trigger verification badge update
+      await updateVerificationBadge(container, chainId, address);
+
+    } catch (err) {
+      log("updateContractDetailsView error", err);
+    }
+  }
+
   container.setAttribute("data-cs-initialized", "true");
+}
+
+const CS_MAX_TIMEOUT_MS = 1500;
+
+function csSanitizeRpcUrl(u) {
+  try {
+    const s = String(u || "")
+      .replace(/[`'\"]/g, "")
+      .trim();
+    if (!/^https?:\/\//i.test(s)) return "";
+    return s;
+  } catch (_) {
+    return "";
+  }
+}
+
+async function csFetchJsonWithTimeout(rpc, body, timeoutMs) {
+  try {
+    const rpcUrl = csSanitizeRpcUrl(rpc);
+    if (!rpcUrl) return null;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      try {
+        ctrl.abort();
+      } catch (_) {}
+    }, timeoutMs || CS_MAX_TIMEOUT_MS);
+    const resp = await fetch(rpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (_) {
+    return null;
+  }
+}
+
+function csGetRpc(chainId) {
+  try {
+    const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+    const netRpc = Array.isArray(net?.rpc) ? net.rpc[0] : typeof net?.rpc === "string" ? net.rpc : "";
+    const fb = getFallbackRpc(chainId);
+    return csSanitizeRpcUrl(fb || netRpc);
+  } catch (_) {
+    return csSanitizeRpcUrl(getFallbackRpc(chainId));
+  }
+}
+
+function csHexToBytes(hex) {
+  const h = String(hex || "").replace(/^0x/i, "");
+  if (!h) return new Uint8Array();
+  const len = Math.floor(h.length / 2);
+  const out = new Uint8Array(len);
+  for (let i = 0; i < len; i++) out[i] = parseInt(h.slice(i * 2, i * 2 + 2), 16);
+  return out;
+}
+
+function csBytesToUtf8(bytes) {
+  try {
+    const dec = new TextDecoder("utf-8", { fatal: false });
+    return dec.decode(bytes);
+  } catch (_) {
+    let s = "";
+    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return s;
+  }
+}
+
+function csDecodeBytes32String(hex) {
+  try {
+    const b = csHexToBytes(hex);
+    let end = b.length;
+    while (end > 0 && b[end - 1] === 0) end--;
+    const sliced = b.slice(0, end);
+    const s = csBytesToUtf8(sliced).split("\u0000").join("").trim();
+    return s || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function csDecodeAbiString(hex) {
+  try {
+    const h = String(hex || "");
+    if (!h || h === "0x" || h === "0x0") return null;
+    const clean = h.replace(/^0x/i, "");
+    if (clean.length === 64) return csDecodeBytes32String(h);
+    if (clean.length < 128) return csDecodeBytes32String(h);
+    const lenHex = clean.slice(64, 128);
+    const len = Number(BigInt("0x" + lenHex));
+    if (!Number.isFinite(len) || len <= 0) return null;
+    const dataHex = clean.slice(128, 128 + len * 2);
+    const bytes = csHexToBytes("0x" + dataHex);
+    const s = csBytesToUtf8(bytes).split("\u0000").join("").trim();
+    return s || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function csParseUint(hex) {
+  try {
+    const h = String(hex || "");
+    if (!h || h === "0x" || h === "0x0") return null;
+    return BigInt(h);
+  } catch (_) {
+    return null;
+  }
+}
+
+function csFormatTokenAmount(raw, decimals) {
+  try {
+    const d = Number(decimals || 0);
+    const v = typeof raw === "bigint" ? raw : BigInt(String(raw));
+    if (!d) return v.toLocaleString("pt-BR");
+    const base = 10n ** BigInt(d);
+    const whole = v / base;
+    const frac = v % base;
+    let fracStr = frac.toString().padStart(d, "0").replace(/0+$/u, "");
+    if (fracStr.length > 8) fracStr = fracStr.slice(0, 8);
+    const wholeFmt = whole.toLocaleString("pt-BR");
+    return fracStr ? `${wholeFmt},${fracStr}` : wholeFmt;
+  } catch (_) {
+    try {
+      return String(raw ?? "-");
+    } catch {
+      return "-";
+    }
+  }
+}
+
+async function csEthCall(rpc, to, data) {
+  const body = {
+    jsonrpc: "2.0",
+    id: 1,
+    method: "eth_call",
+    params: [{ to: String(to), data: String(data) }, "latest"],
+  };
+  const js = await csFetchJsonWithTimeout(rpc, body, CS_MAX_TIMEOUT_MS);
+  return js?.result || null;
+}
+
+async function csReadErc20Meta(chainId, address) {
+  const rpc = csGetRpc(chainId);
+  if (!rpc) return { name: null, symbol: null, decimals: null, totalSupply: null };
+
+  const [nameHex, symHex, decHex, supHex] = await Promise.all([
+    csEthCall(rpc, address, "0x06fdde03"),
+    csEthCall(rpc, address, "0x95d89b41"),
+    csEthCall(rpc, address, "0x313ce567"),
+    csEthCall(rpc, address, "0x18160ddd"),
+  ]);
+
+  const name = csDecodeAbiString(nameHex);
+  const symbol = csDecodeAbiString(symHex);
+  const decBI = csParseUint(decHex);
+  const decimals = decBI != null ? Number(decBI) : null;
+  const totalSupply = csParseUint(supHex);
+
+  return { name, symbol, decimals, totalSupply };
+}
+
+async function updateVerificationBadge(container, chainId, address) {
+  const vStatus = container?.querySelector?.("#cs_viewStatus") || document.querySelector("#cs_viewStatus");
+  try {
+    const js = await getVerificationStatus(chainId, address);
+
+    const vCv = container?.querySelector?.("#cs_viewCompilerVersion") || document.querySelector("#cs_viewCompilerVersion");
+    const vOpt = container?.querySelector?.("#cs_viewOptimization") || document.querySelector("#cs_viewOptimization");
+    const vOth = container?.querySelector?.("#cs_viewOtherSettings") || document.querySelector("#cs_viewOtherSettings");
+
+    if (vCv) vCv.textContent = js?.compilerVersion || js?.explorer?.compilerVersion || "-";
+
+    if (vOpt) {
+      const opt = js?.explorer?.optimizationUsed;
+      if (opt === "1" || opt === 1 || opt === true || opt === "true") {
+        const runs = js?.explorer?.runs ? ` (Runs: ${js.explorer.runs})` : "";
+        vOpt.textContent = "Sim" + runs;
+        vOpt.className = "text-tokencafe";
+      } else if (opt === "0" || opt === 0 || opt === false || opt === "false") {
+        vOpt.textContent = "Não";
+        vOpt.className = "text-secondary";
+      } else {
+        vOpt.textContent = "-";
+        vOpt.className = "text-tokencafe";
+      }
+    }
+
+    if (vOth) {
+      const evm = js?.explorer?.evmVersion || "";
+      const lic = js?.explorer?.licenseType || "";
+      const proxy = js?.explorer?.proxy === "1" ? "Proxy" : "";
+
+      const parts = [];
+      if (evm && evm !== "Default") parts.push(`EVM: ${evm}`);
+      if (lic && lic !== "None" && lic !== "Unlicense") parts.push(`Licença: ${lic}`);
+      if (proxy) parts.push(proxy);
+
+      vOth.textContent = parts.length ? parts.join(", ") : "-";
+    }
+
+    if (vStatus) {
+      vStatus.querySelectorAll(".badge-verif-status").forEach((el) => el.remove());
+      const span = document.createElement("span");
+      
+      if (js?.verified) {
+          span.className = "badge-verif-status badge ms-2 bg-success-subtle text-success border border-success";
+          let content = '<i class="bi bi-shield-check me-1"></i>Verificado';
+          if (js.verifiedAt) {
+              content += ` <span class="ms-1 small opacity-75">(${js.verifiedAt})</span>`;
+          }
+          span.innerHTML = content;
+      } else {
+          span.className = "badge-verif-status badge ms-2 bg-danger-subtle text-danger border border-danger";
+          span.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
+      }
+      
+      vStatus.appendChild(span);
+    }
+
+    const warningDiv = container?.querySelector?.("#cs_verifiedWarning") || document.querySelector("#cs_verifiedWarning");
+    if (warningDiv) warningDiv.classList.toggle("d-none", !js?.verified);
+  } catch (e) {
+    log("verify-badge-error", e);
+  }
+}
+
+async function updateContractDetailsView(container, chainId, address) {
+  if (!container || !chainId || !address) return;
+
+  const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
+  const vSym = container.querySelector("#cs_viewSymbol") || document.getElementById("cs_viewSymbol");
+  const vDec = container.querySelector("#cs_viewDecimals") || document.getElementById("cs_viewDecimals");
+  const vSup = container.querySelector("#cs_viewSupply") || document.getElementById("cs_viewSupply");
+  const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
+  const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
+
+  if (vName) vName.textContent = "...";
+  if (vSym) vSym.textContent = "...";
+  if (vDec) vDec.textContent = "...";
+  if (vSup) vSup.textContent = "...";
+
+  try {
+    const meta = await csReadErc20Meta(chainId, address);
+
+    if (vAddr) {
+      vAddr.textContent = address;
+      const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+      const base = net?.explorers?.[0]?.url || getFallbackExplorer(chainId) || "";
+      if (base) vAddr.href = `${String(base).replace(/\/$/, "")}/address/${address}`;
+    }
+
+    if (vCid) {
+      const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+      vCid.textContent = net ? `${chainId} - ${net.name}` : String(chainId);
+    }
+
+    if (vName) vName.textContent = meta.name || "-";
+    if (vSym) vSym.textContent = meta.symbol || "-";
+    if (vDec) vDec.textContent = meta.decimals != null ? String(meta.decimals) : "-";
+    if (vSup) vSup.textContent = meta.totalSupply != null ? csFormatTokenAmount(meta.totalSupply, meta.decimals || 0) : "-";
+
+    await updateVerificationBadge(container, chainId, address);
+  } catch (e) {
+    log("updateContractDetailsView error", e);
+  }
 }
 
 function findContainers() {
@@ -1260,3 +1580,5 @@ const observer = new MutationObserver(() => {
   findContainers();
 });
 observer.observe(document.body, { childList: true, subtree: true });
+
+export { initContainer, updateVerificationBadge, updateContractDetailsView };

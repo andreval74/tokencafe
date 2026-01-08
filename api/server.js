@@ -422,6 +422,38 @@ app.post("/api/verify-contract", async (req, res) => {
     const codeformat = p.codeformat || "solidity-single-file";
     const constructorArguments = (p.constructorArguments || "").replace(/^0x/, "");
     if (!chainId || !addr || !apiKey || !sourceCode || !contractName || !compilerVersion) return res.status(400).json({ success: false, error: "Campos obrigatórios ausentes" });
+    
+    // =================================================================
+    // VALIDAÇÃO DE PRÉ-VERIFICAÇÃO (Segurança/Anti-Flood)
+    // Verifica se já possui código fonte verificado antes de submeter
+    // =================================================================
+    try {
+        const baseCheck = getExplorerApiUrl(chainId);
+        const qsCheck = new URLSearchParams();
+        qsCheck.append("module", "contract");
+        qsCheck.append("action", "getsourcecode");
+        qsCheck.append("address", addr);
+        qsCheck.append("apikey", apiKey);
+        
+        const urlCheck = `${baseCheck}&${qsCheck.toString()}`;
+        const rCheck = await fetch(urlCheck);
+        const jCheck = await rCheck.json();
+        
+        const srcCheck = jCheck?.result?.[0]?.SourceCode || "";
+        if (srcCheck && srcCheck.length > 0) {
+             console.log(`[Verify] Contrato ${addr} (Chain ${chainId}) já verificado.`);
+             return res.status(400).json({ 
+                 success: false, 
+                 error: "Contrato já verificado anteriormente.",
+                 alreadyVerified: true,
+                 explorerUrl: getExplorerVerificationUrl(chainId, addr)
+             });
+        }
+    } catch (eCheck) {
+        console.warn("[Verify] Falha ao checar pré-verificação:", eCheck.message);
+        // Prossegue em caso de erro na checagem para não bloquear o fluxo por falha de API de leitura
+    }
+
     const explorerUrl = getExplorerVerificationUrl(chainId, addr);
     if (isV2SupportedChain(chainId)) {
       const form = new URLSearchParams();
@@ -703,7 +735,14 @@ app.use((req, res) => {
   res.status(404).json({
     success: false,
     error: "Endpoint não encontrado",
-    availableEndpoints: ["GET /health", "POST /api/compile-only", "POST /api/generate-token", "GET/POST /api/explorer-getsourcecode"],
+    availableEndpoints: [
+      "GET /health", 
+      "POST /api/compile-only", 
+      "POST /api/generate-token", 
+      "GET/POST /api/explorer-getsourcecode",
+      "POST /api/verify-contract",
+      "POST /api/verify-bscscan-status"
+    ],
   });
 });
 

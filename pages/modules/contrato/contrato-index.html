@@ -68,14 +68,14 @@
               </div>
               <div class="col-md-8">
                 <label class="form-label">Supply Inicial</label>
-                <input id="initialSupply" type="number" min="0" value="1000000" class="form-control" />
+                <input id="initialSupply" type="text" class="form-control" value="1.000.000" />
               </div>
             </div>
           </div>
         </div>
 
         <!-- Sessão de Venda (decimal, não usar wei) -->
-        <div id="saleParams" class="mt-3">
+        <div id="saleParams" class="mt-3 d-none">
           <div data-component="shared/components/section-title.html" data-st-icon="bi-cart"
             data-st-title="Parâmetros de Venda" data-st-subtitle="Valores em moeda nativa com decimais"></div>
           <div class="border rounded p-3 bg-dark-elevated">
@@ -137,7 +137,7 @@
               <span id="buildSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"
                 aria-hidden="true"></span>
               <i class="bi bi-tools me-1"></i>
-              <span id="buildBtnText">Compilar, Deploy e Verifica</span>
+              <span id="buildBtnText">GERAR CONTRATO</span>
             </button>
             <button id="btnClearAll" class="btn btn-outline-danger">
               <i class="bi bi-trash me-2"></i>
@@ -146,55 +146,97 @@
           </div>
         </div>
 
-        <!-- Botão Limpar Dados (Abaixo) removido daqui -->
-
-        <!-- Detalhes do Contrato -->
-        <div class="mb-4 mt-4 d-none" id="erc20-details">
-          <div data-component="shared/components/section-title.html" data-st-icon="bi-file-binary"
-            data-st-title="Detalhes do Contrato" data-st-subtitle="Dados do contrato ERC-20"></div>
+        <!-- Resultados do Deploy (Hidden by default) -->
+        <div id="erc20-details" class="mb-4 d-none">
+          <div data-component="shared/components/section-title.html" data-st-icon="bi-check-circle"
+            data-st-title="Contrato Gerado" data-st-subtitle="Detalhes da implantação e verificação"></div>
+          
           <div class="border rounded p-3 bg-dark-elevated">
-            <div class="small mb-1">
-              Status: <span id="contractStatus">-</span>
-            </div>
-            <div class="row g-2 small">
-              <div class="col-12">
-                Endereço: <a id="erc20Address" href="#" target="_blank" rel="noopener">-</a>
-                <button class="btn btn-sm btn-link text-white p-0 ms-2" onclick="window.copyToClipboard?.(document.getElementById('erc20Address').innerText)" title="Copiar"><i class="bi bi-clipboard"></i></button>
-              </div>
-              <div class="col-12">
-                Transação: <a id="erc20TxHash" href="#" target="_blank" rel="noopener">-</a>
-                <button class="btn btn-sm btn-link text-white p-0 ms-2" onclick="window.copyToClipboard?.(document.getElementById('erc20TxHash').innerText)" title="Copiar"><i class="bi bi-clipboard"></i></button>
-              </div>
-              <div class="col-6">
-                Nome: <span id="erc20Name">-</span>
-              </div>
-              <div class="col-6">
-                Símbolo: <span id="erc20Symbol">-</span>
-              </div>
-              <div class="col-6">
-                Decimais: <span id="erc20Decimals">-</span>
-              </div>
-              <div class="col-6">
-                Total Supply: <span id="erc20Supply">-</span>
+            <div class="mb-3">
+              <label class="form-label text-secondary small text-uppercase fw-bold">Endereço do Contrato</label>
+              <div class="d-flex align-items-center">
+                <a id="erc20AddressLink" href="#" target="_blank" class="text-warning text-decoration-none text-break font-monospace fs-6 me-2">
+                  -
+                </a>
+                <button class="btn btn-sm btn-link text-secondary p-0" type="button" onclick="window.copyToClipboard?.(document.getElementById('erc20AddressLink').textContent.trim())" title="Copiar Endereço">
+                  <i class="bi bi-clipboard"></i>
+                </button>
               </div>
             </div>
-          </div>
-          <!-- Ação de Adicionar ao MetaMask e Compartilha o link -->
-          <div class="btn-row mt-2">
-            <button id="btnAddToMetaMask" class="btn btn-outline-primary" disabled>
-              <img src="../../../imgs/metamask.svg" alt="MetaMask" width="20" height="20" class="me-1" />
-              Adicionar ao MetaMask
-            </button>
-            <button id="btnShareDeploy" class="btn btn-outline-info" disabled>
-              <i class="bi bi-share me-1"></i>
-              Compartilhar Link
-            </button>
-            <a id="erc20VerifyLink" class="btn btn-outline-warning disabled" href="#" target="_blank" rel="noopener">
-              <i class="bi bi-shield-check me-1"></i>
-              Verificar
-            </a>
+
+            <div class="mb-3">
+              <label class="form-label text-secondary small text-uppercase fw-bold">Transação de Deploy</label>
+              <div class="d-flex align-items-center">
+                <a id="erc20TxLink" href="#" target="_blank" class="text-warning text-decoration-none text-break font-monospace fs-6 me-2">
+                  -
+                </a>
+                <button class="btn btn-sm btn-link text-secondary p-0" type="button" onclick="window.copyToClipboard?.(document.getElementById('erc20TxLink').textContent.trim())" title="Copiar Hash">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-3">
+               <button id="erc20VerifyLaunch" class="btn btn-outline-warning w-100">
+                 <span id="verifySpinner" class="spinner-border spinner-border-sm me-1 d-none"></span>
+                 <i class="bi bi-shield-check me-1"></i>
+                 <span id="verifyBtnText">Verificar Contrato</span>
+               </button>
+            </div>
+            <!-- Links ocultos para compatibilidade -->
+            <a id="erc20VerifyLink" class="d-none"></a>
           </div>
         </div>
+
+        <!-- Busca pelo Contrato (Substitui Detalhes) -->
+        <div id="contract-search-container" class="mb-4 d-none">
+           <div data-component="shared/components/contract-search.html"></div>
+        </div>
+
+        <!-- Compartilhamento Section -->
+        <div id="share-section" class="mb-4 d-none">
+          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-link-45deg me-2"
+            data-st-title="Compartilhamento" data-st-subtitle="Seu link está pronto para ser compartilhado"></div>
+
+          <div class="card bg-dark border-secondary shadow-lg">
+            <div class="card-body">
+              <div class="input-group mb-3">
+                <span class="input-group-text bg-dark border-secondary text-secondary">
+                  <i class="bi bi-globe"></i>
+                </span>
+                <input type="text" id="generatedLink" class="form-control bg-dark text-light border-secondary" readonly
+                  placeholder="https://..." onclick="this.select()">
+
+                <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+
+                <button class="btn btn-outline-light" type="button" id="viewAddressBtn" title="Visualizar na Rede">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </button>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+                <button id="btnShareWhatsAppSmall" class="btn btn-outline-success flex-fill">
+                  <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                </button>
+                <button id="btnShareTelegramSmall" class="btn btn-outline-info flex-fill">
+                  <i class="bi bi-telegram me-2"></i>Telegram
+                </button>
+                <button id="btnShareEmailSmall" class="btn btn-outline-secondary flex-fill">
+                  <i class="bi bi-envelope me-2"></i>Email
+                </button>
+                 <button id="btnAddNetworkSmall" class="btn btn-outline-primary flex-fill">
+                  <i class="bi bi-hdd-network me-2"></i>Adicionar Carteira
+                </button>
+                <button id="btnAddToMetaMaskSmall" class="btn btn-outline-warning flex-fill">
+                  <i class="bi bi-wallet2 me-2"></i>Adicionar Token
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
 
       </div>
 

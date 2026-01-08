@@ -25,7 +25,6 @@ const ids = {
   btnCopyLink: "btnCopyLink",
   btnShareLink: "btnShareLink",
   btnPreviewLink: "btnPreviewLink",
-  btnAddToMetaMask: "btnAddToMetaMask",
   addToWalletButton: "addToWalletButton",
   btnAddNetwork: "btnAddNetwork",
   btnOpenLink: "btnOpenLink",
@@ -830,7 +829,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Botão "Compartilhar link"
   document.getElementById(ids.btnShareLink)?.addEventListener("click", shareLink);
   // Botão "Adicionar à MetaMask" (quando presente neste layout)
-  document.getElementById(ids.btnAddToMetaMask)?.addEventListener("click", addTokenToMetaMask);
   document.getElementById(ids.btnClearAll)?.addEventListener("click", clearAll);
   // Pré-visualizar/abrir link gerado (se o botão existir neste layout)
   document.getElementById(ids.btnOpenLink)?.addEventListener("click", unusedPreviewLink);
