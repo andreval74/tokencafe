@@ -396,6 +396,10 @@ class BaseSystem {
   async enforceAuthGuard() {
     try {
       const path = String(window.location.pathname || "");
+      
+      // Whitelist de páginas que não requerem autenticação imediata
+      if (path.includes("/pages/modules/contrato/contrato-index.html")) return;
+
       const requiresAuth = path.includes("/pages/modules/") || path.endsWith("/pages/tools.html");
       if (!requiresAuth) return;
 
