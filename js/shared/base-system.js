@@ -23,6 +23,10 @@ class BaseSystem {
    */
   async init() {
     if (this.initialized || window.__BaseSystemInitialized) return;
+
+    // Verificar versão antes de qualquer coisa
+    await this.checkAppVersion();
+
     window.__BaseSystemInitialized = true;
 
     console.log("🚀 TokenCafe - Base System Unified iniciando...");
@@ -50,6 +54,61 @@ class BaseSystem {
 
     this.initialized = true;
     console.log("✅ Base System Unified inicializado");
+  }
+
+  /**
+   * Verificar versão do app e limpar cache se necessário
+   */
+  async checkAppVersion() {
+    try {
+      // Evitar loop infinito de reload
+      if (sessionStorage.getItem("tokencafe_reloaded_for_version")) {
+          sessionStorage.removeItem("tokencafe_reloaded_for_version");
+          console.log("✅ Versão atualizada com sucesso.");
+          return;
+      }
+
+      const base = this.getBasePath();
+      const versionUrl = `${base}shared/version.json?t=${Date.now()}`;
+      
+      const response = await fetch(versionUrl);
+      if (!response.ok) return;
+      
+      const remoteData = await response.json();
+      const remoteVersion = remoteData.version;
+      
+      if (!remoteVersion) return;
+      
+      const localVersion = localStorage.getItem("tokencafe_app_version");
+      
+      if (localVersion && localVersion !== remoteVersion) {
+        console.log(`🔄 Nova versão detectada: ${remoteVersion} (Local: ${localVersion}). Atualizando...`);
+        
+        // Backup wallet connection
+        const walletCache = localStorage.getItem("tokencafe_wallet_cache");
+        const walletSession = sessionStorage.getItem("tokencafe_wallet_session_authorized");
+        
+        // Clear caches
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Restore wallet + new version
+        if (walletCache) localStorage.setItem("tokencafe_wallet_cache", walletCache);
+        if (walletSession) sessionStorage.setItem("tokencafe_wallet_session_authorized", walletSession);
+        
+        localStorage.setItem("tokencafe_app_version", remoteVersion);
+        sessionStorage.setItem("tokencafe_reloaded_for_version", "true");
+        
+        window.location.reload(true);
+        // Retornar promessa pendente para pausar execução
+        return new Promise(() => {});
+      } else if (!localVersion) {
+         // Primeira vez ou sem versão salva
+         localStorage.setItem("tokencafe_app_version", remoteVersion);
+      }
+    } catch (e) {
+      console.warn("⚠️ Falha ao verificar versão:", e);
+    }
   }
 
   /**
