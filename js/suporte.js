@@ -84,6 +84,8 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
     e.stopPropagation();
 
+    form.classList.add("was-validated");
+
     if (form.checkValidity()) {
       // Mostrar loadng
       btnContent?.classList.add("d-none");
@@ -99,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
           wallet: document.getElementById("contact-wallet")?.value || null,
           subject: document.getElementById("contact-subject")?.value || "",
           message: document.getElementById("contact-message")?.value || "",
+          supportEmail: form?.dataset?.supportEmail || "suporte@tokencafe.com",
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
           currentPage: window.location.href,
@@ -114,6 +117,10 @@ document.addEventListener("DOMContentLoaded", function () {
           // Resetar formulro
           form.reset();
           form.classList.remove("was-validated");
+          
+          // Resetar contador
+          if (charCount) charCount.textContent = "0";
+          
           validateForm();
         } else {
           throw new Error("Falha no envo");
@@ -128,8 +135,6 @@ document.addEventListener("DOMContentLoaded", function () {
         validateForm();
       }
     }
-
-    form.classList.add("was-validated");
   });
 
   // Valdao ncal
@@ -144,9 +149,11 @@ document.addEventListener("DOMContentLoaded", function () {
 // Envio por API/EmailJS/Formspree com fallback local
 async function sendSupportEmail(formData) {
   try {
+    const supportEmail = String(formData?.supportEmail || "suporte@tokencafe.com").trim();
+
     // Confgurar dados para envo
     const emailData = {
-      to: "suporte@tokencafe.com",
+      to: supportEmail,
       subject: `[TokenCafe] Suporte - ${formData.subject}`,
       body: formatSupportEmailBody(formData),
       replyTo: formData.email,
@@ -195,28 +202,43 @@ async function sendSupportEmail(formData) {
       console.log("EmalJS no confgurado, tentando mtodo alternatvo...");
     }
 
-    // Mtodo 3: Formspree (fallback)
+    // Mtodo 3: FormSubmit (sem backend)
     try {
-      const response = await fetch("https://formspree.io/f/your-form-id", {
+      const endpoint = `https://formsubmit.co/ajax/${encodeURIComponent(emailData.to)}`;
+
+      const payload = new URLSearchParams();
+      payload.set("name", formData.name || "");
+      payload.set("email", formData.email || "");
+      payload.set("whatsapp", formData.whatsapp || "");
+      payload.set("wallet", formData.wallet || "");
+      payload.set("subject", emailData.subject);
+      payload.set("message", `${formData.message || ""}\n\n---\nNome: ${formData.name || ""}\nEmail: ${formData.email || ""}\nWhatsApp: ${formData.whatsapp || ""}\nCarteira: ${formData.wallet || ""}\nPágina: ${formData.currentPage || ""}\nUser-Agent: ${formData.userAgent || ""}\nTimestamp: ${formData.timestamp || ""}`);
+      payload.set("_subject", emailData.subject);
+      payload.set("_replyto", formData.email || "");
+      payload.set("_captcha", "false");
+      payload.set("_template", "box");
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        body: JSON.stringify(formData),
+        body: payload.toString(),
       });
 
       if (response.ok) {
-        console.log(" Emal envado va Formspree");
+        console.log(" Emal envado va FormSubmit");
         return true;
       }
     } catch (error) {
-      console.log("Formspree no dsponvel, usando mtodo local...");
+      console.log("FormSubmit no dsponvel, usando mtodo local...");
     }
 
     // Mtodo 4: Salvar localmente e notfcar (ltmo recurso)
     saveSupportDataLocally(formData);
     console.log(" Dados de suporte salvos localmente");
-    return true;
+    return false;
   } catch (error) {
     console.error("Erro ao enviar email de suporte:", error);
     return false;

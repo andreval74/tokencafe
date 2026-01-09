@@ -4361,3 +4361,32 @@ Classes reutilizáveis para efeitos neon padronizados
 .position-relative > .form-control {
   padding-right: 72px;
 }
+
+/* ============================================================================
+ * BUTTON/BADGE HOVER EFFECTS
+ * ============================================================================ */
+.badge-action {
+  background-color: #343a40 !important; /* Dark Gray */
+  color: #fff !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  opacity: 0.9;
+  border: 1px solid transparent;
+}
+
+.badge-action:hover {
+  background-color: #f85d23 !important; /* Brand Orange */
+  color: #fff !important;
+  opacity: 1;
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  text-decoration: none !important;
+}
+
+.badge-action:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  filter: brightness(0.95);
+}
+

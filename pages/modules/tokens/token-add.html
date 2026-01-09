@@ -11,7 +11,7 @@
 
   <body class="bg-page-black">
     <!-- Header padrão com status de carteira (componente) -->
-    <div data-component="shared/components/unified-header.html" data-header-mode="app" data-icon="fa-add" data-icon-alt="Token Creator" data-title="Criador de Contratos de Token" data-subtitle="Implante seu ERC-20 com segurança"></div>
+    <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-add" data-icon-alt="Token Creator" data-title="Criador de Contratos de Token" data-subtitle="Implante seu ERC-20 com segurança"></div>
 
     <!-- Main Content -->
     <main class="py-3 mb-1">
@@ -428,10 +428,14 @@
        ========================================================================= -->
 
     <div class="container-fluid">
-      <div data-component="shared/components/unified-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Token Add padronizado"></div>
+
     </div>
     <!-- Base System para carregamento de componentes -->
-    <script type="module" src="../../../js/shared/base-system.js"></script>
+    <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+      data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Token Creator padronizado"></div>
+  </div>
+  <script type="module" src="../../../js/shared/base-system.js"></script>
     <div data-component="shared/layouts/scripts-base.html"></div>
 
     <!-- Configuração da API remota (Render) -->

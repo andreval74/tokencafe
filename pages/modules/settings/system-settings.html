@@ -28,7 +28,7 @@
   </head>
   <body class="bg-page-black">
     <!-- Header padrão com status de carteira (componente) -->
-    <div data-component="shared/components/unified-header.html" data-header-mode="app" data-icon="fa-cog" data-icon-alt="Configurações" data-title="Configurações do Sistema" data-subtitle="Gerencie suas preferências do TokenCafe"></div>
+    <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-cog" data-icon-alt="Configurações" data-title="Configurações do Sistema" data-subtitle="Gerencie suas preferências do TokenCafe"></div>
     <div class="container-fluid py-3 mb-1">
       <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-6">
@@ -728,7 +728,7 @@
     </div>
 
     <div class="container-fluid">
-      <div data-component="shared/components/unified-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="System Settings padronizado"></div>
+
     </div>
 
     <!-- Modal de Confirmação -->
@@ -751,6 +751,10 @@
     </div>
 
     <!-- Base System para carregamento de componentes -->
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+        data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="System Settings padronizado"></div>
+    </div>
     <script type="module" src="../../../js/shared/base-system.js"></script>
     <div data-component="shared/layouts/scripts-base.html"></div>
     <script src="../../../js/modules/settings/system-settings.js?v=2"></script>

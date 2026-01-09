@@ -23,10 +23,8 @@
 
 <body class="bg-page-black">
   <!-- Header Unificado -->
-  <div data-component="shared/components/unified-header.html" 
-       data-header-mode="app" 
-       data-title="TokenCafe Tools"
-       data-subtitle="Hub Central de Ferramentas Web3"></div>
+  <div data-component="tools-header.html" data-icon="bi-tools" data-icon-alt="TokenCafe" data-title="TokenCafe Tools"
+    data-subtitle="Hub Central de Ferramentas Web3"></div>
 
   <!-- Main Content -->
   <div class="container py-4 bg-page-black min-vh-100">
@@ -241,6 +239,21 @@
               </a>
             </div>
           </div>
+
+          <!-- Suporte -->
+          <div class="tool-tile" aria-label="Suporte Técnico">
+            <span class="tool-tile-status badge bg-success">Finalizado</span>
+            <div class="tool-tile-icon"><i class="bi bi-wallet2"></i></div>
+            <div class="tool-tile-title">Suporte Técnico</div>  
+            <div class="tool-tile-desc">Envie um e-mail para suporte@tokencafe.com para obter ajuda.</div>
+            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+              <a href="suporte.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
+                aria-label="Abrir Suporte Técnico">
+                <i class="bi bi-email me-1"></i>
+                Suporte Via Email
+              </a>
+            </div>
+          </div>
 </div>
 
           <!-- Instruções e Status -->
@@ -347,7 +360,8 @@
     </div>
 
     <div class="container-fluid">
-      <div data-component="shared/components/unified-footer.html" data-footer-mode="minimal"></div>
+      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award"
+        data-sf-title="Desenvolvido pela equipe" data-sf-subtitle="Todos os módulos padronizados"></div>
     </div>
     <!-- Scripts -->
     <script type="module" src="../js/shared/base-system.js"></script>
