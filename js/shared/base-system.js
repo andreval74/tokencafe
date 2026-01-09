@@ -450,9 +450,10 @@ class BaseSystem {
         if (connected || ok2) {
           await this.applyConnectedNetworkDefault();
         } else {
-          const base = this.getBasePath();
-          const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
-          window.location.href = target;
+          // Redirect desativado para permitir navegação sem carteira
+          // const base = this.getBasePath();
+          // const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
+          // window.location.href = target;
           return;
         }
       }
@@ -467,9 +468,10 @@ class BaseSystem {
             try {
               await window.walletConnector?.connect?.("metamask");
             } catch (_) {
-              const base = this.getBasePath();
-              const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
-              window.location.href = target;
+              // Redirect desativado
+              // const base = this.getBasePath();
+              // const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
+              // window.location.href = target;
             }
           }
         } catch (_) {}
