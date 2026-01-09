@@ -22,7 +22,7 @@
   </head>
   <body class="bg-page-black">
     <!-- Header padrão com status de carteira (componente) -->
-    <div data-component="tools-header.html" data-icon="fa-chart-line" data-icon-alt="Analytics" data-title="Analytics Reports" data-subtitle="Acompanhe o desempenho dos seus tokens"></div>
+    <div data-component="shared/components/unified-header.html" data-header-mode="app" data-icon="fa-chart-line" data-icon-alt="Analytics" data-title="Analytics Reports" data-subtitle="Acompanhe o desempenho dos seus tokens"></div>
     <!-- Seleção da Rede -->
     <div class="container">
       <div class="mb-4" id="network-section">
@@ -215,7 +215,7 @@
 
     <!-- Base System para carregamento de componentes -->
     <div class="container-fluid">
-      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Analytics Reports padronizado"></div>
+      <div data-component="shared/components/unified-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Analytics Reports padronizado"></div>
     </div>
     <script type="module" src="../../../js/shared/base-system.js"></script>
     <div data-component="shared/layouts/scripts-base.html"></div>
@@ -224,3 +224,4 @@
     <script type="module" src="../../../js/modules/analytics/analytics-reports.js?v=2"></script>
   </body>
 </html>
+

@@ -23,7 +23,7 @@
   </head>
   <body class="bg-page-black">
     <!-- Header padrão com status de carteira (componente) -->
-    <div data-component="tools-header.html" data-icon="fa-coins" data-icon-alt="Tokens" data-title="Gerenciador de Tokens" data-subtitle="Administre seus tokens e dados"></div>
+    <div data-component="shared/components/unified-header.html" data-header-mode="app" data-icon="fa-coins" data-icon-alt="Tokens" data-title="Gerenciador de Tokens" data-subtitle="Administre seus tokens e dados"></div>
 
     <!-- Layout padrão baseado no Wallet -->
     <div class="container-fluid py-3 mb-1">
@@ -167,10 +167,11 @@
 
     <!-- Scripts -->
     <div class="container-fluid">
-      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Token Manager padronizado"></div>
+      <div data-component="shared/components/unified-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Token Manager padronizado"></div>
     </div>
     <script type="module" src="../../../js/shared/base-system.js"></script>
     <div data-component="shared/layouts/scripts-base.html"></div>
     <script src="../../../js/modules/tokens/token-manager.js?v=2"></script>
   </body>
 </html>
+

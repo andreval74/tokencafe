@@ -1,0 +1,71 @@
+<!-- UNIFIED FOOTER -->
+<div class="section-divider"></div>
+<footer class="bg-page-black text-white py-4" id="main-footer">
+    <div class="container">
+        <!-- Full Footer Content (Columns) -->
+        <div class="row mb-4" id="footer-full-content">
+             <div class="col-lg-4">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="/imgs/tkncafe192x192.png" alt="TokenCafe Logo" width="32" class="me-2" />
+                  <div class="d-flex flex-column">
+                    <span class="fw-bold text-white fs-5">Token<span class="text-warning">Cafe</span></span>
+                    <small class="text-white-50 text-small">Plataforma Web3</small>
+                  </div>
+                </div>
+                <p class="text-white-50 mb-3 mt-2 small">A plataforma mais avançada para criação e gerenciamento de tokens Web3.</p>
+                <!-- Social Icons -->
+                <div class="social-icons mt-3">
+                  <a href="#" class="text-white-50 me-3" title="Instagram"><i class="fa-brands fa-instagram fs-5"></i></a>
+                  <a href="#" class="text-white-50 me-3" title="Twitter/X"><i class="fa-brands fa-twitter fs-5"></i></a>
+                  <a href="#" class="text-white-50 me-3" title="Telegram"><i class="fa-brands fa-telegram fs-5"></i></a>
+                </div>
+              </div>
+              <div class="col-lg-2">
+                <h6 class="mb-3 text-white fw-semibold text-warning small text-uppercase">Plataforma</h6>
+                <ul class="list-unstyled small">
+                  <li class="mb-2"><a href="/#token" class="text-white-50 text-decoration-none">Token</a></li>
+                  <li class="mb-2"><a href="/#comofunciona" class="text-white-50 text-decoration-none">Como Funciona</a></li>
+                  <li class="mb-2"><a href="/#ecosistema" class="text-white-50 text-decoration-none">EcoSistema</a></li>
+                </ul>
+              </div>
+              <div class="col-lg-2">
+                <h6 class="mb-3 fw-semibold text-warning small text-uppercase">Tokens</h6>
+                <ul class="list-unstyled small">
+                  <li class="mb-2"><span class="text-white-50">ERC-20</span></li>
+                  <li class="mb-2"><span class="text-white-50">SPL (Solana)</span></li>
+                  <li class="mb-2"><span class="text-white-50">Sui</span></li>
+                </ul>
+              </div>
+              <div class="col-lg-2">
+                <h6 class="mb-3 fw-semibold text-warning small text-uppercase">Suporte</h6>
+                <ul class="list-unstyled small">
+                  <li class="mb-2"><a href="/pages/suporte.html" class="text-white-50 text-decoration-none">Central de Ajuda</a></li>
+                  <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Contato</a></li>
+                </ul>
+              </div>
+        </div>
+
+        <!-- Minimal / Copyright Content -->
+        <div class="row border-top border-secondary pt-3">
+            <div class="col-12 text-center text-white-50">
+                <small class="d-block mb-1">&copy; 2024 TokenCafe. Todos os direitos reservados.</small>
+                <small class="d-none" id="footer-minimal-note">
+                    <i class="bi bi-code-slash me-1"></i>Desenvolvido pela equipe <strong class="text-white">Token</strong><strong class="text-warning">Cafe</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+    // Simple logic to handle footer mode
+    (function() {
+        const mode = document.body.dataset.footerMode || 'full'; // 'full' or 'minimal'
+        const fullContent = document.getElementById('footer-full-content');
+        const minimalNote = document.getElementById('footer-minimal-note');
+        
+        if (mode === 'minimal') {
+            if (fullContent) fullContent.style.display = 'none';
+            if (minimalNote) minimalNote.classList.remove('d-none');
+        }
+    })();
+</script>

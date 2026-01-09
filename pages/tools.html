@@ -23,8 +23,10 @@
 
 <body class="bg-page-black">
   <!-- Header Unificado -->
-  <div data-component="tools-header.html" data-icon="bi-tools" data-icon-alt="TokenCafe" data-title="TokenCafe Tools"
-    data-subtitle="Hub Central de Ferramentas Web3"></div>
+  <div data-component="shared/components/unified-header.html" 
+       data-header-mode="app" 
+       data-title="TokenCafe Tools"
+       data-subtitle="Hub Central de Ferramentas Web3"></div>
 
   <!-- Main Content -->
   <div class="container py-4 bg-page-black min-vh-100">
@@ -345,8 +347,7 @@
     </div>
 
     <div class="container-fluid">
-      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award"
-        data-sf-title="Desenvolvido pela equipe" data-sf-subtitle="Todos os módulos padronizados"></div>
+      <div data-component="shared/components/unified-footer.html" data-footer-mode="minimal"></div>
     </div>
     <!-- Scripts -->
     <script type="module" src="../js/shared/base-system.js"></script>
