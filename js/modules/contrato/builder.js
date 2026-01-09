@@ -55,6 +55,18 @@ import { getApiBase as getApiBaseShared, runVerifyDirect as runVerifyDirectShare
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
 
+const RESERVED_KEYWORDS = [
+  "abstract", "after", "alias", "apply", "auto", "case", "catch", "copyof", "default", "define", "final", 
+  "immutable", "implements", "in", "inline", "let", "macro", "match", "mutable", "null", "of", "override", 
+  "partial", "promise", "reference", "relocatable", "sealed", "sizeof", "static", "supports", "switch", "try", 
+  "typedef", "typeof", "unchecked", "contract", "interface", "library", "function", "address", "uint", "int", 
+  "bool", "string", "byte", "bytes", "mapping", "struct", "enum", "event", "modifier", "constructor", "fallback", 
+  "receive", "public", "external", "internal", "private", "view", "pure", "payable", "storage", "memory", 
+  "calldata", "virtual", "break", "continue", "do", "else", "for", "if", "return", "while", "revert", "assert", 
+  "require", "throw", "new", "delete", "this", "super", "emit", "using", "import", "from", "as", "is", "var", 
+  "const", "class", "extends", "debugger", "export", "void", "yield", "true", "false", "instanceof", "await", "async"
+];
+
 // Estado simples do módulo
 const state = {
   wallet: {
@@ -187,28 +199,33 @@ function updateVanityVisibility() {
 }
 
 function readForm() {
-  state.form.group = $("#contractGroup").value;
-  state.form.token.name = String($("#tokenName").value || "").replace(/\s+$/u, "");
-  state.form.token.symbol = String($("#tokenSymbol").value || "")
+  const getVal = (id, def = "") => {
+    const el = $(id);
+    return el ? el.value : def;
+  };
+
+  state.form.group = getVal("#contractGroup", "standard");
+  state.form.token.name = String(getVal("#tokenName")).replace(/\s+$/u, "");
+  state.form.token.symbol = String(getVal("#tokenSymbol"))
     .replace(/\s+$/u, "")
     .toUpperCase();
-  state.form.token.decimals = parseInt($("#tokenDecimals").value || "18", 10);
+  state.form.token.decimals = parseInt(getVal("#tokenDecimals", "18"), 10);
   {
-    const raw = String($("#initialSupply").value || "").replace(/\s+$/u, "");
+    const raw = String(getVal("#initialSupply", "0")).replace(/\s+$/u, "");
     const sanitized = raw.replace(/[^0-9]/g, "");
     // Manter como string para suportar números grandes (> 2^53)
     state.form.token.initialSupply = sanitized || "0";
   }
 
   // Entradas decimais (strings), não usar wei. Conversão será feita no backend.
-  state.form.sale.priceDec = String($("#tokenPriceDec").value || "").replace(/\s+$/u, "");
-  state.form.sale.minDec = String($("#minPurchaseDec").value || "").replace(/\s+$/u, "");
-  state.form.sale.maxDec = String($("#maxPurchaseDec").value || "").replace(/\s+$/u, "");
-  state.form.sale.capUnits = BigInt($("#perWalletCap").value || "0");
-  state.form.sale.payoutWallet = String($("#payoutWallet").value || "").replace(/\s+$/u, "");
+  state.form.sale.priceDec = String(getVal("#tokenPriceDec")).replace(/\s+$/u, "");
+  state.form.sale.minDec = String(getVal("#minPurchaseDec")).replace(/\s+$/u, "");
+  state.form.sale.maxDec = String(getVal("#maxPurchaseDec")).replace(/\s+$/u, "");
+  state.form.sale.capUnits = BigInt(getVal("#perWalletCap", "0"));
+  state.form.sale.payoutWallet = String(getVal("#payoutWallet")).replace(/\s+$/u, "");
 
-  state.form.vanity.mode = $("#vanityMode").value;
-  state.form.vanity.custom = String($("#vanityCustom").value || "").replace(/\s+$/u, "");
+  state.form.vanity.mode = getVal("#vanityMode", "none");
+  state.form.vanity.custom = String(getVal("#vanityCustom")).replace(/\s+$/u, "");
 }
 
 function validateHex4(str) {
@@ -256,6 +273,9 @@ function validateForm() {
   const errors = [];
 
   if (!state.form.token.name) errors.push("Nome do token é obrigatório.");
+  if (state.form.token.name && RESERVED_KEYWORDS.includes(state.form.token.name.toLowerCase())) {
+    errors.push(`O nome "${state.form.token.name}" é reservado (Solidity/JS keyword). Escolha outro.`);
+  }
   if (!state.form.token.symbol) errors.push("Símbolo do token é obrigatório.");
   if (!/^[A-Z0-9]{3,8}$/.test(state.form.token.symbol)) {
     errors.push("Símbolo deve conter 3–8 caracteres A–Z e 0–9 (sem especiais).");
@@ -337,8 +357,9 @@ function clearFieldInvalid(el) {
 
 function validateTokenNameInline() {
   const el = getEl("tokenName");
-  const v = String(el?.value || "");
+  const v = String(el?.value || "").trim();
   if (!v) return setFieldInvalid(el, "Informe o nome do token.");
+  if (RESERVED_KEYWORDS.includes(v.toLowerCase())) return setFieldInvalid(el, "Nome inválido (palavra reservada).");
   return clearFieldInvalid(el);
 }
 
@@ -651,8 +672,8 @@ async function compileContract() {
     log("Corrija os erros nos campos antes de compilar.");
     return;
   }
+  let base = getApiBase();
   try {
-    let base = getApiBase();
     // Tentativa de conexão, mas sem forçar localhost imediatamente se falhar (pode ser timeout do Render)
     const okConn = await checkApiConnectivity(base);
     if (!okConn) {
@@ -2671,21 +2692,24 @@ function forceVerificationSuccessUI(address, link, chainId) {
                 if (!deployerRow) {
                     const rowContainer = infoCard.querySelector(".row");
                     if (rowContainer) {
-                        const deployerAddr = state.wallet?.address || "-";
+                        const deployerAddr = state.deployed?.deployer || state.wallet?.account || state.wallet?.address || "-";
                         
                         // Gerar link do explorer para o deployer
                         const targetChainId = chainId || state.form?.network?.chainId;
-                        const explorerBase = getExplorerVerificationUrl(targetChainId, deployerAddr).split("/address/")[0]; 
-                        // getExplorerVerificationUrl retorna .../address/0x...#code. Pegamos a base.
-                        // Melhor usar uma função utilitária se disponível, mas vamos construir seguro:
                         
                         let deployerLink = "#";
-                        if (targetChainId) {
+                        if (targetChainId && deployerAddr && deployerAddr !== "-") {
                              // Tenta usar lógica existente ou reconstruir
                              // Simplificação: se temos o link do contrato, usamos o mesmo dominio
                              if (link && link.startsWith("http")) {
-                                 const urlObj = new URL(link);
-                                 deployerLink = `${urlObj.origin}/address/${deployerAddr}`;
+                                 try {
+                                     const urlObj = new URL(link);
+                                     deployerLink = `${urlObj.origin}/address/${deployerAddr}`;
+                                 } catch (_) {}
+                             } else {
+                                 // Fallback se não tivermos o link do contrato
+                                 const rawUrl = getExplorerVerificationUrl(targetChainId, deployerAddr); 
+                                 if (rawUrl) deployerLink = rawUrl.split("#")[0];
                              }
                         }
 
@@ -2698,10 +2722,22 @@ function forceVerificationSuccessUI(address, link, chainId) {
                             <a href="${deployerLink}" target="_blank" class="text-tokencafe text-break font-monospace small text-decoration-none" title="Ver no Explorer">
                                 ${deployerAddr} <i class="bi bi-box-arrow-up-right" style="font-size: 0.8em;"></i>
                             </a>
-                            <button class="btn btn-sm btn-link text-white p-0" onclick="window.copyToClipboard?.('${deployerAddr}')" title="Copiar">
+                            <button class="btn btn-sm btn-link text-white p-0 btn-copy-deployer" title="Copiar">
                                 <i class="bi bi-clipboard"></i>
                             </button>
                           </div>`;
+                        
+                        // Bind copy button
+                        const btnCopy = div.querySelector(".btn-copy-deployer");
+                        if (btnCopy) {
+                            btnCopy.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (window.copyToClipboard) window.copyToClipboard(deployerAddr);
+                                else if (navigator.clipboard) navigator.clipboard.writeText(deployerAddr);
+                            };
+                        }
+
                         // Inserir logo após o endereço do contrato (primeiro col-12)
                         const firstCol = rowContainer.querySelector(".col-12");
                         if (firstCol) {
@@ -2712,6 +2748,28 @@ function forceVerificationSuccessUI(address, link, chainId) {
                     }
                 }
             }
+            
+            // Fix: Re-bind dos botões de cópia existentes (Address e Tx) para garantir funcionamento
+            // Isso sobrescreve os handlers inline que podem estar falhando
+            try {
+                ['erc20AddressLink', 'erc20TxLink'].forEach(id => {
+                    const linkEl = document.getElementById(id);
+                    if (linkEl) {
+                        const btn = linkEl.nextElementSibling;
+                        if (btn && btn.tagName === 'BUTTON') {
+                            btn.onclick = (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const text = linkEl.textContent.trim();
+                                if (text && text !== '-') {
+                                    if (window.copyToClipboard) window.copyToClipboard(text);
+                                    else if (navigator.clipboard) navigator.clipboard.writeText(text);
+                                }
+                            };
+                        }
+                    }
+                });
+            } catch (_) {}
 
             // Popular dados
             const targetChainId = chainId || state.form?.network?.chainId;
@@ -2737,6 +2795,24 @@ function forceVerificationSuccessUI(address, link, chainId) {
                 } catch(e) {
                     console.error("Erro ao definir cache forçado:", e);
                 }
+                
+                // Garantir que os links principais (Address/Tx) estejam populados corretamente
+                // Caso o usuário tenha recarregado a página ou o estado de deploy tenha sido perdido
+                try {
+                    const mainAddrLink = document.getElementById("erc20AddressLink");
+                    if (mainAddrLink) {
+                        const currentHref = mainAddrLink.getAttribute("href");
+                        if (!currentHref || currentHref === "#" || currentHref.endsWith("#")) {
+                             const explorerUrl = link || getExplorerContractUrl(address, targetChainId);
+                             if (explorerUrl) {
+                                 mainAddrLink.href = explorerUrl;
+                                 mainAddrLink.textContent = address;
+                                 mainAddrLink.classList.remove("text-muted", "disabled");
+                                 mainAddrLink.classList.add("text-warning");
+                             }
+                        }
+                    }
+                } catch (_) {}
 
                 // Pequeno delay para garantir renderização e propagação
                 setTimeout(() => {

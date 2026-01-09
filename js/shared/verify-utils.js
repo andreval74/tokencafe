@@ -82,7 +82,10 @@ export async function getVerificationStatus(chainId, address) {
         }
         return js;
     } catch (e) {
-        console.error("[verify-utils] getVerificationStatus error:", e);
+        try {
+            const shouldLog = !!window.DEBUG_VERIFY || window.localStorage?.getItem("debug_verify") === "1";
+            if (shouldLog) console.error("[verify-utils] getVerificationStatus error:", e);
+        } catch (_) {}
         // Return object with error property so caller handles it
         return { success: false, error: true, message: e.message || String(e) };
     }
