@@ -31,14 +31,16 @@
   var prodDefault = "https://tokencafe-api.onrender.com";
 
   // Senior Fix: Prevent Mixed Content on Localhost
-  // If we are running locally (HTTP), we cannot call HTTPS APIs (Mixed Content).
-  // We must ignore stored/existing HTTPS URLs in this context unless explicitly overridden via query param.
-  if (isLocalHost && !isHttps) {
-    if (stored && stored.startsWith("https:")) stored = null;
-    if (existing && existing.startsWith("https:")) existing = null;
-  }
-
-  var chosen = (isUrl(override) ? override : null) || existing || stored || (isHttps && !isLocalHost ? prodDefault : "http://localhost:3000");
+  // If we are running locally (HTTP), we can call HTTPS APIs (CORS might apply).
+  // But we generally prefer the production API if local is not available.
+  // The previous logic incorrectly blocked HTTPS on HTTP.
+  
+  // Logic: 
+  // 1. Override (query param) has highest priority.
+  // 2. Existing window/localStorage config has next priority.
+  // 3. Fallback: If HTTPS page -> Prod. If HTTP page -> Try Prod (HTTPS) or Localhost.
+  
+  var chosen = (isUrl(override) ? override : null) || existing || stored || prodDefault;
   try {
     var chosenUrl = new URL(chosen);
     var isHttpChosen = chosenUrl.protocol === "http:";

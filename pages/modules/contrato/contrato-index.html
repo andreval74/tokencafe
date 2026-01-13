@@ -30,6 +30,23 @@
     data-title="Geração de Contrato" data-subtitle="Criação, verificação e deploy de contrato"></div>
 
   <div class="container">
+    <div id="apiStatusContainer" class="mb-3 d-none">
+        <div class="d-flex align-items-center justify-content-between p-2 rounded border bg-dark-elevated">
+            <div>
+                <span class="badge bg-secondary me-2" id="apiStatusBadge">Verificando API...</span>
+                <small class="text-muted" id="apiBaseDisplay">Detectando...</small>
+            </div>
+            <button class="btn btn-sm btn-outline-light" onclick="window.location.reload()">Recarregar</button>
+        </div>
+        <div id="apiErrorHelp" class="d-none mt-2 alert alert-warning small">
+            <strong>API Offline?</strong>
+            <ul class="mb-0 ps-3">
+                <li>Verifique se o servidor backend está rodando (`npm run dev` na raiz).</li>
+                <li>Verifique se a porta 3000 está livre.</li>
+                <li>Se estiver no Render, aguarde o wake-up (pode levar 1 min).</li>
+            </ul>
+        </div>
+    </div>
     <div class="g-4">
       <div class="col-12">
         <!-- Seleção da Rede -->
@@ -54,19 +71,26 @@
               <div id="contractGroupInfo" class="mt-2"></div>
             </div>
             <div class="row g-3">
-              <div class="col-md-8">
+              <!-- Campo para Token Existente (TokenSale-Separado) -->
+              <div class="col-12 d-none" id="existingTokenContainer">
+                <label class="form-label">Endereço do Token Existente</label>
+                <input id="existingTokenAddress" class="form-control monospace-input" placeholder="0x..." />
+              </div>
+
+              <!-- Campos para Novo Token -->
+              <div class="col-md-8" id="tokenNameContainer">
                 <label class="form-label">Nome do Token</label>
                 <input id="tokenName" class="form-control" placeholder="Meu Token" />
               </div>
-              <div class="col-md-4">
+              <div class="col-md-4" id="tokenSymbolContainer">
                 <label class="form-label">Símbolo</label>
                 <input id="tokenSymbol" class="form-control" />
               </div>
-              <div class="col-md-4">
+              <div class="col-md-4" id="tokenDecimalsContainer">
                 <label class="form-label">Decimais</label>
                 <input id="tokenDecimals" type="number" min="0" max="18" value="18" class="form-control" />
               </div>
-              <div class="col-md-8">
+              <div class="col-md-8" id="initialSupplyContainer">
                 <label class="form-label">Supply Inicial</label>
                 <input id="initialSupply" type="text" class="form-control" value="1.000.000" />
               </div>

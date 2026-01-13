@@ -8,6 +8,7 @@ const cors = require("cors");
 const solc = require("solc");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
+const { getContractSource } = require("./contract-templates");
 require("dotenv").config();
 
 // Função para converter endereço para checksum correto
@@ -242,90 +243,48 @@ app.post("/api/compile-only", async (req, res) => {
 // Endpoint para gerar código de token padrão
 app.post("/api/generate-token", async (req, res) => {
   try {
-    const { name, symbol, totalSupply, decimals = 18 } = req.body;
+    const { name, symbol, totalSupply, decimals = 18, type = "erc20-minimal", sale = {} } = req.body;
 
     if (!name || !symbol || totalSupply === undefined || totalSupply === null) {
-      return res.status(400).json({
-        success: false,
-        error: "name, symbol e totalSupply são obrigatórios",
-      });
+      if (type !== "tokensale-separado") {
+        return res.status(400).json({
+          success: false,
+          error: "name, symbol e totalSupply são obrigatórios",
+        });
+      }
     }
-    // Valida supply
-    const validSupply = validateSupply(totalSupply);
-    if (!validSupply) {
-      return res.status(400).json({
-        success: false,
-        error: "totalSupply deve ser um número inteiro positivo",
-      });
-    }
-    // Valida decimals
-    const dec = parseInt(decimals, 10);
-    if (!Number.isFinite(dec) || dec < 0 || dec > 18) {
-      return res.status(400).json({
-        success: false,
-        error: "decimals deve estar entre 0 e 18",
-      });
-    }
-    // Valida símbolo simples (opcional)
-    const sym = String(symbol).trim();
-    if (!sym || sym.length > 32) {
-      return res.status(400).json({
-        success: false,
-        error: "symbol deve ter 1 a 32 caracteres",
-      });
+    
+    // Valida supply e decimals se não for sale separado
+    let validSupply = "0";
+    let dec = 18;
+    let sym = "";
+    
+    if (type !== "tokensale-separado") {
+        validSupply = validateSupply(totalSupply);
+        if (!validSupply) {
+          return res.status(400).json({ success: false, error: "totalSupply deve ser um número inteiro positivo" });
+        }
+        dec = parseInt(decimals, 10);
+        if (!Number.isFinite(dec) || dec < 0 || dec > 18) {
+          return res.status(400).json({ success: false, error: "decimals deve estar entre 0 e 18" });
+        }
+        sym = String(symbol).trim();
+        if (!sym || sym.length > 32) {
+          return res.status(400).json({ success: false, error: "symbol deve ter 1 a 32 caracteres" });
+        }
     }
 
-    const contractName = sanitizeContractName(name);
-
-    const sourceCode = `
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
-
-contract ${contractName} {
-    string public name = "${name}";
-    string public symbol = "${symbol}";
-    uint8 public decimals = ${decimals};
-    uint256 public totalSupply;
-    
-    mapping(address => uint256) public balanceOf;
-    mapping(address => mapping(address => uint256)) public allowance;
-    
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-    
-    constructor() {
-        totalSupply = ${validSupply} * 10**decimals;
-        balanceOf[msg.sender] = totalSupply;
-        emit Transfer(address(0), msg.sender, totalSupply);
-    }
-    
-    function transfer(address to, uint256 value) public returns (bool) {
-        require(balanceOf[msg.sender] >= value, "Insufficient balance");
-        balanceOf[msg.sender] -= value;
-        balanceOf[to] += value;
-        emit Transfer(msg.sender, to, value);
-        return true;
-    }
-    
-    function approve(address spender, uint256 value) public returns (bool) {
-        allowance[msg.sender][spender] = value;
-        emit Approval(msg.sender, spender, value);
-        return true;
-    }
-    
-    function transferFrom(address from, address to, uint256 value) public returns (bool) {
-        require(balanceOf[from] >= value, "Insufficient balance");
-        require(allowance[from][msg.sender] >= value, "Allowance exceeded");
-        balanceOf[from] -= value;
-        balanceOf[to] += value;
-        allowance[from][msg.sender] -= value;
-        emit Transfer(from, to, value);
-        return true;
-    }
-}`.trim();
+    // Gera o código usando o template
+    const { source, contractName } = getContractSource(type, {
+        name: name || "TokenSale",
+        symbol: sym || "SALE",
+        decimals: dec,
+        totalSupply: validSupply,
+        sale
+    });
 
     // Compilar automaticamente
-    const compiled = await compileContract(sourceCode, contractName);
+    const compiled = await compileContract(source, contractName);
 
     res.json({
       success: true,
@@ -335,20 +294,21 @@ contract ${contractName} {
         totalSupply: validSupply,
         decimals: dec,
         contractName,
+        type
       },
-      sourceCode,
+      sourceCode: source,
       compilation: {
         abi: compiled.abi,
         bytecode: compiled.bytecode,
         metadata: compiled.metadata,
       },
       deployInstructions: {
-        message: `Token ${name} (${symbol}) gerado e compilado!`,
-        nextSteps: ["1. Conecte seu MetaMask", "2. Selecione a rede desejada", "3. Clique em 'Deploy Token'", "4. Pague o gas fee no MetaMask", "5. Aguarde confirmação na blockchain"],
+        message: `Contrato ${contractName} (${type}) gerado e compilado!`,
+        nextSteps: ["1. Conecte seu MetaMask", "2. Selecione a rede desejada", "3. Clique em 'Deploy'", "4. Pague o gas fee no MetaMask", "5. Aguarde confirmação na blockchain"],
       },
     });
 
-    console.log(`✅ Token ${name} gerado e compilado`);
+    console.log(`✅ Contrato ${contractName} gerado e compilado`);
   } catch (error) {
     console.error(`❌ Erro ao gerar token: ${error.message}`);
     res.status(500).json({

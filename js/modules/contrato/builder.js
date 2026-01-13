@@ -68,7 +68,7 @@ const RESERVED_KEYWORDS = [
 ];
 
 // Estado simples do módulo
-const state = {
+export const state = {
   wallet: {
     provider: null,
     signer: null,
@@ -83,6 +83,7 @@ const state = {
       symbol: "",
       decimals: 18,
       initialSupply: 1000000,
+      existingAddress: "",
     },
     sale: {
       priceDec: "0.001",
@@ -93,12 +94,15 @@ const state = {
       nativeSymbol: "", // preenchido pela rede
       nativeDecimals: 18, // preenchido pela rede
     },
+    initialOwner: "",
+    initialHolder: "",
     vanity: {
       mode: "none",
       custom: "",
     },
   },
   validated: false,
+  compilation: {},
   deployed: {
     address: null,
     transactionHash: null,
@@ -113,7 +117,7 @@ function log(msg) {
 }
 
 // Informações dos grupos de contrato e compatibilidade
-const CONTRACT_GROUPS = {
+export const CONTRACT_GROUPS = {
   "erc20-minimal": {
     title: "ERC20-Minimal",
     summary: "Token ERC20 básico com mint inicial e sem controles extras.",
@@ -151,12 +155,35 @@ const CONTRACT_GROUPS = {
     summary: "Contrato de venda separado, vinculado a um token existente.",
     features: ["Vende token existente", "Parâmetros decimais", "Carteira de recebimento"],
     saleIntegration: true,
+    useExistingToken: true,
     order: ["Token existente", "Venda"],
     notes: "Requer endereço do token existente. Se não houver, este grupo não é aplicável.",
   },
 };
 
-function updateContractInfo() {
+function updateTokenFieldsVisibility() {
+  const g = state.form.group || $("#contractGroup").value;
+  const info = CONTRACT_GROUPS[g];
+  const useExisting = Boolean(info?.useExistingToken);
+
+  const existingContainer = $("#existingTokenContainer");
+  const nameContainer = $("#tokenNameContainer");
+  const symbolContainer = $("#tokenSymbolContainer");
+  const decimalsContainer = $("#tokenDecimalsContainer");
+  const supplyContainer = $("#initialSupplyContainer");
+
+  if (existingContainer) existingContainer.classList.toggle("d-none", !useExisting);
+  
+  // Se usa token existente, esconde os campos de criação de token
+  const hideCreation = useExisting;
+  if (nameContainer) nameContainer.classList.toggle("d-none", hideCreation);
+  if (symbolContainer) symbolContainer.classList.toggle("d-none", hideCreation);
+  if (decimalsContainer) decimalsContainer.classList.toggle("d-none", hideCreation);
+  if (supplyContainer) supplyContainer.classList.toggle("d-none", hideCreation);
+}
+
+export function updateContractInfo() {
+  updateTokenFieldsVisibility();
   const box = $("#contractGroupInfo");
   if (!box) return;
   const g = state.form.group || $("#contractGroup").value;
@@ -188,7 +215,7 @@ function setSaleVisibility() {
   if (node) node.classList.toggle("d-none", !show);
 }
 
-function updateVanityVisibility() {
+export function updateVanityVisibility() {
   const modeEl = $("#vanityMode");
   const mode = modeEl ? modeEl.value : "none";
   const customBox = $("#vanityCustomContainer");
@@ -198,13 +225,15 @@ function updateVanityVisibility() {
   if (helpEl) helpEl.classList.toggle("d-none", !showCustom);
 }
 
-function readForm() {
+export function readForm() {
   const getVal = (id, def = "") => {
     const el = $(id);
     return el ? el.value : def;
   };
 
   state.form.group = getVal("#contractGroup", "standard");
+  state.form.token.existingAddress = String(getVal("#existingTokenAddress")).replace(/\s+$/u, "");
+
   state.form.token.name = String(getVal("#tokenName")).replace(/\s+$/u, "");
   state.form.token.symbol = String(getVal("#tokenSymbol"))
     .replace(/\s+$/u, "")
@@ -223,6 +252,9 @@ function readForm() {
   state.form.sale.maxDec = String(getVal("#maxPurchaseDec")).replace(/\s+$/u, "");
   state.form.sale.capUnits = BigInt(getVal("#perWalletCap", "0"));
   state.form.sale.payoutWallet = String(getVal("#payoutWallet")).replace(/\s+$/u, "");
+
+  state.form.initialOwner = String(getVal("#initialOwner", "")).replace(/\s+$/u, "");
+  state.form.initialHolder = String(getVal("#initialHolder", "")).replace(/\s+$/u, "");
 
   state.form.vanity.mode = getVal("#vanityMode", "none");
   state.form.vanity.custom = String(getVal("#vanityCustom")).replace(/\s+$/u, "");
@@ -268,28 +300,37 @@ function getFallbackRpcByChainId(chainId) {
 
 // manter padrão: usa primeiro RPC da rede ou fallback por chainId
 
-function validateForm() {
+export function validateForm() {
   readForm();
   const errors = [];
+  const group = state.form.group;
+  const useExisting = Boolean(CONTRACT_GROUPS[group]?.useExistingToken);
 
-  if (!state.form.token.name) errors.push("Nome do token é obrigatório.");
-  if (state.form.token.name && RESERVED_KEYWORDS.includes(state.form.token.name.toLowerCase())) {
-    errors.push(`O nome "${state.form.token.name}" é reservado (Solidity/JS keyword). Escolha outro.`);
-  }
-  if (!state.form.token.symbol) errors.push("Símbolo do token é obrigatório.");
-  if (!/^[A-Z0-9]{3,8}$/.test(state.form.token.symbol)) {
-    errors.push("Símbolo deve conter 3–8 caracteres A–Z e 0–9 (sem especiais).");
-  }
-  if (state.form.token.decimals < 0 || state.form.token.decimals > 18) {
-    errors.push("Decimais devem estar entre 0 e 18.");
-  }
-  // Validação de supply como string/BigInt
-  if (!/^\d+$/.test(state.form.token.initialSupply)) {
-    errors.push("Supply inicial deve conter apenas números.");
+  if (useExisting) {
+    if (!isValidAddress(state.form.token.existingAddress)) {
+      errors.push("Endereço do token existente inválido.");
+    }
+  } else {
+    // Validações de criação de token
+    if (!state.form.token.name) errors.push("Nome do token é obrigatório.");
+    if (state.form.token.name && RESERVED_KEYWORDS.includes(state.form.token.name.toLowerCase())) {
+      errors.push(`O nome "${state.form.token.name}" é reservado (Solidity/JS keyword). Escolha outro.`);
+    }
+    if (!state.form.token.symbol) errors.push("Símbolo do token é obrigatório.");
+    if (!/^[A-Z0-9]{3,8}$/.test(state.form.token.symbol)) {
+      errors.push("Símbolo deve conter 3–8 caracteres A–Z e 0–9 (sem especiais).");
+    }
+    if (state.form.token.decimals < 0 || state.form.token.decimals > 18) {
+      errors.push("Decimais devem estar entre 0 e 18.");
+    }
+    // Validação de supply como string/BigInt
+    if (!/^\d+$/.test(state.form.token.initialSupply)) {
+      errors.push("Supply inicial deve conter apenas números.");
+    }
   }
 
   // Venda quando aplicável (entradas decimais)
-  if (["erc20-directsale", "upgradeable-uups"].includes(state.form.group)) {
+  if (CONTRACT_GROUPS[group]?.saleIntegration) {
     const toNum = (s) => Number(String(s).replace(",", "."));
     const price = toNum(state.form.sale.priceDec);
     const min = toNum(state.form.sale.minDec);
@@ -303,6 +344,14 @@ function validateForm() {
     if (state.form.sale.payoutWallet && !/^0x[0-9a-fA-F]{40}$/.test(state.form.sale.payoutWallet)) {
       errors.push("Carteira de recebimento deve ser um endereço válido (0x...).");
     }
+  }
+
+  // Validação de Owners opcionais
+  if (state.form.initialOwner && !isValidAddress(state.form.initialOwner)) {
+    errors.push("Endereço do Proprietário (Owner) inválido.");
+  }
+  if (state.form.initialHolder && !isValidAddress(state.form.initialHolder)) {
+    errors.push("Endereço do Destinatário do Supply inválido.");
   }
 
   // Vanity
@@ -355,7 +404,7 @@ function clearFieldInvalid(el) {
   return true;
 }
 
-function validateTokenNameInline() {
+export function validateTokenNameInline() {
   const el = getEl("tokenName");
   const v = String(el?.value || "").trim();
   if (!v) return setFieldInvalid(el, "Informe o nome do token.");
@@ -363,7 +412,7 @@ function validateTokenNameInline() {
   return clearFieldInvalid(el);
 }
 
-function validateTokenSymbolInline() {
+export function validateTokenSymbolInline() {
   const el = getEl("tokenSymbol");
   let v = String(el?.value || "");
   // Sanitizar para maiúsculas A–Z e dígitos 0–9, no máx 8 chars
@@ -378,7 +427,7 @@ function validateTokenSymbolInline() {
   return clearFieldInvalid(el);
 }
 
-function validateTokenDecimalsInline() {
+export function validateTokenDecimalsInline() {
   const el = getEl("tokenDecimals");
   const val = parseInt(el?.value || "18", 10);
   if (!Number.isFinite(val) || val < 0 || val > 18) {
@@ -387,7 +436,7 @@ function validateTokenDecimalsInline() {
   return clearFieldInvalid(el);
 }
 
-function validateInitialSupplyInline() {
+export function validateInitialSupplyInline() {
   const el = getEl("initialSupply");
   const raw = String(el?.value || "").trim();
   // Limpar formatação (milhar ponto, decimal virgula)
@@ -399,7 +448,7 @@ function validateInitialSupplyInline() {
   return clearFieldInvalid(el);
 }
 
-function validateSaleInline() {
+export function validateSaleInline() {
   const group = $("#contractGroup").value;
   const saleApplies = ["erc20-directsale", "upgradeable-uups"].includes(group);
   const priceEl = getEl("tokenPriceDec");
@@ -441,7 +490,7 @@ function validateSaleInline() {
   return ok;
 }
 
-function runAllFieldValidation() {
+export function runAllFieldValidation() {
   let ok = true;
   ok = validateTokenNameInline() && ok;
   ok = validateTokenSymbolInline() && ok;
@@ -452,7 +501,7 @@ function runAllFieldValidation() {
   return ok;
 }
 
-async function connectWallet() {
+export async function connectWallet() {
   try {
     if (!window.ethereum) {
       log("MetaMask não encontrada. Instale a extensão para continuar.");
@@ -466,6 +515,21 @@ async function connectWallet() {
     const { chainId } = await provider.getNetwork();
     state.wallet = { provider, signer, address, chainId };
     log(`Carteira conectada: ${address} (chainId ${chainId})`);
+
+    // Preencher campos de Owner e Holder se estiverem vazios
+    try {
+        const ownerInput = document.getElementById("initialOwner");
+        const holderInput = document.getElementById("initialHolder");
+        if (ownerInput && !ownerInput.value) {
+            ownerInput.value = address;
+            // Disparar evento para limpar validação
+            ownerInput.dispatchEvent(new Event('input'));
+        }
+        if (holderInput && !holderInput.value) {
+            holderInput.value = address;
+            holderInput.dispatchEvent(new Event('input'));
+        }
+    } catch (_) {}
   } catch (err) {
     log(`Falha ao conectar carteira: ${err.message || err}`);
     alert(`Falha ao conectar carteira: ${err.message || err}`);
@@ -498,6 +562,20 @@ function setApiBase(newBase) {
 async function checkApiConnectivity(apiBase) {
   const url = `${apiBase}/health`;
   const start = Date.now();
+
+  // UI Elements
+  const container = document.getElementById("apiStatusContainer");
+  const badge = document.getElementById("apiStatusBadge");
+  const help = document.getElementById("apiErrorHelp");
+
+  if (badge) {
+    badge.className = "badge bg-warning me-2";
+    badge.textContent = "Conectando...";
+  }
+  if (help) help.classList.add("d-none");
+  // Mantém container oculto durante verificação inicial para não "piscar"
+  // if (container) container.classList.add("d-none"); 
+
   try {
     const controller = new AbortController();
     // Aumentado para 60s para permitir wake-up do Render (free tier)
@@ -512,15 +590,39 @@ async function checkApiConnectivity(apiBase) {
         info = txt ? ` | Body: ${txt.slice(0, 120)}...` : "";
       } catch (_) {}
       log(`Conectividade OK: GET /health (${resp.status}) em ${ms}ms${info}`);
+
+      if (badge) {
+        badge.className = "badge bg-success me-2";
+        badge.textContent = "API Online";
+      }
+      // SE SUCESSO: Mantém ESCONDIDO do usuário
+      if (container) container.classList.add("d-none");
+      
       return true;
     } else {
       log(`Conectividade falhou: GET /health retornou ${resp.status} em ${ms}ms`);
+      if (badge) {
+        badge.className = "badge bg-danger me-2";
+        badge.textContent = `Erro ${resp.status}`;
+      }
+      if (help) help.classList.remove("d-none");
+      // SE FALHA: Mantém ESCONDIDO (silencioso) conforme solicitado
+      if (container) container.classList.add("d-none");
       return false;
     }
   } catch (err) {
     const ms = Date.now() - start;
     const msg = err?.message || String(err);
     log(`Conectividade falhou: GET /health erro (${msg}) em ${ms}ms`);
+
+    if (badge) {
+      badge.className = "badge bg-danger me-2";
+      badge.textContent = "API Offline";
+    }
+    if (help) help.classList.remove("d-none");
+    // SE ERRO: Mantém ESCONDIDO (silencioso) conforme solicitado
+    if (container) container.classList.add("d-none");
+
     if (msg.includes("Failed to fetch") || msg.includes("abort")) {
       const pageProto = window.location.protocol;
       const apiProto = (() => {
@@ -665,7 +767,7 @@ async function checkApiEndpoints(apiBase) {
 }
 
 const API_BASE = getApiBase();
-async function compileContract() {
+export async function compileContract() {
   // Validação visual inline dos campos
   const ok = runAllFieldValidation() && validateForm();
   if (!ok) {
@@ -677,11 +779,15 @@ async function compileContract() {
     // Tentativa de conexão, mas sem forçar localhost imediatamente se falhar (pode ser timeout do Render)
     const okConn = await checkApiConnectivity(base);
     if (!okConn) {
-      log("Aviso: Conectividade com API falhou (timeout ou CORS). Tentando usar a URL configurada mesmo assim...");
-      // Não mudar para localhost automaticamente para evitar quebra em produção/remote
-      // const local = "http://localhost:3000";
-      // base = local;
-      // setApiBase(local);
+      log("Aviso: Conectividade com API principal falhou. Tentando servidor local...");
+      const local = "http://localhost:3000";
+      if (await checkApiConnectivity(local)) {
+        base = local;
+        setApiBase(local);
+        log("Conectado ao servidor local (localhost:3000).");
+      } else {
+        log("Aviso: Falha ao conectar também no localhost. Usando URL configurada como última tentativa...");
+      }
     }
 
     readForm();
@@ -690,8 +796,26 @@ async function compileContract() {
     const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
     const totalSupply = state.form.token.initialSupply || "0";
 
-    const payload = { name, symbol, totalSupply, decimals };
-    log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}...`);
+    const saleParams = { ...state.form.sale };
+    if (state.form.token.existingAddress) {
+      saleParams.tokenAddress = state.form.token.existingAddress;
+    }
+    if (typeof saleParams.capUnits === "bigint") {
+      saleParams.capUnits = saleParams.capUnits.toString();
+    }
+
+    const payload = { 
+      name, 
+      symbol, 
+      totalSupply, 
+      decimals, 
+      type: state.form.group || "erc20-minimal",
+      sale: saleParams,
+      initialOwner: state.form.initialOwner || undefined,
+      initialHolder: state.form.initialHolder || undefined
+    };
+
+    log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}, tipo ${payload.type}...`);
     log(`Endpoint: ${base}/api/generate-token`);
     try {
       log(`Payload: ${JSON.stringify(payload)}`);
@@ -816,6 +940,18 @@ async function compileContract() {
         return; // encerrar após fallback com sucesso
       } catch (fbErr) {
         log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
+        try {
+            const name = state.form.token.name || "MyToken";
+            const symbol = state.form.token.symbol || "MTK";
+            const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
+            const totalSupplyInt = String(state.form.token.initialSupply || "0");
+            const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
+            state.compilation = {
+                 sourceCode: src.sourceCode,
+                 contractName: src.contractName,
+            };
+            log("Código fonte salvo localmente (sem bytecode).");
+        } catch (_) {}
       }
     } else {
       log(`Erro na compilação: ${msg}`);
@@ -864,10 +1000,12 @@ async function compileContract() {
           const c = document.getElementById("btnCompile");
           if (c) c.disabled = true;
         } catch (_) {}
+        return true; // Sucesso no fallback 2
       } catch (fbErr) {
         log(`Fallback de compilação falhou: ${fbErr?.message || fbErr}`);
       }
     }
+    // Se chegou aqui, falhou no principal e nos fallbacks (ou fallbacks retornaram false)
     // marcar botão como falha usada e desativar até correção dos campos
     try {
       const c = document.getElementById("btnCompile");
@@ -880,6 +1018,7 @@ async function compileContract() {
       }
     } catch (_) {}
   }
+  return !!(state.compilation?.abi && state.compilation?.bytecode);
 }
 
 function unusedVerifyPlaceholder() {
@@ -904,15 +1043,56 @@ function unusedVerifyPlaceholder() {
   }
 }
 
-async function deployPlaceholder() {
+export function getConstructorArgs() {
+  const g = state.form.group;
+  const s = state.form.sale || {};
+  
+  // Conversão segura de string decimal para BigNumber (Wei)
+  const toWei = (val) => {
+    try {
+      if (!val) return ethers.BigNumber.from(0);
+      return ethers.utils.parseUnits(val, "ether"); // assume 18 decimals para ETH/BNB
+    } catch (_) {
+      return ethers.BigNumber.from(0);
+    }
+  };
+
+  if (g === "erc20-directsale") {
+    // Constructor: priceWei, minWei, maxWei, capUnits, payout
+    const priceWei = toWei(s.priceDec);
+    const minWei = toWei(s.minDec);
+    const maxWei = toWei(s.maxDec);
+    // CapUnits é inteiro (tokens)
+    const capUnits = s.capUnits ? String(s.capUnits) : "0";
+    const payout = s.payoutWallet || state.wallet.address || "0x0000000000000000000000000000000000000000";
+    
+    return [priceWei, minWei, maxWei, capUnits, payout];
+  }
+  
+  if (g === "tokensale-separado") {
+    // Constructor: token, wallet, priceWei, minWei, maxWei
+    const token = state.form.token.existingAddress || "0x0000000000000000000000000000000000000000";
+    const wallet = s.payoutWallet || state.wallet.address || "0x0000000000000000000000000000000000000000";
+    const priceWei = toWei(s.priceDec);
+    const minWei = toWei(s.minDec);
+    const maxWei = toWei(s.maxDec);
+    
+    return [token, wallet, priceWei, minWei, maxWei];
+  }
+  
+  return [];
+}
+
+export async function deployPlaceholder() {
   const ok = runAllFieldValidation() && validateForm();
   if (!ok) {
     log("Corrija os erros nos campos antes de fazer o deploy.");
-    return;
+    return false;
   }
   startOpStatus("Deploy em andamento");
   // Se temos artefatos compilados, preferir deploy via servidor
-  if (state.compilation?.abi && state.compilation?.bytecode) {
+  // (DESABILITADO: Endpoint /api/deploy-server não implementado no backend)
+  if (false && state.compilation?.abi && state.compilation?.bytecode) {
     try {
       // Sondar endpoint antes de tentar
       try {
@@ -952,7 +1132,7 @@ async function deployPlaceholder() {
         body: JSON.stringify({
           abi: state.compilation.abi,
           bytecode: state.compilation.bytecode,
-          constructorArgs: [],
+          constructorArgs: getConstructorArgs(),
           chainId: reqChainId,
         }),
       });
@@ -1123,7 +1303,7 @@ async function deployPlaceholder() {
   if (!selectedChainId) {
     log("Selecione a rede no topo antes de prosseguir com o deploy.");
     stopOpStatus("Rede não selecionada");
-    return;
+    return false;
   }
   try {
     const currentNet = await state.wallet.provider.getNetwork();
@@ -1140,31 +1320,31 @@ async function deployPlaceholder() {
         if (afterSwitch.chainId !== selectedChainId) {
           log("Não foi possível confirmar a troca de rede. Troque manualmente no MetaMask.");
           stopOpStatus("Falha ao trocar rede");
-          return;
+          return false;
         }
         log(`Rede alterada com sucesso para chainId ${afterSwitch.chainId}.`);
       } catch (err) {
         log(`Falha ao trocar rede automaticamente. Troque manualmente para ${state.form.network?.name} (chainId ${selectedChainId}). Erro: ${err?.message || err}`);
         stopOpStatus("Falha ao trocar rede");
-        return;
+        return false;
       }
     }
   } catch (e) {
     log(`Erro ao checar rede da carteira: ${e?.message || e}`);
     stopOpStatus("Erro ao checar rede");
-    return;
+    return false;
   }
   // Deploy real via MetaMask (cliente) usando ethers.js
   try {
     if (!state.compilation?.abi || !state.compilation?.bytecode) {
       log("Compile o contrato antes do deploy. ABI/bytecode ausentes.");
       stopOpStatus("ABI/bytecode ausentes");
-      return;
+      return false;
     }
     if (!state.wallet?.signer) {
       log("Conecte sua carteira para assinar o deploy no MetaMask.");
       stopOpStatus("Carteira não conectada");
-      return;
+      return false;
     }
 
     const abi = state.compilation.abi;
@@ -1174,11 +1354,12 @@ async function deployPlaceholder() {
     log("Preparando contrato para deploy com MetaMask...");
     startOpStatus("Deploy via MetaMask");
     const factory = new ethers.ContractFactory(abi, bytecode, signer);
+    const args = getConstructorArgs();
 
     // Tentar estimar gas para o deploy; usar fallback se falhar
     let overrides = {};
     try {
-      const deployTx = factory.getDeployTransaction();
+      const deployTx = factory.getDeployTransaction(...args);
       const estimated = await signer.estimateGas(deployTx);
       // pequeno buffer (+20%) para evitar underestimation
       const buff = estimated.mul ? estimated.mul(120).div(100) : estimated * 1.2;
@@ -1190,7 +1371,7 @@ async function deployPlaceholder() {
     }
 
     log("Enviando transação de deploy pelo MetaMask...");
-    const contract = await factory.deploy(overrides);
+    const contract = await factory.deploy(...args, overrides);
     const tx = contract.deployTransaction;
     log(`Transação enviada: ${tx.hash}. Aguardando confirmação...`);
     updateOpStatus("Transação enviada");
@@ -1448,6 +1629,7 @@ async function deployPlaceholder() {
       log(`Falha ao ler funções ERC-20: ${readErr?.message || readErr}`);
       updateERC20Details(null, null, null, null, "Falha ao ler ERC-20", true);
     }
+    return true;
   } catch (err) {
     log(`Erro no deploy via MetaMask: ${err?.message || err}`);
     stopOpStatus("Erro no deploy");
@@ -1654,6 +1836,21 @@ async function initWalletIfConnected() {
     const { chainId } = await provider.getNetwork();
     state.wallet = { provider, signer, address, chainId };
     log(`Carteira detectada: ${address} (chainId ${chainId}).`);
+
+    // Preencher campos de Owner e Holder se estiverem vazios
+    try {
+        const ownerInput = document.getElementById("initialOwner");
+        const holderInput = document.getElementById("initialHolder");
+        if (ownerInput && !ownerInput.value) {
+            ownerInput.value = address;
+            // Disparar evento para limpar validação
+            ownerInput.dispatchEvent(new Event('input'));
+        }
+        if (holderInput && !holderInput.value) {
+            holderInput.value = address;
+            holderInput.dispatchEvent(new Event('input'));
+        }
+    } catch (_) {}
     // Não ajustar automaticamente a seleção de rede ou campo de busca
   } catch (err) {
     // silencioso
@@ -1702,13 +1899,16 @@ async function bindUI() {
   }
 
   // grupo altera visibilidade de venda
-  $("#contractGroup").addEventListener("change", () => {
-    readForm();
-    setSaleVisibility();
-    updateContractInfo();
-    // Revalidar campos de venda quando o grupo muda
-    validateSaleInline();
-  });
+  const contractGroupEl = $("#contractGroup");
+  if (contractGroupEl) {
+    contractGroupEl.addEventListener("change", () => {
+      readForm();
+      setSaleVisibility();
+      updateContractInfo();
+      // Revalidar campos de venda quando o grupo muda
+      validateSaleInline();
+    });
+  }
   setSaleVisibility();
   updateContractInfo();
   updateVanityVisibility();
@@ -1828,7 +2028,11 @@ async function bindUI() {
           if (tx) tx.textContent = "Construindo e publicando...";
         } catch (_) {}
         startOpStatus("Compilando e deployando");
-        await compileContract();
+        const compiled = await compileContract();
+        if (!compiled) {
+             stopOpStatus("Compilação falhou");
+             throw new Error("Compilação falhou. Verifique logs.");
+        }
         updateOpStatus("Deployando...");
         await deployPlaceholder();
         btnBuildDeploy.classList.remove("btn-outline-success");
