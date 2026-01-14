@@ -1,3 +1,12 @@
+/**
+ * ================================================================================
+ * TOKENCAFE - CONTRATO MANAGER (Unified)
+ * ================================================================================
+ * Controlador principal da página de construção de contratos.
+ * Substitui o antigo novo-contrato.js e integra com o builder.js core.
+ * ================================================================================
+ */
+
 import { 
   state, 
   compileContract, 
@@ -132,6 +141,71 @@ class TokenPageManager {
     if (btnCreate) {
         btnCreate.addEventListener("click", () => this.deploy());
     }
+
+    // Listen for Reset Button
+    const btnReset = document.getElementById("btnResetForm");
+    if (btnReset) {
+        btnReset.addEventListener("click", () => this.resetForm());
+    }
+  }
+
+  resetForm() {
+      // 1. Confirm with user
+      if (!confirm("Tem certeza que deseja limpar todos os campos e iniciar um novo contrato?")) {
+          return;
+      }
+
+      // 2. Clear all input fields
+      const inputs = document.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+          if (input.type === 'checkbox' || input.type === 'radio') {
+              input.checked = false;
+          } else {
+              input.value = '';
+          }
+          input.classList.remove('is-invalid');
+          input.classList.remove('is-valid');
+      });
+
+      // 3. Reset specific components or state if needed
+      // Reset Network
+      const networkSelect = document.querySelector('[data-component="network-search.html"]'); // This might be handled by internal logic, but clearing input triggers search reset usually
+      // Ideally we rely on the input clear. 
+      // If we need to clear state explicitly:
+      state.form = { 
+          network: null, 
+          token: {}, 
+          sale: {}, 
+          group: "erc20-minimal" 
+      };
+      
+      // Reset Select to Default Group
+      const groupSelect = document.getElementById("contractGroup");
+      if (groupSelect) {
+          groupSelect.value = "erc20-minimal";
+          groupSelect.dispatchEvent(new Event('change'));
+      }
+
+      // 4. Hide Success Sections
+      const sectionsToHide = [
+          "erc20-details",
+          "contract-search-container",
+          "share-section",
+          "files-section",
+          "deployStatusContainer"
+      ];
+      sectionsToHide.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.add("d-none");
+      });
+
+      // 5. Scroll to Top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // 6. Update Gas Estimate (will be cleared)
+      this.updateGasEstimate();
+      
+      console.log("Formulário resetado para novo contrato.");
   }
 
   updateUIForGroup() {
