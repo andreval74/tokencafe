@@ -130,16 +130,6 @@
     <script src="js/shared/scroll-to-top.js"></script>
 
     <!-- TokenCafe Unified Systems -->
-    <script type="module">
-      import { PageManager } from "./js/shared/page-manager.js";
-      import { SEOManager } from "./js/shared/seo-manager.js";
-
-      // Inicializa sistemas
-      window.createPageManager("landing");
-
-      // Inicializa SEO com dados estruturados
-      const seoManager = new SEOManager();
-      seoManager.init("landing");
-    </script>
+    <script type="module" src="js/modules/landing.js"></script>
   </body>
 </html>

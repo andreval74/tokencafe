@@ -843,6 +843,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("btnAddNetworkSmall")?.addEventListener("click", addNetworkToWallet);
   document.getElementById("btnAddToMetaMaskSmall")?.addEventListener("click", addTokenToMetaMask);
 
+  // Selecionar link gerado ao focar no campo
+  try {
+    const generatedInput = document.getElementById(ids.generatedLink);
+    if (generatedInput) {
+      generatedInput.addEventListener("focus", () => {
+        try {
+          generatedInput.select();
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
+
   // Atualizar link em tempo real
   document.getElementById(ids.tokenAddress)?.addEventListener("input", () => {
     const el = document.getElementById(ids.tokenAddress);

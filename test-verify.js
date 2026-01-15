@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 
 async function test() {
   const chainId = 97;
-  const address = "0x0742C04f14995b988A2A26b170eCe9f05633a5DD";
+  const address = "0xeD24FC36d5Ee211Ea25A80239Fb8C4Cfd80f12Ee";
   const apiBase = "http://localhost:3000";
 
   console.log(`Testing verification status for ${address} on chain ${chainId}...`);

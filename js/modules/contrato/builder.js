@@ -2101,8 +2101,8 @@ async function bindUI() {
         } catch (_) {}
       }
     });
-  if (btnAddMM)
-    btnAddMM.addEventListener("click", async () => {
+  // Handler unificado para adicionar token
+  const addTokenHandler = async () => {
       try {
         const address = state?.deployed?.address || "";
         const symbol = state?.erc20?.symbol || state?.form?.token?.symbol || "TKN";
@@ -2128,7 +2128,111 @@ async function bindUI() {
       } catch (e) {
         log(`Erro MetaMask: ${e?.message || e}`);
       }
-    });
+  };
+
+  if (btnAddMM) btnAddMM.addEventListener("click", addTokenHandler);
+  
+  // Fix: Adicionar listener para botão pequeno (mobile/card)
+  const btnAddMMSmall = document.getElementById("btnAddToMetaMaskSmall");
+  if (btnAddMMSmall) btnAddMMSmall.addEventListener("click", addTokenHandler);
+
+  // Fix: Adicionar listeners para botões de Rede (Add Network/Switch)
+  const switchNetworkHandler = async () => {
+    try {
+        const cid = state.form?.network?.chainId || state?.deployed?.chainId;
+        if (!cid) {
+            log("Rede não definida para troca.");
+            return;
+        }
+        if (window.ethereum) {
+            const targetHex = "0x" + Number(cid).toString(16);
+            await window.ethereum.request({ 
+                method: "wallet_switchEthereumChain", 
+                params: [{ chainId: targetHex }] 
+            });
+            log("Solicitação de troca de rede enviada.");
+        } else {
+            log("MetaMask não detectada.");
+        }
+    } catch (e) {
+        log(`Erro ao trocar rede: ${e.message || e}`);
+    }
+  };
+
+  const btnAddNet = document.getElementById("btnAddNetwork");
+  if (btnAddNet) btnAddNet.addEventListener("click", switchNetworkHandler);
+
+  const btnAddNetSmall = document.getElementById("btnAddNetworkSmall");
+  if (btnAddNetSmall) btnAddNetSmall.addEventListener("click", switchNetworkHandler);
+
+  // Compartilhamento (Copy, View, Social)
+  const getShareLink = () => {
+      const gl = document.getElementById("generatedLink");
+      if (gl && gl.value) return gl.value;
+      const addr = state?.deployed?.address;
+      const chain = state?.form?.network?.chainId || state?.wallet?.chainId;
+      if (addr && chain) {
+         const url = new URL(window.location.href);
+         url.searchParams.set("contract", addr);
+         url.searchParams.set("chain", chain);
+         return url.toString();
+      }
+      return window.location.href;
+  };
+
+  const copyBtn = document.getElementById("copyAddressBtn");
+  if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+          const link = getShareLink();
+          if (navigator.clipboard) {
+              navigator.clipboard.writeText(link).then(() => log("Link copiado!"));
+          } else {
+              const inp = document.getElementById("generatedLink");
+              if (inp) {
+                  inp.select();
+                  document.execCommand("copy");
+                  log("Link copiado!");
+              }
+          }
+      });
+  }
+
+  const viewBtn = document.getElementById("viewAddressBtn");
+  if (viewBtn) {
+      viewBtn.addEventListener("click", () => {
+          const link = getShareLink();
+          if (link) window.open(link, "_blank");
+      });
+  }
+
+  const waBtn = document.getElementById("btnShareWhatsAppSmall");
+  if (waBtn) {
+      waBtn.addEventListener("click", () => {
+          const link = getShareLink();
+          const text = encodeURIComponent(`Confira meu novo token criado no TokenCafe! 🚀\n\n${link}`);
+          window.open(`https://wa.me/?text=${text}`, "_blank");
+      });
+  }
+
+  const tgBtn = document.getElementById("btnShareTelegramSmall");
+  if (tgBtn) {
+      tgBtn.addEventListener("click", () => {
+          const link = getShareLink();
+          const text = encodeURIComponent("Confira meu novo token criado no TokenCafe! 🚀");
+          const url = encodeURIComponent(link);
+          window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank");
+      });
+  }
+
+  const mailBtn = document.getElementById("btnShareEmailSmall");
+  if (mailBtn) {
+      mailBtn.addEventListener("click", () => {
+          const link = getShareLink();
+          const subject = encodeURIComponent("Novo Token Criado");
+          const body = encodeURIComponent(`Olá,\n\nConfira meu novo token criado no TokenCafe:\n\n${link}`);
+          window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      });
+  }
 
   const btnShare = document.getElementById("btnShareDeploy");
   if (btnShare)
@@ -2977,21 +3081,32 @@ function forceVerificationSuccessUI(address, link, chainId) {
 
             // Popular dados
             const targetChainId = chainId || state.form?.network?.chainId;
-            if (targetChainId && address) {
-                // FORÇAR CACHE DE VERIFICAÇÃO PARA "VERIFICADO"
-                // Isso garante que o getVerificationStatus retorne sucesso imediatamente
-                // corrigindo o problema do badge "Não verificado" aparecer
+        if (targetChainId && address) {
                 try {
                     const cacheKey = `verif_status_v2_${targetChainId}_${address}`;
+                    let compilerVersion = "Solidity";
+                    let optimizationUsed = state.optimization ? "1" : "0";
+                    let runs = "200";
+                    try {
+                        const metaRaw = state.compilation?.metadata;
+                        const meta = typeof metaRaw === "string" ? JSON.parse(metaRaw) : metaRaw || {};
+                        if (meta?.compiler?.version) {
+                            compilerVersion = "v" + meta.compiler.version;
+                        }
+                        if (meta?.settings?.optimizer) {
+                            optimizationUsed = meta.settings.optimizer.enabled ? "1" : "0";
+                            if (meta.settings.optimizer.runs) runs = String(meta.settings.optimizer.runs);
+                        }
+                    } catch (_) {}
                     const mockStatus = {
                         success: true,
                         verified: true,
                         verifiedAt: new Date().toLocaleString(),
                         explorer: {
                             url: link || "",
-                            compilerVersion: state.compilerVersion || "Solidity",
-                            optimizationUsed: state.optimization ? "1" : "0",
-                            runs: "200" // Default
+                            compilerVersion,
+                            optimizationUsed,
+                            runs
                         }
                     };
                     sessionStorage.setItem(cacheKey, JSON.stringify(mockStatus));

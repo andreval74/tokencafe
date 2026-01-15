@@ -355,6 +355,7 @@ function setupCreateFlow() {
 function init() {
   setupInputs();
   validateBasicFields();
+  setupOwnerAction();
   initNetworkDetection();
   setupResultActions();
   setupCreateFlow();

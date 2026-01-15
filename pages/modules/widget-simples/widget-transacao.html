@@ -22,7 +22,7 @@
                   <label class="form-label">Endereço do contrato de venda</label>
                   <div class="input-group">
                     <input id="tw-contract-address" class="form-control" placeholder="0x..." />
-                    <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('tw-contract-address').value)" title="Copiar">
+                    <button class="btn btn-outline-secondary" type="button" id="tw-copy-contract-btn" title="Copiar">
                       <i class="bi bi-clipboard"></i>
                     </button>
                   </div>
@@ -32,7 +32,7 @@
                   <label class="form-label">Token ERC-20 a receber</label>
                   <div class="input-group">
                     <input id="tw-token-address" class="form-control" placeholder="0x... (opcional)" />
-                    <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('tw-token-address').value)" title="Copiar">
+                    <button class="btn btn-outline-secondary" type="button" id="tw-copy-token-btn" title="Copiar">
                       <i class="bi bi-clipboard"></i>
                     </button>
                   </div>

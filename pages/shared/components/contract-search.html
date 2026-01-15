@@ -11,8 +11,7 @@
       <div class="input-group">
         <input type="text" id="f_address" class="form-control" placeholder="Endereço 0x... do contrato/token"
           autocomplete="off" pattern="^0x[a-fA-F0-9]{40}$" />
-        <button class="btn btn-outline-secondary" type="button"
-          onclick="window.copyToClipboard?.(document.getElementById('f_address').value)" title="Copiar">
+        <button class="btn btn-outline-secondary" type="button" data-cs-copy-input title="Copiar">
           <i class="bi bi-clipboard"></i>
         </button>
         <button type="button" id="csInfoBtn" class="btn btn-outline-info" title="Ver detalhes do contrato">
@@ -42,7 +41,7 @@
             <a id="cs_viewAddress" href="#" target="_blank" rel="noopener"
               class="text-tokencafe text-decoration-none text-break"></a>
             <button class="btn btn-sm btn-link text-white p-0"
-              onclick="window.copyToClipboard?.(document.getElementById('cs_viewAddress').textContent)"
+              data-cs-copy-address
               title="Copiar endereço">
               <i class="bi bi-clipboard"></i>
             </button>
@@ -97,33 +96,66 @@
           </div>
         </div>
         <div class="col-6">
-          <div class="d-flex align-items-baseline gap-2">
-            <span>Compilador:</span>
-            <span id="cs_viewCompilerVersion" class="text-tokencafe">-</span>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="d-flex align-items-baseline gap-2">
-            <span>Otimização:</span>
-            <span id="cs_viewOptimization" class="text-tokencafe">-</span>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="d-flex align-items-baseline gap-2">
-            <span>Outras configs:</span>
-            <span id="cs_viewOtherSettings" class="text-tokencafe">-</span>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="d-flex align-items-baseline gap-2">
-            <span>Status na Carteira:</span>
-            <span id="cs_viewWalletStatus" class="text-tokencafe">-</span>
-          </div>
-        </div>
+      <div class="d-flex align-items-baseline gap-2">
+        <span>Compilador:</span>
+        <span id="cs_viewCompilerVersion" class="text-body fw-medium">-</span>
       </div>
-      
-      
+    </div>
+    <div class="col-6">
+      <div class="d-flex align-items-baseline gap-2">
+        <span>Otimização:</span>
+        <span id="cs_viewOptimization" class="text-body fw-medium">-</span>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="d-flex align-items-baseline gap-2">
+        <span>Outras configs:</span>
+        <span id="cs_viewOtherSettings" class="text-body fw-medium">-</span>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="d-flex align-items-baseline gap-2">
+        <span>Negociação (Pair):</span>
+        <span id="cs_viewPairAddress" class="text-body fw-medium">-</span>
+      </div>
     </div>
   </div>
+  
+  
 </div>
+</div>
+</div>
+<script>
+(function () {
+try {
+  // Configuração global da API base
+  if (!window.TOKENCAFE_API_BASE) {
+    var origin = window.location.origin || "";
+    // Se estiver rodando localmente (file:// ou localhost/127.0.0.1) mas porta diferente de 3000
+    // assume-se que o backend está na porta padrão 3000 (ambiente dev/híbrido)
+    if (origin.startsWith("file://") || ((origin.includes("localhost") || origin.includes("127.0.0.1")) && !origin.includes(":3000"))) {
+      window.TOKENCAFE_API_BASE = "http://localhost:3000";
+    } else if (origin && origin !== "null" && origin !== "file://") {
+      window.TOKENCAFE_API_BASE = origin;
+    } else {
+      // Fallback final
+      window.TOKENCAFE_API_BASE = "http://localhost:3000";
+    }
+    console.log("[ContractSearch] API Base configurada:", window.TOKENCAFE_API_BASE);
+  }
+} catch (e) {}
+})();
+</script>
+<style>
+/* Override para garantir visibilidade se o tema for escuro/claro conflitante */
+.text-tokencafe {
+  color: #fd7e14 !important; /* Orange fallback */
+}
+[data-bs-theme="dark"] .text-body {
+  color: #dee2e6 !important;
+}
+[data-bs-theme="light"] .text-body {
+  color: #212529 !important;
+}
+</style>
 <script type="module" src="/js/shared/contract-search.js"></script>

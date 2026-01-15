@@ -60,17 +60,4 @@ Uso: Inclua via data-component="navbar-standard"
   </div>
 </nav>
 
-<script>
-  // Atualizar status da carteira na navbar
-  document.addEventListener("DOMContentLoaded", function () {
-    // Vincular UI usando helper global
-    if (window.bindWalletStatusUI) {
-      window.bindWalletStatusUI({
-        addressEl: "#wallet-address",
-        connectBtnEl: "#connect-wallet-btn",
-        dashboardLinkEl: "#dashboard-link",
-        statusWrapperEl: "#wallet-status",
-      });
-    }
-  });
-</script>
+<script type="module" src="/js/shared/components/navbar-standard.js"></script>

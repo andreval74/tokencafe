@@ -97,9 +97,3 @@ Baseado no header.html do TokenCafe com tema TokenCafe
 </header>
 
 <script type="module" src="/js/shared/page-header.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const bind = window.bindWalletStatusUI || function (cfg) { try { window.walletConnector && window.walletConnector.bindStatusUI && window.walletConnector.bindStatusUI(cfg); } catch (_) {} };
-    bind({ addressEl: "#header-wallet-address", statusWrapperEl: "#header-wallet-status", connectBtnEl: "#connect-metamask-btn" });
-  });
-</script>

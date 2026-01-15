@@ -49,7 +49,7 @@
                 </label>
                 <div class="input-group">
                   <input type="text" class="form-control" id="saleAddress" placeholder="0x..." />
-                  <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('saleAddress').value)" title="Copiar">
+                  <button class="btn btn-outline-secondary" type="button" id="copySaleAddressBtn" title="Copiar">
                     <i class="bi bi-clipboard"></i>
                   </button>
                 </div>
@@ -89,7 +89,7 @@
               <!-- Dados do contrato (reorganizado) -->
               <div class="row g-3">
                 <div class="col-lg-4">
-                  <div class="card h-100 shadow-sm">
+                  <div class="card card-rounded h-100 shadow-sm">
                     <div class="card-header bg-light">
                       <strong>Contrato de Venda</strong>
                     </div>
@@ -97,8 +97,8 @@
                       <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>Token da venda</span>
                         <div>
-                           <span id="saleToken" class="text-monospace me-2">-</span>
-                           <button class="btn btn-sm btn-link text-secondary p-0" onclick="window.copyToClipboard?.(document.getElementById('saleToken').innerText)" title="Copiar"><i class="bi bi-clipboard"></i></button>
+                          <span id="saleToken" class="text-monospace me-2">-</span>
+                          <button class="btn btn-sm btn-link text-secondary p-0" id="copySaleTokenBtn" title="Copiar"><i class="bi bi-clipboard"></i></button>
                         </div>
                       </li>
                       <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -108,8 +108,8 @@
                       <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>Carteira de destino</span>
                         <div>
-                           <span id="destWallet" class="text-monospace me-2">-</span>
-                           <button class="btn btn-sm btn-link text-secondary p-0" onclick="window.copyToClipboard?.(document.getElementById('destWallet').innerText)" title="Copiar"><i class="bi bi-clipboard"></i></button>
+                          <span id="destWallet" class="text-monospace me-2">-</span>
+                          <button class="btn btn-sm btn-link text-secondary p-0" id="copyDestWalletBtn" title="Copiar"><i class="bi bi-clipboard"></i></button>
                         </div>
                       </li>
                       <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -124,7 +124,7 @@
                   </div>
                 </div>
                 <div class="col-lg-4">
-                  <div class="card h-100 shadow-sm">
+                  <div class="card card-rounded h-100 shadow-sm">
                     <div class="card-header bg-light">
                       <strong>Estoque e Compras</strong>
                     </div>
@@ -170,21 +170,6 @@
                   </div>
                 </div>
               </div>
-
-              <style>
-                .text-monospace {
-                  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-                }
-                .card {
-                  border-radius: 0.5rem;
-                }
-                .card-header {
-                  font-size: 0.95rem;
-                }
-                .list-group-item {
-                  font-size: 0.92rem;
-                }
-              </style>
 
               <!-- Exportar Widget -->
               <div class="mb-4">

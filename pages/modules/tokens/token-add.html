@@ -120,7 +120,7 @@
                         </label>
                         <div class="input-group">
                           <input type="text" class="form-control bg-dark text-white border-secondary" id="ownerAddress" placeholder="Será preenchido automaticamente" pattern="^0x[a-fA-F0-9]{40}$" title="Endereço Ethereum válido" required />
-                          <button class="btn btn-outline-secondary" type="button" onclick="window.copyToClipboard?.(document.getElementById('ownerAddress').value)" title="Copiar">
+                          <button class="btn btn-outline-secondary" type="button" id="copy-owner-address-btn" title="Copiar">
                             <i class="bi bi-clipboard"></i>
                           </button>
                         </div>
@@ -490,7 +490,7 @@
         </div>
         <div class="modal-body">
           <div id="preview-token-info" class="mb-3 text-info small"></div>
-          <pre id="preview-contract-code" class="code-display bg-black p-3 rounded small border border-secondary" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+          <pre id="preview-contract-code" class="code-display bg-black p-3 rounded small border border-secondary"></pre>
         </div>
         <div class="modal-footer">
           <div class="btn-row">

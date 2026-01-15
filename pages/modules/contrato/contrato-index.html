@@ -22,48 +22,6 @@
 
   <!-- TokenCafe CSS Unificado -->
   <link href="../../../css/styles.css" rel="stylesheet" />
-
-  <style>
-    /* Card Selection Styles */
-    .contract-card {
-      transition: all 0.2s ease;
-      border-width: 2px;
-    }
-    .contract-card:hover {
-      transform: translateY(-3px);
-      border-color: #666;
-    }
-    .contract-card.selected {
-      border-color: #ffc107 !important; /* Warning color */
-      background-color: #222 !important;
-      box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
-    }
-    .icon-circle {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .monospace-input {
-      font-family: 'Courier New', Courier, monospace;
-    }
-    /* Simple Animation */
-    .fade-in {
-      animation: fadeIn 0.5s;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    /* Section Separation */
-    .section-divider {
-        border-top: 1px dashed #444;
-        margin: 2rem 0;
-    }
-  </style>
 </head>
 
 <body class="bg-page-black">
@@ -80,7 +38,7 @@
                 <span class="badge bg-secondary me-2" id="apiStatusBadge">Verificando API...</span>
                 <small class="text-muted" id="apiBaseDisplay">Detectando...</small>
             </div>
-            <button class="btn btn-sm btn-outline-light" onclick="window.location.reload()">Recarregar</button>
+            <button id="btnReloadApiStatus" type="button" class="btn btn-sm btn-outline-light">Recarregar</button>
         </div>
         <div id="apiErrorHelp" class="d-none mt-2 alert alert-warning small">
             <strong>API Offline?</strong>
@@ -96,12 +54,12 @@
       <div class="col-12">
         
         <!-- Seleção da Rede -->
-        <div class="mb-4" id="network-section">
+        <div class="mb-3" id="network-section">
           <div data-component="shared/components/network-search.html"></div>
         </div>
 
         <!-- Seleção do Tipo de Token (Unique to Novo Contrato) -->
-        <div class="mb-4">
+        <div class="mb-3">
             <div data-component="shared/components/section-title.html" data-st-icon="bi-grid-fill"
                 data-st-title="1. Escolha o Modelo" data-st-subtitle="Selecione o tipo de contrato que deseja criar">
             </div>
@@ -303,7 +261,7 @@
                       <textarea class="form-control bg-black text-light border-secondary" rows="5" placeholder="Ex: Eu quero um token chamado CoffeeToken para recompensas de fidelidade. Preciso que seja possível queimar tokens usados e que eu possa pausar o sistema em caso de emergência."></textarea>
                     </div>
                     <div class="d-grid gap-2 col-md-6 mx-auto">
-                       <button class="btn btn-outline-warning" type="button" onclick="alert('Funcionalidade de IA em breve!')">
+                       <button id="btnIaSuggest" class="btn btn-outline-warning" type="button">
                          <i class="bi bi-stars me-2"></i> Gerar Sugestão com IA
                        </button>
                     </div>
@@ -349,11 +307,12 @@
           </div>
         </div>
 
-        <!-- Sessão de Venda (Separada, igual contrato-index.html) -->
-        <div id="saleParams" class="mb-4 d-none">
-          <div data-component="shared/components/section-title.html" data-st-icon="bi-cart"
-            data-st-title="Parâmetros de Venda" data-st-subtitle="Valores em moeda nativa com decimais"></div>
-          <div class="border rounded p-3 bg-dark-elevated">
+        <!-- Configurações da Venda (Visível apenas para Direct Sale) -->
+        <div class="d-none mb-3" id="sale-config-section">
+            <div data-component="shared/components/section-title.html" data-st-icon="bi-currency-dollar"
+                data-st-title="3. Configuração da Venda" data-st-subtitle="Defina o preço e limites da ICO">
+            </div>
+            <div class="border rounded p-3 bg-dark-elevated">
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label">Preço por 1 token</label>
@@ -380,7 +339,7 @@
         </div>
 
         <!-- Personalização de Endereço (Igual contrato-index.html) -->
-        <div class="mb-4" id="vanity-section">
+        <div class="mb-3" id="vanity-section">
           <div data-component="shared/components/section-title.html" data-st-icon="bi-magic"
             data-st-title="Personalização de Endereço"
             data-st-subtitle="Selecione a personalização do endereço do token (Opcional)"></div>
@@ -406,7 +365,7 @@
         </div>
 
         <!-- Definição de Papeis (Restored) -->
-        <div class="mb-4">
+        <div class="mb-3">
             <div data-component="shared/components/section-title.html" data-st-icon="bi-person-badge"
                 data-st-title="Permissões e Distribuição" data-st-subtitle="Defina quem controla o contrato e quem recebe os tokens iniciais">
             </div>
@@ -427,14 +386,14 @@
         </div>
 
         <!-- Ação de Deploy -->
-        <div class="mb-4" id="actions-section">
+        <div class="mb-3" id="actions-section">
           <div class="d-flex gap-2 justify-content-end align-items-center">
              <!-- Botão Principal -->
              <button id="btnCreateToken" class="btn btn-success btn-lg px-5">
                   <i class="bi bi-rocket-takeoff me-2"></i> CRIAR CONTRATO
              </button>
              <!-- Botão Limpar e Novo -->
-             <button id="btnResetForm" class="btn btn-outline-secondary btn-lg px-4" title="Limpar formulário e iniciar novo contrato">
+             <button id="btnResetForm" type="button" class="btn btn-outline-secondary btn-lg px-4" title="Limpar formulário e iniciar novo contrato">
                   <i class="bi bi-arrow-counterclockwise me-2"></i> NOVO
              </button>
           </div>
@@ -460,7 +419,7 @@
                 <a id="erc20AddressLink" href="#" target="_blank" class="text-warning text-decoration-none text-break font-monospace fs-6 me-2">
                   -
                 </a>
-                <button class="btn btn-sm btn-link text-secondary p-0" type="button" onclick="window.copyToClipboard?.(document.getElementById('erc20AddressLink').textContent.trim())" title="Copiar Endereço">
+                <button id="btnCopyContractAddress" class="btn btn-sm btn-link text-secondary p-0" type="button" title="Copiar Endereço">
                   <i class="bi bi-clipboard"></i>
                 </button>
               </div>
@@ -472,7 +431,7 @@
                 <a id="erc20TxLink" href="#" target="_blank" class="text-warning text-decoration-none text-break font-monospace fs-6 me-2">
                   -
                 </a>
-                <button class="btn btn-sm btn-link text-secondary p-0" type="button" onclick="window.copyToClipboard?.(document.getElementById('erc20TxLink').textContent.trim())" title="Copiar Hash">
+                <button id="btnCopyContractTx" class="btn btn-sm btn-link text-secondary p-0" type="button" title="Copiar Hash">
                   <i class="bi bi-clipboard"></i>
                 </button>
               </div>
@@ -491,12 +450,12 @@
         </div>
 
         <!-- Busca pelo Contrato (Substitui Detalhes) -->
-        <div id="contract-search-container" class="mb-4 d-none">
+        <div id="contract-search-container" class="mb-3 d-none">
            <div data-component="shared/components/contract-search.html"></div>
         </div>
 
         <!-- Compartilhamento Section -->
-        <div id="share-section" class="mb-4 d-none">
+        <div id="share-section" class="mb-3 d-none">
           <div data-component="shared/components/section-title.html" data-st-icon="bi bi-link-45deg me-2"
             data-st-title="Compartilhamento" data-st-subtitle="Seu link está pronto para ser compartilhado"></div>
 
@@ -507,7 +466,7 @@
                   <i class="bi bi-globe"></i>
                 </span>
                 <input type="text" id="generatedLink" class="form-control bg-dark text-light border-secondary" readonly
-                  placeholder="https://..." onclick="this.select()">
+                  placeholder="https://...">
 
                 <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
                   <i class="bi bi-clipboard"></i>

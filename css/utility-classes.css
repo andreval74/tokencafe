@@ -116,6 +116,64 @@
   resize: vertical;
 }
 
+/* Página simples (como Mini Chainlist) */
+.simple-page-body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  background: #f9f9f9;
+}
+
+.simple-page-title {
+  color: #333;
+}
+
+.simple-input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.simple-button {
+  cursor: pointer;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.simple-network {
+  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.simple-message {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.simple-message.success {
+  color: green;
+}
+
+.simple-message.error {
+  color: crimson;
+}
+
+.simple-form-group {
+  margin-bottom: 10px;
+}
+
 /* ============================================================================
  * POSITION UTILITIES
  * ============================================================================ */

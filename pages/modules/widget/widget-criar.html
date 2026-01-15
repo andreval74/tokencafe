@@ -16,48 +16,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="../../../css/styles.css" rel="stylesheet" />
 
-    <!-- Custom CSS para o widget -->
-    <style>
-      .widget-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        padding: 2rem;
-        color: white;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
-      .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-      }
-      .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 25px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-      }
-      .btn-primary:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-      }
-      .alert-sm {
-        padding: 0.5rem 1rem;
-        margin-top: 0.5rem;
-      }
-      .card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      }
-      .preview-widget {
-        background: white;
-        border-radius: 10px;
-        padding: 1.5rem;
-        color: #333;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      }
-    </style>
   </head>
   <body class="bg-page-black">
     <!-- Header -->
@@ -245,74 +203,10 @@
     <!-- <script src="../../../js/modules/widget/widget-simple.js"></script> -->
 
     <!-- Inicialização da página (módulo) -->
-    <script type="module">
-      import PageManager from "../../../js/shared/page-manager.js";
-      import { walletConnector } from "../../../js/shared/wallet-connector.js";
-      import { NetworkManager } from "../../../js/shared/network-manager.js";
-      import { WidgetSimple } from "../../../js/modules/widget/widget-simple.js";
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        try {
-          // Evita múltiplas instâncias: reutiliza se já existir
-          let widgetSimple = window.widgetSimple;
-          if (!(widgetSimple instanceof WidgetSimple)) {
-            widgetSimple = new WidgetSimple();
-          }
-          window.widgetSimple = widgetSimple; // Disponibiliza globalmente se necessário
-          await widgetSimple.init();
-        } catch (e) {
-          console.error("Falha ao instanciar/iniciar WidgetSimple:", e);
-        }
-
-        const pm = new PageManager("link");
-        try {
-          await pm.init();
-        } catch (e) {
-          console.warn("Falha ao iniciar PageManager:", e?.message || e);
-        }
-
-        // Override inicial com dados fornecidos (para validação controlada)
-        window.__overrideChainId = 97;
-        window.__overrideSaleContract = "0x2701B4ef482BE4DD8A653B7C97090713A9a0AFE6";
-        window.__overrideReceiverWallet = "0xEe02E32d8d2888E9f1D6d13391E716Bc7F41f6Ae";
-        window.__overrideTokenContract = "0x2cf724171a998C3d470048AC2F1b187a48A5cafE";
-
-        // Preencher UI com overrides
-        try {
-          const sel = document.getElementById("blockchain");
-          if (sel) sel.value = String(window.__overrideChainId);
-          const saleEl = document.getElementById("saleContract");
-          if (saleEl) saleEl.value = window.__overrideSaleContract;
-          const nm = new NetworkManager();
-          const net = nm.getNetworkById(window.__overrideChainId);
-          const symSpan = document.getElementById("currencySymbol");
-          if (symSpan && net?.nativeCurrency?.symbol) symSpan.textContent = net.nativeCurrency.symbol;
-          window.__selectedNetwork = net || null;
-        } catch (_) {}
-
-        // Integrar eventos do componente de busca de rede
-        document.addEventListener("network:selected", (ev) => {
-          const net = ev?.detail?.network;
-          if (!net) return;
-          const sel = document.getElementById("blockchain");
-          if (sel) sel.value = String(net.chainId);
-          const symSpan = document.getElementById("currencySymbol");
-          if (symSpan && net?.nativeCurrency?.symbol) symSpan.textContent = net.nativeCurrency.symbol;
-          window.__selectedNetwork = net;
-        });
-        document.addEventListener("network:clear", () => {
-          const sel = document.getElementById("blockchain");
-          if (sel) sel.value = "";
-          window.__selectedNetwork = null;
-        });
-
-        // Já inicializado acima; não chamar init novamente para evitar duplicações
-      });
-    </script>
+    <script type="module" src="../../../js/modules/widget/widget_criar.js"></script>
     <div class="container-fluid">
       <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
         data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Widget Creator padronizado"></div>
     </div>
   </body>
 </html>
-

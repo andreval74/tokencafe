@@ -83,8 +83,8 @@ export async function getVerificationStatus(chainId, address) {
         return js;
     } catch (e) {
         try {
-            const shouldLog = !!window.DEBUG_VERIFY || window.localStorage?.getItem("debug_verify") === "1";
-            if (shouldLog) console.error("[verify-utils] getVerificationStatus error:", e);
+            // Log error by default to help debugging frontend integration issues
+            console.error("[verify-utils] getVerificationStatus error:", e, "URL:", url);
         } catch (_) {}
         // Return object with error property so caller handles it
         return { success: false, error: true, message: e.message || String(e) };

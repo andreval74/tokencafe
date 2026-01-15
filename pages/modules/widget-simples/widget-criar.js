@@ -787,6 +787,9 @@
     const readBtn = $("#readBtn");
     const certifyBtn = $("#certifyBtn");
     const buyBtn = $("#buyBtn");
+    const copySaleAddressBtn = $("#copySaleAddressBtn");
+    const copySaleTokenBtn = $("#copySaleTokenBtn");
+    const copyDestWalletBtn = $("#copyDestWalletBtn");
 
     connectBtn?.addEventListener("click", () => {
       log({ event: "click", target: "connectBtn" });
@@ -831,6 +834,39 @@
       log({ event: "click", target: "buyBtn" });
       buyWithBNB();
     });
+
+    if (copySaleAddressBtn) {
+      copySaleAddressBtn.addEventListener("click", () => {
+        try {
+          const val = $("#saleAddress")?.value || "";
+          if (val && window.copyToClipboard) {
+            window.copyToClipboard(val);
+          }
+        } catch (_) {}
+      });
+    }
+    if (copySaleTokenBtn) {
+      copySaleTokenBtn.addEventListener("click", () => {
+        try {
+          const el = $("#saleToken");
+          const val = el?.innerText || el?.textContent || "";
+          if (val && window.copyToClipboard) {
+            window.copyToClipboard(val);
+          }
+        } catch (_) {}
+      });
+    }
+    if (copyDestWalletBtn) {
+      copyDestWalletBtn.addEventListener("click", () => {
+        try {
+          const el = $("#destWallet");
+          const val = el?.innerText || el?.textContent || "";
+          if (val && window.copyToClipboard) {
+            window.copyToClipboard(val);
+          }
+        } catch (_) {}
+      });
+    }
 
     // Bind evento para Limpar Dados - REMOVIDO: Usar global btnClearAll
 

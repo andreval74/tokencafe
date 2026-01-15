@@ -19,7 +19,13 @@ function toChecksumAddress(address) {
 
   const ethers = require("ethers");
   try {
-    return ethers.utils.getAddress(address.toLowerCase());
+    // Suporte para Ethers v6 (ethers.getAddress) e v5 (ethers.utils.getAddress)
+    if (ethers.getAddress) {
+        return ethers.getAddress(address.toLowerCase());
+    } else if (ethers.utils && ethers.utils.getAddress) {
+        return ethers.utils.getAddress(address.toLowerCase());
+    }
+    return address;
   } catch (error) {
     console.warn("⚠️ Endereço inválido para checksum:", address);
     return address;
@@ -320,8 +326,11 @@ app.post("/api/generate-token", async (req, res) => {
 
 function getExplorerApiUrl(chainId) {
   const cid = parseInt(chainId || 0, 10) || 0;
-  // Unified Etherscan V2 Endpoint for all supported chains
+  
+  // Unified Etherscan V2 Endpoint for all supported EVM chains (ETH, BSC, Polygon, Base, etc.)
   // Documentation: https://docs.etherscan.io/v2-migration
+  // NOTE: BscScan/PolygonScan V2 endpoints might differ or require specific handling, 
+  // but testing shows api.etherscan.io/v2 works for BSC Testnet (Chain 97) with BscScan keys.
   const base = "https://api.etherscan.io/v2/api";
   return `${base}?chainid=${cid}`;
 }
@@ -522,18 +531,43 @@ app.get("/api/explorer-getsourcecode", async (req, res) => {
     qs.append("address", address);
     if (apiKey) qs.append("apikey", apiKey);
     const url = `${base}&${qs.toString()}`;
-    let resp = await fetch(url, { method: "GET" });
-    let js = await resp.json();
-    const status = String(js?.status || "0");
+    
+    let js = null;
+    let status = "0";
+    const headers = { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "application/json"
+    };
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout for V2
+        let resp = await fetch(url, { method: "GET", headers, signal: controller.signal });
+        clearTimeout(timeout);
+        if (resp.ok) {
+            js = await resp.json();
+            status = String(js?.status || "0");
+        }
+    } catch (e) {
+        console.warn(`[Explorer V2] Falha na requisição V2 (${url}):`, e.message);
+    }
+
     const resultArr = Array.isArray(js?.result) ? js.result : [];
     const first = resultArr[0] || {};
     const src = String(first?.SourceCode || "");
     const verified = !!src && src.length > 0;
-    if (!resp.ok || status !== "1") {
+    
+    if (!js || status !== "1") {
       try {
         const legacy = getLegacyExplorerApiUrl(chainId);
         const url2 = `${legacy}?${qs.toString()}`;
-        const r2 = await fetch(url2, { method: "GET" });
+        console.log(`[Explorer] Fallback para Legacy: ${url2}`);
+        
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout for Legacy
+        const r2 = await fetch(url2, { method: "GET", headers, signal: controller.signal });
+        clearTimeout(timeout);
+        
         const j2 = await r2.json();
         const st2 = String(j2?.status || "0");
         const arr2 = Array.isArray(j2?.result) ? j2.result : [];
@@ -556,7 +590,9 @@ app.get("/api/explorer-getsourcecode", async (req, res) => {
                 proxy: f2?.Proxy || ""
             } 
         });
-      } catch (_) {}
+      } catch (e2) {
+         console.warn(`[Explorer Legacy] Falha no fallback:`, e2.message);
+      }
     }
     return res.json({ 
         success: true, 
@@ -601,20 +637,34 @@ app.post("/api/explorer-getsourcecode", async (req, res) => {
         if (apiKey) qs.append("apikey", apiKey);
         const url = `${base}&${qs.toString()}`;
         
-        let resp = await fetch(url, { method: "GET" });
-        let js = await resp.json();
-        const status = String(js?.status || "0");
-        const resultArr = Array.isArray(js?.result) ? js.result : [];
-        const first = resultArr[0] || {};
-        const src = String(first?.SourceCode || "");
-        const verified = !!src && src.length > 0;
-        
-        if (!resp.ok || status !== "1") {
-             // Fallback logic copy
-             try {
-                const legacy = getLegacyExplorerApiUrl(chainId);
-                const url2 = `${legacy}?${qs.toString()}`;
-                const r2 = await fetch(url2, { method: "GET" });
+        let js = null;
+         let status = "0";
+         const headers = { 
+             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+             "Accept": "application/json"
+         };
+
+         try {
+             let resp = await fetch(url, { method: "GET", headers });
+             if (resp.ok) {
+                 js = await resp.json();
+                 status = String(js?.status || "0");
+             }
+         } catch (e) {
+             console.warn(`[Explorer V2 POST] Falha na requisição V2 (${url}):`, e.message);
+         }
+ 
+         const resultArr = Array.isArray(js?.result) ? js.result : [];
+         const first = resultArr[0] || {};
+         const src = String(first?.SourceCode || "");
+         const verified = !!src && src.length > 0;
+         
+         if (!js || status !== "1") {
+              // Fallback logic copy
+              try {
+                 const legacy = getLegacyExplorerApiUrl(chainId);
+                 const url2 = `${legacy}?${qs.toString()}`;
+                 const r2 = await fetch(url2, { method: "GET", headers });
                 const j2 = await r2.json();
                 const st2 = String(j2?.status || "0");
                 const arr2 = Array.isArray(j2?.result) ? j2.result : [];
@@ -644,24 +694,36 @@ app.post("/api/verify-bscscan-status", async (req, res) => {
     qs.append("action", "checkverifystatus");
     qs.append("guid", guid);
     const url = `${base}&${qs.toString()}`;
-    let resp = await fetch(url, { method: "GET" });
-    let text = await resp.text();
-    let js;
-    try {
-      js = JSON.parse(text);
-    } catch (e) {
-      js = null;
-    }
+    
+    let js = null;
+     let respOk = false;
+     const headers = { 
+         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+         "Accept": "application/json"
+     };
+     
+     try {
+         let resp = await fetch(url, { method: "GET", headers });
+         respOk = resp.ok;
+         let text = await resp.text();
+         try {
+             js = JSON.parse(text);
+         } catch (e) {
+             js = null;
+         }
+     } catch (e) {
+         console.warn(`[Verify Status V2] Falha na requisição V2 (${url}):`, e.message);
+     }
 
-    let ok = String(js?.status || "") === "1";
+     let ok = String(js?.status || "") === "1";
 
-    // Only fallback if V2 failed to return valid JSON (network error or severe API failure)
-    // Status "0" is a valid response (Pending or Fail), so we should NOT fallback in that case.
-    if (!resp.ok || !js) {
-      try {
-        const legacy = getLegacyExplorerApiUrl(chainId);
-        const url2 = `${legacy}?${qs.toString()}`;
-        const r2 = await fetch(url2, { method: "GET" });
+     // Only fallback if V2 failed to return valid JSON (network error or severe API failure)
+     // Status "0" is a valid response (Pending or Fail), so we should NOT fallback in that case.
+     if (!respOk || !js) {
+       try {
+         const legacy = getLegacyExplorerApiUrl(chainId);
+         const url2 = `${legacy}?${qs.toString()}`;
+         const r2 = await fetch(url2, { method: "GET", headers });
         const t2 = await r2.text();
         let j2;
         try {

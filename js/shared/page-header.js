@@ -3,6 +3,21 @@
   const btn = document.getElementById("connect-metamask-btn");
   if (!btn) return;
 
+  try {
+    const bind =
+      window.bindWalletStatusUI ||
+      function (cfg) {
+        try {
+          window.walletConnector?.bindStatusUI?.(cfg);
+        } catch (_) {}
+      };
+    bind({
+      addressEl: "#header-wallet-address",
+      statusWrapperEl: "#header-wallet-status",
+      connectBtnEl: "#connect-metamask-btn",
+    });
+  } catch (_) {}
+
   const isWalletUiDisabled = () => {
     try {
       const url = new URL(window.location.href);

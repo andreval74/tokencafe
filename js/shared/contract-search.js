@@ -1,6 +1,8 @@
 import { networkManager } from "./network-manager.js";
 import { getApiBase, getVerificationStatus } from "./verify-utils.js";
 import { getFallbackExplorer, getFallbackRpc } from "./network-fallback.js";
+import { findLiquidityPair } from "./dex-utils.js";
+
 let isSearching = false;
 function log() {
   try {
@@ -131,6 +133,34 @@ function initContainer(container) {
       } catch {}
     }
   }
+
+  // Botões de copiar (input e endereço exibido)
+  try {
+    const copyInputBtn = container.querySelector("[data-cs-copy-input]");
+    if (copyInputBtn) {
+      copyInputBtn.addEventListener("click", () => {
+        try {
+          const input = container.querySelector("#f_address") || document.getElementById("f_address");
+          const val = input?.value || "";
+          if (val && window.copyToClipboard) {
+            window.copyToClipboard(val);
+          }
+        } catch (_) {}
+      });
+    }
+    const copyAddressBtn = container.querySelector("[data-cs-copy-address]");
+    if (copyAddressBtn) {
+      copyAddressBtn.addEventListener("click", () => {
+        try {
+          const addrEl = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
+          const val = addrEl?.textContent || "";
+          if (val && window.copyToClipboard) {
+            window.copyToClipboard(val);
+          }
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
 
   async function refreshWalletStatus() {
     try {
@@ -544,11 +574,60 @@ function initContainer(container) {
     }
   }
 
+  async function updateTradingPair(container, chainId, address) {
+    try {
+      const vPair = container.querySelector("#cs_viewPairAddress") || document.getElementById("cs_viewPairAddress");
+      const rpc = getPrimaryRpc(chainId);
+      const pairInfo = await findLiquidityPair(chainId, address, rpc);
+      try { log("pair-info", pairInfo); } catch {}
+
+      if (vPair) {
+        if (pairInfo) {
+          const dexName = pairInfo.dexName || "DEX";
+          const shortAddr = pairInfo.pairAddress.slice(0, 6) + "..." + pairInfo.pairAddress.slice(-4);
+          const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+          const base = net?.explorers?.[0]?.url || getFallbackExplorer(chainId) || "";
+          const href = base ? `${String(base).replace(/\/$/, "")}/address/${pairInfo.pairAddress}` : "#";
+          
+          vPair.innerHTML = `
+              <span class="text-body fw-medium" title="Endereço do Par: ${pairInfo.pairAddress}">
+                  <i class="bi bi-arrow-left-right me-1"></i>${dexName}
+              </span>
+              <a href="${href}" target="_blank" class="ms-2 badge bg-light text-dark border text-decoration-none" title="Ver no Explorer">
+                  ${shortAddr} <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.8em"></i>
+              </a>
+          `;
+          try {
+              // Se estiver num container oculto (ex: d-none no label), mostrar
+              if (vPair.closest(".d-none")) vPair.closest(".d-none").classList.remove("d-none");
+          } catch(_){}
+        } else {
+          vPair.textContent = "Nenhum par encontrado";
+        }
+      } else {
+        // Fallback: Injetar em "Outras configs" se encontrado
+        const vOth = container.querySelector("#cs_viewOtherSettings") || document.getElementById("cs_viewOtherSettings");
+        if (vOth && pairInfo) {
+             const dexName = pairInfo.dexName || "DEX";
+             const content = `<div class="mt-1 border-top pt-1"><small class="text-muted">Negociação:</small> <span class="text-body fw-medium">${dexName}</span></div>`;
+             if (vOth.innerHTML === "-" || vOth.textContent.trim() === "-") {
+                 vOth.innerHTML = content;
+             } else {
+                 vOth.innerHTML += content;
+             }
+        }
+      }
+    } catch (e) {
+      try { log("pair-error", e); } catch {}
+    }
+  }
+
   async function updateVerificationBadge(container, chainId, address) {
     const vStatus = container.querySelector("#cs_viewStatus") || document.querySelector("#cs_viewStatus");
 
     try {
       const js = await getVerificationStatus(chainId, address);
+      try { log("verify-result", js); } catch {}
       
       // Update compiler version if available
       const vCv = container.querySelector("#cs_viewCompilerVersion") || document.querySelector("#cs_viewCompilerVersion");
@@ -558,6 +637,7 @@ function initContainer(container) {
       if (vCv) {
         const cv = js?.compilerVersion || js?.explorer?.compilerVersion || "-";
         vCv.textContent = cv;
+        vCv.className = "text-body fw-medium";
       }
       
       // Update Optimization & Other Settings
@@ -569,14 +649,12 @@ function initContainer(container) {
               // Se tiver runs, mostra junto
               const runs = js?.explorer?.runs ? ` (Runs: ${js.explorer.runs})` : "";
               vOpt.textContent = "Sim" + runs;
-              vOpt.className = "text-tokencafe";
           } else if (opt === "0" || opt === 0 || opt === false || opt === "false") {
               vOpt.textContent = "Não";
-              vOpt.className = "text-secondary";
           } else {
               vOpt.textContent = "-";
-              vOpt.className = "text-tokencafe";
           }
+          vOpt.className = "text-body fw-medium";
       }
 
       if (vOth) {
@@ -591,6 +669,7 @@ function initContainer(container) {
           if (proxy) parts.push(proxy);
           
           vOth.textContent = parts.length > 0 ? parts.join(", ") : "-";
+          vOth.className = "text-body fw-medium";
       }
 
       // Helper to update main status field
@@ -627,10 +706,10 @@ function initContainer(container) {
           else warningDiv.classList.add("d-none");
       }
 
-      if (js?.error) {
-        updateMainStatus('error');
-      } else if (js?.verified) {
+      if (js?.verified) {
         updateMainStatus('verified');
+      } else if (js?.error) {
+        updateMainStatus('error');
       } else {
         updateMainStatus('not_verified');
       }
@@ -857,7 +936,6 @@ function initContainer(container) {
     try {
       sessionStorage.setItem("tokencafe_last_chain", String(chainIdRaw));
     } catch (_) {}
-    // Completar saldos antes de emitir, para uma única emissão consolidada
     const extra = {
       isContract: isC,
       tokenSymbol: (sn && sn.symbol ? sn.symbol : null) || symbolFallback || null,
@@ -868,6 +946,20 @@ function initContainer(container) {
       contractNativeBalance: info && info.nativeBalance ? info.nativeBalance : null,
     };
     try {
+      if ((!extra.tokenName || !extra.tokenSymbol || extra.tokenDecimals == null) && typeof csReadErc20Meta === "function") {
+        const meta = await csReadErc20Meta(chainIdRaw, addrRaw);
+        if (meta) {
+          if (!extra.tokenName && meta.name) extra.tokenName = meta.name;
+          if (!extra.tokenSymbol && meta.symbol) extra.tokenSymbol = meta.symbol;
+          if (extra.tokenDecimals == null && typeof meta.decimals === "number") extra.tokenDecimals = meta.decimals;
+          if (!extra.tokenSupply && meta.totalSupply != null) extra.tokenSupply = csFormatTokenAmount(meta.totalSupply, meta.decimals || 0);
+        }
+      }
+    } catch (_) {}
+    try {
+      if (!extra.isContract && (extra.tokenSymbol || extra.tokenDecimals != null)) {
+        extra.isContract = true;
+      }
       const isToken = !!(extra.isContract && (extra.tokenSymbol || extra.tokenDecimals != null));
       extra.assetType = !extra.isContract ? "wallet" : isToken ? "token" : "contract";
     } catch (_) {}
@@ -1009,6 +1101,11 @@ function initContainer(container) {
       }
       const card = container.querySelector("#selected-contract-info") || document.querySelector("#selected-contract-info");
       if (card) card.classList.remove("d-none");
+      try {
+        updateTradingPair(container, chainIdRaw, addrRaw);
+      } catch (e) {
+        try { log("pair-error", e); } catch {}
+      }
       try {
         updateVerificationBadge(container, chainIdRaw, addrRaw);
       } catch (e) {
@@ -1291,7 +1388,10 @@ function initContainer(container) {
       if (vSup) vSup.textContent = info.totalSupply ? formatDecimalValue(info.totalSupply) : "-";
 
       // Also trigger verification badge update
-      await updateVerificationBadge(container, chainId, address);
+      await Promise.all([
+        updateVerificationBadge(container, chainId, address),
+        updateTradingPair(container, chainId, address)
+      ]);
 
     } catch (err) {
       log("updateContractDetailsView error", err);
@@ -1538,11 +1638,17 @@ async function updateContractDetailsView(container, chainId, address) {
   const vSup = container.querySelector("#cs_viewSupply") || document.getElementById("cs_viewSupply");
   const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
   const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
+  const vTokBal = container.querySelector("#cs_viewTokenBalance") || document.getElementById("cs_viewTokenBalance");
+  const vNatBal = container.querySelector("#cs_viewNativeBalance") || document.getElementById("cs_viewNativeBalance");
+  const vPair = container.querySelector("#cs_viewPairAddress") || document.getElementById("cs_viewPairAddress");
 
   if (vName) vName.textContent = "...";
   if (vSym) vSym.textContent = "...";
   if (vDec) vDec.textContent = "...";
   if (vSup) vSup.textContent = "...";
+  if (vTokBal) vTokBal.textContent = "";
+  if (vNatBal) vNatBal.textContent = "";
+  if (vPair) vPair.textContent = "-";
 
   try {
     const meta = await csReadErc20Meta(chainId, address);
@@ -1564,7 +1670,35 @@ async function updateContractDetailsView(container, chainId, address) {
     if (vDec) vDec.textContent = meta.decimals != null ? String(meta.decimals) : "-";
     if (vSup) vSup.textContent = meta.totalSupply != null ? csFormatTokenAmount(meta.totalSupply, meta.decimals || 0) : "-";
 
+    try {
+      const rpc = getPrimaryRpc(chainId);
+      const bodies = [
+        { jsonrpc: "2.0", id: 7, method: "eth_call", params: [{ to: String(address), data: "0x70a08231" + String(address).toLowerCase().replace(/^0x/, "").padStart(64, "0") }, "latest"] },
+        { jsonrpc: "2.0", id: 8, method: "eth_getBalance", params: [String(address), "latest"] },
+      ];
+      const js = await fetchJsonWithTimeout(rpc, bodies, MAX_TIMEOUT_MS);
+      if (Array.isArray(js) && js.length) {
+        const r7 = js.find((x) => x && x.id === 7);
+        const r8 = js.find((x) => x && x.id === 8);
+        const balHex = r7 && r7.result ? String(r7.result) : null;
+        const nativeHex = r8 && r8.result ? String(r8.result) : null;
+        const dec = meta.decimals != null ? meta.decimals : 18;
+        const tokVal = formatUnits(balHex, dec);
+        const natVal = formatUnits(nativeHex, 18);
+        if (vTokBal) vTokBal.textContent = formatDecimalValue(tokVal);
+        if (vNatBal) vNatBal.textContent = formatDecimalValue(natVal);
+      }
+    } catch (e) {
+      log("updateContractDetailsView balances error", e);
+      if (vTokBal && !vTokBal.textContent) vTokBal.textContent = "0";
+      if (vNatBal && !vNatBal.textContent) vNatBal.textContent = "0";
+    }
+
     await updateVerificationBadge(container, chainId, address);
+    await updateTradingPair(container, chainId, address);
+    if (vPair && (!vPair.textContent || vPair.textContent.trim() === "-")) {
+      vPair.textContent = "Nenhum par encontrado";
+    }
   } catch (e) {
     log("updateContractDetailsView error", e);
   }

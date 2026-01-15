@@ -253,6 +253,72 @@ div[style*="gradient"] {
   color: var(--bs-body-color) !important;
 }
 
+.widget-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  padding: 2rem;
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.widget-card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.widget-preview {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  color: #333333;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-widget-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 25px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+}
+
+.btn-widget-primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+.alert-sm {
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.contract-card {
+  transition: all 0.2s ease;
+  border-width: 2px;
+}
+
+.contract-card:hover {
+  transform: translateY(-3px);
+  border-color: #666;
+}
+
+.contract-card.selected {
+  border-color: #ffc107 !important;
+  background-color: #222 !important;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
+}
+
+.icon-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Painel lateral fixo para logs em páginas de módulos */
 .sticky-panel {
   position: sticky;
@@ -1561,6 +1627,10 @@ Sistema de animações reutilizáveis para todas as páginas
 
 .TokenCafe-fade-in {
   animation: TokenCafe-fadeIn 1s ease-out 0.9s both;
+}
+
+.fade-in {
+  animation: TokenCafe-fadeIn 0.5s ease-out;
 }
 
 .TokenCafe-bounce-in {
@@ -4060,10 +4130,26 @@ Classes reutilizáveis para efeitos neon padronizados
 }
 
 /* Imagens de token */
-.token-image {
+.token-image-container {
   max-width: 80px;
   max-height: 80px;
   display: none;
+}
+
+.text-monospace {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.card-rounded {
+  border-radius: 0.5rem;
+}
+
+.card-header-small {
+  font-size: 0.95rem;
+}
+
+.list-group-item-small {
+  font-size: 0.92rem;
 }
 
 .token-image-container {
