@@ -76,26 +76,11 @@ async function checkNetwork() {
     // Rede correta
     if (switchBtn) switchBtn.classList.add("d-none");
     if (addBtn) {
-        // Verificar saldo para decidir se habilita ou mostra "Já adicionado"
-        // (Lógica duplicada do contract:found, mas necessária para atualização dinâmica)
-        const bal = lastContractData.walletBalance;
-        let hasBalance = false;
-        try {
-          if (bal && BigInt(bal) > 0n) hasBalance = true;
-        } catch (_) {}
-
-        if (hasBalance) {
-          addBtn.disabled = true;
-          addBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Já Adicionado';
-          addBtn.classList.remove("btn-outline-primary", "btn-outline-warning");
-          addBtn.classList.add("btn-success");
-        } else {
-          addBtn.disabled = false;
-          addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar Token';
-          addBtn.classList.remove("btn-success", "btn-outline-primary");
-          addBtn.classList.add("btn-outline-warning");
-          addBtn.title = "";
-        }
+        addBtn.disabled = false;
+        addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar Token';
+        addBtn.classList.remove("btn-success", "btn-outline-primary");
+        addBtn.classList.add("btn-outline-warning");
+        addBtn.title = "";
     }
   }
 }

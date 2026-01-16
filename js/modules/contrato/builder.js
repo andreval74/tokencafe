@@ -638,6 +638,31 @@ async function checkApiConnectivity(apiBase) {
   }
 }
 
+export async function ensureServersOnline() {
+  let base = getApiBase();
+  log(`Verificando status dos servidores de API em ${base}...`);
+  const okMain = await checkApiConnectivity(base);
+  if (okMain) {
+    await checkApiEndpoints(base);
+    return true;
+  }
+  log("Aviso: Conectividade com API principal falhou. Tentando servidor local...");
+  const local = "http://localhost:3000";
+  const okLocal = await checkApiConnectivity(local);
+  if (okLocal) {
+    setApiBase(local);
+    await checkApiEndpoints(local);
+    log("Conectado ao servidor local (localhost:3000).");
+    return true;
+  }
+  log("Erro: nenhum servidor de API está acessível. Verifique se o backend está rodando.");
+  try {
+    const help = document.getElementById("apiErrorHelp");
+    if (help) help.classList.remove("d-none");
+  } catch (_) {}
+  return false;
+}
+
 async function fetchWithDiagnostics(url, options = {}) {
   const start = Date.now();
   try {
@@ -774,22 +799,11 @@ export async function compileContract() {
     log("Corrija os erros nos campos antes de compilar.");
     return;
   }
+  
+  await ensureServersOnline();
   let base = getApiBase();
-  try {
-    // Tentativa de conexão, mas sem forçar localhost imediatamente se falhar (pode ser timeout do Render)
-    const okConn = await checkApiConnectivity(base);
-    if (!okConn) {
-      log("Aviso: Conectividade com API principal falhou. Tentando servidor local...");
-      const local = "http://localhost:3000";
-      if (await checkApiConnectivity(local)) {
-        base = local;
-        setApiBase(local);
-        log("Conectado ao servidor local (localhost:3000).");
-      } else {
-        log("Aviso: Falha ao conectar também no localhost. Usando URL configurada como última tentativa...");
-      }
-    }
 
+  try {
     readForm();
     const name = state.form.token.name || "MyToken";
     const symbol = state.form.token.symbol || "MTK";
@@ -1083,6 +1097,8 @@ export function getConstructorArgs() {
   return [];
 }
 
+const SERVER_DEPLOY_ENABLED = false;
+
 export async function deployPlaceholder() {
   const ok = runAllFieldValidation() && validateForm();
   if (!ok) {
@@ -1092,7 +1108,7 @@ export async function deployPlaceholder() {
   startOpStatus("Deploy em andamento");
   // Se temos artefatos compilados, preferir deploy via servidor
   // (DESABILITADO: Endpoint /api/deploy-server não implementado no backend)
-  if (false && state.compilation?.abi && state.compilation?.bytecode) {
+  if (SERVER_DEPLOY_ENABLED && state.compilation?.abi && state.compilation?.bytecode) {
     try {
       // Sondar endpoint antes de tentar
       try {
@@ -1348,31 +1364,79 @@ export async function deployPlaceholder() {
     }
 
     const abi = state.compilation.abi;
-    const bytecode = state.compilation.bytecode;
+    const bytecode = typeof state.compilation.bytecode === "string" && !state.compilation.bytecode.startsWith("0x")
+      ? "0x" + state.compilation.bytecode
+      : state.compilation.bytecode;
     const signer = state.wallet.signer;
 
     log("Preparando contrato para deploy com MetaMask...");
     startOpStatus("Deploy via MetaMask");
-    const factory = new ethers.ContractFactory(abi, bytecode, signer);
-    const args = getConstructorArgs();
 
-    // Tentar estimar gas para o deploy; usar fallback se falhar
+    // FIX: Para erc20-minimal, o construtor não tem argumentos, mas o ContractFactory pode se confundir com a ABI.
+    // Forçamos uma transação manual apenas com o bytecode para garantir.
+    let contract;
+    let tx;
     let overrides = {};
-    try {
-      const deployTx = factory.getDeployTransaction(...args);
-      const estimated = await signer.estimateGas(deployTx);
-      // pequeno buffer (+20%) para evitar underestimation
-      const buff = estimated.mul ? estimated.mul(120).div(100) : estimated * 1.2;
-      overrides.gasLimit = buff;
-      log(`Gas estimado para deploy: ${estimated.toString ? estimated.toString() : String(estimated)} (com buffer).`);
-    } catch (e) {
-      overrides.gasLimit = 2000000;
-      log("Falha na estimativa de gas, usando gasLimit padrão 2,000,000.");
+    const group = state.form.group;
+
+    if (group === "erc20-minimal") {
+        log("Modo ERC20-Minimal: Usando transação direta (bypass ContractFactory) para evitar erros de ABI.");
+        try {
+             const txRequest = {
+                data: bytecode,
+                from: state.wallet.address
+             };
+             // Estimar gas manualmente
+             let gasLimit;
+             try {
+                const est = await signer.estimateGas(txRequest);
+                gasLimit = est.mul(120).div(100); // +20%
+             } catch(e) {
+                gasLimit = ethers.BigNumber.from("2000000");
+                log("Falha na estimativa de gas manual, usando 2.000.000");
+             }
+             
+             // Enviar transação
+             log("Enviando transação manual...");
+             tx = await signer.sendTransaction({
+                 data: bytecode,
+                 gasLimit: gasLimit
+             });
+             log(`Transação enviada: ${tx.hash}`);
+             
+             // Criar objeto de contrato "fake" para compatibilidade com o resto do código
+             // Precisamos esperar o receipt para saber o endereço
+             contract = {
+                 deployTransaction: tx,
+                 address: null // Será preenchido pelo receipt
+             };
+        } catch (errManual) {
+             log(`Erro no deploy manual: ${errManual.message}`);
+             throw errManual;
+        }
+    } else {
+        // Fluxo padrão para outros contratos (com argumentos)
+        const factory = new ethers.ContractFactory(abi, bytecode, signer);
+        const args = getConstructorArgs();
+
+        // Tentar estimar gas para o deploy; usar fallback se falhar
+        try {
+          const deployTx = factory.getDeployTransaction(...args);
+          const estimated = await signer.estimateGas(deployTx);
+          // pequeno buffer (+20%) para evitar underestimation
+          const buff = estimated.mul ? estimated.mul(120).div(100) : estimated * 1.2;
+          overrides.gasLimit = buff;
+          log(`Gas estimado para deploy: ${estimated.toString ? estimated.toString() : String(estimated)} (com buffer).`);
+        } catch (e) {
+          overrides.gasLimit = 2000000;
+          log("Falha na estimativa de gas, usando gasLimit padrão 2,000,000.");
+        }
+
+        log("Enviando transação de deploy pelo MetaMask...");
+        contract = await factory.deploy(...args, overrides);
+        tx = contract.deployTransaction;
     }
 
-    log("Enviando transação de deploy pelo MetaMask...");
-    const contract = await factory.deploy(...args, overrides);
-    const tx = contract.deployTransaction;
     log(`Transação enviada: ${tx.hash}. Aguardando confirmação...`);
     updateOpStatus("Transação enviada");
     state.deployed.transactionHash = tx.hash || null;
@@ -2995,66 +3059,7 @@ function forceVerificationSuccessUI(address, link, chainId) {
             if (infoCard) {
                 infoCard.classList.remove("d-none");
                 
-                // 3. Inserir endereço do Deployer (se não existir)
-                let deployerRow = infoCard.querySelector("#cs_viewDeployerRow");
-                if (!deployerRow) {
-                    const rowContainer = infoCard.querySelector(".row");
-                    if (rowContainer) {
-                        const deployerAddr = state.deployed?.deployer || state.wallet?.account || state.wallet?.address || "-";
-                        
-                        // Gerar link do explorer para o deployer
-                        const targetChainId = chainId || state.form?.network?.chainId;
-                        
-                        let deployerLink = "#";
-                        if (targetChainId && deployerAddr && deployerAddr !== "-") {
-                             // Tenta usar lógica existente ou reconstruir
-                             // Simplificação: se temos o link do contrato, usamos o mesmo dominio
-                             if (link && link.startsWith("http")) {
-                                 try {
-                                     const urlObj = new URL(link);
-                                     deployerLink = `${urlObj.origin}/address/${deployerAddr}`;
-                                 } catch (_) {}
-                             } else {
-                                 // Fallback se não tivermos o link do contrato
-                                 const rawUrl = getExplorerVerificationUrl(targetChainId, deployerAddr); 
-                                 if (rawUrl) deployerLink = rawUrl.split("#")[0];
-                             }
-                        }
 
-                        const div = document.createElement("div");
-                        div.className = "col-12";
-                        div.id = "cs_viewDeployerRow";
-                        div.innerHTML = `
-                          <div class="d-flex align-items-baseline gap-2">
-                            <span>Deployer:</span>
-                            <a href="${deployerLink}" target="_blank" class="text-tokencafe text-break font-monospace small text-decoration-none" title="Ver no Explorer">
-                                ${deployerAddr} <i class="bi bi-box-arrow-up-right" style="font-size: 0.8em;"></i>
-                            </a>
-                            <button class="btn btn-sm btn-link text-white p-0 btn-copy-deployer" title="Copiar">
-                                <i class="bi bi-clipboard"></i>
-                            </button>
-                          </div>`;
-                        
-                        // Bind copy button
-                        const btnCopy = div.querySelector(".btn-copy-deployer");
-                        if (btnCopy) {
-                            btnCopy.onclick = (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (window.copyToClipboard) window.copyToClipboard(deployerAddr);
-                                else if (navigator.clipboard) navigator.clipboard.writeText(deployerAddr);
-                            };
-                        }
-
-                        // Inserir logo após o endereço do contrato (primeiro col-12)
-                        const firstCol = rowContainer.querySelector(".col-12");
-                        if (firstCol) {
-                            firstCol.insertAdjacentElement('afterend', div);
-                        } else {
-                            rowContainer.prepend(div);
-                        }
-                    }
-                }
             }
             
             // Fix: Re-bind dos botões de cópia existentes (Address e Tx) para garantir funcionamento

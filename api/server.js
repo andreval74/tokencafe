@@ -377,6 +377,72 @@ function getExplorerApiKeyFromEnv() {
   }
 }
 
+async function getContractCreationInfo(chainId, address, apiKey) {
+  try {
+    const base = getExplorerApiUrl(chainId);
+    const qs = new URLSearchParams();
+    qs.append("module", "contract");
+    qs.append("action", "getcontractcreation");
+    qs.append("contractaddresses", toChecksumAddress(address));
+    if (apiKey) qs.append("apikey", apiKey);
+    const url = `${base}&${qs.toString()}`;
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      Accept: "application/json",
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch(url, { method: "GET", headers, signal: controller.signal });
+    clearTimeout(timeout);
+    if (resp.ok) {
+      const js = await resp.json();
+      // console.log("[Explorer] getContractCreationInfo V2 result:", JSON.stringify(js));
+      
+      if (js.message === "NOTOK" && js.result && js.result.includes("Free API access is not supported")) {
+        console.warn(`[Explorer] V2 requer API Key paga ou válida para esta chain (${chainId}). Configure ETHERSCAN_API_KEY no .env.`);
+        return { deployer: "", txHash: "", error: "api_restricted" };
+      }
+      
+      const arr = Array.isArray(js?.result) ? js.result : [];
+      const first = arr[0] || {};
+      const deployer = first?.contractCreator || first?.creator || "";
+      const txHash = first?.txHash || first?.creationTxHash || "";
+      if (deployer || txHash) return { deployer, txHash, error: null };
+    }
+  } catch (e) {
+    console.warn("[Explorer] getContractCreationInfo V2 error:", e.message);
+  }
+  
+  // Fallback para Legacy V1 (apenas se V2 falhar ou não retornar dados)
+  // Nota: BscScan Testnet V1 está depreciado e retorna erro.
+  try {
+    const legacy = getLegacyExplorerApiUrl(chainId);
+    const qs = new URLSearchParams();
+    qs.append("module", "contract");
+    qs.append("action", "getcontractcreation");
+    qs.append("contractaddresses", toChecksumAddress(address));
+    if (apiKey) qs.append("apikey", apiKey);
+    const url = `${legacy}?${qs.toString()}`;
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      Accept: "application/json",
+    };
+    const resp = await fetch(url, { method: "GET", headers });
+    if (resp.ok) {
+      const js = await resp.json();
+      console.log("[Explorer] getContractCreationInfo Legacy result:", JSON.stringify(js));
+      const arr = Array.isArray(js?.result) ? js.result : [];
+      const first = arr[0] || {};
+      const deployer = first?.contractCreator || first?.creator || "";
+      const txHash = first?.txHash || first?.creationTxHash || "";
+      if (deployer || txHash) return { deployer, txHash, error: null };
+    }
+  } catch (e2) {
+    console.warn("[Explorer] getContractCreationInfo Legacy error:", e2.message);
+  }
+  return { deployer: "", txHash: "", error: "not_found" };
+}
+
 app.post("/api/verify-contract", async (req, res) => {
   try {
     const p = req.body || {};
@@ -569,11 +635,16 @@ app.get("/api/explorer-getsourcecode", async (req, res) => {
         clearTimeout(timeout);
         
         const j2 = await r2.json();
+        // console.log("[Explorer] getsourcecode Legacy result:", JSON.stringify(j2));
         const st2 = String(j2?.status || "0");
         const arr2 = Array.isArray(j2?.result) ? j2.result : [];
         const f2 = arr2[0] || {};
         const src2 = String(f2?.SourceCode || "");
         const ver2 = !!src2 && src2.length > 0;
+        let creationInfo = { deployer: "", txHash: "", error: null };
+        try {
+          creationInfo = await getContractCreationInfo(chainId, address, apiKey);
+        } catch (_) {}
         return res.json({ 
             success: true, 
             verified: ver2, 
@@ -588,12 +659,19 @@ app.get("/api/explorer-getsourcecode", async (req, res) => {
                 evmVersion: f2?.EVMVersion || "",
                 licenseType: f2?.LicenseType || "",
                 proxy: f2?.Proxy || ""
-            } 
+            },
+            deployer: creationInfo.deployer,
+            creationTxHash: creationInfo.txHash,
+            creationInfoError: creationInfo.error
         });
       } catch (e2) {
          console.warn(`[Explorer Legacy] Falha no fallback:`, e2.message);
       }
     }
+    let creationInfo = { deployer: "", txHash: "", error: null };
+    try {
+      creationInfo = await getContractCreationInfo(chainId, address, apiKey);
+    } catch (_) {}
     return res.json({ 
         success: true, 
         verified, 
@@ -608,7 +686,10 @@ app.get("/api/explorer-getsourcecode", async (req, res) => {
             evmVersion: first?.EVMVersion || "",
             licenseType: first?.LicenseType || "",
             proxy: first?.Proxy || ""
-        } 
+        },
+        deployer: creationInfo.deployer,
+        creationTxHash: creationInfo.txHash,
+        creationInfoError: creationInfo.error
     });
   } catch (e) {
     return res.status(500).json({ success: false, error: e?.message || String(e) });
@@ -648,6 +729,7 @@ app.post("/api/explorer-getsourcecode", async (req, res) => {
              let resp = await fetch(url, { method: "GET", headers });
              if (resp.ok) {
                  js = await resp.json();
+                 console.log("[Explorer] getsourcecode V2 result:", JSON.stringify(js));
                  status = String(js?.status || "0");
              }
          } catch (e) {

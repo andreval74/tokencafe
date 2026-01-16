@@ -120,6 +120,7 @@ function initContainer(container) {
         topExp.classList.add("disabled");
       }
 
+
       const evt = new CustomEvent("contract:clear", { bubbles: true });
       try {
         container.dispatchEvent(evt);
@@ -629,24 +630,21 @@ function initContainer(container) {
       const js = await getVerificationStatus(chainId, address);
       try { log("verify-result", js); } catch {}
       
-      // Update compiler version if available
       const vCv = container.querySelector("#cs_viewCompilerVersion") || document.querySelector("#cs_viewCompilerVersion");
       const vOpt = container.querySelector("#cs_viewOptimization") || document.querySelector("#cs_viewOptimization");
       const vOth = container.querySelector("#cs_viewOtherSettings") || document.querySelector("#cs_viewOtherSettings");
+      const vDep = container.querySelector("#cs_viewDeployer") || document.querySelector("#cs_viewDeployer");
+      const vCreationTx = container.querySelector("#cs_viewCreationTx") || document.querySelector("#cs_viewCreationTx");
 
       if (vCv) {
         const cv = js?.compilerVersion || js?.explorer?.compilerVersion || "-";
         vCv.textContent = cv;
-        vCv.className = "text-body fw-medium";
+        vCv.className = "text-tokencafe fw-medium";
       }
       
-      // Update Optimization & Other Settings
-      // Esses dados vêm geralmente em js.explorer (Etherscan/BscScan response)
-      // js.explorer = { optimizationUsed: "1", runs: "200", ... }
       if (vOpt) {
           const opt = js?.explorer?.optimizationUsed; // "1" or "0" typically
           if (opt === "1" || opt === 1 || opt === true || opt === "true") {
-              // Se tiver runs, mostra junto
               const runs = js?.explorer?.runs ? ` (Runs: ${js.explorer.runs})` : "";
               vOpt.textContent = "Sim" + runs;
           } else if (opt === "0" || opt === 0 || opt === false || opt === "false") {
@@ -654,11 +652,10 @@ function initContainer(container) {
           } else {
               vOpt.textContent = "-";
           }
-          vOpt.className = "text-body fw-medium";
+          vOpt.className = "text-tokencafe fw-medium";
       }
 
       if (vOth) {
-          // Tentar capturar evmVersion ou licenseType se disponível
           const evm = js?.explorer?.evmVersion || "";
           const lic = js?.explorer?.licenseType || "";
           const proxy = js?.explorer?.proxy === "1" ? "Proxy" : "";
@@ -669,8 +666,10 @@ function initContainer(container) {
           if (proxy) parts.push(proxy);
           
           vOth.textContent = parts.length > 0 ? parts.join(", ") : "-";
-          vOth.className = "text-body fw-medium";
+          vOth.className = "text-tokencafe fw-medium";
       }
+
+
 
       // Helper to update main status field
       const updateMainStatus = (status) => {
