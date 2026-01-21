@@ -28,7 +28,7 @@
   var pageHost = String(window.location.hostname || "");
   var isHttps = pageProto === "https:";
   var isLocalHost = pageHost === "localhost" || pageHost === "127.0.0.1";
-  var prodDefault = "https://tokencafe-api.onrender.com";
+  var prodDefault = "https://xcafe-token-api-hybrid.onrender.com";
 
   // Senior Fix: Prevent Mixed Content on Localhost
   // If we are running locally (HTTP), we can call HTTPS APIs (CORS might apply).

@@ -10,7 +10,7 @@
 import { 
   state, 
   compileContract, 
-  deployPlaceholder, 
+  deployContract, 
   readForm, 
   validateForm, 
   runAllFieldValidation,
@@ -144,7 +144,14 @@ class TokenPageManager {
     // Listen for Create Token Button
     const btnCreate = document.getElementById("btnCreateToken");
     if (btnCreate) {
-        btnCreate.addEventListener("click", () => this.deploy());
+        console.log("Attaching click listener to btnCreateToken");
+        btnCreate.addEventListener("click", (e) => {
+            if (e) e.preventDefault();
+            console.log("Create Token Button Clicked");
+            this.deploy();
+        });
+    } else {
+        console.error("btnCreateToken not found in DOM during init");
     }
 
     // Listen for Reset Button
@@ -464,7 +471,8 @@ class TokenPageManager {
   async deploy() {
      const deployContainer = document.getElementById("deployStatusContainer");
      const statusText = document.getElementById("contractStatus");
-     const btn = document.getElementById("btnDeploy");
+     // Fix: Use correct button ID from contrato-index.html
+     const btn = document.getElementById("btnCreateToken") || document.getElementById("btnDeploy");
      
      // 1. Validate Network
      if (!state.form.network || !state.form.network.chainId) {
@@ -524,7 +532,7 @@ class TokenPageManager {
          // 7. Deploy
          if (statusText) statusText.textContent = "Aguardando confirmação na carteira...";
          
-         const success = await deployPlaceholder();
+         const success = await deployContract();
          
          // 8. Success
          if (success) {

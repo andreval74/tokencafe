@@ -89,25 +89,76 @@ function initContainer(container) {
     if (explorerAnchorEl) explorerAnchorEl.href = explorer ? explorer : "#";
   }
 
-  async function updateFromWallet() {
+  async function autoDetectNetwork() {
     try {
+      console.debug("NetworkSearch: autoDetectNetwork iniciado...");
+      
+      // Garantir que temos as redes carregadas
+      if (networkManager?.getAllNetworks) {
+        await networkManager.getAllNetworks();
+      }
+
       const status = window.walletConnector?.getStatus?.() || {};
       let chainHex = status.chainId || null;
       let account = status.account || null;
+      
+      // Fallback direto ao ethereum se o conector não tiver dados
       if (!chainHex && window.ethereum && typeof window.ethereum.request === "function") {
         try {
           chainHex = await window.ethereum.request({ method: "eth_chainId" });
         } catch (_) {}
       }
-      if (!account && window.ethereum && typeof window.ethereum.request === "function") {
-        try {
-          const accs = await window.ethereum.request({ method: "eth_accounts" });
-          account = Array.isArray(accs) && accs[0] ? accs[0] : null;
-        } catch (_) {}
+
+      if (!chainHex) {
+        console.debug("NetworkSearch: chainId não detectado.");
+        return;
       }
+
       const chainDec = chainHex && String(chainHex).startsWith("0x") ? parseInt(chainHex, 16) : chainHex ? parseInt(chainHex, 10) : null;
-      const unusedNet = chainDec ? networkManager?.getNetworkById?.(chainDec) : null;
-    } catch (_) {}
+      
+      if (!chainDec) return;
+
+      const net = networkManager?.getNetworkById?.(chainDec);
+      
+      if (net) {
+        console.log(`NetworkSearch: Rede detectada automaticamente: ${net.name} (${net.chainId})`);
+        
+        // Evitar re-renderizar se for a mesma rede já selecionada
+        if (selectedNetwork && selectedNetwork.chainId === net.chainId) return;
+
+        selectedNetwork = net;
+        input.value = net.name;
+        input.dataset.chainId = String(net.chainId);
+        
+        // Armazenar persistência
+        try {
+          window.sessionStorage && window.sessionStorage.setItem("tokencafe_last_chain_id", String(net.chainId));
+          window.localStorage && window.localStorage.setItem("tokencafe_last_chain_id", String(net.chainId));
+        } catch (_) {}
+
+        updateDetailsCard(net);
+        
+        if (infoBtn) infoBtn.disabled = false;
+        
+        const evt = new CustomEvent("network:selected", {
+          detail: { network: net, source: "auto_detect" },
+          bubbles: true,
+        });
+        container.dispatchEvent(evt);
+        
+        try {
+          window.__selectedNetwork = net;
+        } catch (_) {}
+      } else {
+         // Rede desconhecida (mas detectada)
+         console.warn(`NetworkSearch: Rede ID ${chainDec} detectada mas não encontrada no gerenciador.`);
+         input.value = `Chain ID ${chainDec}`;
+         input.dataset.chainId = String(chainDec);
+         if (infoBtn) infoBtn.disabled = true;
+      }
+    } catch (e) {
+      console.error("NetworkSearch: erro na detecção automática", e);
+    }
   }
 
   try {
@@ -149,7 +200,7 @@ function initContainer(container) {
     } catch (_) {}
   }
   applyMemoryPrefill();
-  updateFromWallet();
+  autoDetectNetwork();
 
   function hideList() {
     list.classList.add("d-none");
@@ -242,7 +293,7 @@ function initContainer(container) {
             } catch (_) {
             } finally {
               setSwitching(false);
-              updateFromWallet();
+              autoDetectNetwork();
               const evtRes = new CustomEvent("network:switchResult", { detail: { chainId }, bubbles: true });
               container.dispatchEvent(evtRes);
             }
@@ -440,21 +491,21 @@ function initContainer(container) {
   } catch (_) {}
 
   document.addEventListener("wallet:chainChanged", () => {
-    updateFromWallet();
+    autoDetectNetwork();
   });
   document.addEventListener("wallet:connected", () => {
-    updateFromWallet();
+    autoDetectNetwork();
   });
   document.addEventListener("wallet:accountChanged", () => {
-    updateFromWallet();
+    autoDetectNetwork();
   });
   document.addEventListener("wallet:disconnected", () => {
-    updateFromWallet();
+    autoDetectNetwork();
   });
   try {
     if (window.ethereum && typeof window.ethereum.on === "function") {
-      window.ethereum.on("chainChanged", () => updateFromWallet());
-      window.ethereum.on("accountsChanged", () => updateFromWallet());
+      window.ethereum.on("chainChanged", () => autoDetectNetwork());
+      window.ethereum.on("accountsChanged", () => autoDetectNetwork());
     }
   } catch (_) {}
 }

@@ -389,9 +389,9 @@
         <div class="mb-3" id="actions-section">
           <div class="d-flex gap-2 justify-content-end align-items-center">
              <!-- Botão Principal -->
-             <button id="btnCreateToken" class="btn btn-success btn-lg px-5">
-                  <i class="bi bi-rocket-takeoff me-2"></i> CRIAR CONTRATO
-             </button>
+    <button id="btnCreateToken" class="btn btn-success btn-lg px-5" onclick="if(window.wizard) window.wizard.deploy()">
+      <i class="bi bi-rocket-takeoff me-2"></i> CRIAR CONTRATO
+    </button>
              <!-- Botão Limpar e Novo -->
              <button id="btnResetForm" type="button" class="btn btn-outline-secondary btn-lg px-4" title="Limpar formulário e iniciar novo contrato">
                   <i class="bi bi-arrow-counterclockwise me-2"></i> NOVO

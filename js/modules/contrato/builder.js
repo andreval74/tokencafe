@@ -4,7 +4,7 @@ const $ = (sel) => document.querySelector(sel);
 
 function getDeployButton() {
   try {
-    return document.getElementById("btnDeploy") || document.getElementById("btnBuildDeploy");
+    return document.getElementById("btnCreateToken") || document.getElementById("btnDeploy") || document.getElementById("btnBuildDeploy");
   } catch (_) {
     return null;
   }
@@ -118,6 +118,14 @@ function log(msg) {
 
 // Informações dos grupos de contrato e compatibilidade
 export const CONTRACT_GROUPS = {
+  "erc20-advanced": {
+    title: "ERC20-Advanced",
+    summary: "Token avançado com taxas, proteções e swap integrado.",
+    features: ["Taxas (Liquidez, Mkt, Burn)", "Anti-Bot", "Limites (Max Wallet/Tx)", "Swap Automático"],
+    saleIntegration: false,
+    order: ["Token Avançado"],
+    notes: "Ideal para projetos DeFi completos. Configurável via interface dedicada.",
+  },
   "erc20-minimal": {
     title: "ERC20-Minimal",
     summary: "Token ERC20 básico com mint inicial e sem controles extras.",
@@ -258,6 +266,52 @@ export function readForm() {
 
   state.form.vanity.mode = getVal("#vanityMode", "none");
   state.form.vanity.custom = String(getVal("#vanityCustom")).replace(/\s+$/u, "");
+
+  // Leitura de campos avançados (Token Avançado)
+  const chk = (id, id2) => {
+      const el1 = document.getElementById(id);
+      if (el1) return el1.checked;
+      if (id2) {
+          const el2 = document.getElementById(id2);
+          if (el2) return el2.checked;
+      }
+      return false;
+  };
+  const num = (id) => {
+    const v = getVal(`#${id}`);
+    return v ? Number(v) : 0;
+  };
+
+  state.form.advanced = {
+    features: {
+      mintable: chk("checkMintable"),
+      burnable: chk("checkBurnable", "featBurnable"),
+      pausable: chk("checkPausable", "featPausable"),
+      ownable: chk("checkOwnable", "featOwnable"),
+      roles: chk("checkRoles", "featRoles"),
+      permit: chk("checkPermit", "featPermit"),
+      votes: chk("checkVotes", "featVotes"),
+      flashMint: chk("checkFlashMint", "featFlashMint"),
+      snapshots: chk("checkSnapshots", "featSnapshots"),
+      antiBot: chk("checkAntibot"),
+      maxWallet: chk("checkMaxWallet"),
+      maxTx: chk("checkMaxTx"),
+      blacklist: chk("checkBlacklist"),
+      recoverable: chk("checkRecoverable")
+    },
+    taxes: {
+      liquidity: { enabled: chk("checkLiquidityTax"), buy: num("liqBuyTax"), sell: num("liqSellTax") },
+      wallet: { enabled: chk("checkWalletTax"), buy: num("walletBuyTax"), sell: num("walletSellTax") },
+      burn: { enabled: chk("checkBurnTax"), buy: num("burnBuyTax"), sell: num("burnSellTax") }
+    },
+    limits: {
+      maxWalletPercent: num("maxWalletPercent"),
+      maxTxPercent: num("maxTxPercent")
+    },
+    swap: {
+      threshold: num("swapThreshold")
+    }
+  };
 }
 
 function validateHex4(str) {
@@ -716,16 +770,205 @@ function sanitizeContractName(rawName) {
 }
 
 // V2: fonte ERC-20 corrigida para fallback de compilação
-function generateTokenSourceV2(name, symbol, decimals, totalSupplyInt) {
+function generateTokenSourceV2(name, symbol, decimals, totalSupplyInt, advancedParams = null) {
   try {
     const contractName = sanitizeContractName(name);
     const d = parseInt(decimals, 10);
     const ts = String(totalSupplyInt || "0");
-    const src = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\ncontract ${contractName} {\n    string public name = "${String(name)}";\n    string public symbol = "${String(symbol)}";\n    uint8 public decimals = ${d};\n    uint256 public totalSupply;\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    constructor() {\n        totalSupply = ${ts} * 10**decimals;\n        balanceOf[msg.sender] = totalSupply;\n        emit Transfer(address(0), msg.sender, totalSupply);\n    }\n\n    function transfer(address to, uint256 value) public returns (bool) {\n        require(balanceOf[msg.sender] >= value, "Insufficient balance");\n        balanceOf[msg.sender] -= value;\n        balanceOf[to] += value;\n        emit Transfer(msg.sender, to, value);\n        return true;\n    }\n\n    function approve(address spender, uint256 value) public returns (bool) {\n        allowance[msg.sender][spender] = value;\n        emit Approval(msg.sender, spender, value);\n        return true;\n    }\n\n    function transferFrom(address from, address to, uint256 value) public returns (bool) {\n        require(balanceOf[from] >= value, "Insufficient balance");\n        require(allowance[from][msg.sender] >= value, "Allowance exceeded");\n        balanceOf[from] -= value;\n        balanceOf[to] += value;\n        allowance[from][msg.sender] -= value;\n        emit Transfer(from, to, value);\n        return true;\n    }\n}`;
+
+    // Fallback simples se não houver params avançados
+    if (!advancedParams) {
+        const src = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
+
+contract ${contractName} {
+    string public name = "${String(name)}";
+    string public symbol = "${String(symbol)}";
+    uint8 public decimals = ${d};
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor() {
+        totalSupply = ${ts} * 10**decimals;
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+
+    function transfer(address to, uint256 value) public returns (bool) {
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
+
+    function approve(address spender, uint256 value) public returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) public returns (bool) {
+        require(balanceOf[from] >= value, "Insufficient balance");
+        require(allowance[from][msg.sender] >= value, "Allowance exceeded");
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        allowance[from][msg.sender] -= value;
+        emit Transfer(from, to, value);
+        return true;
+    }
+}`;
+        return { contractName, sourceCode: src.trim() };
+    }
+
+    // Geração Avançada (Fallback com suporte básico a taxas)
+    const src = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
+
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+}
+
+contract ${contractName} is Context, IERC20 {
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    uint256 private _totalSupply;
+    string private _name;
+    string private _symbol;
+    uint8 private _decimals;
+
+    address public owner;
+    
+    // Tax Config (Fallback Basic)
+    uint256 public liquidityTax = ${advancedParams.taxes?.liquidity?.enabled ? (advancedParams.taxes.liquidity.buy || 0) : 0};
+    uint256 public marketingTax = ${advancedParams.taxes?.wallet?.enabled ? (advancedParams.taxes.wallet.buy || 0) : 0};
+    address public marketingWallet = ${advancedParams.taxes?.wallet?.address ? `0x${advancedParams.taxes.wallet.address.replace('0x','')}` : 'address(0)'};
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    constructor() {
+        _name = "${String(name)}";
+        _symbol = "${String(symbol)}";
+        _decimals = ${d};
+        _totalSupply = ${ts} * 10**_decimals;
+        owner = _msgSender();
+        
+        _balances[_msgSender()] = _totalSupply;
+        emit Transfer(address(0), _msgSender(), _totalSupply);
+        emit OwnershipTransferred(address(0), _msgSender());
+    }
+
+    function name() public view returns (string memory) { return _name; }
+    function symbol() public view returns (string memory) { return _symbol; }
+    function decimals() public view returns (uint8) { return _decimals; }
+    function totalSupply() public view override returns (uint256) { return _totalSupply; }
+    function balanceOf(address account) public view override returns (uint256) { return _balances[account]; }
+
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        _transfer(_msgSender(), recipient, amount);
+        return true;
+    }
+
+    function allowance(address owner, address spender) public view override returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    function approve(address spender, uint256 amount) public override returns (bool) {
+        _approve(_msgSender(), spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+        _transfer(sender, recipient, amount);
+        uint256 currentAllowance = _allowances[sender][_msgSender()];
+        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+        unchecked {
+            _approve(sender, _msgSender(), currentAllowance - amount);
+        }
+        return true;
+    }
+
+    function _approve(address owner, address spender, uint256 amount) internal virtual {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+        _allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
+    }
+
+    function _transfer(address sender, address recipient, uint256 amount) internal virtual {
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        uint256 senderBalance = _balances[sender];
+        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+        
+        // Basic Tax Logic for Fallback
+        uint256 taxAmount = 0;
+        if (sender != owner && recipient != owner) {
+            uint256 totalTax = liquidityTax + marketingTax;
+            if (totalTax > 0) {
+                taxAmount = (amount * totalTax) / 100;
+                if (taxAmount > 0) {
+                    _balances[address(this)] += taxAmount;
+                    emit Transfer(sender, address(this), taxAmount);
+                }
+            }
+        }
+        
+        uint256 receiveAmount = amount - taxAmount;
+        unchecked {
+            _balances[sender] = senderBalance - amount;
+        }
+        _balances[recipient] += receiveAmount;
+        emit Transfer(sender, recipient, receiveAmount);
+    }
+}
+`;
     return { contractName, sourceCode: src.trim() };
+
   } catch (_) {
+    // Fallback do fallback
     const fallbackName = sanitizeContractName("Token");
-    const src = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\ncontract ${fallbackName} {\n    string public name = "Token";\n    string public symbol = "TKN";\n    uint8 public decimals = 18;\n    uint256 public totalSupply;\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    constructor() {\n        totalSupply = 1000000 * 10**decimals;\n        balanceOf[msg.sender] = totalSupply;\n        emit Transfer(address(0), msg.sender, totalSupply);\n    }\n}`;
+    const src = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.26;
+
+contract ${fallbackName} {
+    string public name = "Token";
+    string public symbol = "TKN";
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor() {
+        totalSupply = 1000000 * 10**decimals;
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+}`;
     return { contractName: fallbackName, sourceCode: src.trim() };
   }
 }
@@ -826,7 +1069,8 @@ export async function compileContract() {
       type: state.form.group || "erc20-minimal",
       sale: saleParams,
       initialOwner: state.form.initialOwner || undefined,
-      initialHolder: state.form.initialHolder || undefined
+      initialHolder: state.form.initialHolder || undefined,
+      advanced: state.form.advanced || undefined
     };
 
     log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}, tipo ${payload.type}...`);
@@ -875,13 +1119,9 @@ export async function compileContract() {
       const d = getDeployButton();
       if (d) d.disabled = false;
     }
-    try {
-      const nm = state.form?.token?.name || "MyToken";
-      const sym = state.form?.token?.symbol || "TKN";
-      const dec = Number.isFinite(state.form?.token?.decimals) ? state.form.token.decimals : 18;
-      const supHuman = formatPtBR(state.form?.token?.initialSupply ?? 0);
-      updateERC20Details(sym, nm, dec, supHuman, "Compilado (artefatos prontos)", false);
-    } catch (_) {}
+    // Atualiza a UI usando a função centralizada, garantindo exibição correta dos artefatos
+    updateCompilationUI(state.compilation.contractName, false);
+    
     try {
       const c = document.getElementById("btnCompile");
       if (c) c.disabled = true;
@@ -907,8 +1147,9 @@ export async function compileContract() {
         const decimals = Number.isFinite(state.form.token.decimals) ? state.form.token.decimals : 18;
         const totalSupplyRaw = state.form.token.initialSupply || 0;
         const totalSupplyInt = String(totalSupplyRaw || "0");
+        const advanced = state.form.advanced || null;
         log(`Tentando fallback: gerar código local e compilar (${base}/api/compile-only)...`);
-        const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt);
+        const src = generateTokenSourceV2(name, symbol, decimals, totalSupplyInt, advanced);
         try {
           log(`Contrato gerado: ${src.contractName}. Tamanho do código: ${src.sourceCode.length} chars`);
         } catch (_) {}
@@ -947,6 +1188,9 @@ export async function compileContract() {
           const d = getDeployButton();
           if (d) d.disabled = false;
         }
+        // Atualiza a UI usando a função centralizada (Fallback)
+        updateCompilationUI(src.contractName, true);
+        
         try {
           const c = document.getElementById("btnCompile");
           if (c) c.disabled = true;
@@ -965,6 +1209,7 @@ export async function compileContract() {
                  contractName: src.contractName,
             };
             log("Código fonte salvo localmente (sem bytecode).");
+            alert("Erro CRÍTICO: Não foi possível conectar ao servidor de compilação (Render).\n\nVerifique se o backend está rodando ou se a URL da API está correta em api-config.js.");
         } catch (_) {}
       }
     } else {
@@ -1099,7 +1344,18 @@ export function getConstructorArgs() {
 
 const SERVER_DEPLOY_ENABLED = false;
 
-export async function deployPlaceholder() {
+export async function deployContract() {
+  // Fallback de rede: se nenhuma rede foi selecionada mas a carteira está conectada, usar a rede da carteira
+  if (!state.form.network && state.wallet?.chainId) {
+      const cid = state.wallet.chainId;
+      state.form.network = {
+          chainId: cid,
+          name: "Rede da Carteira",
+          rpc: getFallbackRpcByChainId(cid)
+      };
+      log(`Rede não selecionada explicitamente. Usando rede da carteira: ${cid}`);
+  }
+
   const ok = runAllFieldValidation() && validateForm();
   if (!ok) {
     log("Corrija os erros nos campos antes de fazer o deploy.");
@@ -1315,7 +1571,21 @@ export async function deployPlaceholder() {
     }
   }
   // Garantir que a rede selecionada corresponde à rede atual da carteira
-  const selectedChainId = state.form?.network?.chainId;
+  let selectedChainId = state.form?.network?.chainId;
+  
+  // Fallback: se não houver rede selecionada no form, mas houver na carteira, usar da carteira
+  if (!selectedChainId && state.wallet?.chainId) {
+      selectedChainId = state.wallet.chainId;
+      // Preencher state.form.network com dados mínimos para evitar bloqueio
+      if (!state.form.network) state.form.network = {};
+      state.form.network.chainId = selectedChainId;
+      state.form.network.name = state.form.network.name || "Rede da Carteira";
+      log(`Usando rede da carteira como alvo: ${selectedChainId}`);
+      
+      // Atualiza UI de Rede no resumo
+      updateSummaryItem("Rede", `${selectedChainId} - ${state.form.network.name}`);
+  }
+
   if (!selectedChainId) {
     log("Selecione a rede no topo antes de prosseguir com o deploy.");
     stopOpStatus("Rede não selecionada");
@@ -1532,12 +1802,12 @@ export async function deployPlaceholder() {
     // Atualizar links na UI
     updateDeployLinks(explorerUrl, txUrl);
     try {
-      const filesSection = document.getElementById("files-section");
+      // const filesSection = document.getElementById("files-section"); // Removido: só mostrar após verificar
       const bSol = document.querySelector("#btnDownloadSol");
       const bJson = document.querySelector("#btnDownloadJson");
       const bAbi = document.querySelector("#btnDownloadAbi");
       const bDep = document.querySelector("#btnDownloadDeployedBytecode");
-      if (filesSection) filesSection.classList.remove("d-none");
+      // if (filesSection) filesSection.classList.remove("d-none");
       if (bSol) bSol.disabled = false;
       if (bJson) bJson.disabled = false;
       if (bAbi) bAbi.disabled = false;
@@ -1714,12 +1984,65 @@ export async function deployPlaceholder() {
   }
 }
 
+// Helper para atualizar itens no card de resumo (Summary Tab)
+function updateSummaryItem(label, value, linkUrl = null) {
+  try {
+    let targetId = null;
+    
+    // Mapeia labels antigos para os novos IDs do card
+    if (label.includes("Status") || label.includes("Verificação")) targetId = "sumStatus";
+    else if (label.includes("Endereço")) targetId = "sumAddress";
+    else if (label.includes("Transação")) targetId = "sumTx";
+    else if (label.includes("Rede")) targetId = "sumNetwork";
+    
+    if (!targetId) return;
+    
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    
+    // Tratamento especial para Status (Badge)
+    if (targetId === "sumStatus") {
+        el.textContent = value;
+        // Atualiza cor do badge
+        if (value.match(/(Sucesso|Verificado|Concluído)/i)) {
+            el.className = "badge bg-success";
+            // Exibe botões de download apenas quando Verificado (ou explicitamente solicitado)
+            const filesSection = document.getElementById("files-section");
+            if (filesSection) {
+                 const isVerified = value.match(/Verificado/i) || (state.deployed && state.deployed.verified);
+                 if (isVerified) filesSection.classList.remove("d-none");
+            }
+        } else if (value.match(/(Erro|Falha)/i)) {
+             el.className = "badge bg-danger";
+        } else if (value.match(/(Compilando|Gerando|Aguardando|Iniciando|Deploy|Verificando)/i)) {
+             el.className = "badge bg-warning text-dark"; 
+        } else {
+             el.className = "badge bg-info text-dark";
+        }
+        return;
+    }
+    
+    // Tratamento geral (Texto ou Link)
+    if (linkUrl) {
+        el.innerHTML = `<a href="${linkUrl}" target="_blank" class="text-warning text-decoration-none font-monospace">${value}</a>`;
+    } else {
+        el.textContent = value;
+    }
+  } catch (e) {
+    console.error("Erro ao atualizar resumo:", e);
+  }
+}
+
 // Atualiza links de contrato e transação na UI abaixo dos botões
 function updateDeployLinks(contractUrl, txUrl) {
   try {
     const container = document.getElementById("erc20-details");
     const addrVal = state.deployed?.address || null;
     const txVal = state.deployed?.transactionHash || null;
+
+    // Atualiza também o Resumo (Summary List) conforme solicitado
+    if (addrVal) updateSummaryItem("Endereço", addrVal, contractUrl);
+    if (txVal) updateSummaryItem("Transação", txVal, txUrl);
 
     // Elementos atualizados (Links de texto + botões de cópia)
     const aAddrLink = document.getElementById("erc20AddressLink");
@@ -1777,6 +2100,10 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
     const isVerified = _bscOk === true || _sourOk === true || _privOk === true;
     if (isVerified && state.deployed) {
       state.deployed.verified = true;
+      // Exibir botões de download após verificação
+      const filesSection = document.getElementById("files-section");
+      if (filesSection) filesSection.classList.remove("d-none");
+      updateSummaryItem("Status", "Verificado");
     }
 
     let url = null;
@@ -1828,19 +2155,32 @@ function startOpStatus(message) {
     // setStatusContainerVisible(); // Removido para manter oculto até conclusão
     const st = document.getElementById("contractStatus");
     if (st) st.textContent = `${message} — tempo: 0:00`;
+    
+    // Atualiza resumo
+    updateSummaryItem("Status", message);
+
     if (opTimer) clearInterval(opTimer);
     opTimer = setInterval(() => {
       try {
+        const elapsed = formatElapsed(Date.now() - opStartedAt);
+        const msg = `${message} — tempo: ${elapsed}`;
         const el = document.getElementById("contractStatus");
-        if (el) el.textContent = `${message} — tempo: ${formatElapsed(Date.now() - opStartedAt)}`;
+        if (el) el.textContent = msg;
+        // Opcional: atualizar timer no resumo também, mas pode ser muito frequente
+        // updateSummaryItem("Status", msg); 
       } catch (_) {}
     }, 1000);
   } catch (_) {}
 }
 function updateOpStatus(message) {
   try {
+    const elapsed = formatElapsed(Date.now() - opStartedAt);
+    const msg = `${message} — tempo: ${elapsed}`;
     const st = document.getElementById("contractStatus");
-    if (st) st.textContent = `${message} — tempo: ${formatElapsed(Date.now() - opStartedAt)}`;
+    if (st) st.textContent = msg;
+    
+    // Atualiza resumo
+    updateSummaryItem("Status", message); // Sem o timer para ficar mais limpo
   } catch (_) {}
 }
 function stopOpStatus(finalMessage) {
@@ -1849,8 +2189,13 @@ function stopOpStatus(finalMessage) {
       clearInterval(opTimer);
       opTimer = null;
     }
+    const elapsed = formatElapsed(Date.now() - opStartedAt);
+    const msg = `${finalMessage} — tempo: ${elapsed}`;
     const st = document.getElementById("contractStatus");
-    if (st) st.textContent = `${finalMessage} — tempo: ${formatElapsed(Date.now() - opStartedAt)}`;
+    if (st) st.textContent = msg;
+
+    // Atualiza resumo com mensagem final
+    updateSummaryItem("Status", finalMessage);
   } catch (_) {}
 }
 
@@ -1865,6 +2210,10 @@ function updateERC20Details(symbol, name, decimals, supply, statusText, visible)
     const elSup = document.getElementById("erc20Supply");
     if (!container) return;
     if (typeof statusText === "string" && st) st.textContent = statusText;
+    
+    // Atualiza Resumo também
+    if (statusText) updateSummaryItem("Status", statusText);
+
     if (elSym) elSym.textContent = symbol ?? elSym.textContent ?? "-";
     if (elName) elName.textContent = name ?? elName.textContent ?? "-";
     if (elDec) elDec.textContent = decimals != null ? String(decimals) : (elDec.textContent ?? "-");
@@ -1872,6 +2221,49 @@ function updateERC20Details(symbol, name, decimals, supply, statusText, visible)
     container.classList.toggle("d-none", !visible);
     if (state.deployed?.address) container.classList.remove("d-none");
   } catch {}
+}
+
+/**
+ * Atualiza a interface gráfica com os resultados da compilação.
+ * Centraliza a lógica de exibição de botões de download e detalhes do token,
+ * facilitando a manutenção e garantindo consistência entre fluxo normal e fallback.
+ * 
+ * @param {string} contractName - Nome do contrato compilado
+ * @param {boolean} isFallback - Se a compilação foi feita via fallback (local)
+ */
+function updateCompilationUI(contractName, isFallback) {
+  try {
+    // 1. Garante que a seção de download de arquivos permaneça oculta até verificação
+    // const filesSection = document.getElementById("files-section");
+    // if (filesSection) filesSection.classList.remove("d-none");
+
+    // 2. Habilita os botões de download (ABI, Source, JSON)
+    const bSol = document.querySelector("#btnDownloadSol");
+    const bJson = document.querySelector("#btnDownloadJson");
+    const bAbi = document.querySelector("#btnDownloadAbi");
+    if (bSol) bSol.disabled = false;
+    if (bJson) bJson.disabled = false;
+    if (bAbi) bAbi.disabled = false;
+
+    // 3. Coleta dados do formulário para exibição
+    const nm = state.form?.token?.name || "MyToken";
+    const sym = state.form?.token?.symbol || "TKN";
+    const dec = Number.isFinite(state.form?.token?.decimals) ? state.form.token.decimals : 18;
+    const supHuman = formatPtBR(state.form?.token?.initialSupply ?? 0);
+    
+    // 4. Atualiza o container de detalhes (erc20-details) reutilizando a função existente
+    // O último parâmetro 'true' força a visibilidade do container
+    const statusMsg = `Compilado: ${contractName} ${isFallback ? '(Local)' : '(Servidor)'}`;
+    updateERC20Details(sym, nm, dec, supHuman, statusMsg, true);
+    
+    // Scroll para os detalhes se estiverem visíveis
+    const details = document.getElementById("erc20-details");
+    if (details) details.scrollIntoView({ behavior: "smooth", block: "start" });
+    
+    log(`Interface atualizada: Artefatos prontos para ${contractName}`);
+  } catch (err) {
+    console.error("Erro ao atualizar UI de compilação:", err);
+  }
 }
 
 // Formata números no padrão pt-BR (pontos para milhar, vírgula decimal)
@@ -2028,7 +2420,7 @@ async function bindUI() {
         if (sp) sp.classList.remove("d-none");
         if (tx) tx.textContent = "Publicando...";
       } catch (_) {}
-      await deployPlaceholder();
+      await deployContract();
       try {
         btnDeploy.disabled = true;
         btnDeploy.classList.remove("btn-outline-primary");
@@ -2098,7 +2490,7 @@ async function bindUI() {
              throw new Error("Compilação falhou. Verifique logs.");
         }
         updateOpStatus("Deployando...");
-        await deployPlaceholder();
+        await deployContract();
         btnBuildDeploy.classList.remove("btn-outline-success");
         btnBuildDeploy.classList.add("btn-used-success");
         try {
@@ -2152,6 +2544,8 @@ async function bindUI() {
               btn.classList.add("btn-success");
           }
           stopOpStatus("Concluído");
+          // Dispara evento para atualizar a UI em outros módulos
+          document.dispatchEvent(new CustomEvent("contract:deployed", { detail: state.deployed }));
         } catch (_) {}
       } catch (e) {
         btnBuildDeploy.classList.remove("btn-outline-success");
