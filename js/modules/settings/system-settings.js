@@ -1,3 +1,5 @@
+import { checkConnectivity } from "../../shared/components/api-status.js";
+
 /**
  * Sstema de Confguraes do TokenCafe
  * Gerenca todas as confguraes e preferncas do sstema
@@ -770,18 +772,8 @@ class SystemSettngs {
       results.internet.status = navigator.onLine ? "ok" : "error";
 
       // 2. Check Backend
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        const response = await fetch("https://tokencafe-api.onrender.com/health", {
-          method: "HEAD",
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        results.backend.status = response.ok ? "ok" : "error";
-      } catch (e) {
-        results.backend.status = "error";
-      }
+      const isBackendOk = await checkConnectivity(false);
+      results.backend.status = isBackendOk ? "ok" : "error";
 
       // 3. Check Blockchain
       if (window.ethereum) {

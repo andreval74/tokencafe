@@ -28,7 +28,8 @@
   var pageHost = String(window.location.hostname || "");
   var isHttps = pageProto === "https:";
   var isLocalHost = pageHost === "localhost" || pageHost === "127.0.0.1";
-  var prodDefault = "https://xcafe-token-api-hybrid.onrender.com";
+  // Alterado para localhost por padrão devido a instabilidade do Render
+  var prodDefault = "http://localhost:3000";
 
   // Senior Fix: Prevent Mixed Content on Localhost
   // If we are running locally (HTTP), we can call HTTPS APIs (CORS might apply).
@@ -38,7 +39,7 @@
   // Logic: 
   // 1. Override (query param) has highest priority.
   // 2. Existing window/localStorage config has next priority.
-  // 3. Fallback: If HTTPS page -> Prod. If HTTP page -> Try Prod (HTTPS) or Localhost.
+  // 3. Fallback: Localhost is now default.
   
   var chosen = (isUrl(override) ? override : null) || existing || stored || prodDefault;
   try {

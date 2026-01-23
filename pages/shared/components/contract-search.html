@@ -123,37 +123,4 @@
       </div>
     </div>
   </div>
-<script>
-(function () {
-try {
-  // Configuração global da API base
-  if (!window.TOKENCAFE_API_BASE) {
-    var origin = window.location.origin || "";
-    // Se estiver rodando localmente (file:// ou localhost/127.0.0.1) mas porta diferente de 3000
-    // assume-se que o backend está na porta padrão 3000 (ambiente dev/híbrido)
-    if (origin.startsWith("file://") || ((origin.includes("localhost") || origin.includes("127.0.0.1")) && !origin.includes(":3000"))) {
-      window.TOKENCAFE_API_BASE = "http://localhost:3000";
-    } else if (origin && origin !== "null" && origin !== "file://") {
-      window.TOKENCAFE_API_BASE = origin;
-    } else {
-      // Fallback final
-      window.TOKENCAFE_API_BASE = "http://localhost:3000";
-    }
-    console.log("[ContractSearch] API Base configurada:", window.TOKENCAFE_API_BASE);
-  }
-} catch (e) {}
-})();
-</script>
-<style>
-/* Override para garantir visibilidade se o tema for escuro/claro conflitante */
-.text-tokencafe {
-  color: #fd7e14 !important; /* Orange fallback */
-}
-[data-bs-theme="dark"] .text-body {
-  color: #dee2e6 !important;
-}
-[data-bs-theme="light"] .text-body {
-  color: #212529 !important;
-}
-</style>
 <script type="module" src="/js/shared/contract-search.js"></script>

@@ -54,6 +54,7 @@ import { getExplorerContractUrl, getExplorerTxUrl, getExplorerVerificationUrl } 
 import { getApiBase as getApiBaseShared, runVerifyDirect as runVerifyDirectShared, getVerificationStatus } from "../../shared/verify-utils.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
+import { checkConnectivity } from "../../shared/components/api-status.js";
 
 const RESERVED_KEYWORDS = [
   "abstract", "after", "alias", "apply", "auto", "case", "catch", "copyof", "default", "define", "final", 
@@ -109,6 +110,28 @@ export const state = {
   },
 };
 
+export function getSerializableState() {
+  const replacer = (key, value) =>
+    typeof value === 'bigint' ? value.toString() : value;
+
+  try {
+    const cleanState = {
+        form: state.form,
+        compilation: state.compilation,
+        deployed: state.deployed,
+        wallet: {
+            address: state.wallet.address,
+            chainId: state.wallet.chainId
+        },
+        validated: state.validated
+    };
+    return JSON.parse(JSON.stringify(cleanState, replacer));
+  } catch (e) {
+    console.error("Erro ao serializar estado:", e);
+    return null;
+  }
+}
+
 function log(msg) {
   try {
     const line = `[${new Date().toISOString()}] ${msg}`;
@@ -118,16 +141,8 @@ function log(msg) {
 
 // Informações dos grupos de contrato e compatibilidade
 export const CONTRACT_GROUPS = {
-  "erc20-advanced": {
-    title: "ERC20-Advanced",
-    summary: "Token avançado com taxas, proteções e swap integrado.",
-    features: ["Taxas (Liquidez, Mkt, Burn)", "Anti-Bot", "Limites (Max Wallet/Tx)", "Swap Automático"],
-    saleIntegration: false,
-    order: ["Token Avançado"],
-    notes: "Ideal para projetos DeFi completos. Configurável via interface dedicada.",
-  },
   "erc20-minimal": {
-    title: "ERC20-Minimal",
+    title: "ERC20-Padrão",
     summary: "Token ERC20 básico com mint inicial e sem controles extras.",
     features: ["Transferências padrão", "Supply inicial mintado ao deployer"],
     saleIntegration: false,
@@ -135,28 +150,28 @@ export const CONTRACT_GROUPS = {
     notes: "Ideal para começar simples. Complementos podem ser adicionados em versões upgradeáveis.",
   },
   "erc20-controls": {
-    title: "ERC20-Controls",
+    title: "ERC20-Gerenciável",
     summary: "Token ERC20 com controles (pausable, blacklist/whitelist dependendo da configuração).",
     features: ["Pausar transferências", "Controles de acesso"],
     saleIntegration: false,
     order: ["Token"],
     notes: "Exige entendimento de funções administrativas. Bom para governança mínima.",
   },
+  "erc20-advanced": {
+    title: "ERC20-Avançado",
+    summary: "Token avançado com taxas, proteções e swap integrado.",
+    features: ["Taxas (Liquidez, Mkt, Burn)", "Anti-Bot", "Limites (Max Wallet/Tx)", "Swap Automático"],
+    saleIntegration: false,
+    order: ["Token Avançado"],
+    notes: "Ideal para projetos DeFi completos. Configurável via interface dedicada.",
+  },
   "erc20-directsale": {
-    title: "ERC20-DirectSale",
+    title: "ERC20-Venda / ICO",
     summary: "Token com venda direta embutida (compra em moeda nativa, parâmetros decimais).",
     features: ["Preço por token", "Compra mínima/máxima", "Recebimento em carteira definida"],
     saleIntegration: true,
     order: ["Token", "Venda"],
     notes: "Fluxo sequencial: primeiro token, depois venda direta. Valores aceitam decimais.",
-  },
-  "upgradeable-uups": {
-    title: "Upgradeable-UUPS (OmniToken)",
-    summary: "Token upgradeável via UUPS, permitindo evolução e módulos futuros.",
-    features: ["Proxy UUPS", "Atualizações seguras", "Pode integrar venda"],
-    saleIntegration: true,
-    order: ["Proxy", "Implantação lógica", "Venda (opcional)"],
-    notes: "Base + complementos em ordem definida. Complementos dependem do estado atual do proxy.",
   },
   "tokensale-separado": {
     title: "TokenSale-Separado",
@@ -166,6 +181,14 @@ export const CONTRACT_GROUPS = {
     useExistingToken: true,
     order: ["Token existente", "Venda"],
     notes: "Requer endereço do token existente. Se não houver, este grupo não é aplicável.",
+  },
+  "upgradeable-uups": {
+    title: "Upgradeable-UUPS (OmniToken)",
+    summary: "Token upgradeável via UUPS, permitindo evolução e módulos futuros.",
+    features: ["Proxy UUPS", "Atualizações seguras", "Pode integrar venda"],
+    saleIntegration: true,
+    order: ["Proxy", "Implantação lógica", "Venda (opcional)"],
+    notes: "Base + complementos em ordem definida. Complementos dependem do estado atual do proxy.",
   },
 };
 
@@ -203,6 +226,7 @@ export function updateContractInfo() {
   const saleBadge = info.saleIntegration ? '<span class="badge bg-info ms-1">Inclui venda</span>' : '<span class="badge bg-secondary ms-1">Sem venda</span>';
   box.innerHTML = `
     <div class="alert alert-dark border p-3">
+      <h6 class="border-bottom border-secondary pb-2 mb-2">Resumo do Contrato</h6>
       <div class="d-flex align-items-center mb-1">
         <strong class="small">${info.title}</strong>
         ${saleBadge}
@@ -614,106 +638,115 @@ function setApiBase(newBase) {
 }
 
 async function checkApiConnectivity(apiBase) {
-  const url = `${apiBase}/health`;
-  const start = Date.now();
+  // Pass showOnCheck=false to keep hidden on success/failure unless explicit
+  // Pass apiBase to verify specific candidate
+  return await checkConnectivity(false, apiBase);
+}
 
-  // UI Elements
-  const container = document.getElementById("apiStatusContainer");
-  const badge = document.getElementById("apiStatusBadge");
-  const help = document.getElementById("apiErrorHelp");
+function showConnectionDiagnosis(attempts) {
+    const list = attempts.map(a => `<li class="mb-2 p-2 border rounded bg-white"><div class="d-flex justify-content-between align-items-center"><span class="badge bg-secondary">${a.label}</span></div><small class="text-muted d-block mt-1 text-break">${a.url}</small><small class="text-danger d-block mt-1"><i class="bi bi-x-circle"></i> ${a.status}</small></li>`).join("");
+    
+    const content = `
+        <div class="text-start">
+            <p class="mb-3">O sistema tentou conectar a todos os servidores conhecidos, mas não obteve resposta.</p>
+            <ul class="list-unstyled bg-light p-3 rounded border mb-3" style="max-height: 200px; overflow-y: auto;">${list}</ul>
+            <p class="mb-2 fw-bold"><i class="bi bi-question-circle"></i> Possíveis causas:</p>
+            <ul class="small text-muted mb-3">
+                <li>Backend local desligado (se usando localhost).</li>
+                <li>Bloqueio de rede ou CORS (se usando arquivo local).</li>
+                <li>Servidores de produção em modo 'sleep' (Render Free Tier).</li>
+            </ul>
+            <div class="d-grid gap-2">
+                 <a href="https://tokencafe-api.onrender.com/health" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-box-arrow-up-right"></i> Testar API Legacy
+                 </a>
+                 <a href="https://xcafe-token-api-hybrid.onrender.com/health" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-box-arrow-up-right"></i> Testar API Hybrid
+                 </a>
+            </div>
+        </div>
+    `;
 
-  if (badge) {
-    badge.className = "badge bg-warning me-2";
-    badge.textContent = "Conectando...";
-  }
-  if (help) help.classList.add("d-none");
-  // Mantém container oculto durante verificação inicial para não "piscar"
-  // if (container) container.classList.add("d-none"); 
-
-  try {
-    const controller = new AbortController();
-    // Aumentado para 60s para permitir wake-up do Render (free tier)
-    const t = setTimeout(() => controller.abort(), 60000);
-    const resp = await fetch(url, { method: "GET", signal: controller.signal });
-    clearTimeout(t);
-    const ms = Date.now() - start;
-    if (resp.ok) {
-      let info = "";
-      try {
-        const txt = await resp.text();
-        info = txt ? ` | Body: ${txt.slice(0, 120)}...` : "";
-      } catch (_) {}
-      log(`Conectividade OK: GET /health (${resp.status}) em ${ms}ms${info}`);
-
-      if (badge) {
-        badge.className = "badge bg-success me-2";
-        badge.textContent = "API Online";
-      }
-      // SE SUCESSO: Mantém ESCONDIDO do usuário
-      if (container) container.classList.add("d-none");
-      
-      return true;
+    if (window.SystemResponse) {
+        new window.SystemResponse().show({
+            type: "error",
+            title: "Sem Conexão com API",
+            subtitle: "Todos os servidores falharam",
+            htmlContent: content
+        });
     } else {
-      log(`Conectividade falhou: GET /health retornou ${resp.status} em ${ms}ms`);
-      if (badge) {
-        badge.className = "badge bg-danger me-2";
-        badge.textContent = `Erro ${resp.status}`;
-      }
-      if (help) help.classList.remove("d-none");
-      // SE FALHA: Mantém ESCONDIDO (silencioso) conforme solicitado
-      if (container) container.classList.add("d-none");
-      return false;
+        alert("Erro Crítico: Nenhum servidor de API disponível.\n\nVerifique sua conexão ou se o backend está rodando.");
     }
-  } catch (err) {
-    const ms = Date.now() - start;
-    const msg = err?.message || String(err);
-    log(`Conectividade falhou: GET /health erro (${msg}) em ${ms}ms`);
-
-    if (badge) {
-      badge.className = "badge bg-danger me-2";
-      badge.textContent = "API Offline";
-    }
-    if (help) help.classList.remove("d-none");
-    // SE ERRO: Mantém ESCONDIDO (silencioso) conforme solicitado
-    if (container) container.classList.add("d-none");
-
-    if (msg.includes("Failed to fetch") || msg.includes("abort")) {
-      const pageProto = window.location.protocol;
-      const apiProto = (() => {
-        try {
-          return new URL(apiBase).protocol;
-        } catch {
-          return "unknown:";
+    
+    try {
+        const help = document.getElementById("apiErrorHelp");
+        if (help) {
+             help.innerHTML = `<strong>Falha Geral:</strong> <br> <small>Nenhum servidor respondeu. Veja o popup para detalhes.</small>`;
+             help.classList.remove("d-none");
         }
-      })();
-      log(`Dica: verifique CORS, mixed content e se o servidor (Render) está acordando. Página: ${pageProto}, API: ${apiProto}, online=${navigator.onLine}`);
-    }
-    return false;
-  }
+    } catch (_) {}
 }
 
 export async function ensureServersOnline() {
   let base = getApiBase();
   log(`Verificando status dos servidores de API em ${base}...`);
-  const okMain = await checkApiConnectivity(base);
-  if (okMain) {
+  
+  const attempts = [];
+  
+  const tryConnect = async (url, label) => {
+      // Pass explicit false for showOnCheck, and url as overrideBaseUrl
+      const ok = await checkApiConnectivity(false, url);
+      if (ok) {
+          return true;
+      }
+      attempts.push({ label, url, status: "Falha ao conectar (Timeout ou Erro)" });
+      return false;
+  };
+
+  // 1. Tentar base configurada
+  if (await tryConnect(base, "Base Configurada")) {
     await checkApiEndpoints(base);
     return true;
   }
-  log("Aviso: Conectividade com API principal falhou. Tentando servidor local...");
+
+  // 2. Tentar Localhost
   const local = "http://localhost:3000";
-  const okLocal = await checkApiConnectivity(local);
-  if (okLocal) {
-    setApiBase(local);
-    await checkApiEndpoints(local);
-    log("Conectado ao servidor local (localhost:3000).");
-    return true;
+  if (base !== local) {
+    log("Aviso: Conectividade com API principal falhou. Tentando servidor local...");
+    if (await tryConnect(local, "Localhost (Dev)")) {
+      setApiBase(local);
+      await checkApiEndpoints(local);
+      log("Conectado ao servidor local (localhost:3000).");
+      return true;
+    }
   }
+  
+  // 3. Tentar Produção (Hybrid)
+  const prod1 = "https://xcafe-token-api-hybrid.onrender.com";
+  if (base !== prod1) {
+    log("Aviso: Conectividade com API local falhou. Tentando servidor de produção (Hybrid)...");
+    if (await tryConnect(prod1, "Produção (Hybrid)")) {
+      setApiBase(prod1);
+      await checkApiEndpoints(prod1);
+      log(`Conectado ao servidor de produção (${prod1}).`);
+      return true;
+    }
+  }
+
+  // 4. Tentar Produção (Legacy)
+  const prod2 = "https://tokencafe-api.onrender.com";
+  if (base !== prod2) {
+    log("Aviso: Conectividade com API Hybrid falhou. Tentando servidor de produção (Legacy)...");
+    if (await tryConnect(prod2, "Produção (Legacy)")) {
+      setApiBase(prod2);
+      await checkApiEndpoints(prod2);
+      log(`Conectado ao servidor de produção (${prod2}).`);
+      return true;
+    }
+  }
+
   log("Erro: nenhum servidor de API está acessível. Verifique se o backend está rodando.");
-  try {
-    const help = document.getElementById("apiErrorHelp");
-    if (help) help.classList.remove("d-none");
-  } catch (_) {}
+  showConnectionDiagnosis(attempts);
   return false;
 }
 
@@ -1043,7 +1076,12 @@ export async function compileContract() {
     return;
   }
   
-  await ensureServersOnline();
+  const serverOk = await ensureServersOnline();
+  if (!serverOk) {
+      log("Erro: Não foi possível conectar a nenhum servidor de API (Local ou Produção).");
+      // alert("Erro de Conexão: O sistema não conseguiu contactar o servidor de compilação.\n\nVerifique sua internet ou se o backend local está rodando.");
+      return false;
+  }
   let base = getApiBase();
 
   try {
@@ -1113,6 +1151,34 @@ export async function compileContract() {
       sourceCode,
       contractName: token?.contractName || token?.name?.replace(/\s+/g, "") || "MyToken",
     };
+
+    // Generate Standard JSON Input for Verification/Download
+    try {
+        const filename = `${state.compilation.contractName}.sol`;
+        const stdInput = {
+            language: "Solidity",
+            sources: {
+                [filename]: {
+                    content: sourceCode
+                }
+            },
+            settings: {
+                optimizer: {
+                    enabled: true,
+                    runs: 200
+                },
+                outputSelection: {
+                    "*": {
+                        "*": ["*"]
+                    }
+                }
+            }
+        };
+        state.compilation.input = JSON.stringify(stdInput);
+    } catch (e) {
+        console.warn("Failed to generate Standard JSON Input:", e);
+    }
+
     log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
 
     {
@@ -1126,6 +1192,7 @@ export async function compileContract() {
       const c = document.getElementById("btnCompile");
       if (c) c.disabled = true;
     } catch (_) {}
+    return true;
   } catch (err) {
     const msg = err?.message || String(err);
     if (err instanceof TypeError && msg.includes("Failed to fetch")) {
@@ -1963,6 +2030,19 @@ export async function deployContract() {
       log(`Falha ao ler funções ERC-20: ${readErr?.message || readErr}`);
       updateERC20Details(null, null, null, null, "Falha ao ler ERC-20", true);
     }
+
+    // Redirecionamento para a página de detalhes unificada
+    try {
+        log("Redirecionando para detalhes do contrato...");
+        sessionStorage.setItem("lastDeployedContract", JSON.stringify(state));
+        // Pequeno delay para garantir que logs sejam vistos ou processos finalizados
+        setTimeout(() => {
+             window.location.href = "contrato-detalhes.html";
+        }, 1500);
+    } catch (e) {
+        console.error("Erro ao redirecionar:", e);
+    }
+
     return true;
   } catch (err) {
     log(`Erro no deploy via MetaMask: ${err?.message || err}`);
@@ -2544,7 +2624,20 @@ async function bindUI() {
               btn.classList.add("btn-success");
           }
           stopOpStatus("Concluído");
+          // Salvar estado
+          try {
+              const safeState = getSerializableState();
+              if (safeState) {
+                  sessionStorage.setItem("lastDeployedContract", JSON.stringify(safeState));
+              }
+              // REDIRECT REMOVIDO: Fluxo agora é Single Page
+              // window.location.href = "contrato-detalhes.html";
+          } catch (e) {
+              console.error("Erro ao salvar estado:", e);
+          }
+
           // Dispara evento para atualizar a UI em outros módulos
+          // IMPORTANTE: Disparar DEPOIS de salvar no storage para que contrato-results.js possa ler os dados completos
           document.dispatchEvent(new CustomEvent("contract:deployed", { detail: state.deployed }));
         } catch (_) {}
       } catch (e) {
@@ -3752,5 +3845,15 @@ async function runVerifyDirect(p) {
   } catch (e) {
     log(`Erro na verificação: ${e?.message || e}`);
     return { success: false, error: e.message };
+  }
+}
+
+export async function verifyCurrentContract() {
+  const payload = buildVerifyPayloadFromState();
+  if (payload) {
+      return await runVerifyDirect(payload);
+  } else {
+      log("Dados insuficientes para verificação (endereço ou chainId ausentes).");
+      return { success: false, error: "Dados insuficientes" };
   }
 }

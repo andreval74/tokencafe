@@ -294,9 +294,41 @@ div[style*="gradient"] {
   margin-top: 0.5rem;
 }
 
+/* Estilos específicos para seleção de cards */
 .contract-card {
-  transition: all 0.2s ease;
-  border-width: 2px;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative; /* Para posicionamento absoluto do check */
+}
+
+.contract-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.contract-card.selected {
+  border: 2px solid #198754 !important; /* Borda Verde (Success) */
+  background-color: rgba(25, 135, 84, 0.1) !important; /* Fundo levemente verde */
+  box-shadow: 0 0 15px rgba(25, 135, 84, 0.2);
+}
+
+.contract-card .check-indicator {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  z-index: 10;
+}
+
+.contract-card.selected .check-indicator {
+  display: block;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .contract-card:hover {
@@ -1843,6 +1875,24 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
 .widget-demo-logo:hover {
   transform: scale(1.05);
   filter: drop-shadow(0 6px 12px rgba(248, 93, 35, 0.4));
+}
+
+/* ============================================================================
+   CONTRACT SEARCH COMPONENT STYLES
+   ============================================================================ */
+
+/* Moved from contract-search.html */
+.text-tokencafe {
+  color: var(--tokencafe-primary) !important;
+}
+
+/* Ensure text visibility in mixed theme contexts */
+[data-bs-theme="dark"] .text-body {
+  color: var(--tokencafe-text-secondary) !important;
+}
+
+[data-bs-theme="light"] .text-body {
+  color: var(--tokencafe-light-text-secondary) !important;
 }
 
 /* Widget Container */

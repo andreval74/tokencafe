@@ -1,5 +1,6 @@
 import { getExplorerContractUrl } from "./explorer-utils.js";
 import { completePayload, runVerifyDirect, getApiBase, getVerifyApiKey, getVerificationStatus } from "../../shared/verify-utils.js";
+import { checkConnectivity } from "../../shared/components/api-status.js";
 
 const statusEl = document.getElementById("verifyStatus");
 const runBtn = document.getElementById("runVerify");
@@ -168,62 +169,55 @@ const btnText = document.getElementById("verifyBtnText");
 async function ensureApiBase() {
   try {
     const el = document.getElementById("apiHelp");
-    let base = window.TOKENCAFE_API_BASE || window.localStorage?.getItem("api_base") || null;
+    const btn = document.getElementById("apiFixBtn");
     const siteHost = String(window.location.hostname || "");
     const isLocalSite = siteHost === "localhost" || siteHost === "127.0.0.1";
+    const prodBase = "https://tokencafe-api.onrender.com";
+    
+    // 1. Setup UI elements
+    let currentBase = window.TOKENCAFE_API_BASE || window.localStorage?.getItem("api_base") || null;
     let baseHost = null;
-    try {
-      if (base) baseHost = new URL(base).hostname;
-    } catch (_) {}
-    const sameHost = !!baseHost && baseHost === siteHost;
-    if (sameHost) {
-      if (el) el.classList.remove("d-none");
+    try { if (currentBase) baseHost = new URL(currentBase).hostname; } catch (_) {}
+    
+    if (!!baseHost && baseHost === siteHost && el) {
+       el.classList.remove("d-none");
     }
-    const btn = document.getElementById("apiFixBtn");
-    if (btn)
-      btn.onclick = function () {
-        try {
-          window.localStorage && window.localStorage.setItem("api_base", "https://tokencafe-api.onrender.com");
-        } catch (_) {}
-        window.location.reload();
-      };
-    const candidate = base || (isLocalSite ? "http://localhost:3000" : null) || "http://localhost:3000";
-    const isRemoteCandidate = /tokencafe-api\.onrender\.com/.test(String(candidate));
-    const ok = await (async () => {
-      if (isRemoteCandidate) return false;
-      try {
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 1000);
-        const r = await fetch(`${candidate}/health`, { method: "GET", signal: ctrl.signal });
-        clearTimeout(t);
-        return r && r.ok;
-      } catch (_) {
-        return false;
-      }
-    })();
-    if (!ok) {
-      if (isLocalSite) {
+
+    if (btn) {
+        btn.onclick = function () {
+            try { window.localStorage && window.localStorage.setItem("api_base", prodBase); } catch (_) {}
+            window.location.reload();
+        };
+    }
+
+    // 2. Smart Check Logic using centralized checkConnectivity
+    // Se estiver em localhost, tenta local:3000 primeiro
+    if (isLocalSite) {
         const localBase = "http://localhost:3000";
-        try {
-          const ctrl = new AbortController();
-          const t = setTimeout(() => ctrl.abort(), 800);
-          const r = await fetch(`${localBase}/health`, { method: "GET", signal: ctrl.signal });
-          clearTimeout(t);
-          if (r && r.ok) {
-            base = localBase;
-            window.localStorage && window.localStorage.setItem("api_base", base);
-            console.warn("[verifica]", "API_BASE ajustado automaticamente para", base);
+        const localOk = await checkConnectivity(false, localBase);
+        if (localOk) {
+            if (currentBase !== localBase) {
+                 console.warn("[verifica] Auto-switching API to localhost");
+                 window.localStorage && window.localStorage.setItem("api_base", localBase);
+            }
             return;
-          }
-        } catch (_) {}
-      }
-      base = "https://tokencafe-api.onrender.com";
-      try {
-        window.localStorage && window.localStorage.setItem("api_base", base);
-        console.warn("[verifica]", "API_BASE ajustado automaticamente para", base);
-      } catch (_) {}
+        }
     }
-  } catch (_) {}
+
+    // Se não é local ou local falhou, verifica se o atual está online (ou fallback para prod)
+    if (currentBase !== prodBase) {
+        // Se o atual não é prod, verifica se está vivo. Se não, força prod.
+        const currentOk = await checkConnectivity(false, currentBase);
+        if (!currentOk) {
+             console.warn("[verifica] API atual offline, fallback para produção");
+             window.localStorage && window.localStorage.setItem("api_base", prodBase);
+        }
+    }
+    // Se já é prod, assumimos que está ok ou o usuário deve esperar o wake-up (gerenciado pelo ApiStatusComponent na UI)
+
+  } catch (e) {
+      console.error("[verifica] ensureApiBase error", e);
+  }
 }
 
 function logStatus(msg) {

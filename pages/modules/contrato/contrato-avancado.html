@@ -27,46 +27,17 @@
     data-subtitle="Crie tokens avançados com controle total, taxas e segurança."></div>
 
   <div class="container">
-    <div id="apiStatusContainer" class="mb-3 d-none">
-      <div class="d-flex align-items-center justify-content-between p-2 rounded bg-dark-elevated">
-        <div>
-          <span class="badge bg-secondary me-2" id="apiStatusBadge">Verificando API...</span>
-          <small class="text-muted" id="apiBaseDisplay">Detectando...</small>
-        </div>
-        <button id="btnReloadApiStatus" type="button" class="btn btn-sm btn-outline-light">Recarregar</button>
-      </div>
-      <div id="apiErrorHelp" class="d-none mt-2 alert alert-warning small">
-        <strong>API Offline?</strong>
-        <ul class="mb-0 ps-3">
-          <li>Verifique se o servidor backend está rodando (`npm run dev` na raiz).</li>
-          <li>Verifique se a porta 3000 está livre.</li>
-          <li>Se estiver no Render, aguarde o wake-up (pode levar 1 min).</li>
-        </ul>
-      </div>
-    </div>
+    <!-- API Status (Unified Component Mount) -->
+      <div data-component="shared/components/api-status.html"></div>
 
     <div class="p-0">
 
-      <ul class="nav nav-tabs mb-4 border-0 d-none" id="generatorTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="config-tab" data-bs-toggle="tab" data-bs-target="#config" type="button"
-            role="tab" aria-controls="config" aria-selected="true">
-            <i class="bi bi-gear-wide-connected me-2"></i>Configuração
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link disabled" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary"
-            type="button" role="tab" aria-controls="summary" aria-selected="false" disabled>
-            <i class="bi bi-rocket-takeoff me-2"></i>Deploy
-          </button>
-        </li>
-      </ul>
+      <!-- Contract Summary Title (Unified) -->
+      <div id="contractGroupInfo" class="mb-4"></div>
 
       <form id="advancedGeneratorForm" novalidate>
-        <div class="tab-content p-0" id="generatorTabsContent">
-
-          <!-- TAB 1: CONFIGURAÇÃO UNIFICADA -->
-          <div class="tab-pane fade show active" id="config" role="tabpanel">
+        <!-- CONFIGURAÇÃO UNIFICADA -->
+        <div id="config">
 
             <!-- SECTION: GERAL -->
             <div class="col-md-06">
@@ -448,156 +419,30 @@
               </div>
             </div>
 
-            <!-- Botão Próximo no final da Configuração -->
-            <div class="mt-5 d-flex justify-content-end">
-              <button type="button" class="btn btn-primary px-5 py-2" data-go-to-tab="summary">
-                Avançar para Revisão <i class="bi bi-arrow-right ms-2"></i>
+            <!-- Botão Próximo Removido -->
+            
+            <!-- UNIFIED DEPLOY SECTION (Moved from Tab 2) -->
+            <div id="deploy-actions-container" class="mt-5">
+              
+              <!-- Main Deploy Button (Full Width) -->
+              <button id="btnCreateToken" type="button" class="btn btn-success btn-lg w-100 py-3 mb-4">
+                <i class="bi bi-rocket-takeoff me-2"></i> GERAR CONTRATO
               </button>
-            </div>
-          </div>
 
-          <!-- TAB 2: RESUMO / DEPLOY -->
-          <div class="tab-pane fade" id="summary" role="tabpanel">
-
-              <!-- Título da Seção -->
-              <div class="mb-4">
-                <div data-component="shared/components/section-title.html" data-st-icon="bi-file-earmark-text"
-                  data-st-title="Resumo e Geração" data-st-subtitle="Revise os dados e gere seu contrato inteligente">
+              <!-- Deploy Progress -->
+              <div id="deployStatusContainer" class="d-none mt-3 mb-4">
+                <div class="alert alert-info bg-dark border-info text-info d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-3" role="status" aria-hidden="true"></div>
+                    <span id="contractStatus">Processando...</span>
                 </div>
               </div>
 
-              <!-- UNIFIED SUMMARY CARD -->
-              <div class="border rounded p-3 bg-dark-elevated mb-4" id="unified-summary-card">
-                  <!-- PART 1: PRE-DEPLOY DATA (From Inputs) -->
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Nome do Token</small>
-                      <span id="sumTokenName" class="text-white fw-bold fs-5">-</span>
-                    </div>
-                    <div class="col-md-6">
-                      <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Símbolo</small>
-                      <span id="sumTokenSymbol" class="text-warning fw-bold fs-5">-</span>
-                    </div>
-                    <div class="col-md-4">
-                      <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Supply Inicial</small>
-                      <span id="sumInitialSupply" class="text-white font-monospace">-</span>
-                    </div>
-                    <div class="col-md-4">
-                      <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Decimais</small>
-                      <span id="sumTokenDecimals" class="text-white font-monospace">-</span>
-                    </div>
-                    <div class="col-md-4">
-                      <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Rede</small>
-                      <span id="sumNetworkName" class="text-info">-</span>
-                    </div>
-                  </div>
-                  
-                  <!-- Resources List (Initially Hidden) -->
-                  <div id="contract-resources-display" class="mt-3 d-none">
-                      <hr class="border-secondary opacity-25">
-                      <small class="text-muted d-block text-uppercase mb-2" style="font-size: 0.7rem;">Recursos Ativos</small>
-                      <div class="row g-2" id="resources-list"></div>
-                  </div>
-
-                  <hr class="border-secondary my-4">
-
-                  <!-- PART 2: DEPLOY STATUS (The "Completing" Part) -->
-                  <div class="row g-3">
-                      <div class="col-12">
-                          <label class="form-label text-secondary small text-uppercase fw-bold">Status</label>
-                          <div id="deploy-status-indicator" class="d-flex align-items-center">
-                             <span class="badge bg-secondary me-2">Pendente</span>
-                             <small class="text-muted">Aguardando geração do contrato...</small>
-                          </div>
-                      </div>
-
-                      <div class="col-md-12">
-                        <label class="form-label text-secondary small text-uppercase fw-bold">Endereço do Contrato</label>
-                        <div class="d-flex align-items-center">
-                          <a id="erc20AddressLink" href="#" target="_blank"
-                            class="text-decoration-none text-break font-monospace fs-6 me-2 text-muted pointer-events-none">
-                            -
-                          </a>
-                          <button id="btnCopyContractAddress" class="btn btn-sm btn-link text-secondary p-0 d-none" type="button"
-                            title="Copiar Endereço">
-                            <i class="bi bi-clipboard"></i>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div class="col-md-12">
-                        <label class="form-label text-secondary small text-uppercase fw-bold">Transação</label>
-                        <div class="d-flex align-items-center">
-                          <a id="erc20TxLink" href="#" target="_blank"
-                            class="text-decoration-none text-break font-monospace fs-6 me-2 text-muted pointer-events-none">
-                            -
-                          </a>
-                          <button id="btnCopyContractTx" class="btn btn-sm btn-link text-secondary p-0 d-none" type="button"
-                            title="Copiar Hash">
-                            <i class="bi bi-clipboard"></i>
-                          </button>
-                        </div>
-                      </div>
-                  </div>
-              </div>
-
-              <!-- ACTIONS & NEXT STEPS -->
-              <div id="deploy-actions-container">
-                  <!-- Pre-Deploy Buttons -->
-                  <div id="pre-deploy-actions" class="d-flex justify-content-between align-items-center mt-4">
-                      <button type="button" class="btn btn-outline-secondary px-4" data-go-to-tab="config">
-                        <i class="bi bi-arrow-left me-2"></i> Voltar
-                      </button>
-                      <button id="btnCreateToken" class="btn btn-success btn-lg px-5">
-                        <i class="bi bi-rocket-takeoff me-2"></i> GERAR CONTRATO
-                      </button>
-                  </div>
-
-                  <!-- Deploy Progress -->
-                  <div id="deployStatusContainer" class="d-none mt-3">
-                    <div class="alert alert-info bg-dark border-info text-info d-flex align-items-center">
-                        <div class="spinner-border spinner-border-sm me-3" role="status" aria-hidden="true"></div>
-                        <span id="contractStatus">Processando...</span>
-                    </div>
-                  </div>
-
-                  <!-- Post-Deploy Actions (Verify, Share, etc.) -->
-                  <div id="post-deploy-actions" class="d-none mt-4">
-                      <div class="d-grid gap-2 mb-4">
-                        <button id="erc20VerifyLaunch" class="btn btn-outline-warning btn-lg">
-                          <span id="verifySpinner" class="spinner-border spinner-border-sm me-1 d-none"></span>
-                          <i class="bi bi-shield-check me-1"></i>
-                          <span id="verifyBtnText">Verificar Contrato</span>
-                        </button>
-                        <a id="erc20VerifyLink" class="d-none"></a>
-                      </div>
-
-                      <!-- Share Section (Compact) -->
-                      <div class="card bg-dark border-secondary shadow-lg mb-4">
-                        <div class="card-body">
-                            <h6 class="card-title text-muted text-uppercase small mb-3">Compartilhar & Integrar</h6>
-                            <div class="d-flex flex-wrap gap-2 justify-content-center">
-                              <button id="btnShareWhatsAppSmall" class="btn btn-outline-success flex-fill"><i class="bi bi-whatsapp me-2"></i>WhatsApp</button>
-                              <button id="btnShareTelegramSmall" class="btn btn-outline-info flex-fill"><i class="bi bi-telegram me-2"></i>Telegram</button>
-                              <button id="btnAddNetworkSmall" class="btn btn-outline-primary flex-fill"><i class="bi bi-hdd-network me-2"></i>Carteira</button>
-                              <button id="btnAddToMetaMaskSmall" type="button" class="btn btn-outline-warning flex-fill"><i class="bi bi-wallet2 me-2"></i>Add Token</button>
-                            </div>
-                        </div>
-                      </div>
-
-                      <!-- New Contract Button -->
-                      <div class="d-flex justify-content-center">
-                        <button type="button" class="btn btn-outline-light px-5 py-2" onclick="window.location.reload()">
-                          <i class="bi bi-plus-circle me-2"></i> Criar Outro Contrato
-                        </button>
-                      </div>
-                  </div>
-              </div>
-
-              <!-- Hidden containers for compatibility if needed -->
-              <div id="files-section" class="d-none"></div> 
-
+              <!-- UNIFIED SUMMARY CARD (Result) - REMOVED (Redirects to details page) -->
+              
+            </div>
           </div>
+
+          <!-- Tab 2 Removed -->
       </form>
     </div>
 
@@ -605,46 +450,9 @@
     <div id="cleanup-action-container" class="d-flex justify-content-end mb-4"></div>
   </div>
 
-  <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content bg-dark text-light border">
-        <div class="modal-header">
-          <h5 class="modal-title" id="filePreviewLabel">Preview do Arquivo</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <pre id="filePreviewContent" class="small code-display"></pre>
-        </div>
-        <div class="modal-footer">
-          <button id="btnCopyFile" type="button" class="btn btn-outline-info">Copiar</button>
-          <button id="btnSaveFile" type="button" class="btn btn-outline-success">Salvar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="container-fluid">
     <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
       data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Contract Builder padronizado"></div>
-  </div>
-
-  <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content bg-dark text-light border">
-        <div class="modal-header">
-          <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div id="verifyInfoContent" class="small"></div>
-        </div>
-        <div class="modal-footer">
-          <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir página
-            de
-            verificação</a>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="toast-container position-fixed bottom-0 end-0 p-3">

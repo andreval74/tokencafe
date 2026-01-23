@@ -1,3 +1,4 @@
+import { checkConnectivity } from "../../shared/components/api-status.js";
 import { 
     state, 
     readForm, 
@@ -7,7 +8,8 @@ import {
     updateVanityVisibility,
     validateForm,
     deployContract,
-    compileContract
+    compileContract,
+    getSerializableState
 } from "./builder.js";
 import { walletConnector } from "../../shared/wallet-connector.js";
 // import { compileContract } from "./builder.js"; // Import merged above
@@ -46,6 +48,9 @@ class AdvancedTokenPageManager {
         if (groupInput) {
             groupInput.value = "erc20-advanced";
         }
+        
+        // Initial summary update
+        updateContractInfo();
 
         // Inicializa máscaras de input (ex: formatação de números)
         // initSupplyMask é tratado internamente pelo builder.js
@@ -851,10 +856,21 @@ class AdvancedTokenPageManager {
 
             // 6. Deploy
             if (statusText) statusText.textContent = "Solicitando assinatura da transação...";
-            await deployContract(); // This handles the actual deploy via builder.js logic
+            const success = await deployContract(); // This handles the actual deploy via builder.js logic
             
-            // Force update summary to switch view immediately
-            this.updateSummary();
+            if (success) {
+                // Save state to sessionStorage for the details page
+                const safeState = getSerializableState();
+                if (safeState) {
+                    sessionStorage.setItem("lastDeployedContract", JSON.stringify(safeState));
+                    // Redirect to details page
+                    window.location.href = "contrato-detalhes.html";
+                } else {
+                    console.error("Falha ao serializar estado.");
+                    alert("Contrato criado, mas houve erro ao salvar estado. Redirecionando...");
+                    window.location.href = "contrato-detalhes.html";
+                }
+            }
             
         } catch (err) {
             console.error(err);
@@ -965,33 +981,11 @@ class AdvancedTokenPageManager {
 
     /**
      * Verifica disponibilidade da API (Backend).
-     * Reutiliza lógica visual do contrato-index.html.
+     * Reutiliza lógica centralizada do ApiStatusComponent.
      */
     async checkApiStatus() {
-        const container = document.getElementById("apiStatusContainer");
-        const badge = document.getElementById("apiStatusBadge");
-        
-        if (!container || !badge) return;
-
-        // Mostra container
-        container.classList.remove("d-none");
-        
-        try {
-            // Tenta endpoint de health
-            const base = window.TOKENCAFE_API_BASE || "http://localhost:3000";
-            const resp = await fetch(`${base}/health`, { method: 'GET' });
-            
-            if (resp.ok) {
-                badge.className = "badge bg-success me-2";
-                badge.textContent = "API Online";
-                setTimeout(() => container.classList.add("d-none"), 3000); // Esconde após sucesso
-            } else {
-                throw new Error("API Error");
-            }
-        } catch (e) {
-            badge.className = "badge bg-danger me-2";
-            badge.textContent = "API Offline (Modo Local)";
-        }
+        // Exibe durante a checagem
+        await checkConnectivity(true);
     }
 
     /**

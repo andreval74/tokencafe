@@ -24,8 +24,9 @@
   var host = String(window.location.hostname || "");
   var isHttps = proto === "https:";
   var isLocalHost = host === "localhost" || host === "127.0.0.1";
-  var prodDefault = "https://tokencafe-api.onrender.com";
-  var chosen = (isUrl(override) ? override : null) || existing || stored || (isHttps && !isLocalHost ? prodDefault : "http://localhost:3000");
+  // Alterado para localhost por padrão devido a instabilidade do Render
+  var prodDefault = "http://localhost:3000";
+  var chosen = (isUrl(override) ? override : null) || existing || stored || prodDefault;
   try {
     var pageProto = String(window.location.protocol || "");
     var chosenUrl = new URL(chosen);

@@ -723,6 +723,12 @@ class BaseSystem {
         const content = await finalResponse.text();
         element.innerHTML = content;
 
+        // Recursive: Load nested components immediately
+        const nestedComponents = element.querySelectorAll("[data-component]");
+        for (const nested of nestedComponents) {
+            await this.loadComponent(nested);
+        }
+
         // Executar scripts do componente carregado (preserva atributos como type="module")
         const scripts = element.querySelectorAll("script");
         scripts.forEach((script) => {
