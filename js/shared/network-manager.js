@@ -125,30 +125,6 @@ export class NetworkManager {
         explorers: [{ name: "Cronoscan", url: "https://cronoscan.com" }],
         icon: "cronos",
       },
-      {
-        chainId: 97,
-        name: "BNB Smart Chain Testnet",
-        shortName: "t-bsc",
-        nativeCurrency: { name: "BNB", symbol: "tBNB", decimals: 18 },
-        rpc: [
-          "https://bsc-testnet.publicnode.com",
-          "https://data-seed-prebsc-1-s1.binance.org:8545",
-          "https://data-seed-prebsc-2-s1.binance.org:8545",
-          "https://data-seed-prebsc-1-s3.binance.org:8545",
-          "https://rpc.ankr.com/bsc_testnet_chapel"
-        ],
-        explorers: [{ name: "BscScan Testnet", url: "https://testnet.bscscan.com" }],
-        icon: "binancecoin",
-      },
-      {
-        chainId: 11155111,
-        name: "Sepolia",
-        shortName: "sep",
-        nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
-        rpc: ["https://rpc.sepolia.org", "https://rpc.ankr.com/eth_sepolia"],
-        explorers: [{ name: "Etherscan Sepolia", url: "https://sepolia.etherscan.io" }],
-        icon: "ethereum",
-      },
     ];
 
     this.init();
@@ -255,37 +231,14 @@ export class NetworkManager {
    * Carregar redes do arquivo local rpcs.json
    */
   async loadFromLocalRpcs() {
-    const paths = [
-      "/shared/data/rpcs.json", // Padrão servidor web (root relative)
-      "shared/data/rpcs.json", // Relativo simples
-      "../shared/data/rpcs.json", // 1 nível acima
-      "../../shared/data/rpcs.json", // 2 níveis acima
-      "../../../shared/data/rpcs.json", // 3 níveis acima (ex: pages/modules/contrato)
-      "./shared/data/rpcs.json" // Explicitamente corrente
-    ];
-
-    let loaded = false;
-    
-    for (const path of paths) {
-      try {
-        const response = await fetch(path);
-        if (response.ok) {
-          const data = await response.json();
-          const entries = Array.isArray(data?.rpcs) ? data.rpcs : Array.isArray(data) ? data : [];
-          this.processRpcsData(entries);
-          this.log(`📁 Redes carregadas de: ${path}`);
-          loaded = true;
-          break;
-        }
-      } catch (e) {
-        // Silenciosamente tentar o próximo path
-      }
+    const response = await fetch("/shared/data/rpcs.json");
+    if (!response.ok) {
+      throw new Error(`Arquivo local rpcs.json não encontrado: ${response.status}`);
     }
-
-    if (!loaded) {
-       // Não lançar erro fatal para não quebrar a aplicação, apenas logar aviso
-       this.log("⚠️ Não foi possível carregar rpcs.json local. Usando apenas redes populares.", "warn");
-    }
+    const data = await response.json();
+    const entries = Array.isArray(data?.rpcs) ? data.rpcs : Array.isArray(data) ? data : [];
+    this.processRpcsData(entries);
+    this.log(`📁 Redes carregadas do arquivo local rpcs.json`);
   }
 
   /**

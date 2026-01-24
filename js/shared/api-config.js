@@ -1,21 +1,21 @@
 (function () {
-  try {
-    // Configuração global da API base
-    // Se já estiver definido (ex: via config anterior), não sobrescreve
-    if (typeof window.TOKENCAFE_API_BASE === 'undefined') {
-      var protocol = window.location.protocol;
-      var hostname = window.location.hostname;
-      var port = window.location.port;
-
-      // FORCE RENDER URL AS DEFAULT
-      // User request: "sempre ser executada pelo RENDER e não pelo localhost"
-      window.TOKENCAFE_API_BASE = "https://xcafe-token-api-hybrid.onrender.com";
-      
-      console.log("[API Config] Base configurada (FORCE RENDER):", window.TOKENCAFE_API_BASE);
+try {
+  // Configuração global da API base
+  if (!window.TOKENCAFE_API_BASE) {
+    var origin = window.location.origin || "";
+    // Se estiver rodando localmente (file:// ou localhost/127.0.0.1) mas porta diferente de 3000
+    // assume-se que o backend está na porta padrão 3000 (ambiente dev/híbrido)
+    if (origin.startsWith("file://") || ((origin.includes("localhost") || origin.includes("127.0.0.1")) && !origin.includes(":3000"))) {
+      window.TOKENCAFE_API_BASE = "http://localhost:3000";
+    } else if (origin && origin !== "null" && origin !== "file://") {
+      window.TOKENCAFE_API_BASE = origin;
+    } else {
+      // Fallback final
+      window.TOKENCAFE_API_BASE = "http://localhost:3000";
     }
-  } catch (e) {
-    console.error("[API Config] Erro ao configurar base API:", e);
-    // Fallback para Render
-    window.TOKENCAFE_API_BASE = "https://xcafe-token-api-hybrid.onrender.com";
+    console.log("[API Config] Base configurada:", window.TOKENCAFE_API_BASE);
   }
+} catch (e) {
+  console.error("[API Config] Erro ao configurar base API:", e);
+}
 })();

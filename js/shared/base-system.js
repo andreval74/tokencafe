@@ -161,19 +161,6 @@ class BaseSystem {
       }
     };
 
-    // Global System Reset Function
-    window.resetSystem = () => {
-      if (confirm("Isso limpará todos os caches locais e recarregará o sistema. Continuar?")) {
-        console.log("🧹 Resetando sistema...");
-        const version = localStorage.getItem("tokencafe_app_version");
-        localStorage.clear();
-        sessionStorage.clear();
-        // Preservar versão para evitar loop de update desnecessário
-        if (version) localStorage.setItem("tokencafe_app_version", version);
-        window.location.reload(true);
-      }
-    };
-
     // Global copyToClipboard
     window.copyToClipboard = async (text) => {
       if (!text) return;

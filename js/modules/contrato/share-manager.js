@@ -4,10 +4,10 @@ import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
 export class ShareManager {
     constructor(config) {
         this.config = config; // { address, chainId, name, symbol, decimals, rpc, explorer }
-        console.log("ShareManager initialized with config:", config);
     }
 
     getShareLink() {
+        const sharePath = "/pages/modules/link/link-token.html";
         const params = new URLSearchParams({
             address: this.config.address || "",
             chainId: String(this.config.chainId || 1),
@@ -18,56 +18,19 @@ export class ShareManager {
             rpc: this.config.rpc || "",
             explorer: this.config.explorer || ""
         });
-
-        // Determine correct base path
-        let shareUrl;
-        
-        // Handle file:// protocol or non-root server paths
-        if (window.location.protocol === 'file:') {
-            // Attempt to resolve relative to current location if known structure
-            // Assumes structure: .../pages/modules/contrato/contrato-detalhes.html
-            // Target: .../pages/modules/link/link-token.html
-            const currentPath = window.location.pathname;
-            if (currentPath.includes("/pages/modules/contrato/")) {
-                // Go up one level to 'modules' then into 'link'
-                const basePath = currentPath.substring(0, currentPath.lastIndexOf("/pages/modules/contrato/"));
-                shareUrl = `file://${basePath}/pages/modules/link/link-token.html`;
-            } else {
-                // Fallback to absolute assumption or relative
-                shareUrl = "../link/link-token.html"; // Relative from contract folder
-            }
-        } else {
-            // Web Server environment
-            shareUrl = `${window.location.origin}/pages/modules/link/link-token.html`;
-        }
-
-        return `${shareUrl}?${params.toString()}`;
+        return `${window.location.origin}${sharePath}?${params.toString()}`;
     }
 
     setupUI(containerId = "share-section") {
-        console.log("ShareManager setupUI called");
         const link = this.getShareLink();
-        console.log("Generated Share Link:", link);
         
         const input = document.getElementById("generatedLink");
-        if (input) {
-            input.value = link;
-            console.log("Input #generatedLink updated");
-        } else {
-            console.warn("Input #generatedLink not found in DOM");
-        }
+        if (input) input.value = link;
 
         // Helper for button listeners
         const addListener = (id, fn) => {
             const el = document.getElementById(id);
-            if (el) {
-                el.onclick = (e) => {
-                    if(e) e.preventDefault();
-                    fn();
-                };
-            } else {
-                console.warn(`Button #${id} not found in DOM`);
-            }
+            if (el) el.onclick = fn;
         };
 
         // Copy Address
@@ -76,11 +39,10 @@ export class ShareManager {
             navigator.clipboard.writeText(link).then(() => {
                 const i = btnCopy?.querySelector("i");
                 if (i) {
-                    const originalClass = i.className;
                     i.className = "bi bi-check2 text-success";
-                    setTimeout(() => i.className = originalClass, 2000);
+                    setTimeout(() => i.className = "bi bi-clipboard", 2000);
                 }
-            }).catch(err => console.error("Clipboard error:", err));
+            });
         });
 
         // View Address
@@ -97,10 +59,7 @@ export class ShareManager {
         });
 
         addListener("btnAddToMetaMaskSmall", async () => {
-            if (!this.config.address) {
-                alert("Endereço do contrato não disponível.");
-                return;
-            }
+            if (!this.config.address) return;
             await addTokenToMetaMask({
                 address: this.config.address,
                 symbol: this.config.symbol,
