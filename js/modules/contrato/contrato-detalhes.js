@@ -1,5 +1,5 @@
 
-import { updateContractDetailsView } from "../../shared/contract-search.js";
+import { updateContractDetailsView, initContainer, updateVerificationBadge } from "../../shared/contract-search.js";
 import { getExplorerContractUrl } from "./explorer-utils.js";
 import { ShareManager } from "./share-manager.js";
 
@@ -132,6 +132,8 @@ class ContractDetailsManager {
                 explorer: form.network?.explorers?.[0]?.url
             };
             
+            console.log("[initFromState] Initializing ShareManager with:", shareConfig);
+
             try {
                 const shareManager = new ShareManager(shareConfig);
                 shareManager.setupUI();
@@ -161,6 +163,7 @@ class ContractDetailsManager {
                 // Check for a key element from contract-actions.html
                 const el = document.getElementById("generatedLink");
                 if (el) {
+                    console.log("Contract Actions component found after attempts:", attempts);
                     resolve();
                 } else if (attempts > 50) { // 5 seconds
                     console.warn("Timeout waiting for contract-actions component");
@@ -291,40 +294,86 @@ class ContractDetailsManager {
         // Trigger robust update from contract-search.js
         try {
             const container = document.getElementById("contract-search-container");
+            // Ensure component is initialized (listeners, etc)
+            const componentEl = container.querySelector('[data-component]') || container;
+            if (componentEl) initContainer(componentEl);
+            
             await updateContractDetailsView(container, chainId, address);
+            this.setupManualVerifyButton(); // Ensure button is set up
         } catch (e) {
             console.error("Erro ao atualizar view detalhada:", e);
         }
     }
 
+    setupManualVerifyButton() {
+        const btnVerify = document.getElementById("btnManualVerify");
+        if (!btnVerify) return;
+        
+        // Remove existing listeners to avoid duplicates (if any)
+        const newBtn = btnVerify.cloneNode(true);
+        if (btnVerify.parentNode) {
+            btnVerify.parentNode.replaceChild(newBtn, btnVerify);
+        }
+        
+        newBtn.addEventListener("click", async () => {
+            const { deployed, form } = this.state;
+            const chainId = form.network?.chainId;
+            const address = deployed?.address;
+            
+            if (chainId && address) {
+                newBtn.disabled = true;
+                const originalHtml = newBtn.innerHTML;
+                newBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
+                
+                try {
+                    const container = document.getElementById("contract-search-container");
+                    // Force refresh = true
+                    await updateVerificationBadge(container, chainId, address, true);
+                } catch (e) {
+                    console.error("Erro na verificação manual:", e);
+                } finally {
+                    this.checkVerificationStatus();
+                    newBtn.disabled = false;
+                    newBtn.innerHTML = originalHtml;
+                }
+            }
+        });
+        
+        // Initial check
+        this.checkVerificationStatus();
+    }
+    
+    checkVerificationStatus() {
+        const btnVerify = document.getElementById("btnManualVerify");
+        if (!btnVerify) return;
+        
+        // Check if verification badge indicates success
+        setTimeout(() => {
+            const badge = document.querySelector(".badge-verif-status");
+            // Check for success class OR text content "Verificado"
+            const isVerified = badge && (
+                badge.classList.contains("bg-success") || 
+                badge.classList.contains("bg-success-subtle") ||
+                (badge.textContent && badge.textContent.toLowerCase().includes("verificado"))
+            );
+            
+            if (isVerified) {
+                btnVerify.classList.add("d-none");
+            } else {
+                btnVerify.classList.remove("d-none");
+            }
+        }, 500); 
+    }
+
     setupDownloads() {
         const { compilation, form } = this.state;
-        
-        const downloadFile = (filename, content, type = "text/plain") => {
-            try {
-                const blob = new Blob([content], { type });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.style.display = "none";
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            } catch (e) {
-                console.error("Erro ao fazer download:", e);
-                alert("Erro ao iniciar download: " + e.message);
-            }
-        };
-
         const contractName = compilation?.contractName || "Contract";
 
         // .sol
         const btnSol = document.getElementById("btnDownloadSol");
         if (btnSol && compilation?.sourceCode) {
             btnSol.onclick = () => {
-                downloadFile(`${contractName}.sol`, compilation.sourceCode);
+                this.showFileModal(`${contractName}.sol`, compilation.sourceCode);
             };
             btnSol.disabled = false;
         } else if (btnSol) {
@@ -338,9 +387,9 @@ class ContractDetailsManager {
                 try {
                     // Formatar o JSON para ficar legível
                     const content = JSON.stringify(JSON.parse(compilation.input), null, 2);
-                    downloadFile(`${contractName}_StandardInput.json`, content, "application/json");
+                    this.showFileModal(`${contractName}_StandardInput.json`, content, "application/json");
                 } catch(e) {
-                    downloadFile(`${contractName}_Input.json`, compilation.input, "application/json");
+                    this.showFileModal(`${contractName}_Input.json`, compilation.input, "application/json");
                 }
             };
             btnJson.disabled = false;
@@ -353,7 +402,7 @@ class ContractDetailsManager {
         if (btnAbi && compilation?.abi) {
             btnAbi.onclick = () => {
                 const content = JSON.stringify(compilation.abi, null, 2);
-                downloadFile(`${contractName}_ABI.json`, content, "application/json");
+                this.showFileModal(`${contractName}_ABI.json`, content, "application/json");
             };
             btnAbi.disabled = false;
         } else if (btnAbi) {
@@ -364,11 +413,88 @@ class ContractDetailsManager {
         const btnByte = document.getElementById("btnDownloadDeployedBytecode");
         if (btnByte && compilation?.bytecode) {
             btnByte.onclick = () => {
-                downloadFile(`${contractName}_Bytecode.txt`, compilation.bytecode);
+                this.showFileModal(`${contractName}_Bytecode.txt`, compilation.bytecode);
             };
             btnByte.disabled = false;
         } else if (btnByte) {
             btnByte.disabled = true;
+        }
+    }
+
+    showFileModal(filename, content, type = "text/plain") {
+        const modalEl = document.getElementById("fileViewerModal");
+        const contentEl = document.getElementById("fileViewerContent");
+        const titleEl = document.getElementById("fileViewerModalLabel");
+        const btnCopy = document.getElementById("btnModalCopy");
+        const btnDownload = document.getElementById("btnModalDownload");
+
+        if (!modalEl || !contentEl) {
+            // Fallback: Download direto se modal não existir
+            this.downloadFile(filename, content, type);
+            return;
+        }
+
+        // Set Content
+        titleEl.textContent = `Visualizar: ${filename}`;
+        contentEl.value = content;
+
+        // Clone buttons to remove old listeners
+        const newBtnCopy = btnCopy.cloneNode(true);
+        btnCopy.parentNode.replaceChild(newBtnCopy, btnCopy);
+        
+        const newBtnDownload = btnDownload.cloneNode(true);
+        btnDownload.parentNode.replaceChild(newBtnDownload, btnDownload);
+
+        // Copy Handler
+        newBtnCopy.onclick = () => {
+            navigator.clipboard.writeText(content).then(() => {
+                const originalHtml = newBtnCopy.innerHTML;
+                newBtnCopy.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copiado!';
+                newBtnCopy.classList.remove("btn-outline-light");
+                newBtnCopy.classList.add("btn-success");
+                setTimeout(() => {
+                    newBtnCopy.innerHTML = originalHtml;
+                    newBtnCopy.classList.add("btn-outline-light");
+                    newBtnCopy.classList.remove("btn-success");
+                }, 2000);
+            }).catch(err => {
+                console.error("Erro ao copiar:", err);
+                alert("Erro ao copiar para área de transferência.");
+            });
+        };
+
+        // Download Handler
+        newBtnDownload.onclick = () => {
+            this.downloadFile(filename, content, type);
+        };
+
+        // Show Modal
+        try {
+            // Assume bootstrap is available globally
+            const bsModal = new bootstrap.Modal(modalEl);
+            bsModal.show();
+        } catch(e) {
+            console.error("Bootstrap modal error:", e);
+            // Fallback to download
+            this.downloadFile(filename, content, type);
+        }
+    }
+
+    downloadFile(filename, content, type = "text/plain") {
+        try {
+            const blob = new Blob([content], { type });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.style.display = "none";
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error("Erro ao fazer download:", e);
+            alert("Erro ao iniciar download: " + e.message);
         }
     }
 }

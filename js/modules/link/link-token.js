@@ -169,6 +169,48 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const params = new URLSearchParams(location.search);
   const pAddress = params.get("address");
+  const pChainId = params.get("chainId");
+
+  // Auto-trigger search if params exist
+  if (pAddress && pChainId) {
+      let attempts = 0;
+      const maxAttempts = 50; // 10 seconds (50 * 200ms)
+
+      const waitComponents = setInterval(() => {
+          attempts++;
+          const searchBtn = document.getElementById("contractSearchBtn");
+          const addrInput = document.getElementById("f_address") || document.getElementById("tokenAddress");
+          const container = document.querySelector('[data-component*="contract-search.html"]');
+          
+          // Ensure component is initialized if loaded
+          if (container && container.children.length > 0 && container.getAttribute("data-cs-initialized") !== "true") {
+              initContainer(container);
+          }
+          
+          // Check initialization status
+          // Note: data-cs-initialized is set by contract-search.js after loading
+          const isInitialized = container && container.getAttribute("data-cs-initialized") === "true";
+          
+          if (searchBtn && addrInput && isInitialized) {
+              clearInterval(waitComponents);
+              
+              // Pre-fill input
+              addrInput.value = pAddress;
+              
+              // Ensure chainId is available for the search component if needed
+              // The search component tries to find chainId from URL params too, 
+              // but we can also set it explicitly if needed.
+              // For now, relying on URL params which contract-search.js parses.
+              
+              console.log("Auto-triggering search for linked token...");
+              searchBtn.click();
+          } else if (attempts >= maxAttempts) {
+              clearInterval(waitComponents);
+              console.warn("Timeout waiting for contract-search component initialization.");
+              if (window.notify) window.notify("Erro ao carregar componente de busca. Tente recarregar.", "error");
+          }
+      }, 200);
+  }
 
   // Setup button listeners
   const addBtn = document.getElementById("addToWalletButton");

@@ -7,9 +7,9 @@ import { findLiquidityPair } from "./dex-utils.js";
 // SHARED CONSTANTS & STATE
 // =============================================================================
 
-const MAX_TIMEOUT_MS = 1500;
-const GLOBAL_LIMIT_MS = 2000;
-const DISABLE_MULTI_RPC_FALLBACK = true;
+const MAX_TIMEOUT_MS = 5000;
+const GLOBAL_LIMIT_MS = 8000;
+const DISABLE_MULTI_RPC_FALLBACK = false;
 let isSearching = false;
 
 // Cache for RPC URLs to avoid constant lookups
@@ -312,7 +312,15 @@ async function checkIsContract(addr, chainId) {
 
     const rpc = getPrimaryRpc(chainId);
     const body = { jsonrpc: "2.0", id: 10, method: "eth_getCode", params: [String(addr), "latest"] };
-    const js = await fetchJsonWithTimeout(rpc, body, MAX_TIMEOUT_MS);
+    let js = await fetchJsonWithTimeout(rpc, body, MAX_TIMEOUT_MS);
+    
+    // Fallback if primary fails
+    if (!js && !DISABLE_MULTI_RPC_FALLBACK) {
+        const rpcs = getCandidateRpcs(chainId);
+        const hex = await callFirstValid(rpcs, body);
+        if (hex) js = { result: hex };
+    }
+
     const code = js && js.result ? String(js.result) : "0x";
     return code !== "0x" && code !== "0x0";
   } catch (e) {
@@ -387,10 +395,10 @@ async function updateTradingPair(container, chainId, address) {
   }
 }
 
-async function updateVerificationBadge(container, chainId, address) {
+async function updateVerificationBadge(container, chainId, address, forceRefresh = false) {
     const vStatus = container?.querySelector?.("#cs_viewStatus") || document.querySelector("#cs_viewStatus");
     try {
-      const js = await getVerificationStatus(chainId, address);
+      const js = await getVerificationStatus(chainId, address, forceRefresh);
   
       const vCv = container?.querySelector?.("#cs_viewCompilerVersion") || document.querySelector("#cs_viewCompilerVersion");
       const vOpt = container?.querySelector?.("#cs_viewOptimization") || document.querySelector("#cs_viewOptimization");
@@ -433,25 +441,62 @@ async function updateVerificationBadge(container, chainId, address) {
       }
   
       if (vStatus) {
-        vStatus.querySelectorAll(".badge-verif-status").forEach((el) => el.remove());
+        vStatus.querySelectorAll(".badge-verif-status, .btn-retry-verif").forEach((el) => el.remove());
         const span = document.createElement("span");
+        let canRetry = false;
         
         if (js?.verified) {
-            span.className = "badge-verif-status badge ms-2 bg-success-subtle text-success border border-success";
-            let content = '<i class="bi bi-shield-check me-1"></i>Verificado';
-            if (js.verifiedAt) {
-                content += ` <span class="ms-1 small opacity-75">(${js.verifiedAt})</span>`;
-            }
-            span.innerHTML = content;
-        } else if (js?.error) {
-            span.className = "badge-verif-status badge ms-2 bg-secondary-subtle text-secondary border border-secondary";
-            span.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>Erro status';
-        } else {
+                span.className = "badge-verif-status badge ms-2 bg-success-subtle text-success border border-success";
+                let content = '<i class="bi bi-shield-check me-1"></i>Verificado';
+                if (js.verifiedAt) {
+                    content += ` <span class="ms-1 small opacity-75">(${js.verifiedAt})</span>`;
+                }
+                span.innerHTML = content;
+            } else if (js?.error) {
+                // Em caso de erro na API (timeout, offline, erro genérico), 
+                // mostramos um status neutro "Verificar" em vez de um erro alarmante.
+                // O usuário pode tentar novamente manualmente.
+                span.className = "badge-verif-status badge ms-2 bg-secondary-subtle text-secondary border border-secondary";
+                
+                let icon = "bi-shield-check";
+                let text = "Verificar";
+                let title = js.message || "Status pendente. Clique para verificar.";
+
+                if (js.message && (js.message.toLowerCase().includes("timeout") || js.message.toLowerCase().includes("limit"))) {
+                     icon = "bi-hourglass-split";
+                     text = "Aguardando";
+                     title = "O serviço de exploração demorou a responder.";
+                }
+                
+                // Log real error for debugging
+                console.warn("[contract-search] Verification Status Error (shown as Check):", js.message);
+
+                span.innerHTML = `<i class="bi ${icon} me-1"></i>${text}`;
+                span.title = title;
+                canRetry = true;
+            } else {
             span.className = "badge-verif-status badge ms-2 bg-danger-subtle text-danger border border-danger";
             span.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
+            canRetry = true;
         }
         
         vStatus.appendChild(span);
+
+        if (canRetry) {
+             const retryBtn = document.createElement("button");
+             retryBtn.className = "btn btn-link btn-retry-verif p-0 ms-2 text-decoration-none text-secondary";
+             retryBtn.style.verticalAlign = "middle";
+             retryBtn.title = "Verificar novamente agora (ignorar cache)";
+             retryBtn.innerHTML = '<i class="bi bi-arrow-clockwise" style="font-size: 1.2em;"></i>';
+             retryBtn.onclick = (e) => {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 retryBtn.innerHTML = '<span class="spinner-border spinner-border-sm text-secondary" role="status" aria-hidden="true"></span>';
+                 retryBtn.disabled = true;
+                 updateVerificationBadge(container, chainId, address, true);
+             };
+             vStatus.appendChild(retryBtn);
+        }
       }
   
       const warningDiv = container?.querySelector?.("#cs_verifiedWarning") || document.querySelector("#cs_verifiedWarning");
@@ -461,9 +506,12 @@ async function updateVerificationBadge(container, chainId, address) {
     }
 }
 
-async function updateContractDetailsView(container, chainId, address) {
+async function updateContractDetailsView(container, chainId, address, preloadedData = null) {
     if (!container || !chainId || !address) return;
   
+    const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+    if (card) card.classList.remove("d-none");
+
     const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
     const vSym = container.querySelector("#cs_viewSymbol") || document.getElementById("cs_viewSymbol");
     const vDec = container.querySelector("#cs_viewDecimals") || document.getElementById("cs_viewDecimals");
@@ -483,10 +531,22 @@ async function updateContractDetailsView(container, chainId, address) {
     if (vPair) vPair.textContent = "-";
   
     try {
-      const [sn, info] = await Promise.all([
-        detectSymbolName(address, chainId),
-        fetchERC20Info(address, chainId)
-      ]);
+      let sn, info;
+      
+      if (preloadedData) {
+          sn = { name: preloadedData.tokenName, symbol: preloadedData.tokenSymbol };
+          info = { 
+              decimals: preloadedData.tokenDecimals, 
+              totalSupply: preloadedData.tokenSupply,
+              tokenBalance: preloadedData.contractTokenBalance,
+              nativeBalance: preloadedData.contractNativeBalance
+          };
+      } else {
+          [sn, info] = await Promise.all([
+            detectSymbolName(address, chainId),
+            fetchERC20Info(address, chainId)
+          ]);
+      }
   
       if (vAddr) {
         vAddr.textContent = address;
@@ -764,9 +824,15 @@ function initContainer(container) {
 
   // Event Listeners
   if (btn) {
+      // Remover listeners antigos para evitar duplicação (clone)
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      btn = newBtn;
+
       btn.addEventListener("click", (e) => {
+          e.preventDefault(); // Prevent form submit
+          e.stopPropagation();
           if (btn.getAttribute("data-mode") === "clear") {
-              e.preventDefault();
               clearVisualState();
               const addrField = document.getElementById("f_address");
               if (addrField) { addrField.value = ""; }
@@ -774,6 +840,41 @@ function initContainer(container) {
           }
           runSearch();
       });
+  }
+
+  const formEl = container.querySelector("#tokenForm");
+  if (formEl) {
+      // Remover listeners antigos
+      const newForm = formEl.cloneNode(true);
+      formEl.parentNode.replaceChild(newForm, formEl);
+      // Re-selecionar elementos dentro do novo formulário para garantir referências
+      // Se não fizer isso, referências internas podem quebrar
+      
+      newForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const currentBtn = newForm.querySelector("#contractSearchBtn");
+          if (currentBtn && currentBtn.getAttribute("data-mode") !== "clear") {
+              runSearch();
+          }
+      });
+
+      // Restaurar referência do botão se ele estava dentro do form
+      const internalBtn = newForm.querySelector("#contractSearchBtn");
+      if (internalBtn) {
+          btn = internalBtn;
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (btn.getAttribute("data-mode") === "clear") {
+                clearVisualState();
+                const addrField = document.getElementById("f_address");
+                if (addrField) { addrField.value = ""; }
+                return;
+            }
+            runSearch();
+        });
+      }
   }
   
   const copyInputBtn = container.querySelector("[data-cs-copy-input]");

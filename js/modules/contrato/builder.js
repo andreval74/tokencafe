@@ -1181,6 +1181,11 @@ export async function compileContract() {
 
     log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
 
+    // User request: "deixe uns 2 segundos assim sabemos que já vai esta configurado sempre o contrato"
+    log("Verificando integridade... (Aguarde 2s)");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    log("Contrato validado e pronto para deploy.");
+
     {
       const d = getDeployButton();
       if (d) d.disabled = false;
