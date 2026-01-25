@@ -2034,7 +2034,7 @@ export async function deployContract() {
     // Redirecionamento para a página de detalhes unificada
     try {
         log("Redirecionando para detalhes do contrato...");
-        sessionStorage.setItem("lastDeployedContract", JSON.stringify(state));
+        sessionStorage.setItem("lastDeployedContract", JSON.stringify(getSerializableState()));
         // Pequeno delay para garantir que logs sejam vistos ou processos finalizados
         setTimeout(() => {
              window.location.href = "contrato-detalhes.html";

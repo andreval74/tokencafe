@@ -277,8 +277,16 @@ class TokenPageManager {
 
      // 3. Connect Wallet if not connected
      if (!state.wallet.signer) {
-         alert("Por favor, conecte sua carteira primeiro (botão no topo).");
-         return;
+         try {
+             await connectWallet();
+         } catch (e) {
+             console.error("User rejected or failed to connect", e);
+             return;
+         }
+         // Re-check after attempt
+         if (!state.wallet.signer) {
+            return;
+         }
      }
 
      // 4. Start Process
