@@ -3,20 +3,12 @@
 
 export function getApiBase() {
   try {
-    // Prioriza configuração global do api-config.js (permite string vazia para caminhos relativos)
+    // 1. Prioridade Absoluta: Configuração Global (api-config.js)
     if (typeof window.TOKENCAFE_API_BASE !== 'undefined') {
         return window.TOKENCAFE_API_BASE;
     }
 
-    const fromWin = window.XCAFE_API_BASE; // Legado
-    const fromLs = window.localStorage?.getItem("api_base");
-    
-    // Se definido (mesmo string vazia), retorna
-    if (fromWin !== undefined && fromWin !== null) return fromWin;
-    if (fromLs !== undefined && fromLs !== null) return fromLs;
-    
-    // Detecção automática de ambiente local/rede
-    // User Update: SEMPRE usar Render
+    // 2. Fallback Seguro para Produção (se config falhar)
     return "https://tokencafe.onrender.com";
   } catch (_) {
     return "https://tokencafe.onrender.com";

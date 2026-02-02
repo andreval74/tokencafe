@@ -167,54 +167,25 @@ const btnText = document.getElementById("verifyBtnText");
 
 })();
 
+// Função para garantir configuração de API
+// Simplificada para confiar na configuração global (api-config.js)
+// Evita conflitos e URLs hardcoded duplicadas
 async function ensureApiBase() {
   try {
     const el = document.getElementById("apiHelp");
     const btn = document.getElementById("apiFixBtn");
-    const siteHost = String(window.location.hostname || "");
-    const isLocalSite = siteHost === "localhost" || siteHost === "127.0.0.1";
-    const prodBase = "https://tokencafe-api.onrender.com";
     
-    // 1. Setup UI elements
-    let currentBase = window.TOKENCAFE_API_BASE || window.localStorage?.getItem("api_base") || null;
-    let baseHost = null;
-    try { if (currentBase) baseHost = new URL(currentBase).hostname; } catch (_) {}
+    // Recupera URL base configurada globalmente
+    const currentBase = window.TOKENCAFE_API_BASE || "https://tokencafe.onrender.com";
     
-    if (!!baseHost && baseHost === siteHost && el) {
-       el.classList.remove("d-none");
-    }
+    console.log("[verifica] API Base configurada:", currentBase);
 
-    if (btn) {
-        btn.onclick = function () {
-            try { window.localStorage && window.localStorage.setItem("api_base", prodBase); } catch (_) {}
-            window.location.reload();
-        };
+    // Se houver elementos de UI para debug/ajuste manual (opcional)
+    if (el && btn) {
+        // Lógica de UI opcional aqui...
+        // Por padrão, escondemos o alerta de API se a configuração global estiver definida
+        el.classList.add("d-none");
     }
-
-    // 2. Smart Check Logic using centralized checkConnectivity
-    // Se estiver em localhost, tenta local:3000 primeiro
-    if (isLocalSite) {
-        const localBase = "http://localhost:3000";
-        const localOk = await checkConnectivity(false, localBase);
-        if (localOk) {
-            if (currentBase !== localBase) {
-                 console.warn("[verifica] Auto-switching API to localhost");
-                 window.localStorage && window.localStorage.setItem("api_base", localBase);
-            }
-            return;
-        }
-    }
-
-    // Se não é local ou local falhou, verifica se o atual está online (ou fallback para prod)
-    if (currentBase !== prodBase) {
-        // Se o atual não é prod, verifica se está vivo. Se não, força prod.
-        const currentOk = await checkConnectivity(false, currentBase);
-        if (!currentOk) {
-             console.warn("[verifica] API atual offline, fallback para produção");
-             window.localStorage && window.localStorage.setItem("api_base", prodBase);
-        }
-    }
-    // Se já é prod, assumimos que está ok ou o usuário deve esperar o wake-up (gerenciado pelo ApiStatusComponent na UI)
 
   } catch (e) {
       console.error("[verifica] ensureApiBase error", e);
