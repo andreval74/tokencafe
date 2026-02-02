@@ -1,0 +1,651 @@
+/**
+ * ================================================================================
+ * UTILITY CLASSES - SUBSTITUINDO ESTILOS INLINE
+ * ================================================================================
+ * Classes CSS para substituir estilos inline encontrados nos arquivos HTML
+ * Melhora a manutenibilidade e consistência do código
+ * ================================================================================
+ */
+
+/* ============================================================================
+ * LOGO E IMAGENS
+ * ============================================================================ */
+
+.logo-standard {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.logo-large {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+}
+
+.logo-small {
+  width: 40px;
+  height: 40px;
+}
+
+.logo-medium {
+  width: 60px;
+  height: 60px;
+}
+
+.icon-large {
+  font-size: 4rem;
+}
+
+.icon-medium {
+  font-size: 1.5rem;
+}
+
+.icon-small {
+  font-size: 0.5rem;
+}
+
+/* Bootstrap-style icon sizes */
+.icon-xl {
+  font-size: 3rem;
+}
+
+.icon-lg {
+  font-size: 2rem;
+}
+
+.icon-md {
+  font-size: 1.25rem;
+}
+
+.icon-sm {
+  font-size: 0.875rem;
+}
+
+/* ============================================================================
+ * TEXT UTILITIES
+ * ============================================================================ */
+
+.text-small {
+  font-size: 0.75rem;
+  line-height: 1;
+  margin-top: -2px;
+}
+
+.text-xs {
+  font-size: 0.9rem;
+}
+
+.text-line-height-normal {
+  line-height: 1.6;
+}
+
+.text-no-decoration {
+  text-decoration: none;
+}
+
+.text-coffee {
+  color: var(--tokencafe-primary-dark);
+}
+
+.text-gold {
+  color: var(--tokencafe-warning);
+}
+
+/* ============================================================================
+ * LAYOUT UTILITIES
+ * ============================================================================ */
+
+.min-width-250 {
+  min-width: 250px;
+}
+
+.min-width-300 {
+  min-width: 300px;
+}
+
+.border-radius-50 {
+  border-radius: 50px;
+}
+.square-80 {
+  width: 80px;
+  height: 80px;
+}
+
+.resize-vertical {
+  resize: vertical;
+}
+
+/* Página simples (como Mini Chainlist) */
+.simple-page-body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  background: #f9f9f9;
+}
+
+.simple-page-title {
+  color: #333;
+}
+
+.simple-input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.simple-button {
+  cursor: pointer;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.simple-network {
+  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.simple-message {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.simple-message.success {
+  color: green;
+}
+
+.simple-message.error {
+  color: crimson;
+}
+
+.simple-form-group {
+  margin-bottom: 10px;
+}
+
+/* ============================================================================
+ * POSITION UTILITIES
+ * ============================================================================ */
+
+.position-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+}
+
+.position-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+}
+
+/* ============================================================================
+ * BACKGROUND UTILITIES
+ * ============================================================================ */
+
+.bg-transparent {
+  background: transparent !important;
+}
+
+.bg-page-black {
+  background: #0b0f14 !important;
+}
+
+.bg-coffee-light {
+  background-color: var(--tokencafe-primary-light);
+}
+.bg-dark-elevated {
+  background-color: var(--tokencafe-bg-tertiary);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+}
+/* Gradientes padronizados */
+.navbar-gradient-primary {
+  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
+  border-bottom: 2px solid var(--tokencafe-primary-light);
+}
+
+.bg-gradient-dark-135 {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Efeito glass para cards */
+.card-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+/* Alert suave na cor primária */
+.alert-soft-primary {
+  background: rgba(13, 110, 253, 0.1);
+  border: 1px solid rgba(13, 110, 253, 0.3);
+}
+
+/* Badge com cor de marca */
+.badge-brand {
+  background: var(--tokencafe-primary);
+  color: #0a0a0a;
+}
+
+/* ============================================================================
+ * PROGRESS UTILITIES
+ * ============================================================================ */
+
+.progress-height-4 {
+  height: 4px;
+}
+
+.progress-width-0 {
+  width: 0%;
+}
+
+/* Alturas mínimas */
+.min-height-125 {
+  min-height: 1.25rem;
+}
+.min-height-180 {
+  min-height: 180px;
+}
+.min-height-240 {
+  min-height: 240px;
+}
+.max-height-240 {
+  max-height: 240px;
+}
+.max-height-400 {
+  max-height: 400px;
+}
+
+/* ============================================================================
+ * BUTTON UTILITIES
+ * ============================================================================ */
+
+.btn-transparent {
+  background: transparent;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-transparent-warning {
+  background: transparent;
+  border: none;
+  color: var(--bs-warning);
+  transition: all 0.3s ease;
+}
+
+.btn-transparent-warning:hover {
+  transform: scale(1.1);
+  color: #fbbf24;
+}
+
+.btn-transparent-info {
+  background: transparent;
+  border: none;
+  color: var(--bs-info);
+  transition: all 0.3s ease;
+}
+
+.btn-transparent-info:hover {
+  transform: scale(1.1);
+  color: #60a5fa;
+}
+
+/* ============================================================================
+ * ANIMATION UTILITIES
+ * ============================================================================ */
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================================================
+ * BADGE UTILITIES
+ * ============================================================================ */
+
+.badge-notification {
+  position: absolute;
+  top: 0;
+  start: 100%;
+  transform: translate(-50%, -50%);
+}
+
+.badge-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-circle-lg {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-circle-xl {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+ * DISPLAY UTILITIES
+ * ============================================================================ */
+
+.display-none {
+  display: none;
+}
+
+.display-flex-gap {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* ============================================================================
+ * CODE DISPLAY
+ * ============================================================================ */
+
+.code-display {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin-top: 20px;
+}
+
+/* ============================================================================
+ * FORM UTILITIES
+ * ============================================================================ */
+
+.form-status {
+  margin-bottom: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* ============================================================================
+ * FOOTER UTILITIES
+ * ============================================================================ */
+
+.footer-transparent {
+  background: transparent;
+  bottom: 0;
+  width: 100%;
+}
+
+.footer-text {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* ============================================================================
+ * TOAST NOTIFICATION SYSTEM
+ * ============================================================================ */
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1055;
+  background: var(--tokencafe-bg-tertiary);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  min-width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideInRight 0.3s ease-out;
+}
+
+.toast-info {
+  border-left: 4px solid var(--bs-info);
+}
+
+.toast-success {
+  border-left: 4px solid var(--bs-success);
+}
+
+.toast-warning {
+  border-left: 4px solid var(--bs-warning);
+}
+
+.toast-danger {
+  border-left: 4px solid var(--bs-danger);
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toast-message {
+  color: var(--bs-body-color);
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--bs-tertiary-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 12px;
+  transition: color 0.2s ease;
+}
+
+.toast-close:hover {
+  color: var(--bs-body-color);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+ * EMPTY STATES E LOADING STATES
+ * ============================================================================ */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--bs-tertiary-color);
+}
+
+.empty-state .empty-icon {
+  font-size: 4rem;
+  color: var(--bs-secondary);
+  margin-bottom: 20px;
+}
+
+.empty-state .empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  margin-bottom: 12px;
+}
+
+.empty-state .empty-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--bs-tertiary-color);
+}
+
+.loading-state .loading-spinner {
+  margin-bottom: 16px;
+}
+
+.loading-state .loading-text {
+  font-size: 0.95rem;
+}
+
+/* ============================================================================
+ * FEATURE CARDS E COMPONENTES REUTILIZÁVEIS
+ * ============================================================================ */
+
+.feature-card {
+  background: var(--tokencafe-bg-tertiary);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(248, 93, 35, 0.15);
+  border-color: var(--bs-primary);
+}
+
+.feature-card .feature-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--bs-primary), var(--tokencafe-primary-dark));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--tokencafe-text-inverse);
+  font-size: 1.5rem;
+}
+
+.feature-card .feature-title {
+  color: var(--bs-body-color);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.feature-card .feature-description {
+  color: var(--bs-tertiary-color);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.tool-card {
+  background: var(--tokencafe-bg-tertiary);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.tool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(248, 93, 35, 0.1);
+  border-color: var(--bs-primary);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ============================================================================
+ * RESPONSIVE DESIGN
+ * ============================================================================ */
+
+@media (max-width: 768px) {
+  .feature-card {
+    margin-bottom: 20px;
+  }
+
+  .toast {
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+  }
+
+  .logo-standard {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo-large {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 576px) {
+  .badge-circle {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ============================================================================
+ * ADMIN MODULE DISABLED OVERLAY
+ * ============================================================================ */
+.admin-disabled {
+  position: relative;
+}
+
+.admin-disabled::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(128, 128, 128, 0.35);
+  pointer-events: none;
+}
+
+.admin-disabled .btn,
+.admin-disabled a {
+  pointer-events: none !important;
+}
+
+.admin-disabled .tool-tile-status {
+  filter: grayscale(100%);
+}

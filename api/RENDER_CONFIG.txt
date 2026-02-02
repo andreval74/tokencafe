@@ -1,0 +1,115 @@
+RENDER.COM - CONFIGURAÇÕES EXATAS PARA XCAFE API
+
+======================================================
+CONFIGURAÇÃO DO WEB SERVICE
+======================================================
+
+Name: xcafe-token-api-hybrid
+Environment: Node
+Region: Oregon (US West)
+Branch: main
+Root Directory: api
+Build Command: npm install
+Start Command: npm start
+Auto-Deploy: Yes
+
+======================================================
+ENVIRONMENT VARIABLES (COPIAR EXATAMENTE)
+======================================================
+
+Chave: NODE_ENV
+Valor: production
+
+Chave: PORT  
+Valor: 10000
+
+Chave: DEBUG
+Valor: false
+
+Chave: TRUST_PROXY
+Valor: true
+
+Chave: SOLC_VERSION
+Valor: 0.8.30
+
+Chave: OPTIMIZATION_ENABLED
+Valor: true
+
+Chave: OPTIMIZATION_RUNS
+Valor: 200
+
+Chave: RATE_LIMIT_WINDOW
+Valor: 60000
+
+Chave: RATE_LIMIT_MAX_REQUESTS
+Valor: 10
+
+Chave: BSC_MAINNET_RPC
+Valor: https://bsc-dataseed1.binance.org/
+
+Chave: BSC_TESTNET_RPC
+Valor: https://data-seed-prebsc-1-s1.binance.org:8545/
+
+Chave: ETHEREUM_RPC
+Valor: https://eth.llamarpc.com
+
+Chave: POLYGON_RPC
+Valor: https://polygon.llamarpc.com
+
+Chave: LOG_LEVEL
+Valor: info
+
+======================================================
+APÓS O DEPLOY - TESTES
+======================================================
+
+1. Aguarde "Build successful" aparecer
+2. Aguarde "Deploy live" aparecer
+3. Clique na URL gerada (ex: https://xcafe-token-api-hybrid.onrender.com)
+4. Acesse /health no final da URL
+5. Deve retornar JSON com success: true
+
+======================================================
+ATUALIZAR FRONTEND
+======================================================
+
+Arquivo: js/xcafe-hybrid-api.js
+Linha: ~5
+
+ALTERAR:
+this.apiBaseUrl = 'https://xcafe-token-api-hybrid.onrender.com/api/generate-token';
+
+PARA:
+this.apiBaseUrl = 'https://SUA-URL-RENDER.onrender.com';
+
+======================================================
+CHECKLIST FINAL
+======================================================
+
+[ ] Service criado com nome correto
+[ ] Environment variables todas definidas  
+[ ] Build executado com sucesso
+[ ] Deploy executado com sucesso
+[ ] Health check retorna success: true
+[ ] URL atualizada no frontend
+[ ] Teste de deploy funciona
+[ ] Verificação BSCScan funciona
+
+======================================================
+PROBLEMAS COMUNS
+======================================================
+
+ERRO: Application failed to respond
+SOLUÇÃO: Verificar se PORT=10000 está definido
+
+ERRO: Cannot find module 'solc'  
+SOLUÇÃO: Verificar se package.json tem solc nas dependencies
+
+ERRO: SOLC_VERSION not defined
+SOLUÇÃO: Adicionar SOLC_VERSION=0.8.26 nas environment variables
+
+ERRO: Build failed
+SOLUÇÃO: Verificar se Root Directory está como "api"
+
+ERRO: 500 Internal Server Error
+SOLUÇÃO: Verificar logs no Dashboard do Render
