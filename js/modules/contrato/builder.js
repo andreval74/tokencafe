@@ -660,7 +660,7 @@ function showConnectionDiagnosis(attempts) {
                  <a href="https://tokencafe-api.onrender.com/health" target="_blank" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-box-arrow-up-right"></i> Testar API Legacy
                  </a>
-                 <a href="https://xcafe-token-api-hybrid.onrender.com/health" target="_blank" class="btn btn-outline-primary btn-sm">
+                 <a href="https://tokencafe.onrender.com/health" target="_blank" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-box-arrow-up-right"></i> Testar API Hybrid
                  </a>
             </div>
@@ -722,7 +722,7 @@ export async function ensureServersOnline() {
   }
   
   // 3. Tentar Produção (Hybrid)
-  const prod1 = "https://xcafe-token-api-hybrid.onrender.com";
+  const prod1 = "https://tokencafe.onrender.com";
   if (base !== prod1) {
     log("Aviso: Conectividade com API local falhou. Tentando servidor de produção (Hybrid)...");
     if (await tryConnect(prod1, "Produção (Hybrid)")) {

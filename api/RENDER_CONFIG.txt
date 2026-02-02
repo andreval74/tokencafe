@@ -4,7 +4,7 @@ RENDER.COM - CONFIGURAÇÕES EXATAS PARA XCAFE API
 CONFIGURAÇÃO DO WEB SERVICE
 ======================================================
 
-Name: xcafe-token-api-hybrid
+Name: tokencafe
 Environment: Node
 Region: Oregon (US West)
 Branch: main
