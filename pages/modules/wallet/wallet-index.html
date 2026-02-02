@@ -30,91 +30,95 @@
     data-title="Gerenciador de Carteira" data-subtitle="Conecte e gerencie sua carteira Web3"></div>
 
   <!--corpo do html-->
-  <div class="container">
-    <div class="g-4">
+  <div class="container py-4">
+    <div class="row g-4">
       <div class="col-12">
+        
         <!-- Seção Informações da Carteira -->
-        <div class="mb-4 d-none" id="wallet-info-section">
+        <div id="wallet-info-section" class="d-none">
+          
           <div data-component="shared/components/section-title.html" data-st-icon="bi bi-wallet2 me-2"
             data-st-title="Informações da Carteira" data-st-subtitle="Detalhes da sua carteira conectada"></div>
 
-          <!-- Seção de Detalhes da Carteira - REDE -->
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label for="networkName" class="form-label">Nome da Rede</label>
-              <input id="networkName" class="form-control" readonly />
-            </div>
-            <div class="col-md-6">
-              <label for="chainId" class="form-label">Chain ID</label>
-              <div class="input-group">
-                <input id="chainId" class="form-control monospace-input" readonly />
+          <div class="card mb-4 border-secondary bg-dark">
+            <div class="card-body">
+              
+              <div class="row g-3">
+                <!-- Linha 1: Rede e Chain ID -->
+                <div class="col-md-8">
+                  <label class="form-label text-light">Nome da Rede</label>
+                  <input type="text" id="networkName" class="form-control bg-secondary text-white border-secondary" readonly>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label text-light">Chain ID</label>
+                  <input type="text" id="chainId" class="form-control bg-secondary text-white border-secondary" readonly>
+                </div>
+
+                <!-- Linha 2: Endereço da Carteira -->
+                <div class="col-12">
+                  <label class="form-label text-light">Endereço da Carteira</label>
+                  <div class="input-group">
+                    <input type="text" id="walletAddress" class="form-control bg-secondary text-white border-secondary" readonly>
+                    <button class="btn btn-outline-secondary" type="button" id="copyAddressBtn" title="Copiar">
+                      <i class="bi bi-clipboard text-light"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" type="button" id="viewAddressBtn" title="Ver no Explorer">
+                      <i class="bi bi-box-arrow-up-right text-light"></i>
+                    </button>
+                    <!-- Share button preserved just in case, but hidden if not in image or optional -->
+                    <button class="btn btn-outline-secondary" type="button" id="shareAddressBtn" title="Compartilhar">
+                      <i class="bi bi-share text-light"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Linha 3: Moeda, Símbolo, Saldo -->
+                <div class="col-md-4">
+                  <label class="form-label text-light">Moeda Nativa</label>
+                  <input type="text" id="nativeCurrency" class="form-control bg-secondary text-white border-secondary" readonly>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label text-light">Símbolo</label>
+                  <input type="text" id="currencySymbol" class="form-control bg-secondary text-white border-secondary" readonly>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label text-light">Saldo Atual</label>
+                  <input type="text" id="balance" class="form-control bg-secondary text-white border-secondary" readonly>
+                </div>
+
+                <!-- Linha 4: RPC e Explorer -->
+                <div class="col-md-6">
+                  <label class="form-label text-light">RPC URL</label>
+                  <input type="text" id="rpcUrl" class="form-control bg-secondary text-white border-secondary" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-light">Block Explorer URL</label>
+                  <input type="text" id="explorerUrlDisplay" class="form-control bg-secondary text-white border-secondary" readonly>
+                  <!-- Hidden link for JS logic compatibility if needed -->
+                  <a id="explorerLink" href="#" target="_blank" class="d-none"></a>
+                </div>
+
+                <!-- Linha 5: RPCs Personalizados -->
+                <div class="col-12">
+                  <label class="form-label text-light">RPCs Personalizados</label>
+                  <textarea id="customRpcs" class="form-control bg-secondary text-white border-secondary" rows="3" readonly>Nenhum RPC personalizado configurado</textarea>
+                </div>
               </div>
+
             </div>
           </div>
-
-          <!-- Seção de Detalhes da Carteira - ENDEREÇO -->
-          <div class="row g-3 mb-3">
-            <div class="col-12">
-              <label for="walletAddress" class="form-label">Endereço da Carteira</label>
-              <div class="input-group">
-                <input id="walletAddress" class="form-control monospace-input" readonly />
-                <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
-                  <i class="bi bi-clipboard"></i>
-                </button>
-                <button class="btn btn-outline-primary" id="viewAddressBtn" type="button" title="Visualizar na Rede">
-                  <i class="bi bi-box-arrow-up-right"></i>
-                </button>
+              <!-- Botão Home -->
+              <div class="mt-4 d-flex justify-content-end">
+                  <a href="../../tools.html" class="btn btn-outline-success px-4 fw-bold">
+                      <i class="bi bi-house-door me-2"></i>Home
+                  </a>
               </div>
-            </div>
-          </div>
-
-          <!-- Seção de Detalhes da Carteira - MOEDA -->
-          <div class="row g-3 mb-3">
-            <div class="col-md-4">
-              <label for="nativeCurrency" class="form-label">Moeda Nativa</label>
-              <input id="nativeCurrency" class="form-control" readonly />
-            </div>
-            <div class="col-md-4">
-              <label for="currencySymbol" class="form-label">Símbolo</label>
-              <input id="currencySymbol" class="form-control" readonly />
-            </div>
-            <div class="col-md-4">
-              <label for="balance" class="form-label">Saldo Atual</label>
-              <input id="balance" class="form-control" readonly />
-            </div>
-          </div>
-
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label for="rpcUrl" class="form-label">RPC URL</label>
-              <div class="input-group">
-                <input id="rpcUrl" class="form-control monospace-input" readonly />
-              </div>
-            </div>
-            <div class="col-md-6">
-              <label for="explorerUrl" class="form-label">Block Explorer URL</label>
-              <div class="input-group">
-                <input id="explorerUrl" class="form-control monospace-input" readonly />
-              </div>
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label for="customRpcs" class="form-label">RPCs Personalizados</label>
-            <textarea id="customRpcs" class="form-control monospace-input" rows="3" readonly
-              placeholder="Nenhum RPC personalizado configurado"></textarea>
-          </div>
-
-          <!-- Botão Home -->
-          <div class="mt-4 d-flex justify-content-end">
-              <a href="../../tools.html" class="btn btn-outline-success px-4 fw-bold">
-                  <i class="bi bi-house-door me-2"></i>Home
-              </a>
-          </div>
         </div>
+
       </div>
     </div>
   </div>
+  
   <div class="container-fluid">
     <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
       data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Wallet Manager padronizado"></div>
@@ -122,7 +126,7 @@
   <!-- scripts -->
   <script type="module" src="../../../js/shared/base-system.js"></script>
   <div data-component="shared/layouts/scripts-base.html"></div>
-  <script type="module" src="../../../js/modules/wallet/wallet-index.js"></script>
+  <script type="module" src="../../../js/modules/wallet/wallet-index.js?v=2"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
 
 </body>
