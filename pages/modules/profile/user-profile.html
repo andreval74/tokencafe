@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Profile - TokenCafe</title>
+    <link rel="stylesheet" href="../../../css/styles.css" />
+  </head>
+  <body>
+    <div class="profile-container">
+      <!-- Header do Perfil -->
+      <div class="profile-header">
+        <div class="profile-banner">
+          <div class="banner-overlay"></div>
+          <button class="change-banner-btn" id="changeBannerBtn">
+            <i class="bi bi-camera"></i>
+            Alterar Banner
+          </button>
+        </div>
+        <div class="profile-info">
+          <div class="profile-avatar">
+            <img src="https://via.placeholder.com/120x120/6366f1/ffffff?text=U" alt="Avatar" id="profileAvatar" />
+            <button class="change-avatar-btn" id="changeAvatarBtn">
+              <i class="bi bi-camera"></i>
+            </button>
+          </div>
+          <div class="profile-details">
+            <h1 class="profile-name" id="profileName">João Silva</h1>
+            <p class="profile-username">@joaosilva</p>
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+              <span id="profileAddress" class="text-muted font-monospace small">0x1234...5678</span>
+              <button class="btn btn-sm btn-link text-secondary p-0" id="btnCopyAddress" title="Copiar Endereço">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+            <p class="profile-bio" id="profileBio">Desenvolvedor blockchain apaixonado por DeFi e NFTs. Criando o futuro das finanças descentralizadas.</p>
+            <div class="profile-stats">
+              <div class="stat">
+                <span class="stat-value">15</span>
+                <span class="stat-label">Tokens Criados</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">1.2M</span>
+                <span class="stat-label">Volume Total</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">850</span>
+                <span class="stat-label">Seguidores</span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <button class="btn btn-outline-primary" id="editProfileBtn">
+              <i class="bi bi-pencil-square"></i>
+              Editar Perfil
+            </button>
+            <button class="btn btn-outline-info" id="shareProfileBtn">
+              <i class="bi bi-share"></i>
+              Compartilhar
+            </button>
+            <button class="btn btn-outline-secondary" id="btnClearData">
+              <i class="bi bi-eraser"></i>
+              Limpar Dados
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navegação do Perfil -->
+      <div class="profile-nav">
+        <nav class="nav-tabs">
+          <button class="nav-tab active" data-tab="overview">
+            <i class="bi bi-graph-up"></i>
+            Visão Geral
+          </button>
+          <button class="nav-tab" data-tab="tokens">
+            <i class="bi bi-coin"></i>
+            Meus Tokens
+          </button>
+          <button class="nav-tab" data-tab="activity">
+            <i class="bi bi-clock-history"></i>
+            Atividades
+          </button>
+          <button class="nav-tab" data-tab="achievements">
+            <i class="bi bi-trophy"></i>
+            Conquistas
+          </button>
+          <button class="nav-tab" data-tab="settings">
+            <i class="bi bi-gear"></i>
+            Configurações
+          </button>
+        </nav>
+      </div>
+
+      <!-- Conteúdo das Abas -->
+      <div class="profile-content">
+        <!-- Aba Visão Geral -->
+        <div class="tab-content active" id="overview">
+          <div class="overview-grid">
+            <div class="overview-card">
+              <h3>Resumo da Carteira</h3>
+              <div class="wallet-summary">
+                <div class="wallet-item">
+                  <span class="wallet-label">Saldo Total:</span>
+                  <span class="wallet-value">$12,450.00</span>
+                </div>
+                <div class="wallet-item">
+                  <span class="wallet-label">Tokens Ativos:</span>
+                  <span class="wallet-value">15</span>
+                </div>
+                <div class="wallet-item">
+                  <span class="wallet-label">Valor em Staking:</span>
+                  <span class="wallet-value">$3,200.00</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <h3>Performance Recente</h3>
+              <div class="performance-chart">
+                <canvas id="performanceChart" width="400" height="200"></canvas>
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <h3>Tokens Mais Performáticos</h3>
+              <div class="top-tokens" id="topTokens">
+                <!-- Tokens serão carregados dinamicamente -->
+              </div>
+            </div>
+
+            <div class="overview-card">
+              <h3>Atividade Recente</h3>
+              <div class="recent-activity" id="recentActivity">
+                <!-- Atividades serão carregadas dinamicamente -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aba Meus Tokens -->
+        <div class="tab-content" id="tokens">
+          <div class="tokens-header">
+            <div class="tokens-filters">
+              <select id="tokenStatusFilter">
+                <option value="">Todos os Status</option>
+                <option value="active">Ativos</option>
+                <option value="paused">Pausados</option>
+                <option value="completed">Finalizados</option>
+              </select>
+              <select id="tokenTypeFilter">
+                <option value="">Todos os Tipos</option>
+                <option value="erc20">ERC-20</option>
+                <option value="erc721">ERC-721</option>
+                <option value="erc1155">ERC-1155</option>
+              </select>
+            </div>
+            <div class="tokens-search">
+              <input type="text" id="tokenSearch" placeholder="Buscar tokens..." />
+            </div>
+          </div>
+          <div class="tokens-grid" id="userTokensGrid">
+            <!-- Tokens do usuário serão carregados aqui -->
+          </div>
+        </div>
+
+        <!-- Aba Atividades -->
+        <div class="tab-content" id="activity">
+          <div class="activity-filters">
+            <select id="activityTypeFilter">
+              <option value="">Todas as Atividades</option>
+              <option value="create">Criação de Token</option>
+              <option value="transfer">Transferências</option>
+              <option value="trade">Negociações</option>
+              <option value="stake">Staking</option>
+            </select>
+            <input type="date" id="activityDateFilter" />
+          </div>
+          <div class="activity-timeline" id="activityTimeline">
+            <!-- Timeline de atividades será carregada aqui -->
+          </div>
+        </div>
+
+        <!-- Aba Conquistas -->
+        <div class="tab-content" id="achievements">
+          <div class="achievements-grid" id="achievementsGrid">
+            <!-- Conquistas serão carregadas aqui -->
+          </div>
+        </div>
+
+        <!-- Aba Configurações -->
+        <div class="tab-content" id="settings">
+          <div class="settings-sections">
+            <div class="settings-section">
+              <h3>Informações Pessoais</h3>
+              <form id="personalInfoForm" class="settings-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="firstName">Nome</label>
+                    <input type="text" id="firstName" value="João" />
+                  </div>
+                  <div class="form-group">
+                    <label for="lastName">Sobrenome</label>
+                    <input type="text" id="lastName" value="Silva" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input type="email" id="email" value="joao@example.com" />
+                </div>
+                <div class="form-group">
+                  <label for="bio">Bio</label>
+                  <textarea id="bio" rows="3">Desenvolvedor blockchain apaixonado por DeFi e NFTs.</textarea>
+                </div>
+                <button type="submit" class="btn btn-outline-primary">Salvar Alterações</button>
+              </form>
+            </div>
+
+            <div class="settings-section">
+              <h3>Preferências de Notificação</h3>
+              <form id="notificationForm" class="settings-form">
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="emailNotifications" checked />
+                    <span class="checkmark"></span>
+                    Notificações por Email
+                  </label>
+                </div>
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="pushNotifications" checked />
+                    <span class="checkmark"></span>
+                    Notificações Push
+                  </label>
+                </div>
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="marketingEmails" />
+                    <span class="checkmark"></span>
+                    Emails de Marketing
+                  </label>
+                </div>
+                <button type="submit" class="btn btn-outline-primary">Salvar Preferências</button>
+              </form>
+            </div>
+
+            <div class="settings-section">
+              <h3>Segurança</h3>
+              <div class="security-options">
+                <button class="btn btn-outline-secondary" id="changePasswordBtn">
+                  <i class="bi bi-key"></i>
+                  Alterar Senha
+                </button>
+                <button class="btn btn-outline-primary" id="enable2FABtn">
+                  <i class="bi bi-shield-lock"></i>
+                  Ativar 2FA
+                </button>
+                <button class="btn btn-outline-secondary" id="downloadDataBtn">
+                  <i class="bi bi-download"></i>
+                  Baixar Meus Dados
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Edição de Perfil -->
+    <div class="modal" id="editProfileModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Editar Perfil</h2>
+          <button class="modal-close" id="closeEditModal">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editProfileForm" class="profile-edit-form">
+            <div class="form-group">
+              <label for="editName">Nome Completo</label>
+              <input type="text" id="editName" required />
+            </div>
+            <div class="form-group">
+              <label for="editUsername">Nome de Usuário</label>
+              <input type="text" id="editUsername" required />
+            </div>
+            <div class="form-group">
+              <label for="editBio">Bio</label>
+              <textarea id="editBio" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="editWebsite">Website</label>
+              <input type="url" id="editWebsite" />
+            </div>
+            <div class="form-group">
+              <label for="editLocation">Localização</label>
+              <input type="text" id="editLocation" />
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline-secondary" id="cancelEditBtn">Cancelar</button>
+              <button type="submit" class="btn btn-outline-primary">Salvar Alterações</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Alteração de Senha -->
+    <div class="modal" id="changePasswordModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Alterar Senha</h2>
+          <button class="modal-close" id="closePasswordModal">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="changePasswordForm">
+            <div class="form-group">
+              <label for="currentPassword">Senha Atual</label>
+              <input type="password" id="currentPassword" required />
+            </div>
+            <div class="form-group">
+              <label for="newPassword">Nova Senha</label>
+              <input type="password" id="newPassword" required />
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirmar Nova Senha</label>
+              <input type="password" id="confirmPassword" required />
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline-secondary" id="cancelPasswordBtn">Cancelar</button>
+              <button type="submit" class="btn btn-outline-primary">Alterar Senha</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="../../../js/modules/profile/user-profile.js"></script>
+  </body>
+</html>

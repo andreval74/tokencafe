@@ -1,0 +1,92 @@
+<!--
+================================================================================
+MAIN HEADER - HEADER PRINCIPAL TOKENCAFE
+================================================================================
+Header unificado para páginas principais (index, about, contact)
+Baseado no header.html do TokenCafe com tema TokenCafe
+================================================================================
+-->
+<header>
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-page-black">
+    <div class="container">
+      <!-- Brand TokenCafe -->
+      <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <img src="../../../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 tokencafe-logo logo-standard" />
+      </a>
+
+      <!-- Mobile Toggle -->
+      <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Navigation -->
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Menu Items -->
+        <ul class="navbar-nav ms-auto me-3">
+          <li class="nav-item">
+            <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#token">
+              <i class="bi bi-coin me-1"></i>
+              Token
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#comofunciona">
+              <i class="bi bi-gear me-1"></i>
+              Como Funciona
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#ecosistema">
+              <i class="bi bi-globe me-1"></i>
+              EcoSistema
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#precos">
+              <i class="bi bi-currency-dollar me-1"></i>
+              Preços
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#social">
+              <i class="bi bi-people me-1"></i>
+              Social
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.html#suporte">
+              <i class="bi bi-headset me-1"></i>
+              Suporte
+            </a>
+          </li>
+        </ul>
+
+        <!-- Controls -->
+        <div class="d-flex align-items-center gap-2">
+          <button id="theme-toggle-btn" class="btn btn-sm btn-transparent-warning" type="button" title="Alternar Tema">
+            <i class="bi bi-sun" id="theme-icon"></i>
+          </button>
+
+          <button id="language-toggle-btn" class="btn btn-sm btn-transparent-info" type="button" title="Mudar Idioma">
+            <i class="bi bi-globe" id="language-icon"></i>
+          </button>
+
+          <div id="header-wallet-status" class="d-none">
+            <small class="text-white-50">
+              <i class="bi bi-wallet2 me-1"></i>
+              <span id="header-wallet-address"></span>
+            </small>
+          </div>
+
+          <!-- Conectar MetaMask -->
+          <button id="connect-metamask-btn" class="btn btn-sm btn-outline-primary fw-bold" type="button" title="Conectar MetaMask">
+            <i class="bi bi-wallet2 me-1"></i>
+            Conectar
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script type="module" src="/js/shared/page-header.js"></script>

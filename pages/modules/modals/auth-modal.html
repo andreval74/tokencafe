@@ -1,0 +1,248 @@
+<!--
+================================================================================
+AUTH MODAL - MODAL DE AUTENTICAÇÃO
+================================================================================
+Modal unificado para autenticação Web3
+Combina funcionalidades do TokenCafe e Widget
+================================================================================
+-->
+
+<div class="modal fade" id="authModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <!-- Header do Modal -->
+      <div class="modal-header border-0 pb-0">
+        <div class="w-100 text-center">
+          <h4 class="modal-title text-coffee">
+            <i class="bi bi-cup-hot me-2"></i>
+            Conectar Carteira
+          </h4>
+          <p class="text-muted small mb-0">Conecte sua carteira para acessar o TokenCafe</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Corpo do Modal -->
+      <div class="modal-body px-4 py-3">
+        <!-- Estado: Seleção de Carteira -->
+        <div id="wallet-selection" class="auth-step">
+          <div class="row g-2">
+            <!-- Trust Wallet -->
+            <div class="col-12">
+              <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="trust">
+                <div class="d-flex align-items-center">
+                  <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center badge-circle bg-white">
+                    <img src="../../../imgs/trustwallet.svg" alt="Trust Wallet" width="24" height="24" />
+                  </div>
+                  <div class="text-start flex-grow-1">
+                    <h6 class="mb-0">Trust Wallet</h6>
+                    <small class="text-muted">Conectar usando Trust Wallet</small>
+                  </div>
+                  <i class="bi bi-chevron-right text-muted"></i>
+                </div>
+              </button>
+            </div>
+            <!-- MetaMask -->
+            <div class="col-12">
+              <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="metamask">
+                <div class="d-flex align-items-center">
+                  <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center badge-circle bg-white">
+                    <img src="../../../imgs/metamask.svg" alt="MetaMask" width="24" height="24" />
+                  </div>
+                  <div class="text-start flex-grow-1">
+                    <h6 class="mb-0">MetaMask</h6>
+                    <small class="text-muted">Conectar usando MetaMask</small>
+                  </div>
+                  <i class="bi bi-chevron-right text-muted"></i>
+                </div>
+              </button>
+            </div>
+
+            <!-- WalletConnect -->
+            <div class="col-12">
+              <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="walletconnect">
+                <div class="d-flex align-items-center">
+                  <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center badge-circle bg-white">
+                    <img src="../../../imgs/walletconnect.svg" alt="WalletConnect" width="24" height="24" />
+                  </div>
+                  <div class="text-start flex-grow-1">
+                    <h6 class="mb-0">WalletConnect</h6>
+                    <small class="text-muted">Conectar com código QR</small>
+                  </div>
+                  <i class="bi bi-chevron-right text-muted"></i>
+                </div>
+              </button>
+            </div>
+
+            <!-- Coinbase -->
+            <div class="col-12">
+              <button class="btn btn-outline-primary w-100 p-3 wallet-option" data-wallet="coinbase">
+                <div class="d-flex align-items-center">
+                  <div class="wallet-icon me-3 rounded d-flex align-items-center justify-content-center badge-circle bg-white">
+                    <img src="../../../imgs/coinbase.svg" alt="Coinbase" width="24" height="24" />
+                  </div>
+                  <div class="text-start flex-grow-1">
+                    <h6 class="mb-0">Coinbase Wallet</h6>
+                    <small class="text-muted">Conectar usando Coinbase</small>
+                  </div>
+                  <i class="bi bi-chevron-right text-muted"></i>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <small class="text-muted">
+              <i class="bi bi-info-circle me-1"></i>
+              Não possui uma carteira?
+              <a href="https://metamask.io" target="_blank" class="text-decoration-none">Instalar MetaMask</a>
+            </small>
+          </div>
+        </div>
+
+        <!-- Estado: Conectando -->
+        <div id="wallet-connecting" class="auth-step d-none">
+          <div class="text-center py-4">
+            <div class="spinner-border text-coffee mb-3" role="status">
+              <span class="visually-hidden">Conectando...</span>
+            </div>
+            <h6 class="text-coffee">Conectando...</h6>
+            <p class="text-muted mb-0" id="connecting-message">Aguarde enquanto conectamos sua carteira</p>
+            <div class="mt-3">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="cancel-connection">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado: Seleção de Rede -->
+        <div id="network-selection" class="auth-step d-none">
+          <div class="mb-3">
+            <h6 class="text-coffee">
+              <i class="bi bi-diagram-3 me-2"></i>
+              Selecionar Rede
+            </h6>
+            <p class="text-muted small mb-0">Escolha a rede blockchain para usar</p>
+          </div>
+
+          <div class="row g-2">
+            <!-- Ethereum -->
+            <div class="col-6">
+              <button class="btn btn-outline-primary w-100 p-3 network-option" data-chain-id="0x1">
+                <div class="text-center">
+                  <div class="network-icon mb-2 mx-auto bg-primary rounded-circle d-flex align-items-center justify-content-center badge-circle-lg">
+                    <i class="fab fa-ethereum text-white"></i>
+                  </div>
+                  <h6 class="mb-0 small">Ethereum</h6>
+                  <small class="text-muted">Mainnet</small>
+                </div>
+              </button>
+            </div>
+
+            <!-- BSC -->
+            <div class="col-6">
+              <button class="btn btn-outline-primary w-100 p-3 network-option" data-chain-id="0x38">
+                <div class="text-center">
+                  <div class="network-icon mb-2 mx-auto bg-primary rounded-circle d-flex align-items-center justify-content-center badge-circle-lg">
+                    <i class="bi bi-coin text-white"></i>
+                  </div>
+                  <h6 class="mb-0 small">BSC</h6>
+                  <small class="text-muted">Binance Smart Chain</small>
+                </div>
+              </button>
+            </div>
+
+            <!-- Polygon -->
+            <div class="col-6">
+              <button class="btn btn-outline-info w-100 p-3 network-option" data-chain-id="0x89">
+                <div class="text-center">
+                  <div class="network-icon mb-2 mx-auto bg-info rounded-circle d-flex align-items-center justify-content-center badge-circle-lg">
+                    <i class="bi bi-layers text-white"></i>
+                  </div>
+                  <h6 class="mb-0 small">Polygon</h6>
+                  <small class="text-muted">MATIC</small>
+                </div>
+              </button>
+            </div>
+
+            <!-- Arbitrum -->
+            <div class="col-6">
+              <button class="btn btn-outline-success w-100 p-3 network-option" data-chain-id="0xa4b1">
+                <div class="text-center">
+                  <div class="network-icon mb-2 mx-auto bg-success rounded-circle d-flex align-items-center justify-content-center badge-circle-lg">
+                    <i class="bi bi-rocket text-white"></i>
+                  </div>
+                  <h6 class="mb-0 small">Arbitrum</h6>
+                  <small class="text-muted">Layer 2</small>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="text-center mt-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="back-to-wallets">
+              <i class="bi bi-arrow-left me-1"></i>
+              Voltar
+            </button>
+          </div>
+        </div>
+
+        <!-- Estado: Sucesso -->
+        <div id="connection-success" class="auth-step d-none">
+          <div class="text-center py-4">
+            <div class="mb-3">
+              <div class="bg-success rounded-circle badge-circle-xl">
+                <i class="bi bi-check text-white fs-2"></i>
+              </div>
+            </div>
+            <h6 class="text-success">Conectado com Sucesso!</h6>
+            <p class="text-muted mb-3" id="connected-address">
+              Endereço:
+              <span class="font-monospace"></span>
+            </p>
+            <p class="text-muted mb-3" id="connected-network">
+              Rede:
+              <span></span>
+            </p>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ir para Ferramentas</button>
+          </div>
+        </div>
+
+        <!-- Estado: Erro -->
+        <div id="connection-error" class="auth-step d-none">
+          <div class="text-center py-4">
+            <div class="mb-3">
+              <div class="bg-danger rounded-circle badge-circle-xl">
+                <i class="bi bi-exclamation-triangle text-white fs-2"></i>
+              </div>
+            </div>
+            <h6 class="text-danger">Erro na Conexão</h6>
+            <p class="text-muted mb-3" id="error-message">Não foi possível conectar sua carteira</p>
+            <div class="btn-row justify-content-center">
+              <button type="button" class="btn btn-outline-secondary" id="back-to-selection">Tentar Novamente</button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer com informações adicionais -->
+      <div class="modal-footer border-0 pt-0">
+        <div class="w-100">
+          <div class="text-center">
+            <small class="text-muted d-block mb-2">
+              <i class="bi bi-shield-lock me-1"></i>
+              Sua carteira permanece sob seu controle
+            </small>
+            <div class="d-flex justify-content-center gap-3">
+              <a href="privacy.html" class="text-muted small text-decoration-none">Privacidade</a>
+              <a href="terms.html" class="text-muted small text-decoration-none">Termos</a>
+              <a href="support.html" class="text-muted small text-decoration-none">Suporte</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="../../../js/modules/modals/auth_modal.js"></script>

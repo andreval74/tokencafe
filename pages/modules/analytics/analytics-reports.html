@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics Reports - TokenCafe</title>
+    <meta name="description" content="Acompanhe o desempenho dos seus tokens e widgets com gráficos e tabelas." />
+    <meta name="keywords" content="analytics, tokens, gráficos, dashboards, Web3" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+
+    <!-- TokenCafe Global CSS -->
+    <link rel="stylesheet" href="../../../css/styles.css" />
+  </head>
+  <body class="bg-page-black">
+    <!-- Header padrão com status de carteira (componente) -->
+    <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-chart-line" data-icon-alt="Analytics" data-title="Analytics Reports" data-subtitle="Acompanhe o desempenho dos seus tokens"></div>
+    <!-- Seleção da Rede -->
+    <div class="container">
+      <div class="mb-4" id="network-section">
+        <div data-component="shared/components/network-search.html"></div>
+      </div>
+    </div>
+    <!-- Módulo: Analytics e Relatórios (Layout padrão) -->
+    <div class="container-fluid py-3 mb-1">
+      <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+          <div id="analytics-module">
+            <!-- Header do Módulo -->
+            <div class="module-header">
+              <div class="module-title">
+                <h1>📊 Analytics</h1>
+                <p>Acompanhe o desempenho dos seus tokens e widgets</p>
+              </div>
+              <div class="module-actions">
+                <select id="time-range-selector" class="select-input">
+                  <option value="7d">Últimos 7 dias</option>
+                  <option value="30d" selected>Últimos 30 dias</option>
+                  <option value="90d">Últimos 90 dias</option>
+                  <option value="1y">Último ano</option>
+                </select>
+                <button class="btn btn-outline-primary" data-action="export-report">
+                  <i class="bi bi-download"></i>
+                  Exportar
+                </button>
+                <button class="btn btn-outline-primary" data-action="refresh-analytics">
+                  <i class="bi bi-arrow-clockwise"></i>
+                  Atualizar
+                </button>
+                <button class="btn btn-outline-secondary" id="btnClearData">
+                  <i class="bi bi-eraser"></i>
+                  Limpar Dados
+                </button>
+              </div>
+            </div>
+
+            <!-- Cards de Resumo -->
+            <div class="analytics-summary">
+              <div class="summary-card">
+                <div class="summary-icon">🪙</div>
+                <div class="summary-content">
+                  <h3 id="total-tokens">0</h3>
+                  <p>Tokens Criados</p>
+                  <span class="summary-change positive" id="tokens-change">+0%</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-icon">👥</div>
+                <div class="summary-content">
+                  <h3 id="total-holders">0</h3>
+                  <p>Total de Holders</p>
+                  <span class="summary-change positive" id="holders-change">+0%</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-icon">💰</div>
+                <div class="summary-content">
+                  <h3 id="total-volume">$0</h3>
+                  <p>Volume Total</p>
+                  <span class="summary-change positive" id="volume-change">+0%</span>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-icon">🔄</div>
+                <div class="summary-content">
+                  <h3 id="total-transactions">0</h3>
+                  <p>Transações</p>
+                  <span class="summary-change positive" id="transactions-change">+0%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gráficos Principais -->
+            <div class="analytics-charts">
+              <!-- Gráfico de Volume -->
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h3>📈 Volume de Transações</h3>
+                  <div class="chart-controls">
+                    <button class="chart-btn active" data-chart="volume" data-type="line">Linha</button>
+                    <button class="chart-btn" data-chart="volume" data-type="bar">Barras</button>
+                  </div>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="volume-chart"></canvas>
+                </div>
+              </div>
+
+              <!-- Gráfico de Holders -->
+              <div class="chart-container">
+                <div class="chart-header">
+                  <h3>👥 Crescimento de Holders</h3>
+                  <div class="chart-controls">
+                    <button class="chart-btn active" data-chart="holders" data-type="line">Linha</button>
+                    <button class="chart-btn" data-chart="holders" data-type="area">Área</button>
+                  </div>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="holders-chart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gráficos Secundários -->
+            <div class="analytics-secondary">
+              <!-- Distribuição por Tipo -->
+              <div class="chart-container half-width">
+                <div class="chart-header">
+                  <h3>🎯 Distribuição por Tipo</h3>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="type-distribution-chart"></canvas>
+                </div>
+              </div>
+
+              <!-- Top Tokens -->
+              <div class="chart-container half-width">
+                <div class="chart-header">
+                  <h3>🏆 Top Tokens por Volume</h3>
+                </div>
+                <div class="chart-wrapper">
+                  <canvas id="top-tokens-chart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabela de Detalhes -->
+            <div class="analytics-table">
+              <div class="table-header">
+                <h3>📋 Detalhes por Token</h3>
+                <div class="table-controls">
+                  <input type="text" id="table-search" placeholder="Buscar token..." class="search-input" />
+                  <select id="table-sort" class="select-input">
+                    <option value="volume">Volume</option>
+                    <option value="holders">Holders</option>
+                    <option value="transactions">Transações</option>
+                    <option value="created">Data de Criação</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table id="analytics-table">
+                  <thead>
+                    <tr>
+                      <th>Token</th>
+                      <th>Tipo</th>
+                      <th>Holders</th>
+                      <th>Volume (30d)</th>
+                      <th>Transações</th>
+                      <th>Variação</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-table-body">
+                    <!-- Dados carregados dinamicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-state text-center py-4 d-none" id="analytics-loading">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="text-secondary mt-2">Carregando analytics...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Detalhes Avançados -->
+    <div class="modal" id="advanced-analytics-modal">
+      <div class="modal-content large">
+        <div class="modal-header">
+          <h3>Analytics Avançado</h3>
+          <button class="close-btn" id="close-advanced-analytics">&times;</button>
+        </div>
+        <div class="modal-body" id="advanced-analytics-content">
+          <!-- Conteúdo carregado dinamicamente -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Base System para carregamento de componentes --> 
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award" data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Analytics Reports padronizado"></div>
+    </div>
+    <script type="module" src="../../../js/shared/base-system.js"></script>
+    <div data-component="shared/layouts/scripts-base.html"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Módulo de Analytics -->
+    <script type="module" src="../../../js/modules/analytics/analytics-reports.js?v=2"></script>
+  </body>
+</html>
+

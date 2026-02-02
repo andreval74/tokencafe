@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: tokencafe-api
+    env: node
+    branch: main
+    plan: free
+    region: oregon
+    rootDir: api/render-app
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /health
+  - type: static
+    name: tokencafe-site
+    branch: main
+    plan: free
+    rootDir: .
+    staticPublishPath: .
+    autoDeploy: true

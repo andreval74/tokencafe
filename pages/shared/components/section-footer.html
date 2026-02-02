@@ -1,0 +1,9 @@
+<div class="section-divider"></div>
+<footer class="tokencafe-footer mt-3">
+      <p class="footer-text text-center">
+        <i class="bi bi-code-slash"></i>
+        Desenvolvido pela equipe
+        <strong class="footer-brand text-white">Token</strong>
+        <strong class="footer-brand text-warning">Cafe</strong>
+      </p>
+    </footer>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <title>Adicionar Token - TokenCafe</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Adicionar token à carteira a partir de um link" />
+  <meta name="author" content="TokenCafe Team" />
+  <meta http-equiv="Content-Security-Policy"
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: http://localhost:* ws: wss:; object-src 'none'; base-uri 'self';" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+  <link href="../../../css/styles.css" rel="stylesheet" />
+</head>
+
+<body class="bg-page-black">
+  <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-wallet" data-icon-alt="Wallet" data-title="Adicionar Token"
+    data-subtitle="Verifique os dados e adicione à carteira"></div>
+
+  <div class="container">
+    <div class="g-4">
+      <div class="col-12">
+        <!-- Componente Busca de Contrato (Reutilizado) -->
+        <div
+          data-component="shared/components/contract-search.html"
+          data-cs-view-only="true"
+          data-cs-title="Adicionar Token"
+          data-cs-subtitle="Contrato enviado pelo link"
+        ></div>
+        <small id="metaValidatedBadgeLt" class="text-success d-none mt-1">
+          <i class="bi bi-check-circle me-1"></i>
+          Dados do contrato confirmados (símbolo/decimais)
+        </small>
+
+        <!-- Componente de Resposta do Sistema removido (agora via Modal global) -->
+        <div class="d-flex gap-2 justify-content-end mt-4" id="add-network-section">
+          <button id="btnSwitchNetwork" class="btn btn-outline-info d-none">
+            <i class="bi bi-diagram-3 me-2"></i>Trocar Rede
+          </button>
+          <button id="addToWalletButton" class="btn btn-outline-warning" disabled>
+            <i class="bi bi-wallet2 me-2"></i>Adicionar Token
+          </button>
+          <button id="btnClearAll" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-2"></i>Limpar Dados
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+  <div data-component="shared/layouts/scripts-base.html"></div>
+
+  <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+      data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Adicionar Token padronizado"></div>
+  </div>
+
+  <script type="module" src="../../../js/modules/link/link-token.js"></script>
+</body>
+
+</html>
+

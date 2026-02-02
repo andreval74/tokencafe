@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Testes do Token Manager - TokenCafe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+    <link href="../../../css/styles.css" rel="stylesheet" />
+  </head>
+
+  <body class="bg-page-black">
+    <!-- Header padrão com status de carteira (componente) -->
+    <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-add" data-icon-alt="Token Creator" data-title="Criador de Contratos de Token" data-subtitle="Implante seu ERC-20 com segurança"></div>
+
+    <!-- Main Content -->
+    <main class="py-3 mb-1">
+      <div class="container-fluid">
+        <div class="row justify-content-center">
+          <div class="col-lg-8 col-xl-6">
+            <div class="card bg-dark border border-secondary rounded-4 p-4 shadow-lg">
+              <!-- Header -->
+              <div class="border-bottom border-secondary pb-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h1 class="display-6 fw-bold text-white mb-0">
+                      <i class="bi bi-coin me-2"></i>
+                      Gerador de Contratos Inteligentes
+                    </h1>
+                    <p class="text-secondary mb-0">Tenha o seu contrato inteligente ERC-20 com segurança</p>
+                  </div>
+                  <!-- Branding removido para manter padrão TokenCafe -->
+                </div>
+              </div>
+
+              <!-- Seção 1: Conexão da Carteira -->
+              <section id="section-wallet" class="creation-section active section-enabled">
+                <div class="section-header"></div>
+                <div class="section-header">
+                  <h4 class="text-primary mb-1">
+                    <i class="bi bi-wallet2 me-2"></i>
+                    1. Conexão da Carteira
+                  </h4>
+                  <p class="text-muted">Conecte sua carteira Web3 para acessar a funcionalidade.</p>
+                  <div data-component="wallet"></div>
+                </div>
+              </section>
+
+              <!-- Seção 2: Informações Básicas do Token -->
+              <section id="section-basic-info" class="creation-section d-none">
+                <div class="section-header">
+                  <h4 class="text-primary mb-1">
+                    <i class="bi bi-info-circle me-2"></i>
+                    2. Informações Básicas do Token
+                  </h4>
+                  <p class="text-muted">Defina as características fundamentais do seu contrato ERC-20.</p>
+                </div>
+
+                <div class="card bg-dark border-warning shadow mb-4">
+                  <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                      <i class="bi bi-database-down me-2"></i>
+                      Dados do Token
+                    </h5>
+                  </div>
+
+                  <div class="card-body">
+                    <div class="row g-4">
+                      <div class="col-md-6">
+                        <label for="tokenName" class="form-label text-white required">
+                          <i class="bi bi-tag text-primary me-2"></i>
+                          Nome do Token
+                        </label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="tokenName" placeholder="Ex: Bitcoin Brasil" required />
+                        <div class="form-text text-muted">Nome completo que aparecerá nas carteiras</div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="tokenSymbol" class="form-label text-white required">
+                          <i class="bi bi-code-square text-primary me-2"></i>
+                          Símbolo do Token
+                        </label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary text-uppercase" id="tokenSymbol" placeholder="Ex: BTCBR" required maxlength="10" />
+                        <div class="form-text text-muted">Abreviação de 3-10 caracteres (ex: BTCBR)</div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="decimals" class="form-label text-white">
+                          <i class="bi bi-123 text-primary me-2"></i>
+                          Decimais
+                        </label>
+                        <select class="form-control bg-dark text-white border-secondary" id="decimals">
+                          <option value="18" selected>18</option>
+                          <option value="16">16</option>
+                          <option value="14">14</option>
+                          <option value="12">12</option>
+                          <option value="10">10</option>
+                          <option value="08">08</option>
+                          <option value="06">06</option>
+                          <option value="04">04</option>
+                          <option value="02">02</option>
+                          <option value="00">00</option>
+                        </select>
+                        <div class="form-text text-muted">Precisão decimal do token</div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="totalSupply" class="form-label text-white required">
+                          <i class="bi bi-cash-stack text-primary me-2"></i>
+                          Supply Total
+                        </label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="totalSupply" placeholder="Ex: 1000000" required />
+                        <div class="form-text text-muted">Quantidade total de tokens que será criada</div>
+                      </div>
+
+                      <div class="col-12">
+                        <label for="ownerAddress" class="form-label text-white required">
+                          <i class="bi bi-person-check text-primary me-2"></i>
+                          Endereço do Proprietário
+                        </label>
+                        <div class="input-group">
+                          <input type="text" class="form-control bg-dark text-white border-secondary" id="ownerAddress" placeholder="Será preenchido automaticamente" pattern="^0x[a-fA-F0-9]{40}$" title="Endereço Ethereum válido" required />
+                          <button class="btn btn-outline-secondary" type="button" id="copy-owner-address-btn" title="Copiar">
+                            <i class="bi bi-clipboard"></i>
+                          </button>
+                        </div>
+                        <div class="form-text text-muted">Endereço que receberá todos os tokens criados (editável)</div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="tokenImage" class="form-label text-white">
+                          <i class="bi bi-image text-primary me-2"></i>
+                          Logo do Token (Opcional)
+                        </label>
+                        <input type="url" class="form-control bg-dark text-white border-secondary" id="tokenImage" placeholder="https://exemplo.com/logo.png" />
+                        <div class="form-text text-muted">URL da imagem PNG/JPG (recomendado: 200x200px)</div>
+                      </div>
+
+                      <div class="col-md-6">
+                        <label for="network-display" class="form-label text-white">
+                          <i class="bi bi-globe text-primary me-2"></i>
+                          Rede de Deploy
+                        </label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="network-display" placeholder="Detectando..." readonly />
+                        <div class="form-text text-muted">Rede onde o contrato será implantado</div>
+                      </div>
+                    </div>
+
+                    <!-- Configurações avançadas -->
+                    <div class="row g-4 mt-2">
+                      <div class="col-12">
+                        <div class="card bg-dark border-secondary">
+                          <div class="card-header border-secondary">
+                            <h6 class="mb-0 text-white">
+                              <i class="bi bi-sliders me-2"></i>
+                              Configurações Avançadas
+                            </h6>
+                          </div>
+                          <div class="card-body">
+                            <div class="row g-3">
+                              <div class="col-md-6">
+                                <label for="contractName" class="form-label text-white">
+                                  <i class="bi bi-file-binary text-primary me-2"></i>
+                                  Nome do Contrato
+                                </label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="contractName" placeholder="Ex: MyToken" />
+                                <div class="form-text text-muted">Se vazio, usa "[SÍMBOLO]Token"</div>
+                              </div>
+                              <div class="col-md-6">
+                                <label class="form-label text-white">
+                                  <i class="bi bi-tools text-primary me-2"></i>
+                                  Recursos do Token
+                                </label>
+                                <div class="d-flex flex-wrap gap-3">
+                                  <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="featureMintable" />
+                                    <label class="form-check-label text-white" for="featureMintable">Mintable</label>
+                                  </div>
+                                  <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="featureBurnable" />
+                                    <label class="form-check-label text-white" for="featureBurnable">Burnable</label>
+                                  </div>
+                                  <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="featurePausable" />
+                                    <label class="form-check-label text-white" for="featurePausable">Pausable</label>
+                                  </div>
+                                  <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="featureOwnable" checked />
+                                    <label class="form-check-label text-white" for="featureOwnable">Ownable</label>
+                                  </div>
+                                </div>
+                                <div class="form-text text-muted">Ative funções extras no contrato</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Botão Criar Token -->
+                    <div class="btn-row mt-4">
+          <button
+            id="create-token-btn"
+            type="button"
+            class="btn shadow-lg btn-primary-custom fw-bold d-none"
+            data-steps='[
+            {"text": " Gerar Contrato e Token", "icon": "bi-gear-fill"},
+            {"text": " Compilando", "icon": "bi-code-slash"},
+            {"text": " Deploy", "icon": "bi-upload"},
+            {"text": " Configurando", "icon": "bi-sliders"},
+            {"text": " Contrato e Token Criados com Sucesso", "icon": "bi-check-circle-fill"}
+          ]'
+          >
+            <i class="bi bi-rocket-takeoff me-2"></i>
+            Criar Token
+          </button>
+          
+          <button id="btnClearAll" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-2"></i>
+            Limpar Dados
+          </button>
+        </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Seção 3: Links do Token -->
+              <section id="section-result" class="creation-section d-none">
+                <div class="section-header">
+                  <h4 class="text-primary mb-1">
+                    <i class="bi bi-link-45deg me-2"></i>
+                    3. Links do contrato criado
+                  </h4>
+                  <p class="text-muted">Informações e links úteis do seu contrato que foi gerado.</p>
+                </div>
+
+                <div class="card bg-dark border-success shadow mb-4">
+                  <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                      <i class="bi bi-coin me-2"></i>
+                      Informações do Token
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <!-- Endereço do Contrato -->
+                      <div class="col-12">
+                        <label for="network-display" class="form-label text-white">
+                          <i class="bi bi-cast text-primary me-2"></i>
+                          Endereço do Contrato
+                        </label>
+
+                        <div class="input-group mb-2">
+                          <input type="text" class="form-control bg-dark text-success border-success monospace-input" id="contract-address-display" readonly value="0x1234567890123456789012345678901234567890" />
+                          <button class="btn btn-outline-info" type="button" id="copy-contract-btn" title="Copiar">
+                            <i class="bi bi-clipboard"></i>
+                          </button>
+                          <button class="btn btn-outline-primary" type="button" id="view-explorer-btn" title="Ver no Explorer">
+                            <i class="bi bi-eye"></i>
+                          </button>
+                          <button class="btn btn-outline-warning" type="button" id="add-to-metamask-btn" title="Adicionar ao MetaMask"><img src="../../../imgs/metamask.svg" alt="MetaMask" width="32" height="32" /></button>
+                        </div>
+                      </div>
+
+                      <!-- Transaction Hash -->
+                      <div class="col-12">
+                        <label for="network-display" class="form-label text-white">
+                          <i class="bi bi-upc-scan text-primary me-2"></i>
+                          Código de Transação
+                        </label>
+
+                        <div class="input-group mb-2">
+                          <input type="text" class="form-control bg-dark text-success border-info monospace-input" id="transaction-hash-display" readonly value="0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890" />
+                          <button class="btn btn-outline-info" type="button" id="copy-hash-btn" title="Copiar">
+                            <i class="bi bi-clipboard"></i>
+                          </button>
+                          <button class="btn btn-outline-primary" type="button" id="view-hash-btn" title="Ver no Explorer">
+                            <i class="bi bi-eye"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Componente de Resposta do Sistema removido (agora via Modal global) -->
+              <section id="section-veri" class="creation-section d-none">
+                <div class="section-header">
+                  <h4 class="text-primary mb-1">
+                    <i class="bi bi-file-break me-2"></i>
+                    4. Verificação do Contrato do Token
+                  </h4>
+                  <p class="text-muted">Visualizar o código fonte e verificar o contrato na blockchain.</p>
+                </div>
+
+                <div class="card bg-dark border-success shadow mb-4">
+                  <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                      <i class="bi bi-file-earmark-code me-2"></i>
+                      Informações para verificações do contrato
+                    </h6>
+                  </div>
+
+                  <div class="card-body">
+                    <!-- como verificar um contrato -->
+                    <div class="row mt-3" id="network-info-section">
+                      <div class="col-12">
+                        <div class="alert alert-info mb-0">
+                          <strong>Como usar os botões:</strong>
+                          <li>
+                            <strong>Visualizar Contrato:</strong>
+                            Abre uma janela com o código fonte para visualização, cópia e download
+                          </li>
+                          <li>
+                            <strong>Verificar Contrato:</strong>
+                            Abre a página de verificação da blockchain (BSCScan/EtherScan)
+                          </li>
+                          <br />
+                          <strong>Para verificação manual no explorer:</strong>
+                          <li>Clique em "Verificar Contrato" para ir ao site da blockchain</li>
+                          <li>Configure os campos conforme os dados informados</li>
+                          <li>Use "Visualizar Contrato" para copiar o código fonte</li>
+                          <li>Cole o código no site e clique em "Verify and Publish"</li>
+                          <strong>Pronto seu contrato esta Verificado e Pronto para ser usado.</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- dados para verificação do contrato -->
+                  <div class="card-body">
+                    <div class="row g-4">
+                      <div class="col-6">
+                        <label for="network-display" class="form-label text-white">
+                          <i class="bi bi-backspace-reverse text-primary me-2"></i>
+                          Compiler Version
+                        </label>
+                        <label for="network-display" class="form-label text-success">v0.8.30+commit.8a97fa7a</label>
+                      </div>
+                      <div class="col-6">
+                        <label for="network-display" class="form-label text-white">
+                          <i class="bi bi-hr text-primary me-2"></i>
+                          Optimization
+                        </label>
+                        <label for="network-display" class="form-label text-success">Enabled - 200 runs</label>
+                      </div>
+                    </div>
+                    <div class="row g-4">
+                      <div class="col-6">
+                        <label for="network-display" class="form-label text-white">
+                          <i class="bi bi-blockquote-left text-primary me-2"></i>
+                          License Type
+                        </label>
+                        <label for="network-display" class="form-label text-success">MIT License</label>
+                      </div>
+
+                      <div class="col-6">
+                        <label for="network-display" class="form-label text-white">
+                          <i class="bi bi-blockquote-right text-primary me-2"></i>
+                          EVM Version:
+                        </label>
+                        <label for="network-display" class="form-label text-success">Default</label>
+                      </div>
+                    </div>
+
+                    <!-- botões de ação para verificação do contrato -->
+                    <div class="btn-row mt-3">
+                      <button id="view-contract-btn" class="btn btn-outline-success shadow">
+                        <i class="bi bi-eye me-2"></i>
+                        Visualizar Contrato
+                      </button>
+                      <button id="verify-contract-btn" class="btn btn-outline-primary shadow">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Verificar Contrato
+                      </button>
+                    </div>
+
+                    <!-- Status e Links de Verificação -->
+                    <div class="row g-3 mt-3">
+                      <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="text-muted">BscScan:</span>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="text-muted">BscScan:</span>
+                          <span id="bscscan-status" class="badge bg-secondary">Aguardando</span>
+                          <a id="bscscan-link" href="#" target="_blank" class="d-none">Abrir</a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                      <div class="col-12 d-grid">
+                        <button id="auto-verify-btn" class="btn btn-outline-success">
+                          <i class="bi bi-magic me-2"></i>
+                          Verificar automaticamente (BscScan)
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="row g-4">
+                      <div class="col-12">
+                        <small class="text-muted text-center">
+                          <i class="bi bi-info-circle me-1"></i>
+                          Use essas configurações exatas para verificar o contrato no BSCScan ou EtherScan
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campos ocultos para compatibilidade -->
+      <input type="hidden" id="networkValue" name="network" />
+      <input type="hidden" id="networkDisplay" name="networkDisplay" />
+    </main>
+
+    <!-- ==========================================================================
+       SCRIPTS UNIFICADOS - TOKENCAFE
+       ========================================================================= -->
+
+    <div class="container-fluid">
+
+    </div>
+    <!-- Base System para carregamento de componentes -->
+    <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+      data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Token Creator padronizado"></div>
+  </div>
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+    <div data-component="shared/layouts/scripts-base.html"></div>
+
+    <!-- Configuração da API remota (Render) -->
+    <script src="../../../js/modules/contrato/api-config.js?v=1.1"></script>
+
+    <!-- Módulo dedicado da página -->
+    <script type="module" src="../../../js/modules/tokens/token_add.js"></script>
+
+    <!-- Modals -->
+    <!-- Modal de Contrato -->
+    <div class="modal fade" id="contractModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white border-primary">
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title">
+              <i class="bi bi-file-earmark-code me-2"></i>
+              <span id="contract-modal-title">Código do Contrato</span>
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <small class="text-muted">Código fonte do contrato ERC-20</small>
+              <div class="btn-group">
+                <button type="button" class="btn btn-outline-success btn-sm" data-action="copy-modal-code">
+                  <i class="bi bi-clipboard me-1"></i>
+                  Copiar
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-action="download-modal-code">
+                  <i class="bi bi-download me-1"></i>
+                  Baixar
+                </button>
+              </div>
+            </div>
+            <div class="bg-black rounded p-3 overflow-auto">
+              <pre id="contract-modal-code" class="text-light mb-0 code-display"></pre>
+            </div>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <div class="modal fade" id="contractPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-light border">
+        <div class="modal-header">
+          <h5 class="modal-title">Código do Contrato</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="preview-token-info" class="mb-3 text-info small"></div>
+          <pre id="preview-contract-code" class="code-display bg-black p-3 rounded small border border-secondary"></pre>
+        </div>
+        <div class="modal-footer">
+          <div class="btn-row">
+            <button type="button" class="btn btn-outline-primary" data-action="copy-contract-code">
+              <i class="bi bi-clipboard me-1"></i> Copiar Código
+            </button>
+            <button type="button" class="btn btn-outline-success" data-action="download-solidity-file">
+              <i class="bi bi-download me-1"></i> Download .sol
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Splash Verificação -->
+  <div class="modal fade" id="verifyInfoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-light border">
+        <div class="modal-header">
+          <h5 class="modal-title" id="verifyInfoTitle">Verificação</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="verifyInfoContent" class="small"></div>
+        </div>
+        <div class="modal-footer">
+          <a id="verifyOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-success">Abrir página de
+            verificação</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+  <script type="module" src="../../../js/modules/tokens/token_add.js"></script>
+</body>
+</html>
+

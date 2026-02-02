@@ -1,0 +1,66 @@
+<!--
+================================================================================
+TOOLS HEADER - COMPONENTE PADRÃO PARA PÁGINAS DE FERRAMENTAS
+================================================================================
+Componente simples de brand (ícone, título, subtítulo) sem script na página receptora.
+Uso: <div data-component="tools-header.html" data-icon="..." data-title="..." data-subtitle="..."></div>
+As variáveis são declaradas via atributos data- no elemento onde o componente é incluído.
+================================================================================
+-->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-page-black">
+  <div class="container">
+    <div class="tc-tools-header navbar-brand d-flex align-items-center">
+      <a href="/pages/tools.html" class="d-flex align-items-center text-decoration-none">
+        <!-- Logo fixa do TokenCafe -->
+        <img id="tools-header-logo" src="/imgs/tkncafe-semfundo.png" alt="TokenCafe" class="logo-small me-3" />
+      </a>
+      <div>
+        <h3 class="mb-0 text-white">
+          <!-- Ícone dinâmico por página -->
+          <span id="tools-header-title">TokenCafe Tools</span>
+        </h3>
+        <p class="text-white-50 mb-0 small" id="tools-header-subtitle">Hub Central de Ferramentas Web3</p>
+      </div>
+    </div>
+
+    <!-- Status da Carteira (padrão minimalista) -->
+    <div class="d-flex flex-column align-items-end text-end">
+      <div class="d-flex align-items-center">
+        <!-- Botão Home -->
+        <a href="/pages/tools.html" class="badge bg-secondary text-white text-decoration-none me-2 badge-action" title="Ir para Tools">
+            <i class="bi bi-house-door-fill me-1"></i>
+            Home
+        </a>
+
+        <!-- Botão Suporte -->
+        <a href="/pages/suporte.html" class="badge bg-secondary text-white text-decoration-none me-2 badge-action" title="Suporte">
+            <i class="bi bi-life-preserver me-1"></i>
+            Suporte
+        </a>
+
+        <!-- botão de sair -->
+        <button id="btn-logout" class="badge bg-danger me-2 badge-action">
+          <i class="bi bi-box-arrow-right me-1"></i>
+          Sair
+        </button>
+
+        <!-- Mostra somente o número da carteira em verde quando conectado -->
+        <span id="wallet-address" class="badge bg-success d-none">
+          <i class="bi bi-check2 me-1"></i>
+          <span id="wallet-address-text"></span>
+        </span>
+
+        <!-- Quando desconectado, mostra "Conectar" no lugar -->
+        <button id="btn-connect" class="badge bg-warning badge-action">
+          <i class="bi bi-wallet2 me-1"></i>
+          Conectar
+        </button>
+      </div>
+      <small id="device-note" class="mt-1"></small>
+    </div>
+  </div>
+</nav>
+<div class="section-divider"></div>
+
+<script type="module" src="/js/shared/tools-header.js"></script>

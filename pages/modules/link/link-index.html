@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <title>Gerador de Links - TokenCafe</title>
+  <meta name="description" content="Crie links compartilháveis para tokens em redes blockchain" />
+  <meta name="keywords" content="token, link, blockchain, MetaMask, compartilhar" />
+
+  <!-- Head unificado com meta tags, favicons, Bootstrap, fontes -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="TokenCafe Team" />
+
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy"
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: http://localhost:* ws: wss:; object-src 'none'; base-uri 'self';" />
+
+  <!-- Favicons TokenCafe -->
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+
+  <!-- TokenCafe CSS Unificado -->
+  <link href="../../../css/styles.css" rel="stylesheet" />
+</head>
+
+<body class="bg-page-black">
+  <!-- Header padrão com status de carteira (componente) -->
+  <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-link" data-icon-alt="Link Generator"
+    data-title="Gerador de Links" data-subtitle="Crie e compartilhe links de tokens"></div>
+
+  <!-- ==========================================================================
+         CONTEÚDO PRINCIPAL - USANDO SISTEMA UNIFICADO
+         ========================================================================= -->
+  <div class="container">
+    <div class="g-4">
+      <div class="col-12">
+        <!-- ===== SEÇÃO 1: SELECIONAR REDE ===== -->
+        <div class="mb-4" id="network-section">
+          <div data-component="shared/components/network-search.html"></div>
+        </div>
+
+        <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->
+        <div id="token-section" class="mb-4 d-none">
+          <div data-component="shared/components/contract-search.html"></div>
+          
+          <!-- Visible Token Details Form (Restored for User Feedback & Image Input) -->
+          <div class="card bg-dark border-secondary mt-3 shadow-sm" id="token-info-card">
+            <div class="card-header border-secondary bg-dark-elevated">
+              <h6 class="mb-0 text-tokencafe"><i class="bi bi-sliders me-2"></i>Personalizar Link</h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label for="l_tokenAddress" class="form-label text-secondary small mb-1">Endereço do Contrato</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-hash"></i></span>
+                    <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenAddress" readonly>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label for="l_tokenName" class="form-label text-secondary small mb-1">Nome</label>
+                  <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenName" readonly>
+                </div>
+                <div class="col-md-6">
+                   <label for="l_tokenSymbol" class="form-label text-secondary small mb-1">Símbolo</label>
+                   <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenSymbol" readonly>
+                </div>
+                <div class="col-md-6">
+                   <label for="l_tokenDecimals" class="form-label text-secondary small mb-1">Decimais</label>
+                   <input type="number" class="form-control bg-dark text-light border-secondary" id="l_tokenDecimals" readonly>
+                </div>
+                <div class="col-md-6">
+                   <label for="l_tokenImage" class="form-label text-secondary small mb-1">URL da Imagem (Opcional)</label>
+                   <div class="input-group">
+                     <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-image"></i></span>
+                     <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenImage" placeholder="https://...">
+                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SEÇÃO 3: LINK GERADO ===== -->
+        <div id="generate-section" class="mb-4 d-none">
+
+          <!-- Header Padronizado -->
+          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-link-45deg me-2"
+            data-st-title="Link Gerado" data-st-subtitle="Seu link está pronto para ser compartilhado"></div>
+
+          <div class="card bg-dark border-secondary shadow-lg">
+            <div class="card-body">
+
+              <div class="input-group mb-3">
+                <span class="input-group-text bg-dark border-secondary text-secondary">
+                  <i class="bi bi-globe"></i>
+                </span>
+                <input type="text" id="generatedLink" class="form-control bg-dark text-light border-secondary" readonly
+                  placeholder="https://...">
+
+                <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+
+                <button class="btn btn-outline-light" type="button" id="viewAddressBtn" title="Visualizar na Rede">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </button>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+                <button id="btnShareWhatsAppSmall" class="btn btn-outline-success flex-fill">
+                  <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                </button>
+                <button id="btnShareTelegramSmall" class="btn btn-outline-info flex-fill">
+                  <i class="bi bi-telegram me-2"></i>Telegram
+                </button>
+                <button id="btnShareEmailSmall" class="btn btn-outline-secondary flex-fill">
+                  <i class="bi bi-envelope me-2"></i>Email
+                </button>
+                <button id="btnAddNetworkSmall" class="btn btn-outline-primary flex-fill">
+                  <i class="bi bi-hdd-network me-2"></i>Adicionar Carteira
+                </button>
+                <button id="btnAddToMetaMaskSmall" class="btn btn-outline-warning flex-fill">
+                  <i class="bi bi-wallet2 me-2"></i>Adicionar Token
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Botões de ação -->
+        <div class="d-flex gap-2 justify-content-end mt-4 d-none" id="add-network-section">
+          <button id="btnClearAll" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-2"></i>Limpar Dados
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== SEÇÃO 3: LINK GERADO (SISTEMA PADRÃO) ===== -->
+      <div class="mb-4">
+        <!-- System Response agora é Modal Global -->
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+  <!-- ==========================================================================
+         SCRIPTS UNIFICADOS - TOKENCAFE
+         ========================================================================= -->
+
+  <!-- Base System para carregamento de componentes -->
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+  <div data-component="shared/layouts/scripts-base.html"></div>
+
+  <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+      data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Link Generator padronizado"></div>
+  </div>
+  <!-- TokenCafe Link Logic (módulo dedicado) -->
+  <script type="module" src="../../../js/modules/link/link-index.js"></script>
+</body>
+
+</html>

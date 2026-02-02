@@ -1,0 +1,17 @@
+<div id="apiStatusContainer" class="mb-3 d-none"> 
+  <div class="d-flex align-items-center justify-content-between p-2 rounded bg-dark-elevated"> 
+    <div> 
+      <span class="badge bg-secondary me-2" id="apiStatusBadge">Verificando API...</span> 
+      <small class="text-muted" id="apiBaseDisplay">Detectando...</small> 
+    </div> 
+    <button id="btnReloadApiStatus" type="button" class="btn btn-sm btn-outline-light">Recarregar</button> 
+  </div> 
+  <div id="apiErrorHelp" class="d-none mt-2 alert alert-warning small"> 
+    <strong>API Offline?</strong> 
+    <ul class="mb-0 ps-3"> 
+      <li>Verifique se o servidor backend está rodando (`npm run dev` na raiz).</li> 
+      <li>Verifique se a porta 3000 está livre.</li> 
+      <li>Se estiver no Render, aguarde o wake-up (pode levar 1 min).</li> 
+    </ul> 
+  </div> 
+</div>

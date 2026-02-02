@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <title>Gerenciador de RPCs - TokenCafe</title>
+  <meta name="description" content="Adicione e gerencie RPCs personalizados para redes blockchain" />
+  <meta name="keywords" content="RPC, blockchain, MetaMask, rede, personalizado" />
+
+  <!-- Head unificado com meta tags, favicons, Bootstrap, fontes -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="TokenCafe Team" />
+
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy"
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';" />
+
+  <!-- Favicons TokenCafe -->
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+
+  <!-- TokenCafe CSS Unificado -->
+  <link href="../../../css/styles.css" rel="stylesheet" />
+</head>
+
+<body class="bg-page-black">
+  <!-- Header padrão com status de carteira (componente) -->
+  <div data-component="tools-header.html" data-header-mode="app" data-icon="bi-diagram-3" data-icon-alt="RPC Manager"
+    data-title="Gerenciador de RPCs" data-subtitle="Adicione redes blockchain personalizadas"></div>
+  <!-- corpo do html -->
+  <div class="container">
+    <div class="g-4">
+      <div class="col-12">
+        <!-- Seleção da Rede -->
+        <div class="mb-4" id="network-section">
+          <div data-component="shared/components/network-search.html"></div>
+        </div>
+        <div id="token-section" class="mb-4">
+          <!-- ===== SEÇÃO 2: INSERIR RPC PERSONALIZADA===== -->
+          <div class="mb-4 d-none" id="rpc-config-section">
+            <div data-component="shared/components/section-title.html" data-st-icon="bi-plus-circle"
+              data-st-title="Adicionar RPC" data-st-subtitle="Adicione o RPC à rede configurada na sua carteira."></div>
+
+            <!-- Alternador simples: Lista vs RPC personalizada -->
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <button id="btn-show-rpc-list" class="btn btn-sm btn-outline-primary" type="button">Escolher RPCs</button>
+              <button id="btn-show-custom-rpc" class="btn btn-sm btn-outline-primary" type="button">Cadastrar
+                RPC</button>
+            </div>
+
+            <!-- Cadastro manual de RPC (mostra apenas quando selecionado) -->
+            <div id="custom-rpc-section" class="mb-3 d-none">
+              <label for="customRpcUrl" class="form-label d-flex align-items-center gap-2 mb-1">
+                <span>Cadastrar RPC PERSONALIZADA</span>
+              </label>
+              <div class="input-group">
+                <input type="url" class="form-control monospace-input" id="customRpcUrl"
+                  placeholder="Inclua o RPC personalizado aqui." />
+                <button id="btn-test-custom-rpc" class="btn btn-outline-primary" title="Testar">
+                  <i class="bi bi-speedometer2"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Seleção de RPCs disponíveis da rede -->
+            <div id="rpc-options-section" class="mb-3 d-none">
+              <label class="form-label d-flex align-items-center gap-2">
+                <span>Teste e Escolha a RPC que deseja incluir.</span>
+              </label>
+              <div id="rpc-options-list" class="list-group"></div>
+            </div>
+
+            <!-- Botões de ação -->
+            <div class="d-flex gap-2 justify-content-end mt-4" id="add-network-section">
+              <button id="add-network-btn" class="btn btn-outline-primary" disabled>
+                <i class="bi bi-plus-lg me-2"></i>
+                Adicionar Rede
+              </button>
+              <button id="btnClearAll" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-2"></i>Limpar Dados
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="generate-section" class="mb-4">
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- ============================================================================
+         SCRIPTS UNIFICADOS - TOKENCAFE
+         ========================================================================== -->
+
+  <!-- Base System para carregamento de componentes -->
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+  <div data-component="shared/layouts/scripts-base.html"></div>
+  <!-- TokenCafe RPC Logic (módulo dedicado) -->
+  <script type="module" src="../../../js/modules/rpc/rpc-logic.js"></script>
+  <!-- TokenCafe Base System Unificado (módulo dedicado) -->
+  <script type="module" src="../../../js/modules/rpc/rpc-index.js"></script>
+  <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+      data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="RPC Manager padronizado"></div>
+  </div>
+</body>
+
+</html>

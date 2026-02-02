@@ -1,0 +1,13 @@
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "TokenCafe",
+  "url": "",
+  "inLanguage": "pt-BR",
+  "description": "TokenCafe é a principal plataforma brasileira para criação de tokens e ferramentas Web3.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "TokenCafe",
+    "url": "https://tokencafe.app/"
+  }
+}

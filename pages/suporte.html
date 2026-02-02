@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <title>Suporte - TokenCafe</title>
+  <meta name="description" content="Entre em contato com o suporte do TokenCafe" />
+  <meta name="keywords" content="suporte, ajuda, contato, tokencafe" />
+
+  <!-- Head unificado com meta tags, favicons, Bootstrap, fontes -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="TokenCafe Team" />
+
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy"
+    content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; connect-src 'self' https: http://localhost:* ws: wss:; object-src 'none'; base-uri 'self';" />
+
+  <!-- Favicons TokenCafe -->
+  <link rel="icon" type="image/png" sizes="16x16" href="../imgs/tkncafe16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../imgs/tkncafe32x32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../imgs/tkncafe192x192.png" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+
+  <!-- TokenCafe CSS Unificado -->
+  <link href="../css/styles.css" rel="stylesheet" />
+</head>
+
+<body class="bg-page-black">
+  <!-- Header padrão com status de carteira (componente) -->
+  <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-headset" data-icon-alt="Suporte"
+    data-title="Central de Suporte" data-subtitle="Estamos aqui para ajudar"></div>
+
+  <!-- ==========================================================================
+         CONTEÚDO PRINCIPAL - USANDO SISTEMA UNIFICADO
+         ========================================================================= -->
+  <div class="container">
+    <div class="g-4">
+      <div class="col-12">
+        
+        <div class="mb-4">
+          <!-- Header Padronizado -->
+          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-headset me-2"
+            data-st-title="Entre em Contato" data-st-subtitle="Preencha com as suas informações abaixo para entrarmos em contato"></div>
+
+          <!-- Contact Form -->
+          <div class="card bg-dark border-secondary shadow-lg">
+            <div class="card-body p-5">
+              <form id="contact-support-form" novalidate data-support-email="suporte@tokencafe.com">
+                <div class="row g-4">
+                  <!-- Nome Completo -->
+                  <div class="col-md-6">
+                    <label for="contact-name" class="form-label text-light fw-bold mb-3">
+                      <i class="bi bi-person text-primary me-2"></i>
+                      Nome Completo *
+                    </label>
+                    <input type="text" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-name" placeholder="Digite seu nome completo" required />
+                    <div class="invalid-feedback text-warning">
+                      <i class="bi bi-exclamation-triangle me-1"></i>
+                      Por favor, informe seu nome completo.
+                    </div>
+                  </div>
+
+                  <!-- E-mail -->
+                  <div class="col-md-6">
+                    <label for="contact-email" class="form-label text-light fw-bold mb-3">
+                      <i class="bi bi-envelope text-primary me-2"></i>
+                      E-mail *
+                    </label>
+                    <input type="email" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-email" placeholder="seu@email.com" required />
+                    <div class="invalid-feedback text-warning">
+                      <i class="bi bi-exclamation-triangle me-1"></i>
+                      Por favor, informe um e-mail válido.
+                    </div>
+                  </div>
+
+                  <!-- WhatsApp -->
+                  <div class="col-md-6">
+                    <label for="contact-whatsapp" class="form-label text-light fw-bold mb-3">
+                      <i class="fab fa-whatsapp text-success me-2"></i>
+                      WhatsApp *
+                    </label>
+                    <input type="tel" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-whatsapp" placeholder="(00) 00000-0000" required pattern="^\(\d{2}\)\s\d{4,5}-\d{4}$" />
+                    <div class="invalid-feedback text-warning">
+                      <i class="bi bi-exclamation-triangle me-1"></i>
+                      Por favor, informe um WhatsApp válido no formato (00) 00000-0000.
+                    </div>
+                    <small class="text-secondary">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Formato: (00) 00000-0000
+                    </small>
+                  </div>
+
+                  <!-- Carteira MetaMask -->
+                  <div class="col-md-6">
+                    <label for="contact-wallet" class="form-label text-light fw-bold mb-3">
+                      <i class="bi bi-wallet2 text-warning me-2"></i>
+                      Carteira MetaMask
+                    </label>
+                    <input type="text" class="form-control form-control-lg bg-dark text-light border-secondary" id="contact-wallet" placeholder="0x... (opcional)" maxlength="42" />
+                    <small class="text-secondary">
+                      <i class="bi bi-info-circle text-info me-1"></i>
+                      Informe manualmente se desejar (opcional)
+                    </small>
+                  </div>
+
+                  <!-- Assunto -->
+                  <div class="col-12">
+                    <label for="contact-subject" class="form-label text-light fw-bold mb-3">
+                      <i class="bi bi-tag text-info me-2"></i>
+                      Assunto *
+                    </label>
+                    <select class="form-select form-select-lg bg-dark text-light border-secondary" id="contact-subject" required>
+                      <option value="">🔽 Selecione o assunto...</option>
+                      <option value="saiba-mais">💡 Saiba mais sobre a plataforma</option>
+                      <option value="suporte-tecnico">🛠️ Suporte técnico</option>
+                      <option value="comercial">💼 Questões comerciais</option>
+                      <option value="integracao">🔗 Ajuda com integração</option>
+                      <option value="bug-report">🐛 Reportar problema</option>
+                      <option value="outros">📋 Outros</option>
+                    </select>
+                    <div class="invalid-feedback text-warning">
+                      <i class="bi bi-exclamation-triangle me-1"></i>
+                      Por favor, selecione um assunto.
+                    </div>
+                  </div>
+
+                  <!-- Mensagem -->
+                  <div class="col-12">
+                    <label for="contact-message" class="form-label text-light fw-bold mb-3">
+                      <i class="bi bi-chat-dots text-secondary me-2"></i>
+                      Mensagem *
+                    </label>
+                    <textarea class="form-control bg-dark text-light border-secondary resize-vertical" id="contact-message" rows="5" placeholder="Descreva detalhadamente sua dúvida, solicitação ou problema..." required minlength="10"></textarea>
+                    <div class="invalid-feedback text-warning">
+                      <i class="bi bi-exclamation-triangle me-1"></i>
+                      Por favor, escreva uma mensagem com pelo menos 10 caracteres.
+                    </div>
+                    <div class="text-secondary mt-2">
+                      <span id="char-count">0</span>
+                      /1000 caracteres
+                    </div>
+                  </div>
+
+                  <!-- Termos -->
+                  <div class="col-12">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="contact-terms" required />
+                      <label class="form-check-label text-light" for="contact-terms">
+                        Autorizando contato por WhatsApp e e-mail.
+                        <br />
+                      </label>
+                      <div class="invalid-feedback text-warning">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Você deve aceitar os termos para continuar.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Status de Envio -->
+                <div id="form-status" class="mb-3 mt-4 d-none"></div>
+
+                <!-- Submit Button -->
+                <div class="text-center mt-5">
+                  <button type="submit" class="btn btn-outline-primary btn-lg px-5 py-3 fw-bold position-relative overflow-hidden min-width-250 border-radius-50" id="submit-btn" disabled>
+                    <span class="btn-content">
+                      <i class="bi bi-send me-2"></i>
+                      <span id="btn-text">Enviar Mensagem</span>
+                    </span>
+                    <div class="btn-loading d-none">
+                      <i class="bi bi-arrow-repeat me-2"></i>
+                      Enviando...
+                    </div>
+                  </button>
+                  <!-- Campos obrigatórios -->
+                  <div class="mt-3">
+                    <small class="text-secondary">
+                      <i class="bi bi-asterisk text-danger me-1"></i>
+                      Preencha todos os campos obrigatórios para enviar.
+                    </small>
+                  </div>
+
+                  <!-- Info Footer -->
+                  <div class="text-center mt-4">
+                    <div class="row g-4">
+                      <div class="col-md-4">
+                        <i class="bi bi-shield-lock text-primary me-2"></i>
+                        <small class="text-light">100% Seguro</small>
+                      </div>
+                      <div class="col-md-4">
+                        <i class="bi bi-clock text-warning me-2"></i>
+                        <small class="text-light">Resposta Rápida</small>
+                      </div>
+                      <div class="col-md-4">
+                        <i class="bi bi-headset text-info me-2"></i>
+                        <small class="text-light">Suporte 24/7</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+         SCRIPTS UNIFICADOS - TOKENCAFE
+         ========================================================================= -->
+
+  <!-- Base System para carregamento de componentes -->
+  <script type="module" src="../js/shared/base-system.js"></script>
+  <div data-component="shared/layouts/scripts-base.html"></div>
+
+  <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+      data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Suporte padronizado"></div>
+  </div>
+
+  <!-- Page Logic -->
+  <script src="../js/suporte.js"></script>
+</body>
+
+</html>

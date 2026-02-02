@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciador de Carteira Web3 - TokenCafe</title>
+  <meta name="description"
+    content="Conecte e gerencie sua carteira Web3 com MetaMask, TrustWallet e outras carteiras" />
+  <meta name="keywords" content="wallet, MetaMask, TrustWallet, blockchain, crypto, Web3" />
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+
+  <!-- TokenCafe Global CSS -->
+  <link href="../../../css/styles.css" rel="stylesheet" />
+</head>
+
+<body class="bg-page-black">
+  <!-- Header padrão com status de carteira (componente) -->
+  <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-wallet" data-icon-alt="TokenCafe"
+    data-title="Gerenciador de Carteira" data-subtitle="Conecte e gerencie sua carteira Web3"></div>
+
+  <!--corpo do html-->
+  <div class="container">
+    <div class="g-4">
+      <div class="col-12">
+        <!-- Seção Informações da Carteira -->
+        <div class="mb-4 d-none" id="wallet-info-section">
+          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-wallet2 me-2"
+            data-st-title="Informações da Carteira" data-st-subtitle="Detalhes da sua carteira conectada"></div>
+
+          <!-- Seção de Detalhes da Carteira - REDE -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="networkName" class="form-label">Nome da Rede</label>
+              <input id="networkName" class="form-control" readonly />
+            </div>
+            <div class="col-md-6">
+              <label for="chainId" class="form-label">Chain ID</label>
+              <div class="input-group">
+                <input id="chainId" class="form-control monospace-input" readonly />
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção de Detalhes da Carteira - ENDEREÇO -->
+          <div class="row g-3 mb-3">
+            <div class="col-12">
+              <label for="walletAddress" class="form-label">Endereço da Carteira</label>
+              <div class="input-group">
+                <input id="walletAddress" class="form-control monospace-input" readonly />
+                <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+                <button class="btn btn-outline-primary" id="viewAddressBtn" type="button" title="Visualizar na Rede">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção de Detalhes da Carteira - MOEDA -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="nativeCurrency" class="form-label">Moeda Nativa</label>
+              <input id="nativeCurrency" class="form-control" readonly />
+            </div>
+            <div class="col-md-4">
+              <label for="currencySymbol" class="form-label">Símbolo</label>
+              <input id="currencySymbol" class="form-control" readonly />
+            </div>
+            <div class="col-md-4">
+              <label for="balance" class="form-label">Saldo Atual</label>
+              <input id="balance" class="form-control" readonly />
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="rpcUrl" class="form-label">RPC URL</label>
+              <div class="input-group">
+                <input id="rpcUrl" class="form-control monospace-input" readonly />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="explorerUrl" class="form-label">Block Explorer URL</label>
+              <div class="input-group">
+                <input id="explorerUrl" class="form-control monospace-input" readonly />
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="customRpcs" class="form-label">RPCs Personalizados</label>
+            <textarea id="customRpcs" class="form-control monospace-input" rows="3" readonly
+              placeholder="Nenhum RPC personalizado configurado"></textarea>
+          </div>
+
+          <!-- Botões de ação -->
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <button id="btnClearAll" class="btn btn-outline-danger">
+              <i class="bi bi-trash me-2"></i>Limpar Dados
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+      data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="Wallet Manager padronizado"></div>
+  </div>
+  <!-- scripts -->
+  <script type="module" src="../../../js/shared/base-system.js"></script>
+  <div data-component="shared/layouts/scripts-base.html"></div>
+  <script type="module" src="../../../js/modules/wallet/wallet-index.js"></script>
+  <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+
+</body>
+
+</html>

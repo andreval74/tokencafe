@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <title>Configurações do Sistema - TokenCafe</title>
+    <meta name="description" content="Gerencie preferências e configurações do TokenCafe" />
+    <meta name="keywords" content="configurações, preferências, sistema, TokenCafe" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="TokenCafe Team" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self';" />
+
+    <!-- Favicons TokenCafe -->
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../imgs/tkncafe16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../imgs/tkncafe32x32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="../../../imgs/tkncafe192x192.png" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet" />
+    <!-- TokenCafe CSS Unificado -->
+    <link href="../../../css/styles.css" rel="stylesheet" />
+  </head>
+  <body class="bg-page-black">
+    <!-- Header padrão com status de carteira (componente) -->
+    <div data-component="tools-header.html" data-header-mode="app" data-icon="fa-cog" data-icon-alt="Configurações" data-title="Configurações do Sistema" data-subtitle="Gerencie suas preferências do TokenCafe"></div>
+    <div class="container-fluid py-3 mb-1">
+      <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+          <div class="settings-container">
+            <!-- Header das Configurações (padrão card unificado) -->
+            <div class="card bg-dark-elevated text-light mb-3">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <!-- Título do módulo (padrão unificado) -->
+                  <div class="flex-grow-1">
+                    <div data-component="shared/components/section-title.html" data-st-icon="bi-gear" data-st-title="Configurações do Sistema" data-st-subtitle="Gerencie as configurações e preferências do TokenCafe"></div>
+                  </div>
+                  <div class="btn-row">
+                    <button class="btn btn-outline-secondary" id="resetSettingsBtn">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                      Restaurar Padrões
+                    </button>
+                    <button class="btn btn-outline-secondary" id="btnClearData">
+                      <i class="bi bi-eraser"></i>
+                      Limpar Dados
+                    </button>
+                    <button class="btn btn-outline-primary" id="saveAllSettingsBtn">
+                      <i class="bi bi-save"></i>
+                      Salvar Tudo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Navegação das Configurações (padrão nav-pills como no link-index) -->
+            <div class="card bg-dark-elevated text-light mb-3">
+              <div class="card-body py-2">
+                <ul class="nav nav-pills gap-2 flex-wrap" id="settingsTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab active" type="button" role="tab" data-tab="general">
+                      <span class="badge bg-primary me-1">1</span>
+                      <i class="bi bi-sliders"></i>
+                      Geral
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab" type="button" role="tab" data-tab="appearance">
+                      <span class="badge bg-primary me-1">2</span>
+                      <i class="bi bi-palette"></i>
+                      Aparência
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab" type="button" role="tab" data-tab="notifications">
+                      <span class="badge bg-primary me-1">3</span>
+                      <i class="bi bi-bell"></i>
+                      Notificações
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab" type="button" role="tab" data-tab="security">
+                      <span class="badge bg-primary me-1">4</span>
+                      <i class="bi bi-shield-lock"></i>
+                      Segurança
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab" type="button" role="tab" data-tab="blockchain">
+                      <span class="badge bg-primary me-1">5</span>
+                      <i class="bi bi-link-45deg"></i>
+                      Blockchain
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab" type="button" role="tab" data-tab="advanced">
+                      <span class="badge bg-primary me-1">6</span>
+                      <i class="bi bi-gear"></i>
+                      Avançado
+                    </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link settings-tab" type="button" role="tab" data-tab="status">
+                      <span class="badge bg-primary me-1">7</span>
+                      <i class="bi bi-activity"></i>
+                      Diagnóstico
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Conteúdo das Configurações -->
+            <div class="settings-content">
+              <!-- Diagnóstico do Sistema -->
+              <div class="settings-section card bg-dark-elevated text-light mb-3 p-3 d-none" id="status">
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-activity" data-st-title="Diagnóstico do Sistema" data-st-subtitle="Verifique a saúde dos serviços e conexões"></div>
+                
+                <div class="settings-group">
+                    <h3>Verificação de Saúde</h3>
+                    <p class="setting-description mb-3">Execute um diagnóstico completo para verificar a conectividade com APIs, Blockchain e serviços externos.</p>
+                    
+                    <button id="btnCheckSystemStatus" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-heart-pulse me-2"></i>Verificar Status do Sistema
+                    </button>
+
+
+                </div>
+              </div>
+
+              <!-- Configurações Gerais -->
+              <div class="settings-section active card bg-dark-elevated text-light mb-3 p-3" id="general">
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-sliders" data-st-title="Geral" data-st-subtitle="Configurações básicas do sistema"></div>
+                <div class="settings-groups">
+                  <div class="settings-group">
+                    <h3>Idioma e Região</h3>
+                    <div class="setting-item">
+                      <label for="language" class="form-label">Idioma</label>
+                      <select id="language" class="form-select">
+                        <option value="pt-BR" selected>Português (Brasil)</option>
+                        <option value="en-US">English (US)</option>
+                        <option value="es-ES">Español</option>
+                        <option value="fr-FR">Français</option>
+                      </select>
+                    </div>
+                    <div class="setting-item">
+                      <label for="timezone" class="form-label">Fuso Horário</label>
+                      <select id="timezone" class="form-select">
+                        <option value="America/Sao_Paulo" selected>São Paulo (GMT-3)</option>
+                        <option value="America/New_York">New York (GMT-5)</option>
+                        <option value="Europe/London">London (GMT+0)</option>
+                        <option value="Asia/Tokyo">Tokyo (GMT+9)</option>
+                      </select>
+                    </div>
+                    <div class="setting-item">
+                      <label for="currency" class="form-label">Moeda Padrão</label>
+                      <select id="currency" class="form-select">
+                        <option value="USD" selected>USD ($)</option>
+                        <option value="BRL">BRL (R$)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="settings-group">
+                    <h3>Comportamento do Sistema</h3>
+                    <div class="setting-item checkbox-item">
+                      <label class="checkbox-label">
+                        <input type="checkbox" id="autoSave" class="form-check-input" checked />
+                        <span class="checkmark"></span>
+                        Salvamento automático
+                      </label>
+                      <p class="setting-description">Salva automaticamente as alterações a cada 30 segundos</p>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                      <label class="checkbox-label">
+                        <input type="checkbox" id="confirmActions" class="form-check-input" checked />
+                        <span class="checkmark"></span>
+                        Confirmar ações importantes
+                      </label>
+                      <p class="setting-description">Solicita confirmação antes de executar ações críticas</p>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                      <label class="checkbox-label">
+                        <input type="checkbox" id="showTooltips" class="form-check-input" checked />
+                        <span class="checkmark"></span>
+                        Mostrar dicas de ferramentas
+                      </label>
+                      <p class="setting-description">Exibe tooltips explicativos ao passar o mouse</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configurações de Aparência -->
+              <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="appearance">
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-palette" data-st-title="Aparência" data-st-subtitle="Personalize a interface do sistema"></div>
+                <div class="settings-groups">
+                  <div class="settings-group">
+                    <h3>Tema</h3>
+                    <div class="theme-selector">
+                      <div class="theme-option active" data-theme="light">
+                        <div class="theme-preview light-theme">
+                          <div class="preview-header"></div>
+                          <div class="preview-sidebar"></div>
+                          <div class="preview-content"></div>
+                        </div>
+                        <span class="theme-name">Claro</span>
+                      </div>
+                      <div class="theme-option" data-theme="dark">
+                        <div class="theme-preview dark-theme">
+                          <div class="preview-header"></div>
+                          <div class="preview-sidebar"></div>
+                          <div class="preview-content"></div>
+                        </div>
+                        <span class="theme-name">Escuro</span>
+                      </div>
+                      <div class="theme-option" data-theme="auto">
+                        <div class="theme-preview auto-theme">
+                          <div class="preview-header"></div>
+                          <div class="preview-sidebar"></div>
+                          <div class="preview-content"></div>
+                        </div>
+                        <span class="theme-name">Automático</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-group">
+                    <h3>Layout</h3>
+                    <div class="setting-item">
+                      <label for="sidebarWidth">Largura da Sidebar</label>
+                      <div class="range-input">
+                        <input type="range" id="sidebarWidth" min="200" max="400" value="280" step="20" />
+                        <span class="range-value">280px</span>
+                      </div>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                      <label class="checkbox-label">
+                        <input type="checkbox" id="compactMode" />
+                        <span class="checkmark"></span>
+                        Modo compacto
+                      </label>
+                      <p class="setting-description">Reduz o espaçamento entre elementos</p>
+                    </div>
+                    <div class="setting-item checkbox-item">
+                      <label class="checkbox-label">
+                        <input type="checkbox" id="sidebarCollapse" />
+                        <span class="checkmark"></span>
+                        Sidebar recolhível
+                      </label>
+                      <p class="setting-description">Permite recolher a sidebar automaticamente</p>
+                    </div>
+                  </div>
+
+                  <div class="settings-group">
+                    <h3>Cores Personalizadas</h3>
+                    <div class="color-picker-grid">
+                      <div class="color-picker-item">
+                        <label>Cor Primária</label>
+                        <input type="color" id="primaryColor" value="#6366f1" />
+                      </div>
+                      <div class="color-picker-item">
+                        <label>Cor Secundária</label>
+                        <input type="color" id="secondaryColor" value="#8b5cf6" />
+                      </div>
+                      <div class="color-picker-item">
+                        <label>Cor de Sucesso</label>
+                        <input type="color" id="successColor" value="#10b981" />
+                      </div>
+                      <div class="color-picker-item">
+                        <label>Cor de Erro</label>
+                        <input type="color" id="errorColor" value="#ef4444" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configurações de Notificações -->
+              <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="notifications">
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-bell" data-st-title="Notificações" data-st-subtitle="Configure como e quando receber notificações"></div>
+                <!-- Sub-abas: Notificações -->
+                <div class="card bg-dark-elevated p-2 mb-3">
+                  <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Notificações">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab active" type="button" data-subtab="notif-system">
+                        <span class="badge bg-secondary me-1">1</span>
+                        Sistema
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="notif-token">
+                        <span class="badge bg-secondary me-1">2</span>
+                        Token
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="notif-channels">
+                        <span class="badge bg-secondary me-1">3</span>
+                        Canais
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="notif-sound">
+                        <span class="badge bg-secondary me-1">4</span>
+                        Som
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="settings-groups">
+                  <div class="substep-pane active" data-subtab="notif-system">
+                    <div class="settings-group">
+                      <h3>Notificações do Sistema</h3>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="systemNotifications" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Notificações do sistema
+                        </label>
+                        <p class="setting-description">Receber notificações sobre atualizações e manutenção</p>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="errorNotifications" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Notificações de erro
+                        </label>
+                        <p class="setting-description">Ser notificado quando ocorrerem erros</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="notif-token">
+                    <div class="settings-group">
+                      <h3>Notificações de Token</h3>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="tokenCreated" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Token criado com sucesso
+                        </label>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="tokenTransfer" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Transferências de token
+                        </label>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="priceAlerts" class="form-check-input" />
+                          <span class="checkmark"></span>
+                          Alertas de preço
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="notif-channels">
+                    <div class="settings-group">
+                      <h3>Canais de Notificação</h3>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="browserNotifications" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Notificações do navegador
+                        </label>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="emailNotifications" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Notificações por email
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="notif-sound">
+                    <div class="settings-group">
+                      <h3>Som de Notificação</h3>
+                      <div class="setting-item mb-3">
+                        <label for="notificationSound" class="form-label">Som de notificação</label>
+                        <select id="notificationSound" class="form-select">
+                          <option value="default">Padrão</option>
+                          <option value="chime">Chime</option>
+                          <option value="bell">Bell</option>
+                          <option value="none">Silencioso</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configurações de Segurança -->
+              <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="security">
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-shield-lock" data-st-title="Segurança" data-st-subtitle="Configure as opções de segurança do sistema"></div>
+                <!-- Sub-abas: Segurança -->
+                <div class="card bg-dark-elevated p-2 mb-3">
+                  <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Segurança">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab active" type="button" data-subtab="sec-auth">
+                        <span class="badge bg-secondary me-1">1</span>
+                        Autenticação
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="sec-privacy">
+                        <span class="badge bg-secondary me-1">2</span>
+                        Privacidade
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="sec-backup">
+                        <span class="badge bg-secondary me-1">3</span>
+                        Backup
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="settings-groups">
+                  <div class="substep-pane active" data-subtab="sec-auth">
+                    <div class="settings-group">
+                      <h3>Autenticação</h3>
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <div class="setting-item mb-0">
+                            <label for="sessionTimeout" class="form-label">Timeout da sessão (minutos)</label>
+                            <input type="number" id="sessionTimeout" value="30" min="5" max="480" class="form-control" />
+                          </div>
+                          <p class="setting-description mt-1">Define quanto tempo o usuário permanece logado sem atividade.</p>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="setting-item checkbox-item mb-0">
+                            <label class="checkbox-label">
+                              <input type="checkbox" id="requirePassword" class="form-check-input" checked />
+                              <span class="checkmark"></span>
+                              Exigir senha para ações críticas
+                            </label>
+                          </div>
+                          <p class="setting-description mt-1">Solicita confirmação de senha ao executar operações sensíveis.</p>
+                        </div>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="twoFactorAuth" class="form-check-input" />
+                          <span class="checkmark"></span>
+                          Autenticação de dois fatores (2FA)
+                        </label>
+                        <p class="setting-description mt-1">Habilita verificação adicional via aplicativo autenticador.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="sec-privacy">
+                    <div class="settings-group">
+                      <h3>Privacidade</h3>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="analyticsTracking" class="form-check-input" />
+                          <span class="checkmark"></span>
+                          Permitir coleta de dados analíticos
+                        </label>
+                        <p class="setting-description">Ajuda a melhorar o sistema coletando dados de uso anônimos.</p>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="crashReports" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Enviar relatórios de erro
+                        </label>
+                        <p class="setting-description">Permite enviar relatórios automáticos para diagnóstico de falhas.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="sec-backup">
+                    <div class="settings-group">
+                      <h3>Backup e Recuperação</h3>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="autoBackup" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Backup automático
+                        </label>
+                        <p class="setting-description mt-1">Executa backups periódicos sem intervenção manual.</p>
+                      </div>
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <div class="setting-item mb-0">
+                            <label for="backupFrequency" class="form-label">Frequência do backup</label>
+                            <select id="backupFrequency" class="form-select">
+                              <option value="daily" selected>Diário</option>
+                              <option value="weekly">Semanal</option>
+                              <option value="monthly">Mensal</option>
+                            </select>
+                          </div>
+                          <p class="setting-description mt-1">Define a periodicidade de execução dos backups.</p>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="setting-actions d-flex gap-2 flex-wrap">
+                            <button class="btn btn-outline-primary" id="createBackupBtn">
+                              <i class="bi bi-download"></i>
+                              Criar Backup Agora
+                            </button>
+                            <button class="btn btn-outline-primary" id="restoreBackupBtn">
+                              <i class="bi bi-upload"></i>
+                              Restaurar Backup
+                            </button>
+                          </div>
+                          <p class="setting-description mt-1">Crie ou restaure backups manualmente conforme necessário.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configurações de Blockchain -->
+              <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="blockchain">
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-link-45deg" data-st-title="Blockchain" data-st-subtitle="Configure as conexões e preferências de blockchain"></div>
+                <!-- Sub-abas: Blockchain -->
+                <div class="card bg-dark-elevated p-2 mb-3">
+                  <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Blockchain">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab active" type="button" data-subtab="bc-networks">
+                        <span class="badge bg-secondary me-1">1</span>
+                        Redes
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="bc-gas">
+                        <span class="badge bg-secondary me-1">2</span>
+                        Gas
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="bc-rpc">
+                        <span class="badge bg-secondary me-1">3</span>
+                        RPC
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="settings-groups">
+                  <div class="substep-pane active" data-subtab="bc-networks">
+                    <div class="settings-group">
+                      <h3>Redes Blockchain</h3>
+                      <div class="network-list" id="networkList">
+                        <!-- Redes serão carregadas dinamicamente -->
+                      </div>
+                      <button class="btn btn-outline-primary" id="addNetworkBtn">
+                        <i class="bi bi-plus-lg"></i>
+                        Adicionar Rede
+                      </button>
+                      <p class="setting-description mt-2">Gerencie redes disponíveis para conexão (Ethereum, BSC, Polygon, etc.).</p>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="bc-gas">
+                    <div class="settings-group">
+                      <h3>Configurações de Gas</h3>
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <div class="setting-item mb-0">
+                            <label for="gasPrice" class="form-label">Preço do Gas (Gwei)</label>
+                            <input type="number" id="gasPrice" value="20" min="1" max="1000" class="form-control" />
+                          </div>
+                          <p class="setting-description mt-1">Controla prioridade da transação na rede.</p>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="setting-item mb-0">
+                            <label for="gasLimit" class="form-label">Limite de Gas</label>
+                            <input type="number" id="gasLimit" value="21000" min="21000" max="8000000" class="form-control" />
+                          </div>
+                          <p class="setting-description mt-1">Define o máximo de unidades de gas permitidas.</p>
+                        </div>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="autoGasEstimate" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Estimativa automática de gas
+                        </label>
+                        <p class="setting-description mt-1">Calcula automaticamente valores adequados para a transação.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="bc-rpc">
+                    <div class="settings-group">
+                      <h3>Provedores RPC</h3>
+                      <div class="rpc-providers" id="rpcProviders">
+                        <!-- Provedores serão carregados dinamicamente -->
+                      </div>
+                      <p class="setting-description mt-2">Configure endpoints RPC para acesso à rede (ex.: Infura, Alchemy).</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Configurações Avançadas -->
+              <div class="settings-section card bg-dark-elevated text-light mb-3 p-3" id="advanced">
+                <!-- Título da seção (padrão unificado) -->
+                <div data-component="shared/components/section-title.html" data-st-icon="bi-gear" data-st-title="Configurações Avançadas" data-st-subtitle="Configurações para usuários experientes"></div>
+                <!-- Sub-abas: Avançado -->
+                <div class="card bg-dark-elevated p-2 mb-3">
+                  <ul class="nav nav-pills substep-tabs" role="tablist" aria-label="Sub-abas Avançado">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab active" type="button" data-subtab="adv-dev">
+                        <span class="badge bg-secondary me-1">1</span>
+                        Desenvolvimento
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="adv-performance">
+                        <span class="badge bg-secondary me-1">2</span>
+                        Performance
+                      </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link substep-tab" type="button" data-subtab="adv-data">
+                        <span class="badge bg-secondary me-1">3</span>
+                        Dados
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="settings-groups">
+                  <div class="substep-pane active" data-subtab="adv-dev">
+                    <div class="settings-group">
+                      <h3>Desenvolvimento</h3>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="debugMode" class="form-check-input" />
+                          <span class="checkmark"></span>
+                          Modo de depuração
+                        </label>
+                        <p class="setting-description mt-1">Ativa logs detalhados para diagnóstico durante desenvolvimento.</p>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="testnetMode" class="form-check-input" />
+                          <span class="checkmark"></span>
+                          Modo testnet
+                        </label>
+                        <p class="setting-description mt-1">Usa redes de teste por padrão para evitar custos reais.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="adv-performance">
+                    <div class="settings-group">
+                      <h3>Performance</h3>
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <div class="setting-item mb-0">
+                            <label for="cacheSize" class="form-label">Tamanho do cache (MB)</label>
+                            <input type="number" id="cacheSize" value="100" min="50" max="1000" class="form-control" />
+                          </div>
+                          <p class="setting-description mt-1">Quantidade de dados mantidos em cache para acelerar o sistema.</p>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="setting-item mb-0">
+                            <label for="maxConnections" class="form-label">Máximo de conexões simultâneas</label>
+                            <input type="number" id="maxConnections" value="10" min="1" max="50" class="form-control" />
+                          </div>
+                          <p class="setting-description mt-1">Limite de conexões ativas para equilibrar recursos.</p>
+                        </div>
+                      </div>
+                      <div class="setting-item checkbox-item mb-3">
+                        <label class="checkbox-label">
+                          <input type="checkbox" id="preloadData" class="form-check-input" checked />
+                          <span class="checkmark"></span>
+                          Pré-carregar dados
+                        </label>
+                        <p class="setting-description mt-1">Carrega dados essenciais ao iniciar para reduzir atrasos.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="substep-pane" data-subtab="adv-data">
+                    <div class="settings-group">
+                      <h3>Dados do Sistema</h3>
+                      <div class="setting-actions d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-secondary" id="clearCacheBtn">
+                          <i class="bi bi-trash"></i>
+                          Limpar Cache
+                        </button>
+                        <button class="btn btn-outline-primary" id="exportSettingsBtn">
+                          <i class="bi bi-download"></i>
+                          Exportar Configurações
+                        </button>
+                        <button class="btn btn-outline-primary" id="importSettingsBtn">
+                          <i class="bi bi-upload"></i>
+                          Importar Configurações
+                        </button>
+                      </div>
+                      <p class="setting-description mt-2">Ferramentas para manutenção e migração das configurações do sistema.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal" id="confirmModal">
+      <div class="modal-content small">
+        <div class="modal-header">
+          <h2 id="confirmTitle">Confirmar Ação</h2>
+          <button class="modal-close" id="closeConfirmModal">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage">Tem certeza que deseja executar esta ação?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" id="cancelConfirmBtn">Cancelar</button>
+          <button class="btn btn-outline-primary" id="confirmActionBtn">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Base System para carregamento de componentes -->
+    <div class="container-fluid">
+      <div data-component="shared/components/section-footer.html" data-footer-mode="minimal" data-sf-icon="bi-award"
+        data-sf-title="Feito por webkeeper.com.br" data-sf-subtitle="System Settings padronizado"></div>
+    </div>
+    <script type="module" src="../../../js/shared/base-system.js"></script>
+    <div data-component="shared/layouts/scripts-base.html"></div>
+    <script type="module" src="../../../js/modules/settings/system-settings.js?v=2"></script>
+  </body>
+</html>
+

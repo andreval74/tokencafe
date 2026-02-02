@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Widget Simples - Criar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="../../../css/styles.css" rel="stylesheet" />
+  </head>
+  <body class="bg-page-black">
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card border-primary">
+            <div class="card-header bg-primary bg-opacity-10">
+              <h4 class="mb-0">
+                <i class="bi bi-magic me-2"></i>
+                Widget Simples – Ler e Comprar (tBNB)
+              </h4>
+            </div>
+            <div class="card-body">
+
+
+              <!-- Seletor de Rede (usa componente compartilhado) -->
+              <div class="mb-4">
+                <input type="hidden" id="blockchain" />
+                <div data-component="shared/components/network-search.html"></div>
+                <small class="text-muted">
+                  Moeda:
+                  <span id="currencySymbol">tBNB</span>
+                </small>
+              </div>
+
+              <!-- Conexão da carteira -->
+              <div class="d-flex gap-2 mb-4">
+                <button class="btn btn-dark" id="connectBtn">
+                  <i class="bi bi-wallet2 me-2"></i>
+                  Conectar MetaMask
+                </button>
+                <span id="walletStatus" class="align-self-center text-muted"></span>
+              </div>
+
+              <!-- Configurações básicas -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-file-code me-1"></i>
+                  Endereço do contrato de venda (sale)
+                </label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="saleAddress" placeholder="0x..." />
+                  <button class="btn btn-outline-secondary" type="button" id="copySaleAddressBtn" title="Copiar">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </div>
+                <small class="text-muted">Informe o endereço do contrato TokenSale na BNB Testnet (97)</small>
+              </div>
+
+              <!-- Ações -->
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <button class="btn btn-outline-primary" id="readBtn">
+                  <i class="bi bi-search me-2"></i>
+                  Ler dados do contrato
+                </button>
+                <button class="btn btn-outline-success" id="certifyBtn">
+                  <i class="bi bi-shield-check me-2"></i>
+                  Certificar contrato (tBNB)
+                </button>
+                <button class="btn btn-outline-danger" id="btnClearAll">
+                  <i class="bi bi-trash me-2"></i>
+                  Limpar Dados
+                </button>
+              </div>
+
+              <!-- Compra -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                  <label class="form-label">Quantidade (tokens)</label>
+                  <input type="number" class="form-control" id="qty" value="1" min="1" />
+                </div>
+                <div class="col-md-8 d-flex align-items-end">
+                  <button class="btn btn-outline-primary" id="buyBtn">
+                    <i class="bi bi-cash-coin me-2"></i>
+                    Comprar com tBNB
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dados do contrato (reorganizado) -->
+              <div class="row g-3">
+                <div class="col-lg-4">
+                  <div class="card card-rounded h-100 shadow-sm">
+                    <div class="card-header bg-light">
+                      <strong>Contrato de Venda</strong>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Token da venda</span>
+                        <div>
+                          <span id="saleToken" class="text-monospace me-2">-</span>
+                          <button class="btn btn-sm btn-link text-secondary p-0" id="copySaleTokenBtn" title="Copiar"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Decimais do token</span>
+                        <span id="tokenDecimals" class="text-monospace">-</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Carteira de destino</span>
+                        <div>
+                          <span id="destWallet" class="text-monospace me-2">-</span>
+                          <button class="btn btn-sm btn-link text-secondary p-0" id="copyDestWalletBtn" title="Copiar"><i class="bi bi-clipboard"></i></button>
+                        </div>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Preço (BNB por token)</span>
+                        <span id="bnbPrice" class="text-monospace">-</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Limite por carteira</span>
+                        <span id="perWalletCap" class="text-monospace">-</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <div class="card card-rounded h-100 shadow-sm">
+                    <div class="card-header bg-light">
+                      <strong>Estoque e Compras</strong>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Tokens no contrato</span>
+                        <span id="contractTokenBalance" class="text-monospace">-</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Já comprados por você</span>
+                        <span id="alreadyPurchased" class="text-monospace">-</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Total a pagar (wei)</span>
+                        <span id="totalCost" class="text-monospace">-</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-light">
+                      <strong>Saldos das Carteiras</strong>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>sale BNB balance</span>
+                        <span id="saleBnbBalance" class="text-monospace">-</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>destination BNB balance</span>
+                        <span id="destBnbBalance" class="text-monospace">-</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Sua carteira (comprador) — BNB</span>
+                        <span id="buyerBnbBalance" class="text-monospace">-</span>
+                      </li>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Sua carteira (comprador) — Token</span>
+                        <span id="buyerTokenBalance" class="text-monospace">-</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Exportar Widget -->
+              <div class="mb-4">
+                <div class="card shadow-sm">
+                  <div class="card-header bg-light">
+                    <strong><i class="bi bi-code-slash me-2"></i>Exportar Widget</strong>
+                  </div>
+                  <div class="card-body">
+                    <ul class="nav nav-tabs mb-3" id="exportTabs" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="code-tab" data-bs-toggle="tab" data-bs-target="#code-pane" type="button" role="tab">HTML / Script</button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="embed-tab" data-bs-toggle="tab" data-bs-target="#embed-pane" type="button" role="tab">Iframe / Embed</button>
+                      </li>
+                    </ul>
+                    <div class="tab-content" id="exportContent">
+                      <div class="tab-pane fade show active" id="code-pane" role="tabpanel">
+                        <label class="form-label text-muted small">Copie este código para o seu site:</label>
+                        <div class="position-relative">
+                            <textarea id="generatedCode" class="form-control font-monospace small bg-light" rows="5" readonly></textarea>
+                            <button id="copyCodeBtn" class="btn btn-sm btn-primary position-absolute top-0 end-0 m-2">
+                                <i class="bi bi-clipboard me-1"></i> Copiar
+                            </button>
+                        </div>
+                      </div>
+                      <div class="tab-pane fade" id="embed-pane" role="tabpanel">
+                        <label class="form-label text-muted small">Use este iframe para incorporar:</label>
+                        <div class="position-relative">
+                            <textarea id="generatedEmbed" class="form-control font-monospace small bg-light" rows="5" readonly></textarea>
+                            <button id="copyEmbedBtn" class="btn btn-sm btn-primary position-absolute top-0 end-0 m-2" title="Copiar">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Log -->
+              <div class="mt-4">
+                <label class="form-label fw-semibold">Log</label>
+                <pre id="output" class="bg-dark text-light p-3 rounded min-height-180"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="../../../js/shared/base-system.js"></script>
+    <div data-component="shared/layouts/scripts-base.html"></div>
+    <script type="module" src="../../../js/shared/network-manager.js"></script>
+    <script type="module" src="../../../js/shared/wallet-connector.js"></script>
+    <script type="module" src="../../../js/shared/page-manager.js"></script>
+    <script type="module" src="./widget-criar.js"></script>
+  </body>
+</html>

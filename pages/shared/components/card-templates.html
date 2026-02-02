@@ -1,0 +1,61 @@
+<!--
+================================================================================
+CARD BASE - TOKENCAFE
+================================================================================
+Template base para cards padronizados
+Usa classes Bootstrap + tema TokenCafe
+Variações: card-basic, card-with-header, card-interactive
+================================================================================
+-->
+
+<!-- Card Básico -->
+<template id="card-basic-template">
+  <div class="card card-dark h-100 fade-in">
+    <div class="card-body">
+      <h5 class="card-title text-white">{{title}}</h5>
+      <p class="card-text text-muted-light">{{content}}</p>
+    </div>
+  </div>
+</template>
+
+<!-- Card com Header -->
+<template id="card-header-template">
+  <div class="card card-dark h-100 fade-in">
+    <div class="card-header bg-tokencafe">
+      <h5 class="mb-0 text-white">
+        <i class="{{icon}} me-2"></i>
+        {{title}}
+      </h5>
+    </div>
+    <div class="card-body">
+      <p class="card-text text-muted-light">{{content}}</p>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-outline-primary btn-sm">{{buttonText}}</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Card Interativo (hover effects) -->
+<template id="card-interactive-template">
+  <div class="card card-dark h-100 fade-in scale-hover network-card">
+    <div class="card-body">
+      <div class="d-flex align-items-center mb-3">
+        <div class="bg-tokencafe rounded-circle p-2 me-3">
+          <i class="{{icon}} text-white"></i>
+        </div>
+        <div>
+          <h6 class="mb-0 text-white">{{title}}</h6>
+          <small class="text-muted-light">{{subtitle}}</small>
+        </div>
+      </div>
+      <p class="card-text text-muted-light">{{content}}</p>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="badge bg-dark-elevated text-tokencafe">{{badge}}</span>
+        <button class="btn btn-outline-light btn-sm">{{action}}</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="module" src="/js/shared/components/card-templates.js"></script>
