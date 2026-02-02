@@ -397,8 +397,30 @@ async function updateTradingPair(container, chainId, address) {
 
 async function updateVerificationBadge(container, chainId, address, forceRefresh = false) {
     const vStatus = container?.querySelector?.("#cs_viewStatus") || document.querySelector("#cs_viewStatus");
+    
+    // Feedback visual imediato: Spinner
+    let loadingSpinner = null;
+    if (vStatus) {
+        // Se já tiver badge, mantemos até atualizar, mas adicionamos spinner se for forceRefresh ou primeira vez
+        const existingBadge = vStatus.querySelector(".badge-verif-status");
+        if (!existingBadge || forceRefresh) {
+             if (!vStatus.querySelector(".verif-spinner")) {
+                 loadingSpinner = document.createElement("span");
+                 loadingSpinner.className = "spinner-border spinner-border-sm text-secondary ms-2 verif-spinner";
+                 loadingSpinner.setAttribute("role", "status");
+                 vStatus.appendChild(loadingSpinner);
+             }
+        }
+    }
+
     try {
       const js = await getVerificationStatus(chainId, address, forceRefresh);
+      
+      // Remove spinner
+      if (vStatus) {
+          const sp = vStatus.querySelector(".verif-spinner");
+          if (sp) sp.remove();
+      }
   
       const vCv = container?.querySelector?.("#cs_viewCompilerVersion") || document.querySelector("#cs_viewCompilerVersion");
       const vOpt = container?.querySelector?.("#cs_viewOptimization") || document.querySelector("#cs_viewOptimization");
@@ -590,10 +612,12 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
         if (vNatBal && !vNatBal.textContent) vNatBal.textContent = "0";
       }
   
-      await updateVerificationBadge(container, chainId, address);
-      await updateTradingPair(container, chainId, address);
+      // Disparar atualizações secundárias em paralelo (sem await) para não bloquear a UI principal
+      updateVerificationBadge(container, chainId, address).catch(e => log("verify-badge-error", e));
+      updateTradingPair(container, chainId, address).catch(e => log("pair-error", e));
+
       if (vPair && (!vPair.textContent || vPair.textContent.trim() === "-")) {
-        vPair.textContent = "Nenhum par encontrado";
+        vPair.textContent = "Buscando par..."; // Feedback imediato
       }
     } catch (e) {
       log("updateContractDetailsView error", e);
