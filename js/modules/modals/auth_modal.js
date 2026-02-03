@@ -110,8 +110,17 @@ async function connectWallet(walletType) {
   }
 }
 
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 async function connectMetaMask() {
   if (!window.ethereum) {
+    if (isMobile()) {
+      const currentUrl = window.location.href.replace(/(^\w+:|^)\/\//, '');
+      window.location.href = `https://metamask.app.link/dapp/${currentUrl}`;
+      return false;
+    }
     throw new Error("MetaMask não encontrado. Por favor, instale a extensão.");
   }
 
@@ -124,6 +133,11 @@ async function connectMetaMask() {
 
 async function connectTrustWallet() {
   if (!window.ethereum || !window.ethereum.isTrust) {
+     if (isMobile()) {
+      const currentUrl = encodeURIComponent(window.location.href);
+      window.location.href = `https://link.trustwallet.com/open_url?coin_id=60&url=${currentUrl}`;
+      return false;
+    }
     throw new Error("Trust Wallet não encontrada. Verifique se está instalada.");
   }
   const accounts = await window.ethereum.request({
@@ -133,13 +147,27 @@ async function connectTrustWallet() {
 }
 
 async function connectWalletConnect() {
-  // Implementar WalletConnect
-  throw new Error("WalletConnect em desenvolvimento");
+  if (isMobile()) {
+      // No mobile, tentar deep link genérico ou alertar
+      alert("Para conectar no celular, recomendamos usar os botões MetaMask ou Trust Wallet que abrirão o App diretamente.");
+      return false;
+  }
+  throw new Error("WalletConnect requer biblioteca externa (não disponível neste ambiente). Use MetaMask ou Trust Wallet.");
 }
 
 async function connectCoinbase() {
-  // Implementar Coinbase Wallet
-  throw new Error("Coinbase Wallet em desenvolvimento");
+   if (!window.ethereum || !window.ethereum.isCoinbaseWallet) {
+     if (isMobile()) {
+      const currentUrl = encodeURIComponent(window.location.href);
+      window.location.href = `https://go.cb-w.com/dapp?cb_url=${currentUrl}`;
+      return false;
+    }
+     throw new Error("Coinbase Wallet não encontrada.");
+   }
+   const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts",
+  });
+  return accounts.length > 0;
 }
 
 async function switchNetwork(chainId) {
