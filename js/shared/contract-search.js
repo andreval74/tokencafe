@@ -436,7 +436,7 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
           vOpt.className = "text-tokencafe";
         } else if (opt === "0" || opt === 0 || opt === false || opt === "false") {
           vOpt.textContent = "Não";
-          vOpt.className = "text-secondary";
+          vOpt.className = "text-tokencafe";
         } else {
           vOpt.textContent = "-";
           vOpt.className = "text-tokencafe";
@@ -528,16 +528,30 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
     }
 }
 
-async function updateContractDetailsView(container, chainId, address, preloadedData = null) {
+async function updateContractDetailsView(container, chainId, address, preloadedData = null, options = {}) {
     if (!container || !chainId || !address) return;
   
     const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+    // Only hide initially if we are NOT in autoShowCard mode, or we can hide and then show later.
+    // Resetting is safer to ensure clean state.
     if (card) card.classList.add("d-none");
 
     const infoBtn = container.querySelector("#csInfoBtn");
     if (infoBtn) {
         infoBtn.disabled = false;
         infoBtn.classList.remove("d-none");
+    }
+
+    // Check for auto-show based on container attribute or options
+    const isViewOnly = container.getAttribute("data-cs-view-only") === "true";
+    const shouldAutoShow = options.autoShowCard || isViewOnly;
+
+    if (shouldAutoShow && card) {
+         card.classList.remove("d-none");
+         // In view-only mode, we might want to hide the toggle button if the card is always shown
+         if (isViewOnly && infoBtn) {
+             infoBtn.classList.add("d-none");
+         }
     }
 
     const topExp = container.querySelector("#csExplorerBtn") || document.getElementById("csExplorerBtn");
@@ -613,17 +627,24 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
           { jsonrpc: "2.0", id: 7, method: "eth_call", params: [{ to: String(address), data: "0x70a08231" + String(address).toLowerCase().replace(/^0x/, "").padStart(64, "0") }, "latest"] },
           { jsonrpc: "2.0", id: 8, method: "eth_getBalance", params: [String(address), "latest"] },
         ];
-        const js = await fetchJsonWithTimeout(rpc, bodies, MAX_TIMEOUT_MS);
-        if (Array.isArray(js) && js.length) {
-          const r7 = js.find((x) => x && x.id === 7);
-          const r8 = js.find((x) => x && x.id === 8);
-          const balHex = r7 && r7.result ? String(r7.result) : null;
-          const nativeHex = r8 && r8.result ? String(r8.result) : null;
-          const dec = info.decimals != null ? info.decimals : 18;
-          const tokVal = formatUnits(balHex, dec);
-          const natVal = formatUnits(nativeHex, 18);
-          if (vTokBal) vTokBal.textContent = formatDecimalValue(tokVal);
-          if (vNatBal) vNatBal.textContent = formatDecimalValue(natVal);
+        // Only fetch balances if not explicitly skipped or if we want to refresh
+        if (!options.skipBalances) {
+            const js = await fetchJsonWithTimeout(rpc, bodies, MAX_TIMEOUT_MS);
+            if (Array.isArray(js) && js.length) {
+              const r7 = js.find((x) => x && x.id === 7);
+              const r8 = js.find((x) => x && x.id === 8);
+              const balHex = r7 && r7.result ? String(r7.result) : null;
+              const nativeHex = r8 && r8.result ? String(r8.result) : null;
+              const dec = info.decimals != null ? info.decimals : 18;
+              const tokVal = formatUnits(balHex, dec);
+              const natVal = formatUnits(nativeHex, 18);
+              if (vTokBal) vTokBal.textContent = formatDecimalValue(tokVal);
+              if (vNatBal) vNatBal.textContent = formatDecimalValue(natVal);
+            }
+        } else if (preloadedData) {
+             // Use preloaded balances if skipping fetch
+             if (vTokBal) vTokBal.textContent = preloadedData.contractTokenBalance || "-";
+             if (vNatBal) vNatBal.textContent = preloadedData.contractNativeBalance || "-";
         }
       } catch (e) {
         log("updateContractDetailsView balances error", e);
@@ -632,8 +653,12 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
       }
   
       // Disparar atualizações secundárias em paralelo (sem await) para não bloquear a UI principal
-      updateVerificationBadge(container, chainId, address).catch(e => log("verify-badge-error", e));
-      updateTradingPair(container, chainId, address).catch(e => log("pair-error", e));
+      if (!options.skipVerification) {
+          updateVerificationBadge(container, chainId, address).catch(e => log("verify-badge-error", e));
+      }
+      if (!options.skipTradingPair) {
+          updateTradingPair(container, chainId, address).catch(e => log("pair-error", e));
+      }
 
       if (vPair && (!vPair.textContent || vPair.textContent.trim() === "-")) {
         vPair.textContent = "Buscando par..."; // Feedback imediato

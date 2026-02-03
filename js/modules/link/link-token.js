@@ -1,7 +1,7 @@
 import { NetworkManager } from "../../shared/network-manager.js";
 import { SystemResponse } from "../../shared/system-response.js";
 import { getFallbackRpc, getFallbackExplorer, getFallbackChainName, getFallbackNativeCurrency } from "../../shared/network-fallback.js";
-import { initContainer } from "../../shared/contract-search.js";
+import { initContainer, updateContractDetailsView } from "../../shared/contract-search.js";
 
 const networkManager = new NetworkManager();
 const systemResponse = new SystemResponse();
@@ -9,13 +9,21 @@ const systemResponse = new SystemResponse();
 let lastContractData = null;
 
 async function switchNetwork() {
-  if (!lastContractData || !lastContractData.chainId) {
+  let targetChainId = lastContractData?.chainId;
+  
+  // Fallback to URL params if no contract data yet
+  if (!targetChainId) {
+      const params = new URLSearchParams(location.search);
+      targetChainId = params.get("chainId");
+  }
+
+  if (!targetChainId) {
     window.notify && window.notify("Rede de destino desconhecida", "error");
     return;
   }
 
   try {
-    await networkManager.ensureNetwork(lastContractData.chainId);
+    await networkManager.ensureNetwork(targetChainId);
     // UI update handled by chainChanged or checkNetwork
     checkNetwork();
   } catch (e) {
@@ -27,14 +35,21 @@ async function switchNetwork() {
 async function checkNetwork() {
   const switchBtn = document.getElementById("btnSwitchNetwork");
   const addBtn = document.getElementById("addToWalletButton");
+  
+  let targetChainId = lastContractData?.chainId;
+  // Fallback to URL params
+  if (!targetChainId) {
+      const params = new URLSearchParams(location.search);
+      targetChainId = params.get("chainId");
+  }
 
-  if (!lastContractData || !window.ethereum) {
+  if (!targetChainId || !window.ethereum) {
     if (switchBtn) switchBtn.classList.add("d-none");
     if (addBtn) addBtn.disabled = true;
     return;
   }
 
-  const { chainId } = lastContractData;
+  const chainId = targetChainId;
   const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
 
   if (!currentHex || String(parseInt(currentHex, 16)) !== String(chainId)) {
@@ -50,8 +65,11 @@ async function checkNetwork() {
   } else {
     // Rede correta
     if (switchBtn) switchBtn.classList.add("d-none");
+    // Only enable Add button if we actually have contract data or at least address
+    const hasAddress = lastContractData?.contractAddress || new URLSearchParams(location.search).get("address");
+    
     if (addBtn) {
-        addBtn.disabled = false;
+        addBtn.disabled = !hasAddress;
         addBtn.innerHTML = '<i class="bi bi-wallet2 me-2"></i>Adicionar Token';
         addBtn.classList.remove("btn-success", "btn-outline-primary");
         addBtn.classList.add("btn-outline-warning");
@@ -151,7 +169,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let attempts = 0;
       const maxAttempts = 50; // 10 seconds (50 * 200ms)
 
-      const waitComponents = setInterval(() => {
+      const waitComponents = setInterval(async () => {
           attempts++;
           const searchBtn = document.getElementById("contractSearchBtn");
           const addrInput = document.getElementById("f_address") || document.getElementById("tokenAddress");
@@ -172,13 +190,78 @@ document.addEventListener("DOMContentLoaded", async () => {
               // Pre-fill input
               addrInput.value = pAddress;
               
-              // Ensure chainId is available for the search component if needed
-              // The search component tries to find chainId from URL params too, 
-              // but we can also set it explicitly if needed.
-              // For now, relying on URL params which contract-search.js parses.
+              // Check if we have enough data in URL to skip auto-search
+              const pName = params.get("name");
+              const pSymbol = params.get("symbol");
+              const pDecimals = params.get("decimals");
               
-              console.log("Auto-triggering search for linked token...");
-              searchBtn.click();
+              if (pName || pSymbol) {
+                  console.log("URL data found. Pre-loading URL fallback and triggering on-chain verification.");
+                  
+                  // Simulate found contract data locally so Add button works immediately
+                  if (!lastContractData) {
+                      lastContractData = {
+                          contractAddress: pAddress,
+                          chainId: pChainId,
+                          tokenName: pName || "",
+                          tokenSymbol: pSymbol || "",
+                          tokenDecimals: pDecimals ? parseInt(pDecimals) : 18,
+                          tokenSupply: "0", // Default
+                          contractTokenBalance: "0",
+                          contractNativeBalance: "0"
+                      };
+                      
+                      try {
+                          // 1. Render Immediate "Link Data" (Fast Feedback)
+                          await updateContractDetailsView(
+                              container, 
+                              pChainId, 
+                              pAddress, 
+                              lastContractData, 
+                              { 
+                                  skipVerification: true, 
+                                  skipTradingPair: true,
+                                  skipBalances: true,
+                                  autoShowCard: true
+                              }
+                          );
+
+                          // FORCE VISIBILITY - Failsafe
+                          const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+                          if (card) {
+                              card.classList.remove("d-none");
+                              card.style.display = "block";
+                          }
+
+                          // Set special Status for Link Data
+                          const vStatus = document.getElementById("cs_viewStatus");
+                          if (vStatus) {
+                              vStatus.innerHTML = '<i class="bi bi-link-45deg me-1"></i>Dados do Link (Verificando on-chain...)';
+                              vStatus.className = "status-text text-warning fw-bold";
+                              vStatus.querySelectorAll(".badge-verif-status, .btn-retry-verif").forEach((el) => el.remove());
+                          }
+
+                          // Trigger network check to update buttons
+                          checkNetwork();
+                          
+                          // 2. Trigger Full Search to Enrich Data (Supply, Balances, Real Verification)
+                          console.log("Triggering background search for full details...");
+                          // Small delay to allow UI to paint the "Link Data" state first
+                          setTimeout(() => {
+                              if (searchBtn) searchBtn.click();
+                          }, 500);
+
+                      } catch (e) {
+                          console.warn("Error updating UI from URL params:", e);
+                          // If render fails, try search anyway
+                          if (searchBtn) searchBtn.click();
+                      }
+                  }
+              } else {
+                  // No data in URL, must search
+                  console.log("No URL data, auto-triggering search...");
+                  searchBtn.click();
+              }
           } else if (attempts >= maxAttempts) {
               clearInterval(waitComponents);
               console.warn("Timeout waiting for contract-search component initialization.");

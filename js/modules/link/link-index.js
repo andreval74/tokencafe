@@ -444,6 +444,12 @@ function shareEmailSmall() {
   try { window.open(`mailto:?subject=TokenCafe%20Link&body=${encodeURIComponent(u)}`, "_self"); } catch (_) {}
 }
 
+function viewGeneratedLink() {
+  const u = ensureGeneratedLink();
+  if (!u) return window.notify && window.notify("Gere o link primeiro.", "warning");
+  try { window.open(u, "_blank"); } catch (_) {}
+}
+
 async function addTokenToMetaMask() {
   try {
     const address = lastContractData?.contractAddress || String(getValue(ids.tokenAddress) || "").replace(/\s+$/u, "");
@@ -618,6 +624,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // UI Button Listeners
   document.getElementById(ids.btnCopyLink)?.addEventListener("click", copyLink);
   document.getElementById(ids.btnShareLink)?.addEventListener("click", shareLink);
+  document.getElementById(ids.btnOpenLink)?.addEventListener("click", viewGeneratedLink);
   document.getElementById(ids.btnClearAll)?.addEventListener("click", clearAll);
   document.getElementById(ids.btnShareWhatsAppSmall)?.addEventListener("click", shareWhatsAppSmall);
   document.getElementById(ids.btnShareTelegramSmall)?.addEventListener("click", shareTelegramSmall);
