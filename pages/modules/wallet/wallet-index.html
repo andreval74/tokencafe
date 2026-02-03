@@ -40,74 +40,107 @@
           <div data-component="shared/components/section-title.html" data-st-icon="bi bi-wallet2 me-2"
             data-st-title="Informações da Carteira" data-st-subtitle="Detalhes da sua carteira conectada"></div>
 
-          <div class="card mb-4 border-secondary bg-dark">
+          <!-- Card de Dados (Estilo Ficha - Igual Contract Search) -->
+          <div class="card mb-4">
             <div class="card-body">
-              
-              <div class="row g-3">
-                <!-- Linha 1: Rede e Chain ID -->
-                <div class="col-md-8">
-                  <label class="form-label text-light">Nome da Rede</label>
-                  <input type="text" id="networkName" class="form-control bg-secondary text-white border-secondary" readonly>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label text-light">Chain ID</label>
-                  <input type="text" id="chainId" class="form-control bg-secondary text-white border-secondary" readonly>
-                </div>
-
-                <!-- Linha 2: Endereço da Carteira -->
+            
+              <div class="row g-2 small">
+                <!-- Endereço -->
                 <div class="col-12">
-                  <label class="form-label text-light">Endereço da Carteira</label>
-                  <div class="input-group">
-                    <input type="text" id="walletAddress" class="form-control bg-secondary text-white border-secondary" readonly>
-                    <button class="btn btn-outline-secondary" type="button" id="copyAddressBtn" title="Copiar">
-                      <i class="bi bi-clipboard text-light"></i>
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>Endereço:</span>
+                    <span id="walletAddress" class="text-tokencafe text-break font-monospace"></span>
+                    <button id="copyAddressBtn" class="btn btn-sm btn-link text-white p-0" title="Copiar">
+                      <i class="bi bi-clipboard"></i>
                     </button>
-                    <button class="btn btn-outline-secondary" type="button" id="viewAddressBtn" title="Ver no Explorer">
-                      <i class="bi bi-box-arrow-up-right text-light"></i>
+                    <button id="viewAddressBtn" class="btn btn-sm btn-link text-white p-0" title="Ver no Explorer">
+                      <i class="bi bi-box-arrow-up-right"></i>
                     </button>
-                    <!-- Share button preserved just in case, but hidden if not in image or optional -->
-                    <button class="btn btn-outline-secondary" type="button" id="shareAddressBtn" title="Compartilhar">
-                      <i class="bi bi-share text-light"></i>
+                    <button id="shareAddressBtn" class="btn btn-sm btn-link text-white p-0" title="Compartilhar">
+                        <i class="bi bi-share"></i>
                     </button>
                   </div>
                 </div>
 
-                <!-- Linha 3: Moeda, Símbolo, Saldo -->
-                <div class="col-md-4">
-                  <label class="form-label text-light">Moeda Nativa</label>
-                  <input type="text" id="nativeCurrency" class="form-control bg-secondary text-white border-secondary" readonly>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label text-light">Símbolo</label>
-                  <input type="text" id="currencySymbol" class="form-control bg-secondary text-white border-secondary" readonly>
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label text-light">Saldo Atual</label>
-                  <input type="text" id="balance" class="form-control bg-secondary text-white border-secondary" readonly>
-                </div>
-
-                <!-- Linha 4: RPC e Explorer -->
-                <div class="col-md-6">
-                  <label class="form-label text-light">RPC URL</label>
-                  <input type="text" id="rpcUrl" class="form-control bg-secondary text-white border-secondary" readonly>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label text-light">Block Explorer URL</label>
-                  <input type="text" id="explorerUrlDisplay" class="form-control bg-secondary text-white border-secondary" readonly>
-                  <!-- Hidden link for JS logic compatibility if needed -->
-                  <a id="explorerLink" href="#" target="_blank" class="d-none"></a>
-                </div>
-
-                <!-- Linha 5: RPCs Personalizados -->
+                <!-- Rede (Chain ID) -->
                 <div class="col-12">
-                  <label class="form-label text-light">RPCs Personalizados</label>
-                  <textarea id="customRpcs" class="form-control bg-secondary text-white border-secondary" rows="3" readonly>Nenhum RPC personalizado configurado</textarea>
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>Rede (Chain ID):</span>
+                    <span class="text-tokencafe">
+                        <span id="chainId" class="me-1"></span> - <span id="networkName"></span>
+                    </span>
+                    <button id="copyChainIdBtn" class="btn btn-sm btn-link text-white p-0" title="Copiar ID">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Moeda Nativa -->
+                <div class="col-6">
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>Moeda Nativa:</span>
+                    <span id="nativeCurrency" class="text-tokencafe"></span>
+                  </div>
+                </div>
+
+                <!-- Símbolo -->
+                <div class="col-6">
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>Símbolo:</span>
+                    <span id="currencySymbol" class="text-tokencafe"></span>
+                  </div>
+                </div>
+
+                <!-- Saldo Atual -->
+                <div class="col-6">
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>Saldo Atual:</span>
+                    <span id="balance" class="text-tokencafe fw-bold"></span>
+                  </div>
+                </div>
+
+                <!-- Status -->
+                <div class="col-6">
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>Status:</span>
+                    <span class="text-success small"><i class="bi bi-circle-fill me-1"></i>Conectado</span>
+                  </div>
+                </div>
+
+                <!-- RPC URL -->
+                <div class="col-12">
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>RPC URL:</span>
+                    <span id="rpcUrl" class="text-tokencafe text-break"></span>
+                    <button id="copyRpcBtn" class="btn btn-sm btn-link text-white p-0" title="Copiar">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Block Explorer URL -->
+                <div class="col-12">
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>Block Explorer URL:</span>
+                    <span id="explorerUrlDisplay" class="text-tokencafe text-break"></span>
+                    <a id="explorerLink" href="#" target="_blank" class="text-white text-decoration-none" title="Abrir">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                  </div>
+                </div>
+
+                <!-- RPCs Personalizados -->
+                <div class="col-12">
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span>RPCs Personalizados:</span>
+                    <span id="customRpcs" class="text-tokencafe text-break"></span>
+                  </div>
                 </div>
               </div>
 
             </div>
           </div>
-              <!-- Botão Home -->
+<!-- Botão Home -->
               <div class="mt-4 d-flex justify-content-end">
                   <a href="../../tools.html" class="btn btn-outline-success px-4 fw-bold">
                       <i class="bi bi-house-door me-2"></i>Home
@@ -126,7 +159,7 @@
   <!-- scripts -->
   <script type="module" src="../../../js/shared/base-system.js"></script>
   <div data-component="shared/layouts/scripts-base.html"></div>
-  <script type="module" src="../../../js/modules/wallet/wallet-index.js?v=2"></script>
+  <script type="module" src="../../../js/modules/wallet/wallet-index.js?v=4"></script>
   <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
 
 </body>

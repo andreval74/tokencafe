@@ -59,6 +59,17 @@ Este documento descreve a integração do módulo Contracts Builder e demais fer
 - Se não conectado, o sistema solicita conexão (`eth_requestAccounts`) ou alerta o usuário de forma explícita.
 - Feedback visual de status da carteira no header.
 
+### 5. Padrão de Apresentação de Dados (Ficha)
+
+- **Contexto**: Utilizado para exibir informações de leitura (carteiras, contratos conectados, recibos) onde não há edição. Substitui formulários com inputs desabilitados (`readonly`).
+- **Estrutura**: Card Bootstrap (`.card`), Grid (`.row .g-2 .small`).
+- **Estilo**:
+  - **Labels**: Texto padrão ou `text-muted`/`text-white-50`.
+  - **Valores**: `.text-tokencafe` (Laranja padrão do sistema) para destaque.
+  - **Alinhamento**: `d-flex align-items-baseline gap-2` (Label + Valor na mesma linha).
+- **Ações Contextuais**: Botões pequenos (`btn-sm btn-link text-white p-0`) ao lado do valor para copiar (`bi-clipboard`) ou abrir link externo (`bi-box-arrow-up-right`).
+- **Navegação**: Em telas puramente informativas (como Gerenciador de Carteira), substituir o botão "Limpar Dados" por um botão **"Home"** (`btn-outline-success` com ícone `bi-house-door`) que redireciona para o painel de ferramentas (`tools.html`).
+
 ## Detalhes Técnicos Implementados
 
 ### 5. Sincronização de Estado entre Módulos
