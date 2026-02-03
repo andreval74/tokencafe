@@ -56,50 +56,13 @@
         <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->
         <div id="token-section" class="mb-4 d-none">
           <div data-component="shared/components/contract-search.html"></div>
-          
-          <!-- Visible Token Details Form (Restored for User Feedback & Image Input) -->
-          <div class="card bg-dark border-secondary mt-3 shadow-sm" id="token-info-card">
-            <div class="card-header border-secondary bg-dark-elevated">
-              <h6 class="mb-0 text-tokencafe"><i class="bi bi-sliders me-2"></i>Personalizar Link</h6>
-            </div>
-            <div class="card-body">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label for="l_tokenAddress" class="form-label text-secondary small mb-1">Endereço do Contrato</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-hash"></i></span>
-                    <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenAddress" readonly>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <label for="l_tokenName" class="form-label text-secondary small mb-1">Nome</label>
-                  <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenName" readonly>
-                </div>
-                <div class="col-md-6">
-                   <label for="l_tokenSymbol" class="form-label text-secondary small mb-1">Símbolo</label>
-                   <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenSymbol" readonly>
-                </div>
-                <div class="col-md-6">
-                   <label for="l_tokenDecimals" class="form-label text-secondary small mb-1">Decimais</label>
-                   <input type="number" class="form-control bg-dark text-light border-secondary" id="l_tokenDecimals" readonly>
-                </div>
-                <div class="col-md-6">
-                   <label for="l_tokenImage" class="form-label text-secondary small mb-1">URL da Imagem (Opcional)</label>
-                   <div class="input-group">
-                     <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-image"></i></span>
-                     <input type="text" class="form-control bg-dark text-light border-secondary" id="l_tokenImage" placeholder="https://...">
-                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- ===== SEÇÃO 3: LINK GERADO ===== -->
         <div id="generate-section" class="mb-4 d-none">
 
           <!-- Header Padronizado -->
-          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-link-45deg me-2"
+          <div data-component="shared/components/section-title.html" data-st-icon="bi bi-link-45deg"
             data-st-title="Link Gerado" data-st-subtitle="Seu link está pronto para ser compartilhado"></div>
 
           <div class="card bg-dark border-secondary shadow-lg">
@@ -112,7 +75,7 @@
                 <input type="text" id="generatedLink" class="form-control bg-dark text-light border-secondary" readonly
                   placeholder="https://...">
 
-                <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
+                <button class="btn btn-outline-info" id="copyAddressBtn" type="button" title="Copiar Endereço">
                   <i class="bi bi-clipboard"></i>
                 </button>
 
@@ -143,8 +106,8 @@
         </div>
         <!-- Botões de ação -->
         <div class="d-flex gap-2 justify-content-end mt-4 d-none" id="add-network-section">
-          <button id="btnClearAll" class="btn btn-outline-danger">
-            <i class="bi bi-trash me-2"></i>Limpar Dados
+          <button id="btnClearAll" class="btn btn-outline-secondary">
+            <i class="bi bi-eraser me-2"></i>Limpar Dados
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { NetworkManager } from "../../shared/network-manager.js";
 import { SystemResponse } from "../../shared/system-response.js";
 import { getFallbackRpc, getFallbackExplorer, getFallbackChainName, getFallbackNativeCurrency } from "../../shared/network-fallback.js";
+import { initContainer } from "../../shared/contract-search.js";
 
 const networkManager = new NetworkManager();
 const systemResponse = new SystemResponse();
@@ -13,39 +14,13 @@ async function switchNetwork() {
     return;
   }
 
-  const chainId = lastContractData.chainId;
-  const targetHex = "0x" + Number(chainId).toString(16);
-
   try {
-    await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: targetHex }] });
-    // A recarga da página ou evento chainChanged lidará com a atualização da UI
-  } catch (switchErr) {
-    if (switchErr && (switchErr.code === 4902 || /unrecognized|unknown/i.test(String(switchErr.message || "")))) {
-      // Add chain
-      const net = networkManager.getNetworkById(chainId);
-      const rpcUrls = Array.isArray(net?.rpc) && net.rpc.length ? net.rpc : [getFallbackRpc(chainId)].filter(Boolean);
-      const explorerUrl = net?.explorers?.[0]?.url || getFallbackExplorer(chainId);
-      const nc = net?.nativeCurrency || getFallbackNativeCurrency(chainId);
-
-      const addParams = {
-        chainId: targetHex,
-        chainName: net?.name || getFallbackChainName(chainId) || `Chain ${chainId}`,
-        nativeCurrency: {
-          name: nc.name,
-          symbol: nc.symbol,
-          decimals: parseInt(String(nc.decimals), 10),
-        },
-        rpcUrls,
-        blockExplorerUrls: explorerUrl ? [explorerUrl] : [],
-      };
-      try {
-        await window.ethereum.request({ method: "wallet_addEthereumChain", params: [addParams] });
-      } catch (addErr) {
-        window.notify && window.notify(`Erro ao adicionar rede: ${addErr.message}`, "error");
-      }
-    } else {
-      window.notify && window.notify(`Erro ao trocar rede: ${switchErr.message}`, "error");
-    }
+    await networkManager.ensureNetwork(lastContractData.chainId);
+    // UI update handled by chainChanged or checkNetwork
+    checkNetwork();
+  } catch (e) {
+    console.error(e);
+    window.notify && window.notify(`Erro ao trocar rede: ${e.message}`, "error");
   }
 }
 
@@ -99,8 +74,8 @@ async function addToWallet() {
     let { contractAddress: address, tokenSymbol, tokenDecimals, chainId } = lastContractData || {};
     
     // Fallback: tentar recuperar dados dos parâmetros da URL ou elementos da página se lastContractData estiver incompleto
+    const params = new URLSearchParams(location.search);
     if (!address || !chainId) {
-        const params = new URLSearchParams(location.search);
         address = address || params.get("address");
         chainId = chainId || params.get("chainId");
     }
@@ -110,7 +85,7 @@ async function addToWallet() {
          return;
     }
     
-    const image = ""; // TODO: support image param if available
+    const image = params.get("image") || "";
 
     // Verificação final de rede
     const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
@@ -222,6 +197,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (switchBtn) {
     switchBtn.addEventListener("click", switchNetwork);
   }
+  
+  const clearBtn = document.getElementById("btnClearAll");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+       // Clear URL params to reset state
+       if (location.search) {
+           const url = new URL(location.href);
+           url.search = "";
+           window.location.href = url.toString();
+       }
+    });
+  }
 
   // Listen for contract search results
   document.addEventListener("contract:found", (e) => {
@@ -253,14 +240,5 @@ document.addEventListener("DOMContentLoaded", async () => {
           // Recarregar página é comum, mas aqui tentaremos apenas atualizar UI
           checkNetwork();
       });
-  }
-
-  // Wait for component to load and trigger search
-  if (pAddress) {
-    const waitForInput = setInterval(() => {
-        // ... (existing logic in contract-search handles auto-trigger via URL params)
-        // Just ensure we don't block anything
-        clearInterval(waitForInput);
-    }, 500);
   }
 });

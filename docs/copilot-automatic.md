@@ -99,6 +99,12 @@ Este documento descreve a integração do módulo Contracts Builder e demais fer
 - **Padronização**: Adicionados botões de "Limpar Dados" e ícones de cópia para manter consistência com o restante do sistema.
 - **Layout**: Uso de Bootstrap 5 e ícones Bootstrap Icons (`bi-*`).
 
+### Gerador de Links
+
+- **URL Padrão**: `link-token.html?address=0x...&chainId=1&name=...&symbol=...&decimals=18&image=...`
+- **Layout de Formulário**: Utiliza inputs editáveis para os detalhes do token (Nome, Símbolo, Decimais, Imagem), permitindo que o usuário personalize os dados antes de gerar o link, mesmo que venham de uma busca automática.
+- **Fluxo de Redirecionamento**: O gerador (`link-index.html`) cria URLs que apontam para a página de consumo (`link-token.html`), garantindo separação de responsabilidades (criação vs uso).
+
 ## Grupos de Contratos (Modulares e Leves)
 
 - `ERC20-Minimal`: token básico (nome, símbolo, decimais, supply inicial).

@@ -532,7 +532,26 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
     if (!container || !chainId || !address) return;
   
     const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
-    if (card) card.classList.remove("d-none");
+    if (card) card.classList.add("d-none");
+
+    const infoBtn = container.querySelector("#csInfoBtn");
+    if (infoBtn) {
+        infoBtn.disabled = false;
+        infoBtn.classList.remove("d-none");
+    }
+
+    const topExp = container.querySelector("#csExplorerBtn") || document.getElementById("csExplorerBtn");
+    if (topExp) {
+        const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+        const base = net?.explorers?.[0]?.url || getFallbackExplorer(chainId) || "";
+        if (base) {
+            topExp.href = `${String(base).replace(/\/$/, "")}/address/${address}`;
+            topExp.classList.remove("disabled");
+            topExp.target = "_blank";
+        } else {
+            topExp.classList.add("disabled");
+        }
+    }
 
     const vName = container.querySelector("#cs_viewName") || document.getElementById("cs_viewName");
     const vSym = container.querySelector("#cs_viewSymbol") || document.getElementById("cs_viewSymbol");
@@ -675,7 +694,9 @@ function initContainer(container) {
       const infoBtn = container.querySelector("#csInfoBtn");
       const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
 
-      if (infoBtn) infoBtn.disabled = true;
+      if (infoBtn) {
+          infoBtn.disabled = true;
+      }
       if (card) card.classList.add("d-none");
 
       if (btn) {
@@ -848,11 +869,8 @@ function initContainer(container) {
 
   // Event Listeners
   if (btn) {
-      // Remover listeners antigos para evitar duplicação (clone)
-      const newBtn = btn.cloneNode(true);
-      btn.parentNode.replaceChild(newBtn, btn);
-      btn = newBtn;
-
+      // Simplification: Do not clone. Just attach.
+      // We rely on data-cs-initialized to prevent duplicates.
       btn.addEventListener("click", (e) => {
           e.preventDefault(); // Prevent form submit
           e.stopPropagation();
@@ -868,37 +886,15 @@ function initContainer(container) {
 
   const formEl = container.querySelector("#tokenForm");
   if (formEl) {
-      // Remover listeners antigos
-      const newForm = formEl.cloneNode(true);
-      formEl.parentNode.replaceChild(newForm, formEl);
-      // Re-selecionar elementos dentro do novo formulário para garantir referências
-      // Se não fizer isso, referências internas podem quebrar
-      
-      newForm.addEventListener("submit", (e) => {
+      // Simplification: Do not clone. Just attach submit handler.
+      formEl.addEventListener("submit", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const currentBtn = newForm.querySelector("#contractSearchBtn");
+          const currentBtn = formEl.querySelector("#contractSearchBtn");
           if (currentBtn && currentBtn.getAttribute("data-mode") !== "clear") {
               runSearch();
           }
       });
-
-      // Restaurar referência do botão se ele estava dentro do form
-      const internalBtn = newForm.querySelector("#contractSearchBtn");
-      if (internalBtn) {
-          btn = internalBtn;
-          btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (btn.getAttribute("data-mode") === "clear") {
-                clearVisualState();
-                const addrField = document.getElementById("f_address");
-                if (addrField) { addrField.value = ""; }
-                return;
-            }
-            runSearch();
-        });
-      }
   }
   
   const copyInputBtn = container.querySelector("[data-cs-copy-input]");
@@ -917,7 +913,20 @@ function initContainer(container) {
     });
   }
 
-  container.setAttribute("data-cs-initialized", "true");
+  const infoBtn = container.querySelector("#csInfoBtn");
+  if (infoBtn) {
+      infoBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+          if (card) card.classList.toggle("d-none");
+      });
+  }
+
+  const hasContent = container.querySelector("#contractSearchBtn") || container.querySelector("#tokenForm") || container.querySelector("#csInfoBtn");
+  if (hasContent) {
+    container.setAttribute("data-cs-initialized", "true");
+  }
 }
 
 function findContainers() {

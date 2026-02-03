@@ -41,9 +41,26 @@ let selectedNetwork = null;
 let tokenFetched = false;
 let readonlyLinkMode = false;
 
+// Helper to get value from Input or TextContent from Span/Div
+function getValue(id) {
+  const el = document.getElementById(id);
+  if (!el) return "";
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT") {
+    return el.value;
+  }
+  return el.textContent;
+}
+
+// Helper to set value to Input or TextContent to Span/Div
 function setValue(id, value) {
   const el = document.getElementById(id);
-  if (el) el.value = value ?? "";
+  if (!el) return;
+  const safeVal = value ?? "";
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT") {
+    el.value = safeVal;
+  } else {
+    el.textContent = safeVal;
+  }
 }
 
 function show(id) {
@@ -58,11 +75,12 @@ function hide(id) {
 
 function setReadonlyMode(enabled) {
   readonlyLinkMode = enabled;
-  const inputs = [ids.tokenAddress, ids.tokenName, ids.tokenSymbol, ids.tokenDecimals, ids.tokenImage];
+  // Only apply to inputs (tokenImage)
+  const inputs = [ids.tokenImage];
 
   inputs.forEach((id) => {
     const el = document.getElementById(id);
-    if (el) {
+    if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) {
       el.readOnly = enabled;
       if (enabled) el.classList.add("bg-light");
       else el.classList.remove("bg-light");
@@ -157,11 +175,11 @@ function selectNetwork(network) {
 }
 
 function buildLink() {
-  let address = String(document.getElementById(ids.tokenAddress)?.value || "").replace(/\s+$/u, "");
-  let name = String(document.getElementById(ids.tokenName)?.value || "").replace(/\s+$/u, "");
-  let symbol = String(document.getElementById(ids.tokenSymbol)?.value || "").replace(/\s+$/u, "");
-  let decimals = String(document.getElementById(ids.tokenDecimals)?.value || "").replace(/\s+$/u, "");
-  let image = String(document.getElementById(ids.tokenImage)?.value || "").replace(/\s+$/u, "");
+  let address = String(getValue(ids.tokenAddress) || "").replace(/\s+$/u, "");
+  let name = String(getValue(ids.tokenName) || "").replace(/\s+$/u, "");
+  let symbol = String(getValue(ids.tokenSymbol) || "").replace(/\s+$/u, "");
+  let decimals = String(getValue(ids.tokenDecimals) || "").replace(/\s+$/u, "");
+  let image = String(getValue(ids.tokenImage) || "").replace(/\s+$/u, "");
 
   // Fallback to cached data if inputs are missing (e.g. using contract-search component)
   if (lastContractData) {
@@ -209,9 +227,8 @@ function updateGeneratedLink() {
 
   // Remove is-invalid from symbol if filled
   const sEl = document.getElementById(ids.tokenSymbol);
-  if (sEl && sEl.value && sEl.value !== "TKN") {
-    sEl.classList.remove("is-invalid");
-  }
+  // Note: sEl is now a span, so classList changes might not affect visual validation unless custom CSS exists
+  // but it's harmless.
 
   // Garantir que a seção de links gerados seja exibida se houver URL
   const genSection = document.getElementById("generate-section");
@@ -224,15 +241,15 @@ function updateGeneratedLink() {
     if (addNetSection) addNetSection.classList.add("d-none");
   }
 
-  const sym = document.getElementById(ids.tokenSymbol)?.value;
-  const dec = document.getElementById(ids.tokenDecimals)?.value;
+  const sym = getValue(ids.tokenSymbol);
+  const dec = getValue(ids.tokenDecimals);
   const manualData = sym && dec && sym !== "TKN";
 
   if (url && (tokenFetched || manualData)) {
     clearError();
   } else {
     systemResponse.hide();
-    const addr = String(document.getElementById(ids.tokenAddress)?.value || "").replace(/\s+$/u, "");
+    const addr = String(getValue(ids.tokenAddress) || "").replace(/\s+$/u, "");
     if (!addr || !isValidAddress(addr)) {
       setError("Endereço inválido ou não informado.");
     } else if (!selectedNetwork) {
@@ -262,18 +279,23 @@ function clearAll() {
   setValue(ids.tokenDecimals, "");
   setValue(ids.tokenImage, "");
   setValue(ids.generatedLink, "");
+  
+  // Clear contract-search inputs
+  const csInput = document.getElementById("f_address");
+  if (csInput) csInput.value = "";
+
   tokenFetched = false;
   selectedNetwork = null;
+  lastContractData = null;
+  
   hide("selected-network-info");
   show("network-section");
   hide("token-section");
   hide("generate-section");
   hide("add-network-section");
   
-  (function () {
-    const loading = document.getElementById("tokenLoading");
-    if (loading) loading.classList.add("d-none");
-  })();
+  const loading = document.getElementById("tokenLoading");
+  if (loading) loading.classList.add("d-none");
 
   // Limpar busca de rede e autocomplete
   const search = document.getElementById(ids.networkSearch);
@@ -307,13 +329,18 @@ function clearAll() {
     if (expSpan) expSpan.textContent = "";
   }
   
-  try {
-    location.reload();
-  } catch (_) {}
+  // Reset buttons
+  const btnSearch = document.getElementById(ids.btnTokenSearch);
+  if (btnSearch) {
+    btnSearch.disabled = false;
+    btnSearch.innerHTML = '<i class="bi bi-search"></i>';
+  }
+
+  window.notify && window.notify("Dados limpos", "info");
 }
 
 function copyLink() {
-  const val = document.getElementById(ids.generatedLink)?.value;
+  const val = getValue(ids.generatedLink);
   if (!val) return;
   if (window.copyToClipboard) {
     window.copyToClipboard(val);
@@ -323,7 +350,7 @@ function copyLink() {
 }
 
 function ensureGeneratedLink() {
-  let url = document.getElementById(ids.generatedLink)?.value;
+  let url = getValue(ids.generatedLink);
   if (!url) {
     url = buildLink();
     if (url) setValue(ids.generatedLink, url);
@@ -337,25 +364,8 @@ function shareLink() {
     window.notify && window.notify("Nenhum link gerado. Informe rede e token.", "warning");
     return;
   }
-  (async () => {
-    const ua = String(navigator.userAgent || "");
-    const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(ua);
-    const secure = typeof window !== "undefined" && (window.isSecureContext || location.protocol === "https:" || location.hostname === "localhost");
-    const canWebShare = secure && typeof navigator.share === "function" && (typeof navigator.canShare !== "function" || navigator.canShare({ url }));
-    if (canWebShare && isMobile) {
-      try {
-        await navigator.share({ title: "TokenCafe Link", url });
-        window.notify && window.notify("Link compartilhado com sucesso", "success");
-        return;
-      } catch (e) {
-        if (e && e.name === "AbortError") {
-          window.notify && window.notify("Compartilhamento cancelado", "info");
-          return;
-        }
-      }
-    }
-    openShareMenu(url);
-  })();
+  // Use global system response or custom share modal
+  openShareMenu(url);
 }
 
 function openShareMenu(url) {
@@ -436,10 +446,10 @@ function shareEmailSmall() {
 
 async function addTokenToMetaMask() {
   try {
-    const address = lastContractData?.contractAddress || String(document.getElementById(ids.tokenAddress)?.value || "").replace(/\s+$/u, "");
-    let symbol = lastContractData?.tokenSymbol || String(document.getElementById(ids.tokenSymbol)?.value || "").replace(/\s+$/u, "");
-    let decimals = lastContractData?.tokenDecimals != null ? lastContractData.tokenDecimals : parseInt(String(document.getElementById(ids.tokenDecimals)?.value || "").replace(/\s+$/u, "") || "", 10);
-    const image = String(document.getElementById(ids.tokenImage)?.value || "").replace(/\s+$/u, "");
+    const address = lastContractData?.contractAddress || String(getValue(ids.tokenAddress) || "").replace(/\s+$/u, "");
+    let symbol = lastContractData?.tokenSymbol || String(getValue(ids.tokenSymbol) || "").replace(/\s+$/u, "");
+    let decimals = lastContractData?.tokenDecimals != null ? lastContractData.tokenDecimals : parseInt(String(getValue(ids.tokenDecimals) || "").replace(/\s+$/u, "") || "", 10);
+    const image = String(getValue(ids.tokenImage) || "").replace(/\s+$/u, "");
 
     if (!isValidAddress(address)) {
       window.notify && window.notify("Endereço inválido", "error");
@@ -459,23 +469,14 @@ async function addTokenToMetaMask() {
     symbol = (symbol || "TKN").slice(0, 11); // MetaMask limits symbol length
     decimals = Number.isFinite(decimals) ? decimals : 18;
 
-    // Switch Network Logic (Simplified)
-    const net = selectedNetwork;
-    if (net && net.chainId) {
-      const targetHex = "0x" + Number(net.chainId).toString(16);
-      try {
-        await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: targetHex }],
-        });
-      } catch (switchError) {
-        // This error code indicates that the chain has not been added to MetaMask.
-        if (switchError.code === 4902) {
-             window.notify && window.notify("Rede não encontrada na carteira. Adicione a rede primeiro.", "warning");
-             return;
+    // Use networkManager to ensure network
+    if (selectedNetwork?.chainId) {
+        try {
+            await networkManager.ensureNetwork(selectedNetwork.chainId);
+        } catch (e) {
+            console.warn("Could not switch network automatically:", e);
+            // Continue anyway, maybe user is already on right network or will handle it
         }
-        // Handle other errors
-      }
     }
 
     await window.ethereum.request({ 
@@ -495,30 +496,7 @@ async function addNetworkToWallet() {
       window.notify && window.notify("Selecione uma rede primeiro", "warning");
       return;
     }
-    
-    const net = selectedNetwork;
-    const rpcUrls = Array.isArray(net.rpc) && net.rpc.length ? net.rpc : [getFallbackRpc(net.chainId)].filter(Boolean);
-    const explorerUrl = net.explorers?.[0]?.url || getFallbackExplorer(net.chainId);
-    
-    const params = {
-      chainId: "0x" + Number(net.chainId).toString(16),
-      chainName: net.name || `Chain ${net.chainId}`,
-      nativeCurrency: {
-        name: net.nativeCurrency?.name || "Unknown",
-        symbol: net.nativeCurrency?.symbol || "TKN",
-        decimals: net.nativeCurrency?.decimals || 18,
-      },
-      rpcUrls,
-      blockExplorerUrls: explorerUrl ? [explorerUrl] : [],
-    };
-
-    if (!window.ethereum) {
-      window.notify && window.notify("Carteira não detectada", "warning");
-      return;
-    }
-    
-    await window.ethereum.request({ method: "wallet_addEthereumChain", params: [params] });
-    window.notify && window.notify("Rede enviada para a carteira", "success");
+    await networkManager.addNetworkToWallet(selectedNetwork);
   } catch (e) {
     window.notify && window.notify(`Erro ao adicionar rede: ${e.message}`, "error");
   }
@@ -590,12 +568,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }
 
-      // Update Visible Inputs
-      if (p?.contractAddress) setValue(ids.tokenAddress, p.contractAddress);
-      if (p?.tokenName) setValue(ids.tokenName, p.tokenName);
-      if (p?.tokenSymbol) setValue(ids.tokenSymbol, p.tokenSymbol);
-      if (p?.tokenDecimals != null) setValue(ids.tokenDecimals, String(p.tokenDecimals));
-
+      // Inputs removed
       const hasData = !!(p?.tokenName || p?.tokenSymbol || p?.tokenDecimals != null);
       tokenFetched = hasData;
       
@@ -607,8 +580,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const genSection = document.getElementById("generate-section");
         if (genSection) genSection.classList.remove("d-none");
 
-        // Lock UI if we have data, otherwise allow manual edit? 
-        // Current logic: Lock it. User can click "Limpar" to reset.
+        // Lock UI if we have data (mostly for image input)
         setReadonlyMode(true);
         
         const btnSearch = document.getElementById(ids.btnTokenSearch);
@@ -616,12 +588,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           btnSearch.disabled = true;
           btnSearch.innerHTML = '<i class="bi bi-check-circle"></i>';
         }
-        
-        // Show Token Info Card
-        show("token-info-card");
-        
-        // Hide duplicate card from component if desired, but let's leave it for now
-        // to ensure user sees *something*.
       } else {
         const ts = document.getElementById("token-section");
         if (ts) ts.classList.remove("d-none");
@@ -632,6 +598,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.notify && window.notify("Erro ao processar dados do contrato.", "error");
     }
   });
+
+  // Listeners removed
 
   document.addEventListener("contract:clear", () => {
     tokenFetched = false;
@@ -671,32 +639,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (_) {}
 
   // Real-time link updates
-  document.getElementById(ids.tokenAddress)?.addEventListener("input", () => {
-    const el = document.getElementById(ids.tokenAddress);
-    const v = String(el?.value || "").replace(/\s+$/u, "");
-    const ok = isValidAddress(v);
-    if (el) {
-      el.classList.toggle("is-invalid", !!v && !ok);
-      el.classList.toggle("is-valid", !!v && ok);
-    }
-    updateGeneratedLink();
-  });
+  // Only tokenImage is editable now
+  document.getElementById(ids.tokenImage)?.addEventListener("input", updateGeneratedLink);
   
-  [ids.tokenName, ids.tokenSymbol, ids.tokenImage].forEach(id => {
-      document.getElementById(id)?.addEventListener("input", updateGeneratedLink);
-  });
-  
-  document.getElementById(ids.tokenDecimals)?.addEventListener("input", () => {
-    const el = document.getElementById(ids.tokenDecimals);
-    const v = parseInt(el?.value || "", 10);
-    const ok = Number.isFinite(v) && v >= 0 && v <= 36;
-    if (el) {
-      el.classList.toggle("is-invalid", !ok);
-      el.classList.toggle("is-valid", ok);
-    }
-    updateGeneratedLink();
-  });
-
   // Parse URL Parameters for Pre-filling
   try {
     const p = new URLSearchParams(location.search);
@@ -725,17 +670,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Full details provided - Populate manually
         readonlyLinkMode = true;
         
-        setValue(ids.tokenAddress, addr);
-        if (name) setValue(ids.tokenName, name);
-        if (sym) setValue(ids.tokenSymbol, sym);
-        if (dec) setValue(ids.tokenDecimals, String(dec));
-        if (img) setValue(ids.tokenImage, img);
+        // Inputs removed
         
         // Populate contract-search hidden inputs too if they exist
         const visibleInput = document.getElementById("f_address");
         if (visibleInput) visibleInput.value = addr;
         
-        show("token-info-card");
         tokenFetched = true;
         updateGeneratedLink();
         
@@ -745,13 +685,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           ns.classList.add("form-control-plaintext");
         }
         
-        [ids.tokenAddress, ids.tokenName, ids.tokenSymbol, ids.tokenDecimals, ids.tokenImage].forEach((id) => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.readOnly = true;
-            el.classList.add("form-control-plaintext");
-          }
-        });
+        // Readonly logic removed
         
         if (document.getElementById(ids.btnTokenSearch)) document.getElementById(ids.btnTokenSearch).classList.add("d-none");
       } else {
@@ -759,14 +693,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         const waitComponents = setInterval(() => {
             const searchBtn = document.getElementById(ids.btnTokenSearch);
             const visibleInput = document.getElementById("f_address");
-            const hiddenInput = document.getElementById(ids.tokenAddress);
-            const addrInput = visibleInput || hiddenInput;
+            const hiddenInput = document.getElementById(ids.tokenAddress); // Note: This is now a span
+            // If it's a span, we can't set .value on it, but setValue handles textContent
+            // However, contract-search might expect an input to trigger.
             
-            if (searchBtn && addrInput) {
+            if (searchBtn && visibleInput) {
                 clearInterval(waitComponents);
                 
-                addrInput.value = addr;
-                if (visibleInput && hiddenInput) hiddenInput.value = addr;
+                visibleInput.value = addr;
+                // hiddenInput is span, we can set it for display
+                if (hiddenInput) setValue(ids.tokenAddress, addr);
                 
                 console.log("Auto-triggering search...");
                 searchBtn.click();
