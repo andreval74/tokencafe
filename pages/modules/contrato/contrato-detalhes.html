@@ -44,25 +44,32 @@
         <!-- Download de Arquivos e Compartilhamento (Via Componente) -->
         <div data-component="shared/components/contract-actions.html"></div>
 
-        
-<!-- Ação de Deploy -->
-    <div class="mb-4" id="actions-section">
-      <div class="d-flex gap-2 justify-content-end align-items-center">
-        <!-- Botão Verificar Manualmente (inicialmente oculto ou visível conforme estado) -->
-        <button id="btnManualVerify" class="btn btn-warning btn-lg px-4 d-none" title="Forçar verificação do contrato na blockchain">
-            <i class="bi bi-shield-check me-2"></i> VERIFICAR CONTRATO
-        </button>
-        <!-- Botão Limpar e Novo -->
-        <a href="contrato-index.html" id="btnNewContract" class="btn btn-outline-secondary btn-lg px-5"
-          title="Criar um novo contrato">
-          <i class="bi bi-arrow-counterclockwise me-2"></i> NOVO CONTRATO
-        </a>
-      </div>
-    </div>
+
+        <!-- Ação de Deploy -->
+        <div class="mb-4" id="actions-section">
+          <div class="d-flex gap-2 justify-content-end align-items-center">
+            <!-- Botão Verificar Manualmente (inicialmente oculto ou visível conforme estado) -->
+            <button id="btnManualVerify" class="btn btn-warning btn-lg px-4 d-none"
+              title="Forçar verificação do contrato na blockchain">
+              <i class="bi bi-shield-check me-2"></i> VERIFICAR CONTRATO
+            </button>
+
+            <!-- Botão Novo Contrato -->
+            <a href="contrato-index.html" id="btnNewContract" class="btn btn-outline-secondary btn-lg px-5"
+              title="Criar um novo contrato">
+              <i class="bi bi-plus-lg me-2"></i> NOVO CONTRATO
+            </a>
+
+            <!-- Botão Home -->
+            <a href="../../tools.html" class="btn btn-outline-success btn-lg px-4" title="Ir para a Página Inicial">
+              <i class="bi bi-house-door me-2"></i> HOME
+            </a>
+          </div>
+        </div>
       </div>
 
     </div>
-    
+
   </div>
 
   <div data-component="footer.html"></div>
@@ -76,7 +83,8 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <textarea id="fileViewerContent" class="form-control bg-black text-success border-secondary font-monospace" rows="15" readonly></textarea>
+          <textarea id="fileViewerContent" class="form-control bg-black text-success border-secondary font-monospace"
+            rows="15" readonly></textarea>
         </div>
         <div class="modal-footer border-secondary">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>

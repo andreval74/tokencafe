@@ -263,30 +263,10 @@ class ContractDetailsManager {
 
         if (!address) return;
 
-        // Manually populate the view fields for immediate feedback
+        // Manually populate fields NOT handled by updateContractDetailsView
         const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-        
-        setText("cs_viewAddress", address);
-        setText("cs_viewChainId", chainId);
-        setText("cs_viewName", form.token.name || "-");
-        setText("cs_viewSymbol", form.token.symbol || "-");
-        setText("cs_viewDecimals", form.token.decimals || "18");
-        
-        if (form.token.initialSupply) {
-            setText("cs_viewSupply", String(form.token.initialSupply).replace(/\B(?=(\d{3})+(?!\d))/g, "."));
-        }
-        
         setText("cs_viewStatus", "Novo (Deploy)");
-        
-        // Links
-        const explorerContractUrl = getExplorerContractUrl(address, chainId);
-        const addrLink = document.getElementById("cs_viewAddress");
-        if (addrLink) addrLink.href = explorerContractUrl;
 
-        // Show the info card
-        const infoCard = document.getElementById("selected-contract-info");
-        if (infoCard) infoCard.classList.remove("d-none");
-        
         // Hide the search bar input group
         const searchInputGroup = document.querySelector("#contract-search-container .input-group");
         if (searchInputGroup) searchInputGroup.classList.add("d-none");
@@ -298,7 +278,19 @@ class ContractDetailsManager {
             const componentEl = container.querySelector('[data-component]') || container;
             if (componentEl) initContainer(componentEl);
             
-            await updateContractDetailsView(container, chainId, address);
+            // Only use preloaded data if we have real values (not placeholders from initFromUrl)
+            let preloaded = null;
+            if (form.token && form.token.name !== "Carregando...") {
+                preloaded = {
+                    tokenName: form.token.name,
+                    tokenSymbol: form.token.symbol,
+                    tokenDecimals: form.token.decimals,
+                    tokenSupply: form.token.initialSupply
+                };
+            }
+
+            await updateContractDetailsView(container, chainId, address, preloaded, { autoShowCard: true });
+            
             this.setupManualVerifyButton(); // Ensure button is set up
         } catch (e) {
             console.error("Erro ao atualizar view detalhada:", e);

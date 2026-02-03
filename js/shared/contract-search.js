@@ -672,6 +672,117 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
 // MAIN INITIALIZATION LOGIC
 // =============================================================================
 
+function showStatus(container, msg) {
+  try {
+    const wrap = container.querySelector("#contractSearchStatus") || document.getElementById("contractSearchStatus");
+    const textEl = container.querySelector("#contractSearchStatusText") || document.getElementById("contractSearchStatusText");
+    if (textEl) textEl.textContent = msg || "";
+    if (wrap) wrap.classList.toggle("d-none", !msg);
+  } catch (_) {}
+}
+
+async function performContractSearch(container, chainId, address) {
+    if (isSearching) return null;
+    isSearching = true;
+    showStatus(container, "Buscando...");
+    
+    const btn = container.querySelector("#contractSearchBtn") || document.getElementById("contractSearchBtn");
+
+    try {
+      const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
+      if (sp) sp.classList.remove("d-none");
+      if (btn) btn.disabled = true;
+    } catch (_) {}
+
+    const addrRaw = String(address || "").replace(/\s+$/u, "");
+    const okAddr = /^0x[0-9a-fA-F]{40}$/.test(addrRaw);
+    const chainIdRaw = String(chainId || "");
+
+    if (!okAddr || !chainIdRaw) {
+      showStatus(container, "Endereço inválido ou rede não selecionada.");
+      isSearching = false;
+      try {
+          const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
+          if (sp) sp.classList.add("d-none");
+          if (btn) btn.disabled = false;
+      } catch(_) {}
+      return null;
+    }
+
+    // Core Logic
+    const isContractPromise = checkIsContract(addrRaw, chainIdRaw);
+    const snPromise = detectSymbolName(addrRaw, chainIdRaw);
+    const infoPromise = fetchERC20Info(addrRaw, chainIdRaw);
+    
+    const [isC_raw, sn, info] = await Promise.all([
+        isContractPromise, 
+        snPromise, 
+        infoPromise
+    ]);
+
+    let isC = isC_raw;
+    if (isC === null) {
+       // Fallback logic
+       if ((sn && sn.symbol) || (info && info.decimals != null)) isC = true;
+       else isC = false;
+    }
+
+    const payload = { chainId: parseInt(chainIdRaw, 10), contractAddress: addrRaw };
+    const extra = {
+      isContract: isC,
+      tokenSymbol: sn.symbol,
+      tokenName: sn.name,
+      tokenDecimals: info.decimals,
+      tokenSupply: info.totalSupply,
+      contractTokenBalance: info.tokenBalance,
+      contractNativeBalance: info.nativeBalance
+    };
+
+    if (!extra.isContract && (extra.tokenSymbol || extra.tokenDecimals != null)) {
+        extra.isContract = true;
+    }
+
+    // Dispatch event
+    const evt = new CustomEvent("contract:found", { detail: { contract: { ...payload, ...extra } }, bubbles: true });
+    try { container.dispatchEvent(evt); } catch (_) {}
+
+    // Update UI
+    // Reuse the shared updater!
+    await updateContractDetailsView(container, chainIdRaw, addrRaw);
+    
+    // Status Logic
+    const hasData = !!(extra.tokenName || extra.tokenSymbol || extra.tokenDecimals != null || extra.tokenSupply);
+    const infoBtn = container.querySelector("#csInfoBtn");
+    
+    if (!hasData) {
+        if (infoBtn) infoBtn.disabled = true;
+        let msg = !extra.isContract ? "Endereço é uma Carteira Pessoal (EOA)." : "Contrato sem dados ERC-20 ou rede incorreta.";
+        showStatus(container, msg);
+    } else {
+        if (infoBtn) infoBtn.disabled = false;
+        showStatus(container, "");
+    }
+
+    // Reset UI State
+    try {
+      const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
+      if (sp) sp.classList.add("d-none");
+      
+      if (btn) {
+          btn.disabled = false;
+          if (hasData) {
+              btn.setAttribute("data-mode", "clear");
+              btn.classList.add("btn-outline-secondary");
+              const icon = btn.querySelector("i");
+              if (icon) icon.className = "bi bi-x-circle";
+          }
+      }
+    } catch (_) {}
+
+    isSearching = false;
+    return { ...payload, ...extra };
+}
+
 function initContainer(container) {
   if (!container || container.getAttribute("data-cs-initialized") === "true") return;
 
@@ -679,15 +790,6 @@ function initContainer(container) {
   if (!btn && !container.getAttribute("data-cs-view-only")) {
      // If no button and not view only, try to find global button or bail
      btn = document.getElementById("contractSearchBtn");
-  }
-
-  function showStatus(msg) {
-    try {
-      const wrap = container.querySelector("#contractSearchStatus") || document.getElementById("contractSearchStatus");
-      const textEl = container.querySelector("#contractSearchStatusText") || document.getElementById("contractSearchStatusText");
-      if (textEl) textEl.textContent = msg || "";
-      if (wrap) wrap.classList.toggle("d-none", !msg);
-    } catch (_) {}
   }
 
   // View Mode Config
@@ -733,7 +835,7 @@ function initContainer(container) {
         if (icon) icon.className = "bi bi-search";
       }
 
-      showStatus("");
+      showStatus(container, "");
 
       const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
       const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
@@ -791,107 +893,6 @@ function initContainer(container) {
     return raw;
   }
 
-  async function runSearch() {
-    if (isSearching) return;
-    isSearching = true;
-    showStatus("Buscando...");
-    
-    try {
-      const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
-      if (sp) sp.classList.remove("d-none");
-      if (btn) btn.disabled = true;
-    } catch (_) {}
-
-    const addrField = document.getElementById("f_address") || document.getElementById("tokenAddress");
-    const addrRaw = String(addrField?.value || "").replace(/\s+$/u, "");
-    const okAddr = /^0x[0-9a-fA-F]{40}$/.test(addrRaw);
-    const chainIdRaw = findChainId();
-
-    if (!okAddr || !chainIdRaw) {
-      showStatus("Endereço inválido ou rede não selecionada.");
-      isSearching = false;
-      try {
-          const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
-          if (sp) sp.classList.add("d-none");
-          if (btn) btn.disabled = false;
-      } catch(_) {}
-      return;
-    }
-
-    // Core Logic
-    const isContractPromise = checkIsContract(addrRaw, chainIdRaw);
-    const snPromise = detectSymbolName(addrRaw, chainIdRaw);
-    const infoPromise = fetchERC20Info(addrRaw, chainIdRaw);
-    
-    // Use timeout wrapper only for isContract if needed, but fetchJsonWithTimeout already handles timeouts
-    const [isC_raw, sn, info] = await Promise.all([
-        isContractPromise, 
-        snPromise, 
-        infoPromise
-    ]);
-
-    let isC = isC_raw;
-    if (isC === null) {
-       // Fallback logic
-       if ((sn && sn.symbol) || (info && info.decimals != null)) isC = true;
-       else isC = false;
-    }
-
-    const payload = { chainId: parseInt(chainIdRaw, 10), contractAddress: addrRaw };
-    const extra = {
-      isContract: isC,
-      tokenSymbol: sn.symbol,
-      tokenName: sn.name,
-      tokenDecimals: info.decimals,
-      tokenSupply: info.totalSupply,
-      contractTokenBalance: info.tokenBalance,
-      contractNativeBalance: info.nativeBalance
-    };
-
-    if (!extra.isContract && (extra.tokenSymbol || extra.tokenDecimals != null)) {
-        extra.isContract = true;
-    }
-
-    // Dispatch event
-    const evt = new CustomEvent("contract:found", { detail: { contract: { ...payload, ...extra } }, bubbles: true });
-    try { document.dispatchEvent(evt); } catch (_) {}
-
-    // Update UI
-    // Reuse the shared updater!
-    await updateContractDetailsView(container, chainIdRaw, addrRaw);
-    
-    // Status Logic
-    const hasData = !!(extra.tokenName || extra.tokenSymbol || extra.tokenDecimals != null || extra.tokenSupply);
-    const infoBtn = container.querySelector("#csInfoBtn");
-    
-    if (!hasData) {
-        if (infoBtn) infoBtn.disabled = true;
-        let msg = !extra.isContract ? "Endereço é uma Carteira Pessoal (EOA)." : "Contrato sem dados ERC-20 ou rede incorreta.";
-        showStatus(msg);
-    } else {
-        if (infoBtn) infoBtn.disabled = false;
-        showStatus("");
-    }
-
-    // Reset UI State
-    try {
-      const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
-      if (sp) sp.classList.add("d-none");
-      
-      if (btn) {
-          btn.disabled = false;
-          if (hasData) {
-              btn.setAttribute("data-mode", "clear");
-              btn.classList.add("btn-outline-secondary");
-              const icon = btn.querySelector("i");
-              if (icon) icon.className = "bi bi-x-circle";
-          }
-      }
-    } catch (_) {}
-
-    isSearching = false;
-  }
-
   // Event Listeners
   if (btn) {
       // Simplification: Do not clone. Just attach.
@@ -905,7 +906,12 @@ function initContainer(container) {
               if (addrField) { addrField.value = ""; }
               return;
           }
-          runSearch();
+          
+          const addrField = document.getElementById("f_address") || document.getElementById("tokenAddress");
+          const addrRaw = String(addrField?.value || "").replace(/\s+$/u, "");
+          const chainIdRaw = findChainId();
+          
+          performContractSearch(container, chainIdRaw, addrRaw);
       });
   }
 
@@ -917,7 +923,11 @@ function initContainer(container) {
           e.stopPropagation();
           const currentBtn = formEl.querySelector("#contractSearchBtn");
           if (currentBtn && currentBtn.getAttribute("data-mode") !== "clear") {
-              runSearch();
+              const addrField = document.getElementById("f_address") || document.getElementById("tokenAddress");
+              const addrRaw = String(addrField?.value || "").replace(/\s+$/u, "");
+              const chainIdRaw = findChainId();
+              
+              performContractSearch(container, chainIdRaw, addrRaw);
           }
       });
   }
@@ -966,4 +976,4 @@ const observer = new MutationObserver(() => {
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
-export { initContainer, updateVerificationBadge, updateContractDetailsView };
+export { initContainer, updateVerificationBadge, updateContractDetailsView, performContractSearch };

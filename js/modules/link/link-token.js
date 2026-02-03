@@ -1,7 +1,7 @@
 import { NetworkManager } from "../../shared/network-manager.js";
 import { SystemResponse } from "../../shared/system-response.js";
 import { getFallbackRpc, getFallbackExplorer, getFallbackChainName, getFallbackNativeCurrency } from "../../shared/network-fallback.js";
-import { initContainer, updateContractDetailsView } from "../../shared/contract-search.js";
+import { initContainer, updateContractDetailsView, performContractSearch } from "../../shared/contract-search.js";
 
 const networkManager = new NetworkManager();
 const systemResponse = new SystemResponse();
@@ -171,97 +171,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const waitComponents = setInterval(async () => {
           attempts++;
-          const searchBtn = document.getElementById("contractSearchBtn");
-          const addrInput = document.getElementById("f_address") || document.getElementById("tokenAddress");
           const container = document.querySelector('[data-component*="contract-search.html"]');
           
-          // Ensure component is initialized if loaded
-          if (container && container.children.length > 0 && container.getAttribute("data-cs-initialized") !== "true") {
-              initContainer(container);
-          }
-          
-          // Check initialization status
-          // Note: data-cs-initialized is set by contract-search.js after loading
-          const isInitialized = container && container.getAttribute("data-cs-initialized") === "true";
-          
-          if (searchBtn && addrInput && isInitialized) {
+          // Ensure component is initialized if loaded (check children to ensure HTML is injected)
+          if (container && container.children.length > 0) {
+              if (container.getAttribute("data-cs-initialized") !== "true") {
+                  initContainer(container);
+              }
+              
               clearInterval(waitComponents);
               
-              // Pre-fill input
-              addrInput.value = pAddress;
-              
-              // Check if we have enough data in URL to skip auto-search
-              const pName = params.get("name");
-              const pSymbol = params.get("symbol");
-              const pDecimals = params.get("decimals");
-              
-              if (pName || pSymbol) {
-                  console.log("URL data found. Pre-loading URL fallback and triggering on-chain verification.");
-                  
-                  // Simulate found contract data locally so Add button works immediately
-                  if (!lastContractData) {
-                      lastContractData = {
-                          contractAddress: pAddress,
-                          chainId: pChainId,
-                          tokenName: pName || "",
-                          tokenSymbol: pSymbol || "",
-                          tokenDecimals: pDecimals ? parseInt(pDecimals) : 18,
-                          tokenSupply: "0", // Default
-                          contractTokenBalance: "0",
-                          contractNativeBalance: "0"
-                      };
-                      
-                      try {
-                          // 1. Render Immediate "Link Data" (Fast Feedback)
-                          await updateContractDetailsView(
-                              container, 
-                              pChainId, 
-                              pAddress, 
-                              lastContractData, 
-                              { 
-                                  skipVerification: true, 
-                                  skipTradingPair: true,
-                                  skipBalances: true,
-                                  autoShowCard: true
-                              }
-                          );
+              const addrInput = document.getElementById("f_address") || document.getElementById("tokenAddress");
+              if (addrInput) addrInput.value = pAddress;
 
-                          // FORCE VISIBILITY - Failsafe
-                          const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
-                          if (card) {
-                              card.classList.remove("d-none");
-                              card.style.display = "block";
-                          }
-
-                          // Set special Status for Link Data
-                          const vStatus = document.getElementById("cs_viewStatus");
-                          if (vStatus) {
-                              vStatus.innerHTML = '<i class="bi bi-link-45deg me-1"></i>Dados do Link (Verificando on-chain...)';
-                              vStatus.className = "status-text text-warning fw-bold";
-                              vStatus.querySelectorAll(".badge-verif-status, .btn-retry-verif").forEach((el) => el.remove());
-                          }
-
-                          // Trigger network check to update buttons
-                          checkNetwork();
-                          
-                          // 2. Trigger Full Search to Enrich Data (Supply, Balances, Real Verification)
-                          console.log("Triggering background search for full details...");
-                          // Small delay to allow UI to paint the "Link Data" state first
-                          setTimeout(() => {
-                              if (searchBtn) searchBtn.click();
-                          }, 500);
-
-                      } catch (e) {
-                          console.warn("Error updating UI from URL params:", e);
-                          // If render fails, try search anyway
-                          if (searchBtn) searchBtn.click();
-                      }
-                  }
-              } else {
-                  // No data in URL, must search
-                  console.log("No URL data, auto-triggering search...");
-                  searchBtn.click();
-              }
+              console.log("Iniciando busca automática direta via performContractSearch...");
+              // Small delay to ensure DOM is settled
+              setTimeout(() => {
+                  performContractSearch(container, pChainId, pAddress);
+              }, 100);
           } else if (attempts >= maxAttempts) {
               clearInterval(waitComponents);
               console.warn("Timeout waiting for contract-search component initialization.");
