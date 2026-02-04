@@ -28,13 +28,99 @@
       const addrText = el.querySelector("#wallet-address-text");
       const btnConnect = el.querySelector("#btn-connect");
       const btnLogout = el.querySelector("#btn-logout");
+      const walletDisplay = el.querySelector("#connected-wallet-display");
+      const btnCopy = el.querySelector("#btn-copy-wallet");
 
       if (window.bindWalletStatusUI) {
         window.bindWalletStatusUI({
           addressEl: addrText,
-          statusWrapperEl: addrEl,
+          // Removed statusWrapperEl to prevent auto-display of the badge
+          // statusWrapperEl: addrEl, 
           connectBtnEl: btnConnect,
           logoutBtnEl: btnLogout,
+        });
+      }
+
+      // Logic to update new UI elements (Button Color + Wallet Display below)
+      const updateHeaderUI = (address) => {
+        if (address) {
+          // Connected
+          if (btnConnect) {
+            btnConnect.classList.remove("bg-danger", "bg-warning");
+            btnConnect.classList.add("bg-success");
+            btnConnect.innerHTML = '<i class="bi bi-wallet2 me-1"></i> Conectado';
+          }
+          if (walletDisplay) {
+            walletDisplay.textContent = address;
+            walletDisplay.classList.remove("text-muted");
+            walletDisplay.classList.add("text-success");
+          }
+          if (btnCopy) {
+            btnCopy.classList.remove("d-none");
+            // Set click handler
+            btnCopy.onclick = (e) => {
+              e.preventDefault();
+              navigator.clipboard.writeText(address).then(() => {
+                 const icon = btnCopy.querySelector("i");
+                 if(icon) {
+                     icon.className = "bi bi-check-lg";
+                     setTimeout(() => icon.className = "bi bi-clipboard", 1500);
+                 }
+              }).catch(err => console.error("Falha ao copiar", err));
+            };
+          }
+        } else {
+          // Disconnected
+          if (btnConnect) {
+            btnConnect.classList.remove("bg-success", "bg-warning");
+            btnConnect.classList.add("bg-danger");
+            btnConnect.innerHTML = '<i class="bi bi-wallet2 me-1"></i> Conectar';
+          }
+          if (walletDisplay) {
+            walletDisplay.textContent = "Não Conectado";
+            walletDisplay.classList.remove("text-success");
+            walletDisplay.classList.add("text-muted");
+          }
+          if (btnCopy) {
+            btnCopy.classList.add("d-none");
+          }
+        }
+      };
+
+      // Initial check strategy:
+      // 1. Try localStorage (TokenCafe persistence)
+      // 2. Try window.ethereum.selectedAddress (MetaMask direct injection)
+      const checkInitialStatus = () => {
+        let savedAddr = localStorage.getItem("tokencafe_wallet_address");
+        
+        // Fallback: Check if MetaMask is already injected and has a selected address
+        if (!savedAddr && window.ethereum && window.ethereum.selectedAddress) {
+           savedAddr = window.ethereum.selectedAddress;
+           // Sync localStorage if found directly
+           localStorage.setItem("tokencafe_wallet_address", savedAddr);
+        }
+
+        updateHeaderUI(savedAddr);
+      };
+
+      checkInitialStatus();
+
+      // Listen for TokenCafe system events
+      document.addEventListener("wallet:connected", (e) => {
+        updateHeaderUI(e.detail.account);
+      });
+      document.addEventListener("wallet:disconnected", () => {
+        updateHeaderUI(null);
+      });
+
+      // Listen for Direct MetaMask events (Fail-safe)
+      if (window.ethereum) {
+        window.ethereum.on('accountsChanged', (accounts) => {
+          if (accounts.length > 0) {
+            updateHeaderUI(accounts[0]);
+          } else {
+            updateHeaderUI(null);
+          }
         });
       }
 
