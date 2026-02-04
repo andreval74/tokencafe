@@ -129,6 +129,7 @@ function selectNetwork(network) {
     const containers = document.querySelectorAll('[data-component*="contract-search.html"]');
     containers.forEach(cont => {
         if (network?.chainId) cont.setAttribute("data-chainid", String(network.chainId));
+        initContainer(cont); // Garantir inicialização do componente
     });
   } catch (_) {}
 
