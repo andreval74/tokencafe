@@ -37,7 +37,8 @@
           // Removed statusWrapperEl to prevent auto-display of the badge
           // statusWrapperEl: addrEl, 
           connectBtnEl: btnConnect,
-          logoutBtnEl: btnLogout,
+          // logoutBtnEl removed to keep it always visible
+          // logoutBtnEl: btnLogout,
         });
       }
 
@@ -45,11 +46,6 @@
       const updateHeaderUI = (address) => {
         if (address) {
           // Connected
-          if (btnConnect) {
-            btnConnect.classList.remove("bg-danger", "bg-warning");
-            btnConnect.classList.add("bg-success");
-            btnConnect.innerHTML = '<i class="bi bi-wallet2 me-1"></i> Conectado';
-          }
           if (walletDisplay) {
             walletDisplay.textContent = address;
             walletDisplay.classList.remove("text-muted");
@@ -71,11 +67,6 @@
           }
         } else {
           // Disconnected
-          if (btnConnect) {
-            btnConnect.classList.remove("bg-success", "bg-warning");
-            btnConnect.classList.add("bg-danger");
-            btnConnect.innerHTML = '<i class="bi bi-wallet2 me-1"></i> Conectar';
-          }
           if (walletDisplay) {
             walletDisplay.textContent = "Não Conectado";
             walletDisplay.classList.remove("text-success");

@@ -33,7 +33,7 @@
         <div class="tool-tiles">
 
           <!-- Wallet Manager -->
-          <div class="tool-tile" aria-label="Gerenciador de Carteira">
+          <div class="tool-tile" aria-label="Gerenciador de Carteira" data-status="finished">
             <span class="tool-tile-status badge bg-success">Finalizado</span>
             <div class="tool-tile-icon"><i class="bi bi-wallet2"></i></div>
             <div class="tool-tile-title">Gerenciador de Carteira</div>
@@ -48,7 +48,7 @@
           </div>
 
           <!-- RPC Manager -->
-          <div class="tool-tile" aria-label="RPC Manager">
+          <div class="tool-tile" aria-label="RPC Manager" data-status="finished">
             <span class="tool-tile-status badge bg-success">Finalizado</span>
             <div class="tool-tile-icon">
               <i class="bi bi-diagram-3"></i>
@@ -65,7 +65,7 @@
           </div>
 
           <!-- Link Generator -->
-          <div class="tool-tile" aria-label="Link Generator">
+          <div class="tool-tile" aria-label="Link Generator" data-status="finished">
             <span class="tool-tile-status badge bg-success">Finalizado</span>
             <div class="tool-tile-icon"><i class="bi bi-link-45deg"></i></div>
             <div class="tool-tile-title">Link Generator</div>
@@ -79,14 +79,14 @@
             </div>
           </div>
 
-          <!-- Contracts Builder -->
-          <div class="tool-tile" aria-label="Gerador de Contratos">
+          <!-- Gerador de Contratos Basico -->
+          <div class="tool-tile" aria-label="Gerador de Contratos" data-status="finished">
             <span class="tool-tile-status badge bg-success">Finalizado</span>
             <div class="tool-tile-icon">
               <i class="bi bi-file-earmark-code"></i>
             </div>
             <div class="tool-tile-title">Gerador de Contratos</div>
-            <div class="tool-tile-desc">Crie, valide, verifique e faça o deploy de contratos</div>
+            <div class="tool-tile-desc">Crie, implante e valide contratos</div>
             <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
               <a href="modules/contrato/contrato-index.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
                 aria-label="Abrir Contracts Builder">
@@ -94,6 +94,16 @@
                 Modo Basico
               </a>
             </div>
+          </div>
+
+          <!-- Gerador de Contratos Avançado -->
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
+            <span class="tool-tile-status badge bg-warning">Em Breve</span>
+            <div class="tool-tile-icon">
+              <i class="bi bi-file-earmark-code"></i>
+            </div>
+            <div class="tool-tile-title">Gerador de Contratos</div>
+            <div class="tool-tile-desc">Crie, implante e valide contratos</div>
             <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
               <a href="modules/contrato/contrato-avancado.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
                 aria-label="Abrir Contracts Builder - Avançado">
@@ -104,8 +114,8 @@
           </div>
 
           <!-- Verificação de Contratos -->
-          <div class="tool-tile" aria-label="Verificação de Contratos">
-            <span class="tool-tile-status badge bg-success">Finalizado</span>
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
+            <span class="tool-tile-status badge bg-warning">Em Breve</span>
             <div class="tool-tile-icon"><i class="bi bi-shield-check"></i></div>
             <div class="tool-tile-title">Verificação de Contratos</div>
             <div class="tool-tile-desc">Publicar código e validar no Sourcify/Explorer</div>
@@ -119,7 +129,7 @@
           </div>
 
           <!-- Mini Widget -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
             <span class="tool-tile-status badge bg-warning">Em Breve</span>
             <div class="tool-tile-icon"><i class="bi bi-rocket"></i></div>
             <div class="tool-tile-title">Mini Widget</div>
@@ -134,7 +144,7 @@
           </div>
 
           <!-- Gerenciador de Token -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
             <span class="tool-tile-status badge bg-warning">Em Breve</span>
             <div class="tool-tile-icon"><i class="bi bi-coin"></i></div>
             <div class="tool-tile-title">Gerenciador de Token</div>
@@ -154,7 +164,7 @@
           </div>
 
           <!-- Analytics -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
             <span class="tool-tile-status badge bg-warning">Em Breve</span>
             <div class="tool-tile-icon">
               <i class="bi bi-graph-up"></i>
@@ -171,7 +181,7 @@
           </div>
 
           <!-- Template Gallery -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
             <span class="tool-tile-status badge bg-warning">Em Breve</span>
             <div class="tool-tile-icon">
               <i class="bi bi-layers"></i>
@@ -188,7 +198,7 @@
           </div>
 
           <!-- System Settings -->
-          <div class="tool-tile admin-disabled" aria-label="System Settings" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="System Settings" aria-disabled="true">
             <span class="tool-tile-status badge bg-info">Admin</span>
             <div class="tool-tile-icon"><i class="bi bi-gear"></i></div>
             <div class="tool-tile-title">System Settings</div>
@@ -203,7 +213,7 @@
           </div>
 
           <!-- Dashboard (Admin - desativado temporariamente) -->
-          <div class="tool-tile admin-disabled" aria-label="Dashboard (Admin)" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="Dashboard (Admin)" aria-disabled="true">
             <span class="tool-tile-status badge bg-info">em Breve</span>
             <div class="tool-tile-icon">
               <i class="bi bi-speedometer2"></i>
@@ -218,7 +228,7 @@
 
 
           <!-- System Status -->
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
             <span class="tool-tile-status badge bg-warning">em breve</span>
             <div class="tool-tile-icon"><i class="bi bi-heart-pulse"></i></div>
             <div class="tool-tile-title">System Status</div>
@@ -233,7 +243,7 @@
             </div>
           </div>
 
-          <div class="tool-tile admin-disabled" aria-label="Template Gallery" aria-disabled="true">
+          <div class="tool-tile admin-disabled d-none" aria-label="Template Gallery" aria-disabled="true">
             <span class="tool-tile-status badge bg-warning">em breve</span>
             <div class="tool-tile-icon"><i class="bi bi-palette"></i></div>
             <div class="tool-tile-title">Guia de Estilos</div>
@@ -248,10 +258,10 @@
           </div>
 
           <!-- Suporte -->
-          <div class="tool-tile" aria-label="Suporte Técnico">
+          <div class="tool-tile" aria-label="Suporte Técnico" data-status="finished">
             <span class="tool-tile-status badge bg-success">Finalizado</span>
             <div class="tool-tile-icon"><i class="bi bi-wallet2"></i></div>
-            <div class="tool-tile-title">Suporte Técnico</div>  
+            <div class="tool-tile-title">Suporte Técnico</div>
             <div class="tool-tile-desc">Envie um e-mail para suporte@tokencafe.com para obter ajuda.</div>
             <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
               <a href="suporte.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
@@ -261,123 +271,24 @@
               </a>
             </div>
           </div>
-</div>
-
-          <!-- Instruções e Status -->
-          <div class="row mt-5">
-            <div class="col-12">
-              <div class="card border-0 shadow-lg card-glass">
-                <div class="card-body">
-                  <h5 class="text-white mb-4">
-                    <i class="bi bi-info-circle me-2 text-primary"></i>
-                    Status do Sistema Unificado
-                  </h5>
-
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <h6 class="text-success mb-3">
-                        <i class="bi bi-check-circle me-2"></i>
-                        Módulos Finalizados (Sistema Unificado)
-                      </h6>
-                      <ul class="list-unstyled text-light">
-                        <li class="mb-2">
-                          <i class="bi bi-check text-success me-2"></i>
-                          RPC Manager - 100% Finalizado
-                        </li>
-                        <li class="mb-2">
-                          <i class="bi bi-check text-success me-2"></i>
-                          Link Generator - 100% Finalizado
-                        </li>
-                        <li class="mb-2">
-                          <i class="bi bi-check text-success me-2"></i>
-                          Sistema Base Unificado
-                        </li>
-                        <li class="mb-2">
-                          <i class="bi bi-check text-success me-2"></i>
-                          PageManager Unificado
-                        </li>
-                        <li class="mb-2">
-                          <i class="bi bi-check text-success me-2"></i>
-                          Wallet Manager - 100% Finalizado
-                        </li>
-                        <li class="mb-2">
-                          <i class="bi bi-check text-success me-2"></i>
-                          Token Manager - 100% Finalizado
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div class="col-md-6">
-                      <h6 class="text-warning mb-3">
-                        <i class="bi bi-clock me-2"></i>
-                        Próximas Migrações
-                      </h6>
-                      <ul class="list-unstyled text-light">
-                        <li class="mb-2">
-                          <i class="bi bi-hourglass-split text-warning me-2"></i>
-                          Analytics Reports
-                        </li>
-                        <li class="mb-2">
-                          <i class="bi bi-hourglass-split text-warning me-2"></i>
-                          Templates Gallery
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div class="alert alert-primary mt-4 mb-0 alert-soft-primary">
-                    <h6 class="text-primary mb-3">
-                      <i class="bi bi-rocket me-2"></i>
-                      Como Usar as Ferramentas
-                    </h6>
-                    <ul class="mb-0 text-light">
-                      <li>
-                        🔗
-                        <strong>Conecte sua carteira</strong>
-                        usando o botão no cabeçalho
-                      </li>
-                      <li>
-                        🎯
-                        <strong>Ferramentas Migradas</strong>
-                        usam o sistema unificado (sem bugs)
-                      </li>
-                      <li>
-                        ⚠️
-                        <strong>Ferramentas "Em Breve"</strong>
-                        podem ter inconsistências
-                      </li>
-                      <li>
-                        🎮
-                        <strong>Teste cada ferramenta</strong>
-                        individualmente para validar funcionalidades
-                      </li>
-                      <li>
-                        🔄
-                        <strong>Sistema Independente</strong>
-                        - cada ferramenta funciona sozinha
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
+
       </div>
     </div>
+  </div>
 
-    <div class="container-fluid">
-      <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award"
-        data-sf-title="Desenvolvido pela equipe" data-sf-subtitle="Todos os módulos padronizados"></div>
-    </div>
-    
-    <!-- Modais -->
-    <div data-component="modules/modals/auth-modal.html"></div>
+  <div class="container-fluid">
+    <div data-component="shared/components/section-footer.html" data-sf-icon="bi-award"
+      data-sf-title="Desenvolvido pela equipe" data-sf-subtitle="Todos os módulos padronizados"></div>
+  </div>
 
-    <!-- Scripts -->
-    <script type="module" src="../js/shared/base-system.js"></script>
-    <div data-component="shared/layouts/scripts-base.html"></div>
-    <script type="module" src="../js/modules/tools/tools.js?v=1.0"></script>
+  <!-- Modais -->
+  <div data-component="modules/modals/auth-modal.html"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="../js/shared/base-system.js"></script>
+  <div data-component="shared/layouts/scripts-base.html"></div>
+  <script type="module" src="../js/modules/tools/tools.js?v=1.0"></script>
 </body>
 
 </html>

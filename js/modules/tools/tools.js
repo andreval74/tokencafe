@@ -83,11 +83,95 @@ function setupImportRecipe() {
   }
 }
 
-const initWhenReady = () => {
+// --- Access Control System ---
+const accessControl = {
+  admins: [],
+  
+  async loadAdmins() {
+    try {
+      // Try to fetch from config file
+      // Note: Assuming path relative to the HTML page location or absolute path
+      const response = await fetch('/config/admins.txt');
+      if (response.ok) {
+        const text = await response.text();
+        this.admins = text.split(/[\r\n]+/)
+          .map(line => line.trim())
+          .filter(line => line && !line.startsWith('#')); // Filter empty lines and comments
+        console.log("Access Control: Admin list loaded", this.admins.length);
+      } else {
+        console.warn("Access Control: Could not load admin config");
+      }
+    } catch (e) {
+      console.error("Access Control: Error loading config", e);
+    }
+  },
+
+  apply(walletAddress) {
+    const tiles = document.querySelectorAll('.tool-tile');
+    const isAdmin = walletAddress && this.admins.includes(walletAddress.toLowerCase());
+    
+    console.log(`Access Control: Applying rules for ${walletAddress || 'Guest'} (Admin: ${isAdmin})`);
+
+    tiles.forEach(tile => {
+      const isFinished = tile.getAttribute('data-status') === 'finished';
+      
+      if (isAdmin) {
+        // Admin sees everything
+        tile.classList.remove('d-none');
+        // Optional: Add visual indicator for non-finished items being visible due to admin
+        if (!isFinished) {
+           tile.style.opacity = '0.8'; 
+           tile.style.border = '1px dashed #666';
+        } else {
+           tile.style.opacity = '1';
+           tile.style.border = '';
+        }
+      } else {
+        // Regular user sees only finished items
+        if (isFinished) {
+          tile.classList.remove('d-none');
+          tile.style.opacity = '1';
+          tile.style.border = '';
+        } else {
+          tile.classList.add('d-none');
+        }
+      }
+    });
+  }
+};
+
+const initWhenReady = async () => {
   initSeo();
   setupToolLinks();
   enableTooltips();
   setupImportRecipe();
+  
+  // Initialize Access Control
+  await accessControl.loadAdmins();
+  
+  // Initial check (from localStorage or window.ethereum if available immediately)
+  const savedAddr = localStorage.getItem("tokencafe_wallet_address");
+  // Normalize address if exists
+  const currentAddr = savedAddr ? savedAddr.toLowerCase() : null;
+  accessControl.apply(currentAddr);
+
+  // Listen for wallet events
+  document.addEventListener("wallet:connected", (e) => {
+    const addr = e.detail.account ? e.detail.account.toLowerCase() : null;
+    accessControl.apply(addr);
+  });
+  
+  document.addEventListener("wallet:disconnected", () => {
+    accessControl.apply(null);
+  });
+  
+  // Listen for direct metamask changes as backup
+  if (window.ethereum) {
+    window.ethereum.on('accountsChanged', (accounts) => {
+       const addr = accounts.length > 0 ? accounts[0].toLowerCase() : null;
+       accessControl.apply(addr);
+    });
+  }
 };
 
 if (document.readyState === "loading") {

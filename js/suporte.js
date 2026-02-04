@@ -1,13 +1,13 @@
 /**
  * ================================================================================
- * SUPORTE.JS - MDULO DE SUPORTE E CONTATO
+ * SUPORTE.JS - MÓDULO DE SUPORTE E CONTATO
  * ================================================================================
- * Sstema de formulro de contato com valdao e envo de emals
- * integracao com sstema modular do TokenCafe
+ * Sistema de formulário de contato com validação e envio de emails
+ * integração com sistema modular do TokenCafe
  * ================================================================================
  */
 
-// Inicialização do módulo de suporte: mascara, contador, validação e envio
+// Inicialização do módulo de suporte: máscara, contador, validação e envio
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("contact-support-form");
   const submitBtn = document.getElementById("submit-btn");
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnLoading = submitBtn?.querySelector(".btn-loading");
   const statusEl = document.getElementById("form-status");
 
-  // Mscara para WhatsApp
+  // Máscara para WhatsApp
   const whatsappInput = document.getElementById("contact-whatsapp");
   if (whatsappInput) {
     whatsappInput.addEventListener("input", function (e) {
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Valdao em tempo real
+  // Validação em tempo real
   // Validação em tempo real do formulário (campos obrigatórios)
   function validateForm() {
     const name = String(document.getElementById("contact-name")?.value || "").replace(/\s+$/u, "");
@@ -54,7 +54,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const sVald = name && email && whatsapp && subject && message.length >= 10 && terms;
 
-    if (submitBtn) submitBtn.disabled = !sVald;
+    if (submitBtn) {
+      submitBtn.disabled = !sVald;
+      
+      if (sVald) {
+        // Habilitado: Verde (Outline)
+        submitBtn.classList.remove("btn-outline-secondary");
+        submitBtn.classList.add("btn-outline-success");
+      } else {
+        // Desabilitado: Cinza
+        submitBtn.classList.remove("btn-outline-success");
+        submitBtn.classList.add("btn-outline-secondary");
+      }
+    }
 
     if (statusEl) {
       if (sVald) {
@@ -69,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Adconar event lsteners para valdao em tempo real
+  // Adicionar event listeners para validação em tempo real
   ["contact-name", "contact-email", "contact-whatsapp", "contact-subject", "contact-message", "contact-terms"].forEach((d) => {
     const element = document.getElementById(d);
     if (element) {
@@ -78,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Valdao do formulro
+  // Validação do formulário
   // Envio do formulário com feedback visual via notify e fallback local
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -87,13 +99,13 @@ document.addEventListener("DOMContentLoaded", function () {
     form.classList.add("was-validated");
 
     if (form.checkValidity()) {
-      // Mostrar loadng
+      // Mostrar loading
       btnContent?.classList.add("d-none");
       btnLoading?.classList.remove("d-none");
       if (submitBtn) submitBtn.disabled = true;
 
       try {
-        // Coletar dados do formulro
+        // Coletar dados do formulário
         const formData = {
           name: document.getElementById("contact-name")?.value || "",
           email: document.getElementById("contact-email")?.value || "",
@@ -107,14 +119,14 @@ document.addEventListener("DOMContentLoaded", function () {
           currentPage: window.location.href,
         };
 
-        // Envar dados para AP
+        // Enviar dados para API
         const success = await sendSupportEmail(formData);
 
         if (success) {
           // Mostrar toast de sucesso
           window.notify && window.notify("Sua mensagem foi enviada com sucesso. Entraremos em contato em breve!", "success", { container: form });
 
-          // Resetar formulro
+          // Resetar formulário
           form.reset();
           form.classList.remove("was-validated");
           
@@ -123,13 +135,13 @@ document.addEventListener("DOMContentLoaded", function () {
           
           validateForm();
         } else {
-          throw new Error("Falha no envo");
+          throw new Error("Falha no envio");
         }
       } catch (error) {
         console.error("Erro ao enviar formulário:", error);
         window.notify && window.notify("Ocorreu um erro ao enviar sua mensagem. Tente novamente.", "error", { container: form });
       } finally {
-        // Restaurar boto
+        // Restaurar botão
         btnContent?.classList.remove("d-none");
         btnLoading?.classList.add("d-none");
         validateForm();
@@ -137,13 +149,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Valdao ncal
+  // Validação inicial
   validateForm();
 });
 
 /**
- * Funo para envar emal de suporte
- * @param {Object} formData - Dados do formulro
+ * Função para enviar email de suporte
+ * @param {Object} formData - Dados do formulário
  * @returns {boolean} - true se sucesso, false se erro
  */
 // Envio por API/EmailJS/Formspree com fallback local
@@ -151,7 +163,7 @@ async function sendSupportEmail(formData) {
   try {
     const supportEmail = String(formData?.supportEmail || "suporte@tokencafe.com").trim();
 
-    // Confgurar dados para envo
+    // Configurar dados para envio
     const emailData = {
       to: supportEmail,
       subject: `[TokenCafe] Suporte - ${formData.subject}`,
@@ -159,9 +171,9 @@ async function sendSupportEmail(formData) {
       replyTo: formData.email,
     };
 
-    // Tentar dferentes mtodos de envo
+    // Tentar diferentes métodos de envio
 
-    // Mtodo 1: AP prpra (se dsponvel)
+    // Método 1: API própria (se disponível)
     if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
       try {
         const response = await fetch("/api/send-support-email", {
@@ -173,15 +185,15 @@ async function sendSupportEmail(formData) {
         });
 
         if (response.ok) {
-          console.log(" Emal envado va AP prpra");
+          console.log(" Email enviado via API própria");
           return true;
         }
       } catch (error) {
-        console.log("AP prpra no dsponvel, tentando outros mtodos...");
+        console.log("API própria não disponível, tentando outros métodos...");
       }
     }
 
-    // Mtodo 2: EmalJS (gratuto para at 200 emals/ms)
+    // Método 2: EmailJS (gratuito para até 200 emails/mês)
     try {
       if (typeof emailjs !== "undefined") {
         await emailjs.send("default_service", "template_1", {
@@ -195,14 +207,14 @@ async function sendSupportEmail(formData) {
           timestamp: new Date(formData.timestamp).toLocaleString("pt-BR"),
         });
 
-        console.log(" Emal envado va EmalJS");
+        console.log(" Email enviado via EmailJS");
         return true;
       }
     } catch (error) {
-      console.log("EmalJS no confgurado, tentando mtodo alternatvo...");
+      console.log("EmailJS não configurado, tentando método alternativo...");
     }
 
-    // Mtodo 3: FormSubmit (sem backend)
+    // Método 3: FormSubmit (sem backend)
     try {
       const endpoint = `https://formsubmit.co/ajax/${encodeURIComponent(emailData.to)}`;
 
@@ -228,14 +240,14 @@ async function sendSupportEmail(formData) {
       });
 
       if (response.ok) {
-        console.log(" Emal envado va FormSubmit");
+        console.log(" Email enviado via FormSubmit");
         return true;
       }
     } catch (error) {
-      console.log("FormSubmit no dsponvel, usando mtodo local...");
+      console.log("FormSubmit não disponível, usando método local...");
     }
 
-    // Mtodo 4: Salvar localmente e notfcar (ltmo recurso)
+    // Método 4: Salvar localmente e notificar (último recurso)
     saveSupportDataLocally(formData);
     console.log(" Dados de suporte salvos localmente");
     return false;
@@ -246,14 +258,14 @@ async function sendSupportEmail(formData) {
 }
 
 /**
- * Formatar corpo do emal de suporte
+ * Formatar corpo do email de suporte
  */
 function formatSupportEmailBody(formData) {
   const subjectLabels = {
-    "saba-mas": " Saba mas sobre a plataforma",
-    "suporte-tecnco": " Suporte tcnco",
-    comercal: " Questes comercas",
-    ntegracao: " Ajuda com integracao",
+    "saiba-mais": " Saiba mais sobre a plataforma",
+    "suporte-tecnico": " Suporte técnico",
+    comercial: " Questões comerciais",
+    integracao: " Ajuda com integração",
     "bug-report": " Reportar problema",
     outros: " Outros",
   };
@@ -266,43 +278,43 @@ function formatSupportEmailBody(formData) {
     <title>Mensagem de Suporte - TokenCafe</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .header { background: #1a1a2e; color: whte; paddng: 20px; text-algn: center; }
-        .content { paddng: 20px; background: #f4f4f4; }
-        .secton { background: whte; margn: 10px 0; paddng: 15px; border-radus: 5px; }
-        .label { font-weght: bold; color: #1a1a2e; }
-        .value { margn-left: 10px; }
-        .footer { text-algn: center; paddng: 20px; color: #666; font-sze: 12px; }
+        .header { background: #1a1a2e; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f4f4f4; }
+        .section { background: white; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .label { font-weight: bold; color: #1a1a2e; }
+        .value { margin-left: 10px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="header">
         <h2> TokenCafe - Nova Mensagem de Suporte</h2>
-    </dv>
+    </div>
     
     <div class="content">
-        <div class="secton">
-            <h3> nformaes do Contato</h3>
+        <div class="section">
+            <h3> Informações do Contato</h3>
             <p><span class="label">Nome:</span><span class="value">${formData.name}</span></p>
             <p><span class="label">Email:</span><span class="value">${formData.email}</span></p>
             <p><span class="label">WhatsApp:</span><span class="value">${formData.whatsapp}</span></p>
             ${formData.wallet ? `<p><span class="label">Carteira:</span><span class="value">${formData.wallet}</span></p>` : ""}
         </div>
         
-        <div class="secton">
+        <div class="section">
             <h3> Detalhes da Mensagem</h3>
             <p><span class="label">Assunto:</span><span class="value">${subjectLabels[formData.subject] || formData.subject}</span></p>
             <p><span class="label">Data/Hora:</span><span class="value">${new Date(formData.timestamp).toLocaleString("pt-BR")}</span></p>
         </div>
         
-        <div class="secton">
+        <div class="section">
             <h3> Mensagem</h3>
             <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #1a1a2e; margin: 10px 0;">
                 ${formData.message.replace(/\n/g, "<br>")}
             </div>
         </div>
         
-        <div class="secton">
-            <h3> nformaes Tcncas</h3>
+        <div class="section">
+            <h3> Informações Técnicas</h3>
             <p><span class="label">Página:</span><span class="value">${formData.currentPage}</span></p>
             <p><span class="label">Navegador:</span><span class="value">${formData.userAgent}</span></p>
         </div>
@@ -329,7 +341,7 @@ function saveSupportDataLocally(formData) {
       status: "pending",
     });
 
-    // Manter apenas os ltmos 50 regstros
+    // Manter apenas os últimos 50 registros
     if (supportData.length > 50) {
       supportData.splice(0, supportData.length - 50);
     }
@@ -337,7 +349,7 @@ function saveSupportDataLocally(formData) {
     localStorage.setItem("tokencafe_support_messages", JSON.stringify(supportData));
     console.log(" Dados salvos no localStorage como backup");
 
-    // Notfcar admn se dsponvel
+    // Notificar admin se disponível
     if (typeof addNotification === "function") {
       addNotification("Nova mensagem de suporte pendente", "info");
     }
