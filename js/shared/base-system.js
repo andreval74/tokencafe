@@ -53,10 +53,15 @@ class BaseSystem {
         if (window.hideLoading) window.hideLoading();
     }, 5000);
 
-    // Mobile Disclaimer: Aviso de Desktop First (Bloqueante)
-    if (this.isMobile() && !sessionStorage.getItem("tokencafe_mobile_disclaimer_shown")) {
+    // Mobile Disclaimer: Aviso de Desktop First (Totalmente Bloqueante)
+    if (this.isMobile()) {
         if (window.hideLoading) window.hideLoading();
+        // Remove qualquer backdrop anterior para evitar sobreposição
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(el => el.remove());
+        
         await this.showMobileDisclaimer();
+        // O código nunca passará daqui, pois a Promise não resolve
     }
 
     await this.enforceAuthGuard();
@@ -883,83 +888,56 @@ class BaseSystem {
   }
 
   /**
-   * Exibir aviso de disclaimer para mobile
+   * Exibir aviso de disclaimer para mobile (BLOQUEANTE)
    */
   async showMobileDisclaimer() {
     if (!this.isMobile()) return;
-    if (sessionStorage.getItem("tokencafe_mobile_disclaimer_shown")) return;
 
-    return new Promise((resolve) => {
+    // Retorna uma Promise que NUNCA resolve para travar a execução do sistema
+    return new Promise(() => {
       const disclaimerHtml = `
-        <div class="modal fade" id="mobileDisclaimerModal" tabindex="-1" aria-labelledby="mobileDisclaimerLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal fade show" id="mobileDisclaimerModal" tabindex="-1" aria-labelledby="mobileDisclaimerLabel" aria-modal="true" role="dialog" style="display: block; background: rgba(0,0,0,0.95);">
           <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(10px); color: #fff; border: 1px solid rgba(255, 255, 255, 0.1);">
-              <div class="modal-header border-bottom-0">
-                <h5 class="modal-title" id="mobileDisclaimerLabel">
-                  <i class="bi bi-display text-primary me-2"></i>Versão Desktop
+            <div class="modal-content border-0 shadow-lg" style="background: rgba(20, 20, 20, 1); border: 1px solid rgba(255, 255, 255, 0.1);">
+              <div class="modal-header border-bottom-0 justify-content-center">
+                <h5 class="modal-title text-danger" id="mobileDisclaimerLabel">
+                  <i class="bi bi-display me-2"></i>Apenas Desktop
                 </h5>
               </div>
-              <div class="modal-body text-center py-4">
-                <div class="mb-3">
-                  <i class="bi bi-laptop fs-1 text-secondary"></i>
+              <div class="modal-body text-center py-5">
+                <div class="mb-4">
+                  <i class="bi bi-laptop fs-1 text-primary"></i>
                 </div>
-                <h4 class="mb-3">Sistema Desenvolvido para Desktop</h4>
-                <p class="mb-3 text-muted">
-                  A versão otimizada para dispositivos móveis estará disponível em breve.
+                <h4 class="mb-3 text-white">Sistema Exclusivo para Desktop</h4>
+                <p class="mb-4 text-muted px-3">
+                  A versão mobile ainda está em desenvolvimento e não está disponível no momento.
                 </p>
                 <p class="mb-0 small text-white-50">
-                  Agradecemos a visita e aguardamos você no desktop para a melhor experiência.
+                  Agradecemos a visita e aguardamos você no computador para a melhor experiência.
                 </p>
               </div>
-              <div class="modal-footer border-top-0 justify-content-center">
-                <button type="button" class="btn btn-primary px-4 rounded-pill" data-bs-dismiss="modal">
-                  Entendi, continuar mesmo assim
-                </button>
+              <div class="modal-footer border-top-0 justify-content-center pb-4">
+                 <!-- Sem botões de ação para fechar -->
+                 <small class="text-secondary opacity-50">TokenCafe Tools</small>
               </div>
             </div>
           </div>
         </div>
       `;
 
-      // Injetar modal no body
+      // Injetar modal diretamente e remover todo o resto para garantir foco
       const div = document.createElement("div");
       div.innerHTML = disclaimerHtml;
+      
+      // Limpar body para evitar interação com elementos de fundo? 
+      // Não, apenas sobrepor é mais seguro para não quebrar scripts globais, 
+      // mas o z-index e background opaco já resolvem.
+      
       document.body.appendChild(div.firstElementChild);
-
-      // Função de limpeza e resolução
-      const cleanup = () => {
-        sessionStorage.setItem("tokencafe_mobile_disclaimer_shown", "true");
-        const el = document.getElementById("mobileDisclaimerModal");
-        if (el) el.remove();
-        resolve();
-      };
-
-      // Tentar usar Bootstrap
-      try {
-        setTimeout(() => {
-          const modalEl = document.getElementById("mobileDisclaimerModal");
-          if (modalEl) {
-            modalEl.addEventListener("hidden.bs.modal", cleanup);
-            
-            if (window.bootstrap && window.bootstrap.Modal) {
-              const modal = new window.bootstrap.Modal(modalEl);
-              modal.show();
-            } else {
-              // Fallback
-              modalEl.classList.add("show");
-              modalEl.style.display = "block";
-              modalEl.style.background = "rgba(0,0,0,0.8)";
-              const btn = modalEl.querySelector('[data-bs-dismiss="modal"]');
-              if (btn) btn.onclick = cleanup;
-            }
-          } else {
-            resolve();
-          }
-        }, 100);
-      } catch (e) {
-        console.warn("Disclaimer error:", e);
-        resolve();
-      }
+      
+      // Bloquear scroll
+      document.body.style.overflow = "hidden";
+      document.body.classList.add("modal-open");
     });
   }
 }
