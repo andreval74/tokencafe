@@ -1,7 +1,11 @@
 
-document.addEventListener("DOMContentLoaded", function () {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initAuthModal();
+  });
+} else {
   initAuthModal();
-});
+}
 
 function initAuthModal() {
   // Elementos do modal
@@ -374,16 +378,27 @@ async function checkExistingConnection() {
 window.authModal = {
   show: () => {
     const el = document.getElementById("authModal");
+    if (!el) {
+      console.warn("authModal: Elemento #authModal não encontrado.");
+      return;
+    }
     if (typeof bootstrap !== 'undefined') {
-      const modal = new bootstrap.Modal(el);
-      modal.show();
+      try {
+        const modal = new bootstrap.Modal(el);
+        modal.show();
+      } catch (e) {
+        console.warn("authModal: Falha ao abrir modal", e);
+      }
     }
   },
   hide: () => {
     const el = document.getElementById("authModal");
+    if (!el) return;
     if (typeof bootstrap !== 'undefined') {
-      const modal = bootstrap.Modal.getInstance(el);
-      modal?.hide();
+      try {
+        const modal = bootstrap.Modal.getInstance(el);
+        modal?.hide();
+      } catch (_) {}
     }
   },
 };

@@ -2758,6 +2758,24 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Mobile Modal Fixes */
+  .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+  
+  .modal-content {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+
   .title {
     font-size: 2rem;
   }
@@ -4328,6 +4346,25 @@ Classes reutilizáveis para efeitos neon padronizados
   right: 10px;
   padding: 2px 8px;
   border-radius: 10px;
+}
+
+@media (max-width: 575.98px) {
+  .tool-tiles {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .tool-tile {
+    min-height: auto;
+    padding: 16px;
+  }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .tool-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
 }
 
 @media (min-width: 992px) {

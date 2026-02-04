@@ -46,13 +46,22 @@ class BaseSystem {
     this.setupToastSystem();
 
     // Carregar componentes automaticamente
-    this.loadComponents();
+    await this.loadComponents();
+
+    // Safety Timeout: Garantir que o loading desapareça mesmo se houver falhas
+    setTimeout(() => {
+        if (window.hideLoading) window.hideLoading();
+    }, 5000);
 
     await this.enforceAuthGuard();
 
     await this.bindWalletInfoSection();
 
     this.initialized = true;
+    
+    // Garantir que qualquer loader seja removido
+    if (window.hideLoading) window.hideLoading();
+    
     console.log("✅ Base System Unified inicializado");
   }
 
@@ -145,7 +154,17 @@ class BaseSystem {
         // Suporte a overlay usado em alguns layouts
         const overlay = window.$ ? $("#loading-overlay") : document.getElementById("loading-overlay");
         if (overlay && overlay.remove) overlay.remove();
-      } catch {}
+
+        // Mobile Safe: Remove backdrops órfãos que possam estar travando a tela
+        // Apenas se não houver modal aberto
+        const openModal = document.querySelector('.modal.show');
+        if (!openModal) {
+             const backdrops = document.querySelectorAll('.modal-backdrop');
+             backdrops.forEach(el => el.remove());
+             document.body.classList.remove('modal-open');
+             document.body.style.overflow = '';
+        }
+      } catch (e) { console.warn("Erro no hideLoading:", e); }
       window.showLoading(false);
     };
 
@@ -502,8 +521,24 @@ class BaseSystem {
             }
           }
           if (!connected) {
-            if (!window.__tokencafe_auto_connect_initiated) {
+            // Mobile Anti-Loop: Evitar spam de modal em reloads rápidos (1 minuto cooldown)
+            const lastMobileAuth = sessionStorage.getItem("tokencafe_mobile_auth_timestamp");
+            const isRecent = lastMobileAuth && (Date.now() - parseInt(lastMobileAuth) < 60000);
+
+            if (!window.__tokencafe_auto_connect_initiated && (!this.isMobile() || !isRecent)) {
               window.__tokencafe_auto_connect_initiated = true;
+              
+              // Mobile specific: Ensure authModal is ready for deep linking
+              if (this.isMobile()) {
+                 sessionStorage.setItem("tokencafe_mobile_auth_timestamp", Date.now().toString());
+                 if (!window.authModal || typeof window.authModal.show !== "function") {
+                    await new Promise(r => setTimeout(r, 1000));
+                 }
+              }
+
+              // FORCE UNBLOCK: Garantir que a UI esteja visível para o modal
+              if (window.hideLoading) window.hideLoading();
+
               if (window.authModal && typeof window.authModal.show === "function") {
                 try {
                   window.authModal.show();
@@ -743,37 +778,50 @@ class BaseSystem {
         }
 
         // Executar scripts do componente carregado (preserva atributos como type="module")
-        const scripts = element.querySelectorAll("script");
-        scripts.forEach((script) => {
-          if (script.src) {
+      const scripts = element.querySelectorAll("script");
+      const scriptPromises = [];
+
+      scripts.forEach((script) => {
+        if (script.src) {
+          const p = new Promise((resolve) => {
             const newScript = document.createElement("script");
+            
+            // Copiar atributos exceto src (será tratado)
+            Array.from(script.attributes).forEach((attr) => {
+                if (attr.name !== 'src') newScript.setAttribute(attr.name, attr.value);
+            });
+
+            // Ajustar SRC se necessário
             let src = script.getAttribute("src");
             try {
-              // Se for caminho absoluto (começa com '/'), prefixar com basePath para funcionar em páginas aninhadas
               if (src && src.startsWith("/")) {
                 const base = this.getBasePath();
                 src = `${base}${src.slice(1)}`;
               }
             } catch (_) {}
             newScript.src = src;
-            if (script.type) newScript.type = script.type; // preserva tipo
-            document.head.appendChild(newScript);
-          } else {
-            try {
-              // Caso não seja necessário executar inline, injeta preservando type
-              const newScript = document.createElement("script");
-              if (script.type) newScript.type = script.type; // preserva tipo
-              newScript.textContent = script.textContent;
-              document.head.appendChild(newScript);
-            } catch (err) {
-              console.error("Erro ao executar script do componente:", err);
-              const newScript = document.createElement("script");
-              if (script.type) newScript.type = script.type; // preserva tipo
-              newScript.textContent = script.textContent;
-              document.head.appendChild(newScript);
-            }
-          }
-        });
+
+            newScript.onload = resolve;
+            newScript.onerror = () => {
+              console.warn(`⚠️ Falha ao carregar script do componente: ${src}`);
+              resolve(); 
+            };
+            document.body.appendChild(newScript);
+          });
+          scriptPromises.push(p);
+        } else {
+          // Inline scripts
+          const newScript = document.createElement("script");
+          Array.from(script.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
+          newScript.textContent = script.textContent;
+          document.body.appendChild(newScript);
+        }
+      });
+
+      // Aguardar carregamento de scripts externos
+      if (scriptPromises.length > 0) {
+        await Promise.all(scriptPromises);
+      }
 
         console.log(`🔗 Componente '${componentName}' carregado de: ${resolvedPath}`);
       } else {
@@ -822,6 +870,10 @@ class BaseSystem {
     });
 
     console.log("📊 Estado da aplicação configurado");
+  }
+
+  isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 }
 

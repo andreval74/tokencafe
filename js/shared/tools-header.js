@@ -109,35 +109,14 @@
 
     if (noteEl) {
       noteEl.classList.remove("text-success", "text-danger");
-      if (isMobile) {
-        noteEl.textContent = "FALHA: sistema desenvolvido para DESKTOP";
-        noteEl.classList.add("text-danger");
-      } else {
-        noteEl.textContent = "sistema desenvolvido para DESKTOP";
-        noteEl.classList.add("text-success");
-      }
+      // Sistema agora suporta mobile
+      noteEl.textContent = ""; 
+      noteEl.classList.add("d-none");
     }
 
+    // Bloqueio de mobile removido para permitir acesso completo
     if (isMobile) {
-      const interactiveSelectors = [".tool-tile", ".tool-link", ".nav-link", ".dropdown-item", "a.btn", "button.btn"];
-      const interactiveEls = document.querySelectorAll(interactiveSelectors.join(","));
-      interactiveEls.forEach((el) => {
-        el.classList.add("disabled");
-        el.setAttribute("aria-disabled", "true");
-        el.setAttribute("tabindex", "-1");
-        el.addEventListener(
-          "click",
-          (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          },
-          true,
-        );
-      });
-
-      document.querySelectorAll(".tool-tile, .tool-link").forEach((el) => {
-        el.classList.add("admin-disabled");
-      });
+       document.body.classList.add("is-mobile-device");
     }
   } catch (e) {
     console.warn("tools-header: falha ao configurar aviso de dispositivo", e);

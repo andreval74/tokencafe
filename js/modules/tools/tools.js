@@ -2,7 +2,7 @@ import "../../shared/base-system.js";
 import "../../shared/page-manager.js";
 import { SEOManager } from "../../shared/seo-manager.js";
 
-window.initBaseSystem();
+// window.initBaseSystem(); // Inicialização automática via import
 window.createPageManager("tools");
 
 const initSeo = () => {
