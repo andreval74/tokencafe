@@ -1,7 +1,7 @@
 import "../../shared/base-system.js";
 import "../../shared/page-manager.js";
 import { SEOManager } from "../../shared/seo-manager.js";
-import { isWalletAdmin } from "../../shared/admin-security.js";
+import { isWalletAdmin, getConnectedWalletAddress } from "../../shared/admin-security.js";
 
 // window.initBaseSystem(); // Inicialização automática via import
 window.createPageManager("tools");
@@ -135,10 +135,25 @@ const initWhenReady = async () => {
   // Initialize Access Control
   await accessControl.loadAdmins();
   
-  // Initial check (from localStorage or window.ethereum if available immediately)
-  const savedAddr = localStorage.getItem("tokencafe_wallet_address");
-  // Normalize address if exists
-  const currentAddr = savedAddr ? savedAddr.toLowerCase() : null;
+  // Prioritize real connected wallet over localStorage
+  const connectedAddr = await getConnectedWalletAddress();
+  
+  if (connectedAddr) {
+      // Sync localStorage with real state
+      localStorage.setItem("tokencafe_wallet_address", connectedAddr);
+  } else {
+      // If disconnected in provider, ensure we are disconnected in app
+      localStorage.removeItem("tokencafe_wallet_address");
+      
+      // Redirect to index if not connected
+      console.warn("Tools: Access denied - Wallet not connected. Redirecting to index...");
+      window.location.href = "index.html";
+      return;
+  }
+
+  const currentAddr = connectedAddr ? connectedAddr.toLowerCase() : null;
+  console.log("Init Tools: Real connected address:", currentAddr);
+
   accessControl.apply(currentAddr);
 
   // Listen for wallet events
@@ -148,14 +163,20 @@ const initWhenReady = async () => {
   });
   
   document.addEventListener("wallet:disconnected", () => {
-    accessControl.apply(null);
+    console.warn("Tools: Wallet disconnected. Redirecting...");
+    window.location.href = "index.html";
   });
   
   // Listen for direct metamask changes as backup
   if (window.ethereum) {
     window.ethereum.on('accountsChanged', (accounts) => {
        const addr = accounts.length > 0 ? accounts[0].toLowerCase() : null;
-       accessControl.apply(addr);
+       if (!addr) {
+           console.warn("Tools: Accounts changed/disconnected. Redirecting...");
+           window.location.href = "index.html";
+       } else {
+           accessControl.apply(addr);
+       }
     });
   }
 };

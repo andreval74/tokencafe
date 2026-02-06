@@ -79,19 +79,38 @@
       };
 
       // Initial check strategy:
-      // 1. Try localStorage (TokenCafe persistence)
-      // 2. Try window.ethereum.selectedAddress (MetaMask direct injection)
-      const checkInitialStatus = () => {
-        let savedAddr = localStorage.getItem("tokencafe_wallet_address");
+      // PRIORITIZE window.ethereum (Real State) over localStorage (Memory)
+      const checkInitialStatus = async () => {
+        let realAddr = null;
         
-        // Fallback: Check if MetaMask is already injected and has a selected address
-        if (!savedAddr && window.ethereum && window.ethereum.selectedAddress) {
-           savedAddr = window.ethereum.selectedAddress;
-           // Sync localStorage if found directly
-           localStorage.setItem("tokencafe_wallet_address", savedAddr);
+        // 1. Try to get address from provider
+        if (window.ethereum) {
+            if (window.ethereum.selectedAddress) {
+                realAddr = window.ethereum.selectedAddress;
+            } else {
+                try {
+                   // Async check for accounts
+                   const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                   if (accounts && accounts.length > 0) {
+                       realAddr = accounts[0];
+                   }
+                } catch(e) {
+                   console.warn("Header: Failed to check eth_accounts", e);
+                }
+            }
         }
 
-        updateHeaderUI(savedAddr);
+        // 2. Sync logic: If provider has address, use it. If not, consider disconnected.
+        // User explicitly requested to NOT use memory if disconnected.
+        
+        if (realAddr) {
+             localStorage.setItem("tokencafe_wallet_address", realAddr);
+             updateHeaderUI(realAddr);
+        } else {
+             // If provider says disconnected, force disconnect in UI even if localStorage has data
+             localStorage.removeItem("tokencafe_wallet_address");
+             updateHeaderUI(null);
+        }
       };
 
       checkInitialStatus();

@@ -7,7 +7,8 @@
 // Adicione aqui os endereços de carteira (em lowercase) que têm permissão total em redes de teste
 export const ADMIN_WALLETS = [
     // Exemplo: "0x1234567890abcdef1234567890abcdef12345678",
-    "0x0000000000000000000000000000000000000000" // Placeholder
+    "0x0000000000000000000000000000000000000000", // Placeholder
+    "0x0b81337f18767565d2ea40913799317a25dc4bc5"  // Admin Principal
 ];
 
 /**
