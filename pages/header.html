@@ -10,12 +10,22 @@ Baseado no header.html do TokenCafe com tema TokenCafe
   <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-page-black">
     <div class="container">
       <!-- Brand TokenCafe -->
-      <a class="navbar-brand d-flex align-items-center" href="index.html">
-        <img src="../../../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 tokencafe-logo logo-standard" />
-      </a>
+      <div class="d-flex align-items-center mb-3">
+        <img src="../../../imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 logo-standard" />
+        <div class="d-flex flex-column">
+          <a href="index.html" title="Home" class="text-no-decoration">
+            <span class="fw-bold text-white fs-4">
+              Token
+              <span class="text-warning">Cafe</span>
+            </span>
+          </a>
+          <small class="text-white-50 text-small">Plataforma Web3</small>
+        </div>
+      </div>
 
       <!-- Mobile Toggle -->
-      <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <button class="navbar-toggler border-0 shadow-sm" type="button" data-bs-toggle="collapse"
+        data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -79,7 +89,8 @@ Baseado no header.html do TokenCafe com tema TokenCafe
           </div>
 
           <!-- Conectar MetaMask -->
-          <button id="connect-metamask-btn" class="btn btn-sm btn-outline-primary fw-bold" type="button" title="Conectar MetaMask">
+          <button id="connect-metamask-btn" class="btn btn-sm btn-outline-primary fw-bold" type="button"
+            title="Conectar MetaMask">
             <i class="bi bi-wallet2 me-1"></i>
             Conectar
           </button>
