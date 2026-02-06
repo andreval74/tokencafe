@@ -1,9 +1,7 @@
 
 import { PriceService } from "../../shared/price-service.js";
 import { NetworkManager } from "../../shared/network-manager.js";
-
-const SERVICE_FEE_USD = 85.00;
-const DEV_WALLET_ADDRESS = "0xYourDevWalletAddressHere"; // TODO: Substituir pelo endereço real
+import { PAYMENT_CONFIG } from "./payment-config.js";
 
 export class FeeManager {
     constructor() {
@@ -18,24 +16,30 @@ export class FeeManager {
      * @returns {Promise<boolean>} true se confirmado e pago, false se cancelado
      */
     async confirmAndPay(signer, network, estimatedGasLimit) {
-        // 1. Verificar se é Testnet (opcional: pular taxa ou cobrar em token de teste)
-        // Por padrão, vamos cobrar para manter o fluxo "Two Charges" consistente, 
-        // mas em testnet o valor em USD é simbólico (tokens sem valor real).
+        // 1. Verificar se é Testnet
         const isTestnet = this.nm.isTestNetwork(network.chainId);
         
+        // Se a config diz para não cobrar em testnet, retornamos true direto (apenas se não quiser simular)
+        // Mas a config diz CHARGE_ON_TESTNET (default true para teste de fluxo)
+        if (isTestnet && !PAYMENT_CONFIG.CHARGE_ON_TESTNET) {
+            return true;
+        }
+
         // 2. Obter dados financeiros
         const nativeSymbol = PriceService.getNativeSymbol(network.chainId);
         const nativePrice = await PriceService.getNativeCoinPrice(network.chainId);
         
-        // Taxa de Serviço ($85)
-        // Se preço não disponível (0), fallback para um valor fixo seguro ou erro?
-        // Vamos assumir 1 ETH = $2000 como fallback muito conservador se falhar, ou alertar.
+        // Taxa de Serviço (USD) vinda da configuração
+        const serviceFeeUSD = PAYMENT_CONFIG.SERVICE_FEE_USD;
+
+        // Se preço não disponível (0), fallback seguro
+        // Em testnet, nativePrice pode ser 0 se a API não retornar nada para a rede de teste
+        // Se for testnet e preço for 0, usamos um valor simulado (ex: $2000) para calcular tokens de teste
         const safePrice = nativePrice > 0 ? nativePrice : 2000; 
         
         // Calculo da taxa de serviço em crypto
         // Valor USD / Preço Unitário = Quantidade Crypto
-        // Ex: 85 / 2000 = 0.0425 ETH
-        const serviceFeeCrypto = SERVICE_FEE_USD / safePrice;
+        const serviceFeeCrypto = serviceFeeUSD / safePrice;
         
         // Estimativa de Gas
         let gasPrice = await signer.getGasPrice();
@@ -52,7 +56,7 @@ export class FeeManager {
         return new Promise((resolve) => {
             this.showModal({
                 symbol: nativeSymbol,
-                serviceFeeUSD: SERVICE_FEE_USD,
+                serviceFeeUSD: serviceFeeUSD,
                 serviceFeeCrypto,
                 gasCostUSD,
                 gasCostCrypto,
@@ -79,11 +83,10 @@ export class FeeManager {
 
     async processServiceFeePayment(signer, amountCrypto, symbol) {
         // Converter para Wei/BigNumber
-        // Cuidado com precisão. ethers.utils.parseEther aceita string.
         const amountStr = amountCrypto.toFixed(18); // Evitar notação científica
         const amountWei = ethers.utils.parseEther(amountStr);
 
-        // Feedback
+        // Feedback UI
         const btn = document.getElementById("btnConfirmDeployFee");
         if (btn) {
             btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processando Taxa...`;
@@ -91,13 +94,13 @@ export class FeeManager {
         }
 
         try {
+            // Usa o endereço da configuração
             const tx = await signer.sendTransaction({
-                to: DEV_WALLET_ADDRESS,
+                to: PAYMENT_CONFIG.RECEIVER_WALLET,
                 value: amountWei
             });
             
             // Aguardar confirmação (pelo menos 1 bloco) para garantir que a taxa foi paga
-            // User UX: "Aguardando confirmação da taxa..."
             if (btn) btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Confirmando Taxa...`;
             
             await tx.wait(1);
@@ -176,7 +179,7 @@ export class FeeManager {
                         </div>
                         
                         <!-- Aviso Testnet -->
-                        ${data.isTestnet ? '<div class="alert alert-warning py-1 small"><i class="bi bi-exclamation-triangle me-1"></i>Modo Testnet: Valores simulados.</div>' : ''}
+                        ${data.isTestnet ? '<div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><strong>Modo Testnet:</strong> A cobrança será realizada na moeda de teste da rede. Certifique-se de ter saldo na carteira.<br>A verificação de contrato é exclusiva para redes oficiais.</div>' : ''}
 
                     </div>
                     <div class="modal-footer border-secondary justify-content-center">
@@ -200,10 +203,6 @@ export class FeeManager {
 
         // Validação dos checkboxes
         const validate = () => {
-            // Apenas Terms é obrigatório pelo asterisco na imagem, mas vamos exigir ambos para segurança jurídica se quiser
-            // Imagem mostra asterisco vermelho apenas no segundo e no label geral? Não, asterisco vermelho no texto do segundo.
-            // Texto diz "* - Consentimento obrigatório."
-            // Vamos exigir o checkTerms. checkNonEU parece ser declaração fiscal, importante também.
             btnConfirm.disabled = !(checkTerms.checked && checkNonEU.checked);
         };
 
@@ -213,25 +212,14 @@ export class FeeManager {
         // Ação Confirmar
         btnConfirm.addEventListener("click", () => {
             data.onConfirm();
-            // Não fecha modal imediatamente, espera processamento. 
-            // O processamento vai alterar o botão para spinner.
-            // Se sucesso, o modal será fechado externamente ou redirecionado.
-            // Aqui podemos apenas esconder se quisermos, mas melhor manter aberto com spinner.
         });
 
         // Evento de fechamento (Cancelamento)
         modalEl.addEventListener('hidden.bs.modal', () => {
-            // Se foi fechado e não confirmado (verificamos se já foi processado?
-            // A Promise espera resolve. Se o usuário fecha, é cancelamento.
-            // Precisamos garantir que onCancel só seja chamado se não estiver processando.
-            // Mas simples: se o modal fecha, chamamos onCancel. Se já resolveu, a promise ignora.
             data.onCancel();
             modalEl.remove();
         });
 
         bsModal.show();
-        
-        // Hack para resolver promise ao fechar se não confirmado
-        // (A lógica de onConfirm deve lidar com o fechamento do modal ou atualização de UI)
     }
 }

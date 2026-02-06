@@ -11,8 +11,8 @@ const $ = (sel) => document.querySelector(sel);
  */
 export function checkIsAdmin() {
     // 1. Verificação de carteira (se conectada) via state global do módulo
-    if (state.wallet && state.wallet.account) {
-        return isWalletAdmin(state.wallet.account);
+    if (state.wallet && state.wallet.address) {
+        return isWalletAdmin(state.wallet.address);
     }
     
     return false;
@@ -3037,7 +3037,8 @@ async function bindUI() {
     });
 
   // Integrar com componente de busca de rede (network-search)
-  const nsContainer = document.querySelector('[data-component*="network-search.html"]').parentElement || document;
+  const nsElement = document.querySelector('[data-component*="network-search.html"]');
+  const nsContainer = nsElement ? nsElement.parentElement : document;
   nsContainer.addEventListener("network:selected", (evt) => {
     const net = evt?.detail?.network;
     if (!net) return;
@@ -4124,7 +4125,7 @@ export async function verifyCurrentContract() {
           const msg = "Certificação bloqueada em redes de teste (Restrito a Administradores).";
           log(msg);
           // alert(msg); // Removido conforme solicitação
-          return { success: false, error: msg };
+          return { success: false, error: msg, skipped: true };
       }
 
       return await runVerifyDirect(payload);

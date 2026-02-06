@@ -406,16 +406,23 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
     const isTestNet = networkManager?.isTestNetwork?.(chainId);
     
     // Admin check assíncrono (melhor esforço)
-    // Nota: Como esta função é muito usada em updates de UI, o check de carteira pode ser race-condition se não cacheado,
-    // mas aqui estamos apenas ocultando UI, então um check rápido via window.ethereum (se disponível) é aceitável.
-    // Para maior precisão, o caller deve passar o status de admin se souber.
     let isAdmin = false;
     if (window.ethereum && window.ethereum.selectedAddress) {
         isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
+    } else {
+        const addr = await getConnectedWalletAddress();
+        if (addr) isAdmin = isWalletAdmin(addr);
     }
 
     if (isTestNet && !isAdmin) {
-        if (vStatus) vStatus.innerHTML = "";
+        if (vStatus) {
+            vStatus.innerHTML = "";
+            const span = document.createElement("span");
+            span.className = "badge-verif-status badge ms-2 bg-danger-subtle text-danger border border-danger";
+            span.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
+            span.title = "Verificação não disponível em redes de teste.";
+            vStatus.appendChild(span);
+        }
         const warningDiv = container?.querySelector?.("#cs_verifiedWarning");
         if (warningDiv) warningDiv.classList.add("d-none");
         return;

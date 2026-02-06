@@ -336,8 +336,8 @@ class TokenPageManager {
              // Auto verification attempt
              const verifyRes = await verifyCurrentContract();
              
-             // If immediate success or already verified
-             if (verifyRes?.success || verifyRes?.alreadyVerified || (verifyRes?.error && String(verifyRes.error).toLowerCase().includes("already verified"))) {
+             // If immediate success, skipped (testnet), or already verified
+             if (verifyRes?.success || verifyRes?.skipped || verifyRes?.alreadyVerified || (verifyRes?.error && String(verifyRes.error).toLowerCase().includes("already verified"))) {
                  this.showSuccessScreen();
                  return;
              }
