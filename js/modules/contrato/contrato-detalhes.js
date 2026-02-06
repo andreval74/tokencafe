@@ -2,6 +2,8 @@
 import { updateContractDetailsView, initContainer, updateVerificationBadge } from "../../shared/contract-search.js";
 import { getExplorerContractUrl } from "./explorer-utils.js";
 import { ShareManager } from "./share-manager.js";
+import { NetworkManager } from "../../shared/network-manager.js";
+import { checkIsAdmin } from "./builder.js";
 
 class ContractDetailsManager {
     constructor() {
@@ -338,6 +340,14 @@ class ContractDetailsManager {
     checkVerificationStatus() {
         const btnVerify = document.getElementById("btnManualVerify");
         if (!btnVerify) return;
+
+        // Restrição de Testnet
+        const chainId = this.state?.form?.network?.chainId;
+        const nm = new NetworkManager();
+        if (nm.isTestNetwork(chainId) && !checkIsAdmin()) {
+            btnVerify.classList.add("d-none");
+            return;
+        }
         
         // Check if verification badge indicates success
         setTimeout(() => {
@@ -359,6 +369,19 @@ class ContractDetailsManager {
 
     setupDownloads() {
         const { compilation, form } = this.state;
+        
+        // Restrição de Rede de Teste (exceto Admin)
+        const chainId = form.network?.chainId;
+        const nm = new NetworkManager();
+        if (nm.isTestNetwork(chainId) && !checkIsAdmin()) {
+            console.log("Downloads bloqueados: Testnet e não admin");
+            const container = document.getElementById("files-section");
+            if (container) {
+                 container.classList.add("d-none"); // Oculta completamente
+            }
+            return;
+        }
+
         const contractName = compilation?.contractName || "Contract";
 
         // .sol

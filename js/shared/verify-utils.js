@@ -79,7 +79,24 @@ async function verifyWithExplorerV2(payload) {
     }
 }
 
+import { NetworkManager } from './network-manager.js';
+import { checkIsAdmin } from '../modules/contrato/builder.js';
+
 export async function runVerifyDirect(payload) {
+    // Restrição de Testnet (exceto Admin)
+    try {
+        const nm = new NetworkManager();
+        const chainId = payload.chainId;
+        const isAdmin = checkIsAdmin ? checkIsAdmin() : false; // Safe call if imported
+
+        if (nm.isTestNetwork(chainId) && !isAdmin) {
+             console.log("[runVerifyDirect] Bloqueado: Testnet e não admin.");
+             return { success: false, status: "0", message: "Verificação bloqueada em redes de teste.", result: "Blocked" };
+        }
+    } catch (e) {
+        console.warn("[runVerifyDirect] Erro ao checar permissões:", e);
+    }
+
     const API_BASE = getApiBase();
     const url = `${API_BASE}/api/verify-bscscan`; // Proxy endpoint
     

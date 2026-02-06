@@ -1,6 +1,24 @@
 import { updateContractDetailsView } from "../../shared/contract-search.js";
+import { NetworkManager } from "../../shared/network-manager.js";
+import { isWalletAdmin } from "../../shared/admin-security.js";
 
 const $ = (sel) => document.querySelector(sel);
+
+/**
+ * Verifica se o usuário atual é administrador
+ * @returns {boolean}
+ */
+export function checkIsAdmin() {
+    // 1. Verificação de carteira (se conectada) via state global do módulo
+    if (state.wallet && state.wallet.account) {
+        return isWalletAdmin(state.wallet.account);
+    }
+    
+    return false;
+}
+
+const nm = new NetworkManager();
+
 
 function getDeployButton() {
   try {
@@ -2044,7 +2062,13 @@ export async function deployContract() {
     const autoEnabled = true;
     if (autoEnabled) {
       const payload = buildVerifyPayloadFromState();
-      if (payload) await runVerifyDirect(payload);
+      // Validar restrição de Testnet
+      const chainId = payload?.chainId;
+      if (nm.isTestNetwork(chainId) && !checkIsAdmin()) {
+          log("Verificação automática bloqueada em Testnet.");
+      } else if (payload) {
+          await runVerifyDirect(payload);
+      }
     } else {
       log("Verificação automática desabilitada.");
     }
@@ -4071,6 +4095,16 @@ async function runVerifyDirect(p) {
 export async function verifyCurrentContract() {
   const payload = buildVerifyPayloadFromState();
   if (payload) {
+      // Validar restrição de Testnet
+      const chainId = payload.chainId;
+      // Usar instância nm (NetworkManager) criada no escopo do módulo
+      if (nm.isTestNetwork(chainId) && !checkIsAdmin()) {
+          const msg = "Certificação bloqueada em redes de teste (Restrito a Administradores).";
+          log(msg);
+          // alert(msg); // Removido conforme solicitação
+          return { success: false, error: msg };
+      }
+
       return await runVerifyDirect(payload);
   } else {
       log("Dados insuficientes para verificação (endereço ou chainId ausentes).");

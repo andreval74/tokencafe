@@ -170,6 +170,44 @@ export class NetworkManager {
   }
 
   /**
+   * Verifica se uma rede é de teste baseado no Chain ID ou nome
+   * @param {number|string} chainId - ID da rede
+   * @returns {boolean} - True se for rede de teste
+   */
+  isTestNetwork(chainId) {
+      if (!chainId) return false;
+      const id = parseInt(chainId, 10);
+      
+      // IDs conhecidos de Testnets
+      const testnetIds = [
+          97,       // BSC Testnet
+          11155111, // Sepolia
+          5,        // Goerli
+          80001,    // Mumbai (Polygon)
+          420,      // Optimism Goerli
+          421613,   // Arbitrum Goerli
+          43113,    // Avalanche Fuji
+          4002,     // Fantom Testnet
+          338,      // Cronos Testnet
+          1337,     // Localhost (Geth)
+          31337     // Hardhat
+      ];
+
+      if (testnetIds.includes(id)) return true;
+
+      // Fallback: Verificar nome se disponível no cache
+      const net = this.getNetwork(id);
+      if (net && net.name) {
+          const name = net.name.toLowerCase();
+          if (name.includes("test") || name.includes("dev") || name.includes("goerli") || name.includes("sepolia") || name.includes("mumbai")) {
+              return true;
+          }
+      }
+      
+      return false;
+  }
+
+  /**
    * Carregar redes populares imediatamente
    */
   loadPopularNetworks() {

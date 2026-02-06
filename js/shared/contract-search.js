@@ -2,6 +2,7 @@ import { networkManager } from "./network-manager.js";
 import { getApiBase, getVerificationStatus } from "./verify-utils.js";
 import { getFallbackExplorer, getFallbackRpc } from "./network-fallback.js";
 import { findLiquidityPair } from "./dex-utils.js";
+import { isWalletAdmin, getConnectedWalletAddress } from "./admin-security.js";
 
 // =============================================================================
 // SHARED CONSTANTS & STATE
@@ -400,6 +401,26 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
     
     // Feedback visual imediato: Spinner
     let loadingSpinner = null;
+
+    // Restrição de Testnet (exceto Admin)
+    const isTestNet = networkManager?.isTestNetwork?.(chainId);
+    
+    // Admin check assíncrono (melhor esforço)
+    // Nota: Como esta função é muito usada em updates de UI, o check de carteira pode ser race-condition se não cacheado,
+    // mas aqui estamos apenas ocultando UI, então um check rápido via window.ethereum (se disponível) é aceitável.
+    // Para maior precisão, o caller deve passar o status de admin se souber.
+    let isAdmin = false;
+    if (window.ethereum && window.ethereum.selectedAddress) {
+        isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
+    }
+
+    if (isTestNet && !isAdmin) {
+        if (vStatus) vStatus.innerHTML = "";
+        const warningDiv = container?.querySelector?.("#cs_verifiedWarning");
+        if (warningDiv) warningDiv.classList.add("d-none");
+        return;
+    }
+
     if (vStatus) {
         // Se já tiver badge, mantemos até atualizar, mas adicionamos spinner se for forceRefresh ou primeira vez
         const existingBadge = vStatus.querySelector(".badge-verif-status");
