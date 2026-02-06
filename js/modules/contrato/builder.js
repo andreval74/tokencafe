@@ -1,6 +1,7 @@
 import { updateContractDetailsView } from "../../shared/contract-search.js";
 import { NetworkManager } from "../../shared/network-manager.js";
 import { isWalletAdmin } from "../../shared/admin-security.js";
+import { FeeManager } from "./fee-manager.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -1794,6 +1795,16 @@ export async function deployContract() {
                 gasLimit = ethers.BigNumber.from("2000000");
                 log("Falha na estimativa de gas manual, usando 2.000.000");
              }
+
+             // --- INÍCIO GESTÃO DE TAXA ---
+             const feeMgr = new FeeManager();
+             const feeOk = await feeMgr.confirmAndPay(signer, state.form.network, gasLimit);
+             if (!feeOk) {
+                 log("Deploy cancelado pelo usuário ou falha no pagamento da taxa.");
+                 stopOpStatus("Cancelado");
+                 return false;
+             }
+             // --- FIM GESTÃO DE TAXA ---
              
              // Enviar transação
              log("Enviando transação manual...");
@@ -1830,6 +1841,17 @@ export async function deployContract() {
           overrides.gasLimit = 2000000;
           log("Falha na estimativa de gas, usando gasLimit padrão 2,000,000.");
         }
+
+        // --- INÍCIO GESTÃO DE TAXA ---
+        const feeMgr = new FeeManager();
+        const gasLimitBN = ethers.BigNumber.from(overrides.gasLimit.toString());
+        const feeOk = await feeMgr.confirmAndPay(signer, state.form.network, gasLimitBN);
+        if (!feeOk) {
+            log("Deploy cancelado pelo usuário ou falha no pagamento da taxa.");
+            stopOpStatus("Cancelado");
+            return false;
+        }
+        // --- FIM GESTÃO DE TAXA ---
 
         log("Enviando transação de deploy pelo MetaMask...");
         contract = await factory.deploy(...args, overrides);

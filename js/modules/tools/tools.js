@@ -1,6 +1,7 @@
 import "../../shared/base-system.js";
 import "../../shared/page-manager.js";
 import { SEOManager } from "../../shared/seo-manager.js";
+import { isWalletAdmin } from "../../shared/admin-security.js";
 
 // window.initBaseSystem(); // Inicialização automática via import
 window.createPageManager("tools");
@@ -85,30 +86,15 @@ function setupImportRecipe() {
 
 // --- Access Control System ---
 const accessControl = {
-  admins: [],
   
   async loadAdmins() {
-    try {
-      // Try to fetch from config file
-      // Note: Assuming path relative to the HTML page location or absolute path
-      const response = await fetch('/config/admins.txt');
-      if (response.ok) {
-        const text = await response.text();
-        this.admins = text.split(/[\r\n]+/)
-          .map(line => line.trim())
-          .filter(line => line && !line.startsWith('#')); // Filter empty lines and comments
-        console.log("Access Control: Admin list loaded", this.admins.length);
-      } else {
-        console.warn("Access Control: Could not load admin config");
-      }
-    } catch (e) {
-      console.error("Access Control: Error loading config", e);
-    }
+    // Agora centralizado em admin-security.js
+    console.log("Access Control: Using shared admin security module");
   },
 
   apply(walletAddress) {
     const tiles = document.querySelectorAll('.tool-tile');
-    const isAdmin = walletAddress && this.admins.includes(walletAddress.toLowerCase());
+    const isAdmin = isWalletAdmin(walletAddress);
     
     console.log(`Access Control: Applying rules for ${walletAddress || 'Guest'} (Admin: ${isAdmin})`);
 
