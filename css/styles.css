@@ -61,66 +61,11 @@
   --tokencafe-light-border-medium: #cbd5e1; /* Borda média clara */
 }
 
-/* ===== BOOTSTRAP 5 CSS VARIABLES OVERRIDE - TOKENCAFE THEME ===== */
+/* ===== BOOTSTRAP 5 CSS VARIABLES OVERRIDE - REMOVED TO RESTORE ORIGINAL LOOK ===== */
+/* (Styles removed by user request to restore original identity) */
+
+/* TokenCafe Custom Variables (compatibilidade com código existente) */
 :root {
-  /* TokenCafe Brand Colors */
-  --bs-primary: var(--tokencafe-primary);
-  --bs-primary-rgb: 248, 93, 35;
-  --bs-secondary: #6b7280;
-  --bs-secondary-rgb: 107, 114, 128;
-  --bs-success: var(--tokencafe-success);
-  --bs-success-rgb: 16, 185, 129;
-  --bs-danger: #ef4444;
-  --bs-danger-rgb: 239, 68, 68;
-  --bs-warning: #f59e0b;
-  --bs-warning-rgb: 245, 158, 11;
-  --bs-info: #3b82f6;
-  --bs-info-rgb: 59, 130, 246;
-  --bs-light: #f8fafc;
-  --bs-light-rgb: 248, 250, 252;
-  --bs-dark: #1a1a1a;
-  --bs-dark-rgb: 26, 26, 26;
-
-  /* Bootstrap Body & Background - Dark Theme */
-  --bs-body-bg: #000000;
-  --bs-body-color: var(--tokencafe-text-primary);
-  --bs-body-color-rgb: 255, 255, 255;
-  --bs-body-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --bs-body-font-size: 1rem;
-  --bs-body-font-weight: 400;
-  --bs-body-line-height: 1.6;
-
-  /* Bootstrap Text Colors - Dark Theme */
-  --bs-emphasis-color: var(--tokencafe-text-primary);
-  --bs-emphasis-color-rgb: 255, 255, 255;
-  --bs-secondary-color: var(--tokencafe-text-secondary);
-  --bs-secondary-color-rgb: 229, 231, 235;
-  --bs-tertiary-color: #9ca3af;
-  --bs-tertiary-color-rgb: 156, 163, 175;
-
-  /* Bootstrap Link Colors */
-  --bs-link-color: var(--tokencafe-primary);
-  --bs-link-color-rgb: 248, 93, 35;
-  --bs-link-hover-color: var(--tokencafe-primary-light);
-  --bs-link-hover-color-rgb: 251, 191, 36;
-
-  /* Bootstrap Border Colors - Dark Theme */
-  --bs-border-color: var(--tokencafe-bg-surface);
-  --bs-border-color-translucent: rgba(55, 65, 81, 0.175);
-
-  /* Bootstrap Form Colors - Dark Theme */
-  --bs-form-valid-color: var(--tokencafe-success);
-  --bs-form-invalid-color: #ef4444;
-
-  /* Bootstrap Card/Surface - Dark Theme */
-  --bs-card-bg: #1a1a1a;
-  --bs-modal-bg: #1a1a1a;
-  --bs-offcanvas-bg: #1a1a1a;
-  --bs-dropdown-bg: #1a1a1a;
-  --bs-popover-bg: #1a1a1a;
-  --bs-tooltip-bg: #1a1a1a;
-
-  /* TokenCafe Custom Variables (compatibilidade com cÃ³digo existente) */
   --primary: var(--tokencafe-primary);
   --primary-dark: var(--tokencafe-primary-dark);
   --primary-light: var(--tokencafe-primary-light);
@@ -135,14 +80,14 @@
   --default-color: var(--tokencafe-text-primary);
 
   /* Token Creator Variables */
-  --token-primary: var(--bs-primary);
-  --token-secondary: var(--bs-secondary);
-  --token-success: var(--bs-success);
-  --token-warning: var(--bs-warning);
-  --token-danger: var(--bs-danger);
-  --token-info: var(--bs-info);
-  --token-light: var(--bs-light);
-  --token-dark: var(--bs-dark);
+  --token-primary: var(--tokencafe-primary);
+  --token-secondary: #6b7280;
+  --token-success: var(--tokencafe-success);
+  --token-warning: var(--tokencafe-warning);
+  --token-danger: var(--tokencafe-danger);
+  --token-info: var(--tokencafe-info);
+  --token-light: #f8fafc;
+  --token-dark: #1a1a1a;
 
   /* Typography */
   --heading-font: "Inter", sans-serif;
@@ -153,7 +98,8 @@
   --transition: all 0.3s ease;
 }
 
-/* Body Dark Theme Adjustment */
+/* Body Dark Theme Adjustment - REMOVED */
+/*
 body {
   background-color: #000000 !important;
   color: var(--bs-body-color) !important;
@@ -162,16 +108,20 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
+*/
 
-/* Garantir fundo preto 100% em todas as páginas */
+/* Garantir fundo preto 100% em todas as páginas - REMOVED */
+/*
 html,
 body {
   background: #000000 !important;
   background-color: #000000 !important;
   background-image: none !important;
 }
+*/
 
-/* Remover gradientes de todas as seções principais */
+/* Remover gradientes de todas as seções principais - REMOVED */
+/*
 section,
 .section,
 .hero-section,
@@ -184,6 +134,7 @@ div[style*="gradient"] {
   background: #000000 !important;
   background-image: none !important;
 }
+*/
 
 /* Header fixo usando Bootstrap */
 .header-wrapper {
@@ -208,14 +159,14 @@ div[style*="gradient"] {
 /* Bootstrap Form Controls - Dark Theme */
 .form-control {
   background-color: var(--tokencafe-bg-quaternary) !important;
-  border-color: var(--bs-border-color) !important;
-  color: var(--bs-body-color) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
 }
 
 .form-control:focus {
   background-color: var(--tokencafe-bg-quaternary) !important;
-  border-color: var(--bs-primary) !important;
-  color: var(--bs-body-color) !important;
+  border-color: var(--tokencafe-primary) !important;
+  color: #ffffff !important;
   box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
 }
 
@@ -1810,8 +1761,8 @@ Estilos específicos para páginas de Termos de Serviço e Política de Privacid
 .terms-content {
   /* Cor do texto padrão: Cinza claro/branco suave (rgba 255, 255, 255, 0.8) */
   color: rgba(255, 255, 255, 0.8);
-  /* Tamanho de fonte ajustado para 12px (0.75rem) conforme solicitado */
-  font-size: 0.75rem;
+  /* Tamanho de fonte ajustado para 12px conforme solicitado */
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -1829,14 +1780,15 @@ Estilos específicos para páginas de Termos de Serviço e Política de Privacid
 /* Subtítulos (H2, H3) */
 .terms-content h2,
 .terms-content h3 {
-  /* Cor "Mostarda" (Amarelo Warning do Bootstrap/TokenCafe) */
-  color: #ffc107; /* Bootstrap warning */
+  /* Cor "Mostarda" para destaque */
+  color: #ffc107;
   font-weight: 600;
   margin-top: 2rem;
   margin-bottom: 1rem;
   /* Tamanho reduzido para manter hierarquia sem exagero */
   font-size: 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  /* Linha em destaque na cor mostarda */
+  border-bottom: 2px solid #ffc107;
   padding-bottom: 0.5rem;
 }
 
@@ -1885,4 +1837,64 @@ Estilos específicos para páginas de Termos de Serviço e Política de Privacid
   /* Cinza um pouco mais escuro para diferenciar */
   color: rgba(255, 255, 255, 0.6);
   font-style: italic;
+}
+
+/*
+==========================================================================
+TOOLS PAGE STYLES (Restored Grid Layout)
+==========================================================================
+*/
+.tool-tiles {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.tool-tile {
+  background-color: #1a1a1a; /* Dark card background matching live site */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  height: 100%;
+  position: relative;
+  color: #fff;
+}
+
+.tool-tile:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  border-color: var(--tokencafe-primary);
+}
+
+.tool-tile-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--tokencafe-primary);
+}
+
+.tool-tile-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.tool-tile-desc {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.tool-tile-footer {
+  margin-top: auto;
+}
+
+.tool-tile.admin-visible {
+  border: 1px dashed var(--tokencafe-primary);
+  opacity: 0.9;
 }

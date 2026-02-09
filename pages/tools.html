@@ -212,17 +212,20 @@
             </div>
           </div>
 
-          <!-- Dashboard (Admin - desativado temporariamente) -->
-          <div class="tool-tile admin-disabled d-none" aria-label="Dashboard (Admin)" aria-disabled="true">
-            <span class="tool-tile-status badge bg-info">em Breve</span>
+          <!-- Dashboard (Admin) -->
+          <div class="tool-tile d-none" aria-label="Dashboard (Admin)" data-status="admin-only">
+            <span class="tool-tile-status badge bg-info">Admin</span>
             <div class="tool-tile-icon">
               <i class="bi bi-speedometer2"></i>
             </div>
             <div class="tool-tile-title">Dashboard</div>
-            <div class="tool-tile-desc">Sistema integrado</div>
-            <div class="tool-tile-footer small d-flex align-items-center gap-2 mt-2 text-secondary">
-              <i class="bi bi-shield-lock"></i>
-              <span>Somente Admin (temporariamente desativado)</span>
+            <div class="tool-tile-desc">Relatório de movimentação, conexões e arquivos.</div>
+            <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
+              <a href="admin/activity-dashboard.html" class="btn btn-sm btn-outline-primary rounded-3 w-100"
+                aria-label="Abrir Dashboard">
+                <i class="bi bi-graph-up me-1"></i>
+                Abrir Relatórios
+              </a>
             </div>
           </div>
 
