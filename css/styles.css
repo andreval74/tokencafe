@@ -1639,9 +1639,14 @@ Sistema de animações reutilizáveis para todas as páginas
   text-align: center;
 }
 
+/* Homepage-specific alignment */
 .TokenCafe-content {
-  position: relative;
-  z-index: 2;
+  text-align: center;
+}
+
+/* Modifier to align text to the left for other pages */
+.TokenCafe-content.text-align-left {
+  text-align: left;
 }
 
 /* Animation Classes */
@@ -2595,6 +2600,93 @@ body {
   background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
   border-radius: 8px;
   transition: width 0.6s ease;
+}
+
+/* ============================================================================
+   LEGAL & TERMS PAGES (Privacy, Terms, etc.)
+   ========================================================================== */
+.terms-content {
+  color: var(--bs-body-color);
+  line-height: 1.6;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.terms-content h1 {
+  color: var(--bs-primary);
+  font-weight: 800;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid rgba(248, 93, 35, 0.3);
+  padding-bottom: 0.75rem;
+  font-size: 2.25rem;
+}
+
+.terms-content h2 {
+  color: var(--bs-primary-light);
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.terms-content p {
+  margin-bottom: 1.25rem;
+}
+
+.terms-content strong {
+  color: var(--bs-emphasis-color);
+}
+
+.terms-content ul, 
+.terms-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.terms-content li {
+  margin-bottom: 0.75rem;
+}
+
+.terms-content a {
+  color: var(--bs-primary);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--bs-primary);
+  transition: all 0.2s ease;
+}
+
+.terms-content a:hover {
+  color: var(--bs-primary-light);
+  border-bottom-style: solid;
+}
+
+/* Risk & Important Boxes */
+.risk-box {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-left: 5px solid var(--bs-warning);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+
+.risk-box strong {
+  color: var(--bs-warning);
+  font-size: 1.1rem;
+}
+
+.important {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-left: 5px solid var(--bs-success);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+
+.important strong {
+  color: var(--bs-success);
 }
 
 /* Badge Styling */
