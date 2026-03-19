@@ -7,6 +7,8 @@
 /* Importar classes utilitárias */
 @import url("utility-classes.css");
 
+
+
 /* ============================================================================
    SISTEMA DE CORES E VARIÁVEIS TOKENCAFE
    ========================================================================== */
@@ -702,75 +704,6 @@ div[style*="gradient"] {
   background-color: #1a1a1a;
 }
 
-/* Step Content */
-.step-content {
-  display: none;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.step-content.active {
-  display: block;
-}
-
-/* ============================================================================
-   ANIMATIONS & KEYFRAMES (CENTRALIZED)
-   ========================================================================== */
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes glow {
-  0% { opacity: 0.2; filter: blur(15px); }
-  100% { opacity: 0.3; filter: blur(20px); }
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideInLeft {
-  from { transform: translateX(-50px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes progress-bar-stripes {
-  0% { background-position: 1rem 0; }
-  100% { background-position: 0 0; }
-}
-
-@keyframes gradient-shift {
-  0%, 100% { filter: hue-rotate(0deg); }
-  50% { filter: hue-rotate(20deg); }
-}
-
-@keyframes shimmer {
-  0%, 100% { transform: translateX(-100%); }
-  50% { transform: translateX(100%); }
-}
-
-
 .step-simple {
   display: flex;
   flex-direction: column;
@@ -842,10 +775,88 @@ div[style*="gradient"] {
   display: none;
 }
 
+
+/* ============================================================================
+   ANIMATIONS & KEYFRAMES (CENTRALIZED)
+   ========================================================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  0% { opacity: 0.2; filter: blur(15px); }
+  100% { opacity: 0.3; filter: blur(20px); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes progress-bar-stripes {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(20deg); }
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+/* TokenCafe Branded Animations */
+@keyframes TokenCafe-pulse {
+  0% { box-shadow: 0 15px 40px rgba(248, 93, 35, 0.3); }
+  50% { box-shadow: 0 20px 60px rgba(248, 93, 35, 0.5); }
+  100% { box-shadow: 0 15px 40px rgba(248, 93, 35, 0.3); }
+}
+
+@keyframes TokenCafe-glow {
+  0% { opacity: 0.2; filter: blur(15px); }
+  100% { opacity: 0.3; filter: blur(20px); }
+}
+
+@keyframes TokenCafe-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+  50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+}
+
 .form-step.active {
   display: block;
   animation: fadeIn 0.3s ease-in-out;
 }
+
+
 
 /* Wallet Connection Enhanced Styles */
 
