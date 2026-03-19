@@ -11,7 +11,9 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
 <nav class="navbar navbar-expand-lg navbar-dark bg-page-black">
   <div class="container">
     <div class="tc-tools-header navbar-brand d-flex align-items-center">
-      <a href="/pages/tools.html" class="d-flex align-items-center text-decoration-none">
+            <!-- Brand TokenCafe -->
+      
+  <a href="/pages/tools.html" class="d-flex align-items-center text-decoration-none">
         <!-- Logo fixa do TokenCafe -->
         <img id="tools-header-logo" src="/imgs/tkncafe-semfundo.png" alt="TokenCafe" class="logo-small me-3" />
       </a>
@@ -22,15 +24,20 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         </h3>
         <p class="text-white-50 mb-0 small" id="tools-header-subtitle">Hub Central de Ferramentas Web3</p>
       </div>
-    </div>
+    </div> 
 
     <!-- Status da Carteira (padrão minimalista) -->
     <div class="d-flex flex-column align-items-end text-end">
       <div class="d-flex align-items-center">
+        <!-- Botão tema -->
+        <button id="theme-toggle" class="btn btn-sm btn-transparent-warning me-3" type="button" title="Alternar Tema">
+          <i class="bi bi-sun" id="theme-icon"></i>
+        </button>
         <!-- Botão Home -->
-        <a href="/pages/tools.html" class="badge bg-secondary text-white text-decoration-none me-2 badge-action" title="Ir para Tools">
-            <i class="bi bi-house-door-fill me-1"></i>
-            Home
+        <a href="/pages/tools.html" class="badge bg-secondary text-white text-decoration-none me-2 badge-action"
+          title="Ir para Tools">
+          <i class="bi bi-house-door-fill me-1"></i>
+          Home
         </a>
 
         <!-- Botão Suporte -->
@@ -52,8 +59,9 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         <div id="connected-wallet-display" class="small text-muted">
           Não Conectado
         </div>
-        <button id="btn-copy-wallet" class="btn btn-sm btn-link p-0 text-success ms-2 d-none" title="Copiar endereço" style="text-decoration: none;">
-            <i class="bi bi-clipboard"></i>
+        <button id="btn-copy-wallet" class="btn btn-sm btn-link p-0 text-success ms-2 d-none" title="Copiar endereço"
+          style="text-decoration: none;">
+          <i class="bi bi-clipboard"></i>
         </button>
       </div>
       <small id="device-note" class="mt-1"></small>

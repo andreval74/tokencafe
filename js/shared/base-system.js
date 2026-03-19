@@ -45,6 +45,7 @@ class BaseSystem {
     // Configurar sistema de toast
     this.setupToastSystem();
 
+
     // Carregar componentes automaticamente
     await this.loadComponents();
 
@@ -490,6 +491,7 @@ class BaseSystem {
   /**
    * Configurar sistema de toast
    */
+
   setupToastSystem() {
     window.showToast = () => {};
     console.log("🍞 Toasts desativados");
@@ -779,7 +781,12 @@ class BaseSystem {
       }
 
       if (finalResponse && finalResponse.ok) {
-        const content = await finalResponse.text();
+        let content = await finalResponse.text();
+        
+        // Corrigir caminhos absolutos (/) para relativos (BASE_PATH) no conteúdo do componente
+        const base = this.getBasePath();
+        content = content.replace(/(src|href)="\/([^"]*)"/g, `$1="${base}$2"`);
+        
         element.innerHTML = content;
 
         // Recursive: Load nested components immediately
@@ -835,6 +842,9 @@ class BaseSystem {
       }
 
         console.log(`🔗 Componente '${componentName}' carregado de: ${resolvedPath}`);
+        
+        // Emitir evento para o ThemeManager atualizar ícones se necessário
+        window.dispatchEvent(new CustomEvent("componentLoaded", { detail: { component: componentName } }));
       } else {
         console.warn(`⚠️ Componente '${componentName}' não encontrado nos caminhos:`, candidatePaths);
       }
@@ -957,11 +967,11 @@ window.initBaseSystem = function (appState = null) {
   return baseSystem;
 };
 
-// Auto-inicializar se for importado diretamente
+// Exportar a classe e uma instância
+export { BaseSystem };
 const baseSystem = new BaseSystem();
 baseSystem.init().catch((error) => {
   console.error("❌ Erro ao auto-inicializar Base System:", error);
 });
-
-export { BaseSystem };
 export default baseSystem;
+

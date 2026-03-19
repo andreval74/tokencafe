@@ -28,7 +28,7 @@
   --tokencafe-info: #f85d23;    /* Mapeado para laranja */
   --tokencafe-info-light: #fbbf24;
 
-  /* ===== TEMA ESCURO (PADRÃO) ===== */
+  /* ===== TEMA (PADRÃO ESCURO) ===== */
   --tokencafe-bg-primary: #000000;
   --tokencafe-bg-secondary: #0a0a0a;
   --tokencafe-bg-tertiary: #1a1a1a;
@@ -41,54 +41,123 @@
   --tokencafe-text-muted: #9ca3af;
   --tokencafe-text-inverse: #000000;
 
-  --tokencafe-border-light: #374151;
-  --tokencafe-border-medium: #4b5563;
+  --tokencafe-border-light: rgba(255, 255, 255, 0.1);
+  --tokencafe-border-medium: rgba(255, 255, 255, 0.2);
 
   /* ===== BOOTSTRAP OVERRIDES ===== */
   --bs-primary: var(--tokencafe-primary);
-  --bs-primary-rgb: 248, 93, 35;
-  --bs-secondary: #6b7280;
-  --bs-secondary-rgb: 107, 114, 128;
-  --bs-success: var(--tokencafe-success);
-  --bs-success-rgb: 16, 185, 129;
-  --bs-danger: #ef4444;
-  --bs-danger-rgb: 239, 68, 68;
-  --bs-warning: var(--tokencafe-primary); /* Forçar laranja no warning */
-  --bs-warning-rgb: 248, 93, 35;
-  --bs-info: var(--tokencafe-primary);    /* Forçar laranja no info */
-  --bs-info-rgb: 248, 93, 35;
-  --bs-light: #f8fafc;
-  --bs-light-rgb: 248, 250, 252;
-  --bs-dark: #1a1a1a;
-  --bs-dark-rgb: 26, 26, 26;
-
-
-  --bs-body-bg: #000000;
+  --bs-body-bg: var(--tokencafe-bg-primary);
   --bs-body-color: var(--tokencafe-text-primary);
-  --bs-body-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --bs-body-line-height: 1.6;
+  --bs-card-bg: var(--tokencafe-bg-tertiary);
+  --bs-border-color: var(--tokencafe-border-light);
 
-  --bs-card-bg: #1a1a1a;
-  --bs-border-color: var(--tokencafe-bg-surface);
-
-  /* Legacy Compatibility */
-  --primary: var(--tokencafe-primary);
-  --primary-dark: var(--tokencafe-primary-dark);
-  --primary-light: var(--tokencafe-primary-light);
-  --background-color: #000000;
-  --surface-color: #1a1a1a;
-  --text-primary: var(--tokencafe-text-primary);
-  --heading-font: "Inter", sans-serif;
-  --body-font: "Inter", sans-serif;
-  --mono-font: "Courier New", monospace;
-  --transition: all 0.3s ease;
+  /* Bootstrap Status Overrides */
+  --bs-warning: var(--tokencafe-primary);
+  --bs-info: var(--tokencafe-primary);
+  --bs-success: var(--tokencafe-success);
+  --bs-danger: var(--tokencafe-danger);
 }
+
+/* ===== VARIAÇÃO CLARA (LIGHT THEME) ===== */
+[data-theme="light"] {
+  --tokencafe-bg-primary: #ffffff;
+  --tokencafe-bg-secondary: #f8fafc;
+  --tokencafe-bg-tertiary: #f1f5f9;
+  --tokencafe-bg-quaternary: #e2e8f0;
+  --tokencafe-bg-surface: #cbd5e1;
+  --tokencafe-bg-gradient-1: #f8fafc;
+
+  --tokencafe-text-primary: #0f172a;
+  --tokencafe-text-secondary: #334155;
+  --tokencafe-text-muted: #64748b;
+  --tokencafe-text-inverse: #ffffff;
+
+  --tokencafe-border-light: rgba(0, 0, 0, 0.1);
+  --tokencafe-border-medium: rgba(0, 0, 0, 0.2);
+
+  --bs-body-bg: var(--tokencafe-bg-primary);
+  --bs-body-color: var(--tokencafe-text-primary);
+  --bs-card-bg: #ffffff;
+  --bs-border-color: var(--tokencafe-border-light);
+  --bs-secondary-bg: #f1f5f9;
+  --bs-tertiary-bg: #e2e8f0;
+}
+
+/* Forçar cores de texto e fundo no modo claro */
+[data-theme="light"],
+[data-theme="light"] body,
+[data-theme="light"] .TokenCafe-container,
+[data-theme="light"] .TokenCafe-content,
+[data-theme="light"] section,
+[data-theme="light"] .section {
+  background-color: var(--tokencafe-bg-primary) !important;
+  color: var(--tokencafe-text-primary) !important;
+  background-image: none !important;
+}
+
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-light,
+[data-theme="light"] .display-2,
+[data-theme="light"] .display-4,
+[data-theme="light"] .display-5,
+[data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3, 
+[data-theme="light"] h4, [data-theme="light"] h5, [data-theme="light"] h6,
+[data-theme="light"] .navbar-brand,
+[data-theme="light"] .navbar-brand span:not(.text-warning) {
+  color: var(--tokencafe-text-primary) !important;
+}
+
+[data-theme="light"] .text-white-50,
+[data-theme="light"] .text-secondary,
+[data-theme="light"] .lead,
+[data-theme="light"] .nav-link,
+[data-theme="light"] .navbar-nav .nav-link,
+[data-theme="light"] .text-light-50 {
+  color: var(--tokencafe-text-secondary) !important;
+}
+
+[data-theme="light"] .bg-page-black,
+[data-theme="light"] .navbar.bg-page-black,
+[data-theme="light"] .header-wrapper,
+[data-theme="light"] .dashboard-header,
+[data-theme="light"] nav.navbar {
+  background-color: var(--tokencafe-bg-primary) !important;
+  background: var(--tokencafe-bg-primary) !important;
+  border-bottom: 1px solid var(--tokencafe-border-light) !important;
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] .dashboard-card,
+[data-theme="light"] .card-glass {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border-color: var(--tokencafe-border-light) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+
+[data-theme="light"] .navbar-dark .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+[data-theme="light"] .nav-link:hover {
+  color: var(--tokencafe-primary) !important;
+}
+
+[data-theme="light"] .btn-transparent-warning {
+  color: var(--tokencafe-primary) !important;
+}
+
+[data-theme="light"] .btn-transparent-info {
+  color: #3b82f6 !important;
+}
+
 
 /* ============================================================================
    ESTILOS BASE
    ========================================================================== */
 html, body {
-  background-color: #000000 !important;
+  background-color: var(--tokencafe-bg-primary) !important;
   color: var(--bs-body-color) !important;
   font-family: var(--bs-body-font-family) !important;
   line-height: var(--bs-body-line-height) !important;
@@ -99,15 +168,17 @@ html, body {
 }
 
 section, .section, .hero-section, .main-section {
+  background-color: var(--tokencafe-bg-primary) !important;
   background-image: none !important;
 }
 
 
 section[style*="gradient"],
 div[style*="gradient"] {
-  background: #000000 !important;
+  background: var(--tokencafe-bg-primary) !important;
   background-image: none !important;
 }
+
 
 /* ============================================================================
    COMPONENTES GLOBAIS (CARDS, FORMULÁRIOS, BOTÕES)
