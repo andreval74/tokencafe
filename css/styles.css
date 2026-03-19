@@ -2,68 +2,47 @@
  * ================================================================================
  * TOKENCAFE - SISTEMA DE ESTILOS UNIFICADO
  * ================================================================================
- * Sistema de design baseado em Bootstrap 5 com tema personalizado TokenCafe
- * Suporte a tema escuro/claro e componentes modulares
- * ================================================================================
  */
 
-/* Importar classes utilitárias para substituir estilos inline */
+/* Importar classes utilitárias */
 @import url("utility-classes.css");
 
 /* ============================================================================
-   SISTEMA DE CORES TOKENCAFE - TEMA ESCURO E CLARO
+   SISTEMA DE CORES E VARIÁVEIS TOKENCAFE
    ========================================================================== */
 :root {
   /* ===== CORES PRIMÁRIAS TOKENCAFE ===== */
-  --tokencafe-primary: #f85d23; /* Laranja principal TokenCafe */
-  --tokencafe-primary-dark: #d97706; /* Laranja escuro (hover/active) */
-  --tokencafe-primary-light: #fbbf24; /* Laranja claro (accent) */
-  --tokencafe-secondary: #6b7280; /* Cinza neutro */
+  --tokencafe-primary: #f85d23;
+  --tokencafe-primary-dark: #d97706;
+  --tokencafe-primary-light: #fbbf24;
+  --tokencafe-secondary: #6b7280;
 
   /* ===== CORES DE STATUS ===== */
-  --tokencafe-success: #10b981; /* Verde para sucesso */
-  --tokencafe-success-light: #6ee7b7; /* Verde claro */
-  --tokencafe-danger: #ef4444; /* Vermelho para erro */
-  --tokencafe-danger-light: #fca5a5; /* Vermelho claro */
-  --tokencafe-warning: #f59e0b; /* Amarelo para aviso */
-  --tokencafe-info: #3b82f6; /* Azul para informação */
-  --tokencafe-info-light: #93c5fd; /* Azul claro */
+  --tokencafe-success: #10b981;
+  --tokencafe-success-light: #6ee7b7;
+  --tokencafe-danger: #ef4444;
+  --tokencafe-danger-light: #fca5a5;
+  --tokencafe-warning: #f85d23; /* Mapeado para laranja */
+  --tokencafe-info: #f85d23;    /* Mapeado para laranja */
+  --tokencafe-info-light: #fbbf24;
 
   /* ===== TEMA ESCURO (PADRÃO) ===== */
-  --tokencafe-bg-primary: #000000; /* Preto puro */
-  --tokencafe-bg-secondary: #0a0a0a; /* Preto suave */
-  --tokencafe-bg-tertiary: #1a1a1a; /* Cinza muito escuro */
-  --tokencafe-bg-quaternary: #2d2d2d; /* Cinza escuro */
-  --tokencafe-bg-surface: #374151; /* Cinza médio */
-  --tokencafe-bg-gradient-1: #0d1117; /* Gradiente 1 */
+  --tokencafe-bg-primary: #000000;
+  --tokencafe-bg-secondary: #0a0a0a;
+  --tokencafe-bg-tertiary: #1a1a1a;
+  --tokencafe-bg-quaternary: #2d2d2d;
+  --tokencafe-bg-surface: #374151;
+  --tokencafe-bg-gradient-1: #0d1117;
 
-  --tokencafe-text-primary: #ffffff; /* Branco puro */
-  --tokencafe-text-secondary: #e5e7eb; /* Cinza muito claro */
-  --tokencafe-text-muted: #9ca3af; /* Cinza médio claro */
-  --tokencafe-text-inverse: #000000; /* Texto preto (para fundos claros) */
+  --tokencafe-text-primary: #ffffff;
+  --tokencafe-text-secondary: #e5e7eb;
+  --tokencafe-text-muted: #9ca3af;
+  --tokencafe-text-inverse: #000000;
 
-  --tokencafe-border-light: #374151; /* Borda escura */
-  --tokencafe-border-medium: #4b5563; /* Borda média */
+  --tokencafe-border-light: #374151;
+  --tokencafe-border-medium: #4b5563;
 
-  /* ===== TEMA CLARO (FUTURO) ===== */
-  --tokencafe-light-bg-primary: #ffffff; /* Branco puro */
-  --tokencafe-light-bg-secondary: #f8fafc; /* Cinza muito claro */
-  --tokencafe-light-bg-tertiary: #f1f5f9; /* Cinza claro */
-  --tokencafe-light-bg-quaternary: #e2e8f0; /* Cinza médio claro */
-  --tokencafe-light-bg-surface: #cbd5e1; /* Cinza médio */
-
-  --tokencafe-light-text-primary: #1a202c; /* Preto suave */
-  --tokencafe-light-text-secondary: #2d3748; /* Cinza escuro */
-  --tokencafe-light-text-muted: #718096; /* Cinza médio */
-  --tokencafe-light-text-inverse: #ffffff; /* Texto branco */
-
-  --tokencafe-light-border-light: #e2e8f0; /* Borda clara */
-  --tokencafe-light-border-medium: #cbd5e1; /* Borda média clara */
-}
-
-/* ===== BOOTSTRAP 5 CSS VARIABLES OVERRIDE - TOKENCAFE THEME ===== */
-:root {
-  /* TokenCafe Brand Colors */
+  /* ===== BOOTSTRAP OVERRIDES ===== */
   --bs-primary: var(--tokencafe-primary);
   --bs-primary-rgb: 248, 93, 35;
   --bs-secondary: #6b7280;
@@ -72,112 +51,55 @@
   --bs-success-rgb: 16, 185, 129;
   --bs-danger: #ef4444;
   --bs-danger-rgb: 239, 68, 68;
-  --bs-warning: #f59e0b;
-  --bs-warning-rgb: 245, 158, 11;
-  --bs-info: #3b82f6;
-  --bs-info-rgb: 59, 130, 246;
+  --bs-warning: var(--tokencafe-primary); /* Forçar laranja no warning */
+  --bs-warning-rgb: 248, 93, 35;
+  --bs-info: var(--tokencafe-primary);    /* Forçar laranja no info */
+  --bs-info-rgb: 248, 93, 35;
   --bs-light: #f8fafc;
   --bs-light-rgb: 248, 250, 252;
   --bs-dark: #1a1a1a;
   --bs-dark-rgb: 26, 26, 26;
 
-  /* Bootstrap Body & Background - Dark Theme */
+
   --bs-body-bg: #000000;
   --bs-body-color: var(--tokencafe-text-primary);
-  --bs-body-color-rgb: 255, 255, 255;
   --bs-body-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --bs-body-font-size: 1rem;
-  --bs-body-font-weight: 400;
   --bs-body-line-height: 1.6;
 
-  /* Bootstrap Text Colors - Dark Theme */
-  --bs-emphasis-color: var(--tokencafe-text-primary);
-  --bs-emphasis-color-rgb: 255, 255, 255;
-  --bs-secondary-color: var(--tokencafe-text-secondary);
-  --bs-secondary-color-rgb: 229, 231, 235;
-  --bs-tertiary-color: #9ca3af;
-  --bs-tertiary-color-rgb: 156, 163, 175;
-
-  /* Bootstrap Link Colors */
-  --bs-link-color: var(--tokencafe-primary);
-  --bs-link-color-rgb: 248, 93, 35;
-  --bs-link-hover-color: var(--tokencafe-primary-light);
-  --bs-link-hover-color-rgb: 251, 191, 36;
-
-  /* Bootstrap Border Colors - Dark Theme */
-  --bs-border-color: var(--tokencafe-bg-surface);
-  --bs-border-color-translucent: rgba(55, 65, 81, 0.175);
-
-  /* Bootstrap Form Colors - Dark Theme */
-  --bs-form-valid-color: var(--tokencafe-success);
-  --bs-form-invalid-color: #ef4444;
-
-  /* Bootstrap Card/Surface - Dark Theme */
   --bs-card-bg: #1a1a1a;
-  --bs-modal-bg: #1a1a1a;
-  --bs-offcanvas-bg: #1a1a1a;
-  --bs-dropdown-bg: #1a1a1a;
-  --bs-popover-bg: #1a1a1a;
-  --bs-tooltip-bg: #1a1a1a;
+  --bs-border-color: var(--tokencafe-bg-surface);
 
-  /* TokenCafe Custom Variables (compatibilidade com cÃ³digo existente) */
+  /* Legacy Compatibility */
   --primary: var(--tokencafe-primary);
   --primary-dark: var(--tokencafe-primary-dark);
   --primary-light: var(--tokencafe-primary-light);
   --background-color: #000000;
   --surface-color: #1a1a1a;
-  --card-color: #2d2d2d;
   --text-primary: var(--tokencafe-text-primary);
-  --text-secondary: var(--tokencafe-text-secondary);
-  --text-muted: #9ca3af;
-  --border-color: var(--tokencafe-bg-surface);
-  --contrast-color: var(--tokencafe-text-primary);
-  --default-color: var(--tokencafe-text-primary);
-
-  /* Token Creator Variables */
-  --token-primary: var(--bs-primary);
-  --token-secondary: var(--bs-secondary);
-  --token-success: var(--bs-success);
-  --token-warning: var(--bs-warning);
-  --token-danger: var(--bs-danger);
-  --token-info: var(--bs-info);
-  --token-light: var(--bs-light);
-  --token-dark: var(--bs-dark);
-
-  /* Typography */
   --heading-font: "Inter", sans-serif;
   --body-font: "Inter", sans-serif;
   --mono-font: "Courier New", monospace;
-
-  /* Transitions */
   --transition: all 0.3s ease;
 }
 
-/* Body Dark Theme Adjustment */
-body {
+/* ============================================================================
+   ESTILOS BASE
+   ========================================================================== */
+html, body {
   background-color: #000000 !important;
   color: var(--bs-body-color) !important;
   font-family: var(--bs-body-font-family) !important;
   line-height: var(--bs-body-line-height) !important;
   min-height: 100vh;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-/* Garantir fundo preto 100% em todas as páginas */
-html,
-body {
-  background: #000000 !important;
-  background-color: #000000 !important;
+section, .section, .hero-section, .main-section {
   background-image: none !important;
 }
 
-/* Remover gradientes de todas as seções principais */
-section,
-.section,
-.hero-section,
-.main-section {
-  background-image: none !important;
-}
 
 section[style*="gradient"],
 div[style*="gradient"] {
@@ -185,132 +107,88 @@ div[style*="gradient"] {
   background-image: none !important;
 }
 
-/* Header fixo usando Bootstrap */
+/* ============================================================================
+   COMPONENTES GLOBAIS (CARDS, FORMULÁRIOS, BOTÕES)
+   ========================================================================== */
+
+/* Header & Footer */
 .header-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1030; /* Bootstrap z-index for fixed elements */
+  z-index: 1030;
   height: 70px;
   background-color: var(--tokencafe-bg-tertiary);
   border-bottom: 1px solid var(--bs-border-color);
   backdrop-filter: blur(10px);
 }
 
-/* Footer usando Bootstrap */
 .footer-wrapper {
   background-color: var(--tokencafe-bg-tertiary);
   border-top: 1px solid var(--bs-border-color);
   margin-top: auto;
 }
 
-/* Bootstrap Form Controls - Dark Theme */
-.form-control {
+/* Formulários */
+.form-control, .form-select {
   background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-border-color) !important;
   color: var(--bs-body-color) !important;
+  transition: all 0.3s ease;
 }
 
-.form-control:focus {
+.form-control:focus, .form-select:focus {
   background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-primary) !important;
   color: var(--bs-body-color) !important;
   box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
+  outline: none;
 }
 
 .form-control::placeholder {
   color: var(--bs-tertiary-color) !important;
 }
 
-.form-control:valid {
-  border-color: var(--bs-success) !important;
-  background: rgba(16, 185, 129, 0.05);
-}
-
-.form-control:invalid:not(:placeholder-shown) {
-  border-color: var(--bs-danger) !important;
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.form-select {
-  background-color: var(--tokencafe-bg-quaternary) !important;
-  border-color: var(--bs-border-color) !important;
-  color: var(--bs-body-color) !important;
-}
-
-.form-select:focus {
-  background-color: var(--tokencafe-bg-quaternary) !important;
-  border-color: var(--bs-primary) !important;
-  color: var(--bs-body-color) !important;
-  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
-}
-
-/* Bootstrap Cards - Dark Theme */
+/* Cards */
 .card {
   background-color: var(--bs-card-bg) !important;
-  border-color: var(--bs-border-color) !important;
+  border: 1px solid rgba(248, 93, 35, 0.1) !important;
+  color: var(--bs-body-color) !important;
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.2) !important;
+  border-color: rgba(248, 93, 35, 0.3) !important;
+}
+
+
+.card-header {
+  background-color: var(--tokencafe-bg-quaternary) !important;
+  border-bottom: 1px solid var(--bs-border-color) !important;
   color: var(--bs-body-color) !important;
 }
 
-.widget-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 15px;
-  padding: 2rem;
-  color: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.widget-card {
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.widget-preview {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 1.5rem;
-  color: #333333;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.btn-widget-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 25px;
-  padding: 0.75rem 2rem;
-  font-weight: 600;
-}
-
-.btn-widget-primary:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  transform: translateY(-2px);
-  transition: all 0.3s ease;
-}
-
-.alert-sm {
-  padding: 0.5rem 1rem;
-  margin-top: 0.5rem;
-}
-
-/* Estilos específicos para seleção de cards */
+/* Seleção de Cards (Contract Card) */
 .contract-card {
   transition: all 0.2s ease-in-out;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative; /* Para posicionamento absoluto do check */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  position: relative;
 }
 
 .contract-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.3);
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  transform: translateY(-3px);
+  border-color: var(--tokencafe-primary) !important;
+  background-color: rgba(248, 93, 35, 0.05) !important;
 }
 
 .contract-card.selected {
-  border: 2px solid #198754 !important; /* Borda Verde (Success) */
-  background-color: rgba(25, 135, 84, 0.1) !important; /* Fundo levemente verde */
-  box-shadow: 0 0 15px rgba(25, 135, 84, 0.2);
+  border: 2px solid var(--tokencafe-primary) !important;
+  background-color: rgba(248, 93, 35, 0.1) !important;
+  box-shadow: 0 0 15px rgba(248, 93, 35, 0.2);
 }
 
 .contract-card .check-indicator {
@@ -326,21 +204,68 @@ div[style*="gradient"] {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
+/* Botões */
+.btn {
+  font-family: var(--bs-body-font-family);
+  font-weight: 600 !important;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.contract-card:hover {
-  transform: translateY(-3px);
-  border-color: #666;
+/* Primário (Laranja Sólido) */
+.btn-primary {
+  background: linear-gradient(135deg, var(--tokencafe-primary-dark) 0%, var(--tokencafe-primary) 100%) !important;
+  border: none !important;
+  color: white !important;
 }
 
-.contract-card.selected {
-  border-color: #ffc107 !important;
-  background-color: #222 !important;
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(248, 93, 35, 0.4);
 }
+
+/* Outline Primário (Laranja Outline) */
+.btn-outline-primary {
+  border: 1px solid var(--tokencafe-primary) !important;
+  color: var(--tokencafe-primary) !important;
+  background: transparent !important;
+}
+
+.btn-outline-primary:hover {
+  background: var(--tokencafe-primary) !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(248, 93, 35, 0.3);
+}
+
+/* Outline Warning (Mapeado para Laranja para consistência) */
+.btn-outline-warning, .btn-outline-info {
+  border: 1px solid var(--tokencafe-primary) !important;
+  color: var(--tokencafe-primary) !important;
+  background: transparent !important;
+}
+
+.btn-outline-warning:hover, .btn-outline-info:hover {
+  background: var(--tokencafe-primary) !important;
+  color: white !important;
+}
+
+/* Estilo para o botão "Conectar" no Header (se usar btn-warning ou outline-warning) */
+.btn-warning, .btn-outline-warning, .btn-info, .btn-outline-info {
+  --bs-btn-color: var(--tokencafe-primary) !important;
+  --bs-btn-border-color: var(--tokencafe-primary) !important;
+  --bs-btn-hover-bg: var(--tokencafe-primary) !important;
+  --bs-btn-hover-border-color: var(--tokencafe-primary) !important;
+}
+
+
+
 
 .icon-circle {
   width: 60px;
@@ -357,9 +282,9 @@ div[style*="gradient"] {
   top: 80px; /* abaixo do header fixo */
 }
 
-/* ==========================
-   Widget Preview (tc-*)
-   ========================== */
+/* ============================================================================
+   WIDGET PREVIEW (TC-*)
+   ========================================================================== */
 .tc-widget {
   display: block;
   max-width: 420px;
@@ -399,15 +324,15 @@ div[style*="gradient"] {
   border-color: #cbd5e1;
 }
 .tc-theme-light .tc-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+  border-color: var(--tokencafe-primary);
+  box-shadow: 0 0 0 0.2rem rgba(248, 93, 35, 0.2);
 }
 .tc-theme-light .tc-input-suffix {
-  background: #2563eb;
+  background: var(--tokencafe-primary);
   color: #fff;
 }
 .tc-theme-light .tc-total-value {
-  color: #2563eb;
+  color: var(--tokencafe-primary);
 }
 .tc-theme-light .tc-connected {
   background: #e8f5e9;
@@ -415,7 +340,7 @@ div[style*="gradient"] {
   border: 1px solid #1f5132;
 }
 .tc-theme-light .tc-btn-primary {
-  background: #10b981;
+  background: var(--tokencafe-primary);
   color: #fff;
 }
 
@@ -430,16 +355,17 @@ div[style*="gradient"] {
   border-color: #334155;
 }
 .tc-theme-dark .tc-input:focus {
-  border-color: #f85d23;
+  border-color: var(--tokencafe-primary);
   box-shadow: 0 0 0 0.2rem rgba(248, 93, 35, 0.2);
 }
 .tc-theme-dark .tc-input-suffix {
-  background: #2563eb;
+  background: var(--tokencafe-primary);
   color: #fff;
 }
 .tc-theme-dark .tc-total-value {
-  color: #93c5fd;
+  color: var(--tokencafe-primary-light);
 }
+
 .tc-theme-dark .tc-connected {
   background: rgba(16, 185, 129, 0.15);
   color: #6ee7b7;
@@ -606,321 +532,69 @@ div[style*="gradient"] {
 }
 
 /* ============================================================================
-   BUTTONS & ACTIONS SYSTEM
-   ============================================================================ */
+   HELPER CLASSES & BOOTSTRAP OVERRIDES
+   ========================================================================== */
 
-/* Base Button Style - Unified Typography */
-.btn {
-  font-family: var(--bs-body-font-family);
-  font-weight: 600 !important;
-  font-size: 1rem !important; /* Standardized size for all buttons */
-  letter-spacing: 0.3px;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  transition: all 0.2s ease-in-out;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem; /* Space between icon and text */
-}
+/* Alerts */
+.alert-success { --bs-alert-bg: rgba(16, 185, 129, 0.1); --bs-alert-color: var(--tokencafe-success-light); --bs-alert-border-color: var(--bs-success); border-left: 4px solid var(--bs-success); }
+.alert-danger { --bs-alert-bg: rgba(239, 68, 68, 0.1); --bs-alert-color: #fca5a5; --bs-alert-border-color: var(--bs-danger); border-left: 4px solid var(--bs-danger); }
+.alert-warning { --bs-alert-bg: rgba(245, 158, 11, 0.1); --bs-alert-color: var(--tokencafe-primary-light); --bs-alert-border-color: var(--bs-warning); border-left: 4px solid var(--bs-warning); }
+.alert-info { --bs-alert-bg: rgba(59, 130, 246, 0.1); --bs-alert-color: var(--tokencafe-info-light); --bs-alert-border-color: var(--bs-info); border-left: 4px solid var(--bs-info); }
 
-/* Button Sizes */
-.btn-lg {
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem !important; /* Keep same font size, just bigger padding */
-}
+/* Progress */
+.progress { background-color: var(--tokencafe-bg-surface) !important; border-radius: 8px; overflow: hidden; height: 8px; }
+.progress-bar { background-color: var(--bs-primary) !important; transition: width 0.6s ease; }
 
-.btn-sm {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.875rem !important; /* Slightly smaller only for explicitly small buttons */
-}
+/* Text & Background Utilities (Garantindo prioridade sobre Bootstrap) */
+.text-primary { color: var(--bs-primary) !important; }
+.text-success { color: var(--bs-success) !important; }
+.text-danger { color: var(--bs-danger) !important; }
+.text-warning { color: var(--bs-warning) !important; }
+.text-info { color: var(--bs-info) !important; }
+.text-muted { color: var(--tokencafe-text-muted) !important; }
 
-/* Flex Row for Buttons - Full Width Behavior */
-.btn-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  width: 100%;
-}
+.bg-primary { background-color: var(--bs-primary) !important; }
+.bg-dark-custom { background-color: #1a1a1a !important; }
 
-.btn-row .btn {
-  flex-grow: 1; /* Occupy available space */
-  flex-basis: 0; /* Equal distribution */
-  min-width: 120px; /* Minimum width before wrapping */
-}
-
-/* Input Group Buttons (Icon Only) */
-.input-group .btn {
-  padding: 0.6rem 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.input-group .btn i {
-  font-size: 1.1rem;
-}
-
-/* Disabled States */
-.btn:disabled,
-.btn.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-/* Standard Outline Buttons with Hover Fill */
-.btn-outline-primary {
-  color: var(--bs-primary);
-  border-color: var(--bs-primary);
-  background: transparent;
-}
-.btn-outline-primary:hover:not(:disabled) {
-  background: var(--bs-primary);
-  color: #fff;
-}
-
-.btn-outline-secondary {
-  color: var(--bs-secondary);
-  border-color: var(--bs-secondary);
-  background: transparent;
-}
-.btn-outline-secondary:hover:not(:disabled) {
-  background: var(--bs-secondary);
-  color: #fff;
-}
-
-.btn-outline-success {
-  color: var(--bs-success);
-  border-color: var(--bs-success);
-  background: transparent;
-}
-.btn-outline-success:hover:not(:disabled) {
-  background: var(--bs-success);
-  color: #fff;
-}
-
-.btn-outline-danger {
-  color: var(--bs-danger);
-  border-color: var(--bs-danger);
-  background: transparent;
-}
-.btn-outline-danger:hover:not(:disabled) {
-  background: var(--bs-danger);
-  color: #fff;
-}
-
-.btn-outline-warning {
-  color: var(--bs-warning);
-  border-color: var(--bs-warning);
-  background: transparent;
-}
-.btn-outline-warning:hover:not(:disabled) {
-  background: var(--bs-warning);
-  color: #1a1a1a;
-}
-
-.btn-outline-info {
-  color: var(--bs-info);
-  border-color: var(--bs-info);
-  background: transparent;
-}
-.btn-outline-info:hover:not(:disabled) {
-  background: var(--bs-info);
-  color: #fff;
-}
-
-/* Used States (Success/Error feedback) */
-.btn-used-success {
-  color: var(--bs-success) !important;
-  border-color: var(--bs-success) !important;
-  background: rgba(16, 185, 129, 0.1) !important;
-}
-
-.btn-used-error {
-  color: var(--bs-danger) !important;
-  border-color: var(--bs-danger) !important;
-  background: rgba(239, 68, 68, 0.1) !important;
-}
-
-/* Bootstrap Alerts - Dark Theme */
-.alert-success {
-  --bs-alert-bg: rgba(16, 185, 129, 0.1);
-  --bs-alert-color: var(--tokencafe-success-light);
-  --bs-alert-border-color: var(--bs-success);
-  border-left: 4px solid var(--bs-success);
-}
-
-.alert-danger {
-  --bs-alert-bg: rgba(239, 68, 68, 0.1);
-  --bs-alert-color: #fca5a5;
-  --bs-alert-border-color: var(--bs-danger);
-  border-left: 4px solid var(--bs-danger);
-}
-
-.alert-warning {
-  --bs-alert-bg: rgba(245, 158, 11, 0.1);
-  --bs-alert-color: var(--tokencafe-primary-light);
-  --bs-alert-border-color: var(--bs-warning);
-  border-left: 4px solid var(--bs-warning);
-}
-
-.alert-info {
-  --bs-alert-bg: rgba(59, 130, 246, 0.1);
-  --bs-alert-color: var(--tokencafe-info-light);
-  --bs-alert-border-color: var(--bs-info);
-  border-left: 4px solid var(--bs-info);
-}
-
-/* Bootstrap Progress - Dark Theme */
-.progress {
-  background-color: var(--tokencafe-bg-surface) !important;
-}
-
-.progress-bar {
-  background-color: var(--bs-primary) !important;
-}
-
-.progress-bar-animated {
-  animation: progress-bar-stripes 1s linear infinite;
-}
-
-@keyframes progress-bar-stripes {
-  0% {
-    background-position: 1rem 0;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-/* Bootstrap Text Colors */
-.text-primary {
-  color: var(--bs-primary) !important;
-}
-
-.text-secondary {
-  color: var(--bs-secondary-color) !important;
-}
-
-.text-muted {
-  color: var(--bs-tertiary-color) !important;
-}
-
-.text-success {
-  color: var(--bs-success) !important;
-}
-
-.text-danger {
-  color: var(--bs-danger) !important;
-}
-
-.text-warning {
-  color: var(--bs-warning) !important;
-}
-
-.text-info {
-  color: var(--bs-info) !important;
-}
-
-/* Bootstrap Background Colors */
-.bg-primary {
-  background-color: var(--bs-primary) !important;
-}
-
-.bg-secondary {
-  background-color: var(--bs-dark) !important;
-}
-
-/* .bg-dark {
-  background-color: #1a1a1a !important;
-} */
-
-/* Bootstrap Border Colors */
-.border-primary {
-  border-color: var(--bs-primary) !important;
-}
-
-.border-secondary {
-  border-color: var(--bs-border-color) !important;
-}
-
-/* Loading Screen - Usando Bootstrap */
+/* Loading Screen */
 .loading-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--bs-body-bg);
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
   color: var(--bs-body-color);
-  z-index: 1070; /* Bootstrap z-index for modals */
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
   border-top-color: var(--bs-primary);
-  animation: spin 1s ease-in-out infinite;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Bootstrap Modal Dark Theme */
-.modal-content {
-  background-color: var(--bs-modal-bg) !important;
-  color: var(--bs-body-color) !important;
-  border-color: var(--bs-border-color) !important;
-}
-
-.modal-header {
-  border-color: var(--bs-border-color) !important;
-}
-
-.modal-footer {
-  border-color: var(--bs-border-color) !important;
-}
-
-/* Bootstrap Dropdown Dark Theme */
-.dropdown-menu {
-  background-color: var(--bs-dropdown-bg) !important;
-  border-color: var(--bs-border-color) !important;
-}
-
-.dropdown-item {
+/* Modal & Dropdown Overrides */
+.modal-content, .dropdown-menu {
+  background-color: var(--tokencafe-bg-tertiary) !important;
+  border: 1px solid var(--bs-border-color) !important;
   color: var(--bs-body-color) !important;
 }
 
-.dropdown-item:hover,
-.dropdown-item:focus {
-  background-color: rgba(248, 93, 35, 0.1) !important;
-  color: var(--bs-primary) !important;
-}
+.dropdown-item { color: var(--bs-body-color) !important; transition: all 0.2s ease; }
+.dropdown-item:hover { background-color: rgba(248, 93, 35, 0.1) !important; color: var(--bs-primary) !important; }
 
-/* Bootstrap Table Dark Theme */
-.table {
-  color: var(--bs-body-color) !important;
-}
+/* ============================================================================
+   MODULE SPECIFIC STYLES
+   ========================================================================== */
 
-.table-dark {
-  --bs-table-bg: #1a1a1a;
-  --bs-table-striped-bg: #2d2d2d;
-  --bs-table-hover-bg: var(--tokencafe-bg-surface);
-  --bs-table-border-color: var(--bs-border-color);
-}
-
-/*
-==========================================================================
-TOKEN CREATOR SPECIFIC STYLES
-==========================================================================
-*/
 
 /* Token Creator Container */
 .token-creator-container {
@@ -1038,16 +712,64 @@ TOKEN CREATOR SPECIFIC STYLES
   display: block;
 }
 
+/* ============================================================================
+   ANIMATIONS & KEYFRAMES (CENTRALIZED)
+   ========================================================================== */
+
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  0% { opacity: 0.2; filter: blur(15px); }
+  100% { opacity: 0.3; filter: blur(20px); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes progress-bar-stripes {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(20deg); }
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
 
 .step-simple {
   display: flex;
@@ -1125,18 +847,8 @@ TOKEN CREATOR SPECIFIC STYLES
   animation: fadeIn 0.3s ease-in-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Wallet Connection Enhanced Styles */
+
 .wallet-status-connected {
   background-color: rgba(16, 185, 129, 0.1) !important;
   border-color: var(--tokencafe-success) !important;
@@ -1167,104 +879,6 @@ TOKEN CREATOR SPECIFIC STYLES
   font-weight: 600;
 }
 
-/* Hero Section usando Bootstrap */
-.hero-section {
-  background: #000000;
-}
-
-.hero-title {
-  font-weight: 700;
-  font-family: var(--bs-body-font-family);
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, var(--bs-primary), var(--tokencafe-primary-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Step Navigation */
-.step-navigation {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #333;
-}
-
-.nav-buttons {
-  display: flex;
-  gap: 15px;
-}
-
-/* Responsive adjustments using Bootstrap breakpoints */
-@media (max-width: 767.98px) {
-  body {
-    padding-top: 60px;
-  }
-
-  .header-wrapper {
-    height: 60px;
-  }
-
-  .progress-steps-simple {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .step-simple:not(:last-child)::after {
-    display: none;
-  }
-
-  .creator-header h1 {
-    font-size: 2rem;
-  }
-
-  .token-creator-container {
-    padding: 60px 0 20px 0;
-  }
-}
-
-@media (max-width: 575.98px) {
-  body {
-    padding-top: 50px;
-  }
-
-  .header-wrapper {
-    height: 50px;
-  }
-
-  .creator-card {
-    padding: 20px;
-  }
-
-  .creator-header {
-    margin: -20px -20px 20px -20px;
-    padding: 20px;
-  }
-}
-
-/* Print Styles */
-@media print {
-  .header-wrapper,
-  .footer-wrapper {
-    display: none !important;
-  }
-
-  body {
-    padding-top: 0;
-    background: white !important;
-    color: black !important;
-  }
-}
-
-/*
-==========================================================================
-HOMEPAGE SPECIFIC STYLES
-==========================================================================
-*/
-
 /* Hero Section Enhancements */
 .hero-section {
   min-height: 100vh;
@@ -1273,33 +887,13 @@ HOMEPAGE SPECIFIC STYLES
   overflow: hidden;
 }
 
-.hero-section::before {
-  display: none;
-}
-
 .hero-content {
-  position: relative;
-  z-index: 2;
-}
-
-.hero-image {
   position: relative;
   z-index: 2;
 }
 
 .hero-image img {
   filter: drop-shadow(0 20px 40px rgba(248, 93, 35, 0.3));
-  /* animation: float 6s ease-in-out infinite; */
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
 }
 
 /* Badge Styling */
@@ -1307,6 +901,7 @@ HOMEPAGE SPECIFIC STYLES
   font-weight: 500;
   letter-spacing: 0.5px;
 }
+
 
 /* Blockchain Logos */
 .blockchain-logo {
@@ -1325,22 +920,10 @@ HOMEPAGE SPECIFIC STYLES
 }
 
 /* Feature Cards Enhancement */
-.card {
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-  border: 1px solid rgba(248, 93, 35, 0.1) !important;
-}
-
-.card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.2) !important;
-  border-color: rgba(248, 93, 35, 0.3) !important;
-}
-
 .feature-icon i {
   transition: transform 0.3s ease;
 }
+
 
 .card:hover .feature-icon i {
   transform: scale(1.1);
@@ -1394,17 +977,8 @@ HOMEPAGE SPECIFIC STYLES
   animation: gradient-shift 3s ease-in-out infinite;
 }
 
-@keyframes gradient-shift {
-  0%,
-  100% {
-    filter: hue-rotate(0deg);
-  }
-  50% {
-    filter: hue-rotate(20deg);
-  }
-}
-
 /* Section Spacing */
+
 section {
   position: relative;
 }
@@ -1416,16 +990,10 @@ section {
 
 /* Smooth Transitions for All Interactive Elements */
 a,
-button,
-.btn {
+button {
   transition: all 0.3s ease;
 }
 
-/* Enhanced Focus States */
-.btn:focus,
-.btn:focus-visible {
-  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.5) !important;
-}
 
 /*
 ==========================================================================
@@ -1828,20 +1396,10 @@ Sistema de animações reutilizáveis para todas as páginas
 }
 
 /* Loading Animation for Page */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .hero-content > * {
   animation: fadeInUp 0.8s ease-out;
 }
+
 
 .hero-content > *:nth-child(1) {
   animation-delay: 0.1s;
@@ -1923,17 +1481,8 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
   animation: shimmer 3s ease-in-out infinite;
 }
 
-@keyframes shimmer {
-  0%,
-  100% {
-    transform: translateX(-100%);
-  }
-  50% {
-    transform: translateX(100%);
-  }
-}
-
 /* Status Indicators */
+
 .status-indicator {
   display: inline-flex;
   align-items: center;
@@ -2001,19 +1550,8 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
   animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.7;
-  }
-}
-
 /* Loading Animation */
+
 .loading-spinner {
   width: 20px;
   height: 20px;
@@ -2023,13 +1561,8 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Technical Info Cards */
+
 .tech-info-card {
   background: linear-gradient(135deg, rgba(45, 45, 45, 0.8), rgba(26, 26, 26, 0.9));
   border: 1px solid rgba(248, 93, 35, 0.2);
@@ -2570,41 +2103,10 @@ body {
 /* Custom Bootstrap Button Overrides */
 /* (removido) Overrides antigos de botões duplicados — consolidado abaixo */
 
-/* Card Enhancements */
-.card {
-  background: rgba(26, 26, 26, 0.9);
-  border: 1px solid rgba(55, 65, 81, 0.3);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-}
-
-.card-header {
-  background: rgba(26, 26, 26, 0.95);
-  border-bottom: 1px solid rgba(55, 65, 81, 0.3);
-  border-radius: 16px !important;
-}
-
-.card-body {
-  background: rgba(26, 26, 26, 0.8);
-  border-radius: 16px;
-}
-
-/* Progress Bar Styling */
-.progress {
-  background: rgba(55, 65, 81, 0.3);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
-  border-radius: 8px;
-  transition: width 0.6s ease;
-}
-
 /* ============================================================================
    LEGAL & TERMS PAGES (Privacy, Terms, etc.)
    ========================================================================== */
+
 .terms-content {
   color: var(--bs-body-color);
   line-height: 1.6;
@@ -2900,74 +2402,6 @@ body {
 }
 
 /* Animations */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-    opacity: 0.8;
-  }
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 15px 40px rgba(248, 93, 35, 0.3);
-  }
-  50% {
-    box-shadow: 0 20px 60px rgba(248, 93, 35, 0.5);
-  }
-  100% {
-    box-shadow: 0 15px 40px rgba(248, 93, 35, 0.3);
-  }
-}
-
-@keyframes glow {
-  0% {
-    opacity: 0.2;
-    filter: blur(15px);
-  }
-  100% {
-    opacity: 0.3;
-    filter: blur(20px);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulseGlow {
-  0% {
-    box-shadow: 0 0 20px rgba(248, 93, 35, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(248, 93, 35, 0.5);
-  }
-  100% {
-    box-shadow: 0 0 20px rgba(248, 93, 35, 0.3);
-  }
-}
-
-@keyframes floatSoft {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
 @keyframes scroll {
   0% {
     transform: translateX(0);
@@ -2976,6 +2410,7 @@ body {
     transform: translateX(-50%);
   }
 }
+
 
 /*
 =============================================================================
@@ -3326,16 +2761,6 @@ Classes reutilizáveis para efeitos neon padronizados
   }
 }
 
-/* ============================================================================
-   DASHBOARD STYLES - TOKENCAFE DASHBOARD LAYOUT
-   ========================================================================== */
-
-:root {
-  --dashboard-header-height: 65px;
-  --dashboard-sidebar-width: 280px;
-  --dashboard-sidebar-collapsed-width: 70px;
-}
-
 /* Dashboard Layout */
 .dashboard-container {
   display: flex;
@@ -3345,6 +2770,7 @@ Classes reutilizáveis para efeitos neon padronizados
   overflow-x: hidden;
   background-color: var(--tokencafe-bg-primary);
 }
+
 
 /* Sidebar */
 .dashboard-sidebar {
@@ -3595,18 +3021,7 @@ Classes reutilizáveis para efeitos neon padronizados
   border: 1px solid rgba(248, 93, 35, 0.1);
 }
 
-/* Notificações do Dashboard */
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
+/* Dashboard Notifications */
 @keyframes slideOutRight {
   from {
     transform: translateX(0);
@@ -3617,6 +3032,7 @@ Classes reutilizáveis para efeitos neon padronizados
     opacity: 0;
   }
 }
+
 
 /* Responsive Dashboard */
 @media (max-width: 768px) {
@@ -4497,164 +3913,15 @@ Classes reutilizáveis para efeitos neon padronizados
 [data-bs-theme="dark"] .tool-tile {
   background: rgba(26, 26, 26, 0.85);
 }
-/* ==============================
-   Botões — Padrão Global (Bootstrap 5)
-   ============================== */
-
-/* Principal: laranja em degradê (padrão mais escuro, inspirado no header) */
-.btn-primary {
-  color: #fff;
-  background-image: linear-gradient(135deg, var(--tokencafe-primary-dark) 0%, var(--tokencafe-primary) 50%, var(--tokencafe-primary-dark) 100%);
-  border: none;
-}
-.btn-primary:hover,
-.btn-primary:focus {
-  color: var(--tokencafe-primary) !important;
-  background: transparent !important;
-  border: 1px solid var(--tokencafe-primary) !important;
-}
-.btn-primary:disabled {
-  opacity: 0.85;
-  background: transparent !important;
-  color: #adb5bd !important;
-  border-color: #6c757d !important;
-}
-
-/* Limpar/Cancelar: cinza escuro padronizado */
-.btn-dark {
-  color: #fff;
-  background-color: #2b2b2b;
-  border-color: #2b2b2b;
-}
-.btn-dark:hover,
-.btn-dark:focus {
-  color: #fff;
-  background-color: #222;
-  border-color: #222;
-}
-
-/* Secundário clássico */
-.btn-secondary {
-  color: #fff;
-  background-color: #6c757d;
-  border-color: #6c757d;
-}
-
-/* Outline secundário (não destrutivo) */
-.btn-outline-secondary {
-  color: #6c757d;
-  border-color: #6c757d;
-}
-.btn-outline-secondary:hover,
-.btn-outline-secondary:focus {
-  color: #fff;
-  background-color: #6c757d;
-  border-color: #6c757d;
-}
-
-/* Outline principal (não destrutivo, destaca ação) */
-.btn-outline-primary {
-  color: var(--tokencafe-primary);
-  border-color: var(--tokencafe-primary);
-  background: transparent;
-}
-.btn-outline-primary:hover,
-.btn-outline-primary:focus {
-  color: #fff;
-  background-color: var(--tokencafe-primary);
-  border-color: var(--tokencafe-primary);
-}
-
-/* Outline aviso (não destrutivo) */
-
-/* Widget-teste: layout de informações abaixo dos inputs */
-.field-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 6px;
-}
-.field-info-line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.field-info-line.values.simple-3 {
-  display: grid;
-  grid-template-columns: 160px minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-  align-items: center;
-}
-.field-info-line.values.simple-4 {
-  display: grid;
-  grid-template-columns: 160px minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-}
-.fi-col1 {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.fi-col2 {
-  color: #bbb;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.fi-col3 {
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.fi-actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  justify-content: flex-end;
-}
-.fi-actions input {
-  width: 110px;
-  min-width: 0;
-}
-.btn-icon {
-  padding: 4px 8px;
-  line-height: 1;
-}
-.field-tx {
-  font-size: 0.85rem;
-  color: #bbb;
-}
-
-/* Ícones inline no final dos inputs (busca e endereços) */
-.input-end-icons {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  gap: 6px;
-  pointer-events: auto;
-}
-.input-end-icons .btn {
-  padding: 2px 6px;
-  line-height: 1;
-}
-.input-end-icons .btn i {
-  font-size: 1rem;
-}
-/* Espaço interno para ícones não sobreporem texto */
+/* ============================================================================
+ * ADDITIONAL UTILITIES
+ * ============================================================================ */
 .position-relative > .form-control {
   padding-right: 72px;
 }
 
-/* ============================================================================
- * BUTTON/BADGE HOVER EFFECTS
- * ============================================================================ */
 .badge-action {
-  background-color: #343a40 !important; /* Dark Gray */
+  background-color: #343a40 !important;
   color: #fff !important;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
@@ -4663,7 +3930,7 @@ Classes reutilizáveis para efeitos neon padronizados
 }
 
 .badge-action:hover {
-  background-color: #f85d23 !important; /* Brand Orange */
+  background-color: var(--tokencafe-primary) !important;
   color: #fff !important;
   opacity: 1;
   transform: translateY(-2px);
