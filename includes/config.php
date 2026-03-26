@@ -29,7 +29,7 @@ if (!defined("TOKENCAFE_MAINTENANCE_MODE")) {
   $env = getenv("TOKENCAFE_MAINTENANCE_MODE");
   if ($env !== false) {
     $envVal = strtolower(trim((string) $env));
-    define("TOKENCAFE_MAINTENANCE_MODE", in_array($envVal, ["1", "true", "yes", "on"], true));
+    define("TOKENCAFE_MAINTENANCE_MODE", in_array($envVal, ["1", "true", "yes", "on"], false));
   } else {
     define("TOKENCAFE_MAINTENANCE_MODE", !$isLocalhost);
   }
