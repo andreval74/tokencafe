@@ -1,0 +1,69 @@
+  <?php
+    $pageTitle = "Widget Simples - Compra Básica - TokenCafe";
+    $pageDescription = "Fluxo mínimo: conectar carteira e enviar pagamento ao beneficiário.";
+    $pageKeywords = "widget, compra, Web3, MetaMask";
+    $headerVariant = "module";
+    $moduleHeaderTitle = "Widget Simples";
+    $moduleHeaderSubtitle = "Compra básica";
+    $moduleHeaderIcon = "bi-cart";
+    $moduleHeaderIconAlt = "Widget";
+  ?>
+    <div class="container py-4">
+      <h1 class="h4 mb-3">Widget Simples</h1>
+      <p class="text-muted mb-4">Fluxo mínimo: conectar carteira e enviar pagamento ao beneficiário.</p>
+
+      <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Connect Wallet -->
+                <div class="col-12 btn-row">
+                    <button id="connectBtn" class="btn btn-outline-primary">
+                        <i class="bi bi-wallet2 me-2"></i>Conectar MetaMask
+                    </button>
+                    <span id="accountLabel" class="align-self-center">Carteira: -</span>
+                </div>
+
+                <!-- Beneficiary -->
+                <div class="col-12">
+                    <label for="beneficiary" class="form-label">Beneficiário (recebe o pagamento):</label>
+                    <div class="input-group">
+                        <input id="beneficiary" placeholder="0x..." class="form-control" />
+                        <button class="btn btn-outline-secondary" type="button" id="copyBeneficiaryBtn" title="Copiar">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Qty -->
+                <div class="col-12">
+                    <label for="qty" class="form-label">Quantidade (para cálculo):</label>
+                    <input id="qty" type="number" step="1" min="1" value="1" class="form-control" />
+                </div>
+
+                <!-- Price -->
+                <div class="col-12">
+                    <label for="priceEth" class="form-label">Preço unitário (ETH):</label>
+                    <input id="priceEth" type="number" step="0.000000000000000001" value="0" class="form-control" />
+                </div>
+
+                <!-- Buy Button -->
+                <div class="col-12 btn-row">
+                    <button id="buyBtn" class="btn btn-outline-success">
+                        <i class="bi bi-cash-coin me-2"></i>Enviar Pagamento
+                    </button>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+            Saída
+        </div>
+        <div class="card-body">
+            <pre id="output" class="bg-dark text-light p-3 rounded mb-0"></pre>
+        </div>
+      </div>
+    </div>
+
+    <?php if (isset($enqueue_script_src)) { $enqueue_script_src("modules/widget-simples/main.js"); } ?>

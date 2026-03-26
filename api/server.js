@@ -48,42 +48,14 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// DEBUG PATHS
-const pagesPath = path.join(__dirname, "..", "pages");
-console.log("Serving /pages from:", pagesPath);
 const fs = require("fs");
-if (fs.existsSync(pagesPath)) {
-  console.log("✅ Pages directory exists");
-  try {
-    const files = fs.readdirSync(path.join(pagesPath, "modules", "verifica"));
-    console.log("✅ Verified verifica folder content:", files);
-  } catch (e) {
-    console.log("⚠️ Could not list verifica folder:", e.message);
-  }
-} else {
-  console.error("❌ Pages directory NOT FOUND at:", pagesPath);
-}
 
-// Servir páginas e assets estáticos para testar a UI
-app.use("/pages", express.static(pagesPath));
-app.use("/js", express.static(path.join(__dirname, "..", "js")));
-app.use("/css", express.static(path.join(__dirname, "..", "css")));
-app.use("/imgs", express.static(path.join(__dirname, "..", "imgs")));
+// Servir assets estáticos para testar a UI
+app.use("/assets", express.static(path.join(__dirname, "..", "assets")));
 // Servir dados compartilhados (rpcs.json) para NetworkManager
 app.use("/shared", express.static(path.join(__dirname, "..", "shared")));
-// Fallback explícito para arquivos CSS
-app.get("/css/:file", (req, res, next) => {
-  try {
-    const target = path.join(__dirname, "..", "css", req.params.file || "");
-    res.sendFile(target, (err) => {
-      if (err) next();
-    });
-  } catch (_) {
-    next();
-  }
-});
 app.get("/", (req, res) => {
-  res.redirect("/pages/index.html");
+  res.redirect("/index.php");
 });
 
 // Rate limiting

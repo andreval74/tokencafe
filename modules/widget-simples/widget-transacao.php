@@ -1,0 +1,156 @@
+  <?php
+    $pageTitle = "Widget de Transação - TokenCafe";
+    $pageDescription = "Compra simples de tokens com tBNB (Testnet).";
+    $pageKeywords = "widget, transação, tBNB, Web3";
+    $headerVariant = "module";
+    $moduleHeaderTitle = "Widget de Transação";
+    $moduleHeaderSubtitle = "Demo";
+    $moduleHeaderIcon = "bi-cash-coin";
+    $moduleHeaderIconAlt = "Transação";
+  ?>
+    <div class="container py-4">
+      <h1 class="h4 mb-3">Widget de Transação</h1>
+      <p class="text-muted mb-4">Compra simples de tokens com tBNB (Testnet). Conecte sua carteira, valide o contrato e confirme.</p>
+
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <div class="card">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">Endereço do contrato de venda</label>
+                  <div class="input-group">
+                    <input id="tw-contract-address" class="form-control" placeholder="0x..." />
+                    <button class="btn btn-outline-secondary" type="button" id="tw-copy-contract-btn" title="Copiar">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                  <div id="tw-status-receiver" class="small mt-1">-</div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Token ERC-20 a receber</label>
+                  <div class="input-group">
+                    <input id="tw-token-address" class="form-control" placeholder="0x... (opcional)" />
+                    <button class="btn btn-outline-secondary" type="button" id="tw-copy-token-btn" title="Copiar">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                  <div id="tw-status-token" class="small mt-1">-</div>
+                </div>
+                <div class="col-12 btn-row">
+                  <button id="tw-connect" class="btn btn-outline-primary">
+                    <i class="bi bi-wallet2 me-2"></i>
+                    Conectar carteira
+                  </button>
+                  <button id="tw-validate" class="btn btn-outline-secondary">
+                    <i class="bi bi-check2-circle me-2"></i>
+                    Validar contrato
+                  </button>
+                </div>
+                <div class="col-12">
+                  <div id="tw-buyer-info" class="small">Carteira: -</div>
+                </div>
+
+                <div class="col-6">
+                  <label class="form-label">Preço por token (tBNB)</label>
+                  <input id="tw-price" class="form-control" value="0.001" />
+                  <div id="tw-minmax" class="small mt-1">Min: 1 | Max: —</div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Quantidade</label>
+                  <input id="tw-qty" type="number" class="form-control" value="1" min="1" />
+                  <div class="small mt-1">
+                    Total:
+                    <span id="tw-total">0.001 tBNB</span>
+                  </div>
+                </div>
+
+                <div class="col-12 btn-row">
+                  <button id="tw-buy" class="btn btn-outline-success">
+                    <i class="bi bi-cash-coin me-2"></i>
+                    Confirmar compra
+                  </button>
+                  <button id="tw-add-mm" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Adicionar token ao MetaMask
+                  </button>
+                </div>
+
+                <div class="col-12">
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-3">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <div class="fw-semibold mb-1">Saldos (nativos)</div>
+                  <div class="small">
+                    Comprador:
+                    <span id="tw-buyer-native">-</span>
+                  </div>
+                  <div class="small">
+                    Contrato:
+                    <span id="tw-contract-native">-</span>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="fw-semibold mb-1">Saldos (token)</div>
+                  <div class="small">
+                    Comprador:
+                    <span id="tw-buyer-token">-</span>
+                  </div>
+                  <div class="small">
+                    Contrato:
+                    <span id="tw-contract-token">-</span>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="fw-semibold mb-1">Estado de permissões</div>
+                  <div class="small">
+                    transfer():
+                    <span id="tw-status-transfer">-</span>
+                  </div>
+                  <div class="small">
+                    Saldo do vendedor:
+                    <span id="tw-status-sellerbal">-</span>
+                  </div>
+                  <div class="small">
+                    Allowance (comprador→contrato):
+                    <span id="tw-status-allowance">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="fw-semibold mb-2">Rede atual</div>
+              <div class="small">
+                Leitura RPC:
+                <span id="tw-read-rpc">-</span>
+              </div>
+              <div class="small">
+                Leitura chainId:
+                <span id="tw-read-chain">-</span>
+              </div>
+              <div class="small mb-3">
+                Carteira chainId:
+                <span id="tw-wallet-chain">-</span>
+              </div>
+              <div class="fw-semibold mb-2">Logs</div>
+              <pre id="tw-log" class="small bg-light border rounded p-2 min-height-240">{}</pre>
+              <div class="small text-muted">Mostra estados, erros e resultados de transações.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <?php if (isset($enqueue_script_src)) { $enqueue_script_src("modules/widget-simples/widget-transacao.js"); } ?>
