@@ -165,7 +165,9 @@
 <script src="assets/js/shared/theme-switcher.js?v=<?= htmlspecialchars(defined('ASSET_VERSION') ? ASSET_VERSION : '9.9', ENT_QUOTES, 'UTF-8') ?>"></script>
 <script src="assets/js/shared/language-switcher.js?v=<?= htmlspecialchars(defined('ASSET_VERSION') ? ASSET_VERSION : '9.9', ENT_QUOTES, 'UTF-8') ?>" defer></script>
 <script src="assets/js/shared/scroll-to-top.js?v=<?= htmlspecialchars(defined('ASSET_VERSION') ? ASSET_VERSION : '9.9', ENT_QUOTES, 'UTF-8') ?>"></script>
-<script type="module" src="assets/js/shared/base-system.js"></script>
+<?php if (!isset($disableBaseSystem) || !$disableBaseSystem) { ?>
+  <script type="module" src="assets/js/shared/base-system.js"></script>
+<?php } ?>
 <script type="module" src="assets/js/shared/wallet-connector.js"></script>
 <?php if (isset($pageScripts)) echo $pageScripts; ?>
 <script>

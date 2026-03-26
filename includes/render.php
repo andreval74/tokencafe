@@ -138,6 +138,8 @@ function render_page(string $viewPath, array $options = []): void
       $options["showHeader"] = false;
       $options["showSidebar"] = false;
       $options["showFooter"] = false;
+      $options["disableBaseSystem"] = true;
+      $options["disablePageHeader"] = true;
       $options["headerVariant"] = "default";
       $options["pageTitle"] = "Manutenção - TokenCafe";
       $options["pageRobots"] = "noindex,nofollow";
@@ -233,7 +235,10 @@ function render_page(string $viewPath, array $options = []): void
     }
   }
 
-  if (!in_array("assets/js/shared/page-header.js", $GLOBALS["__tokencafe_page_scripts_src"], true)) {
+  $disablePageHeaderOpt = array_key_exists("disablePageHeader", $options) ? (bool) $options["disablePageHeader"] : false;
+  $disablePageHeaderVar = isset($disablePageHeader) ? (bool) $disablePageHeader : false;
+  $disablePageHeaderFinal = $disablePageHeaderOpt || $disablePageHeaderVar;
+  if (!$disablePageHeaderFinal && !in_array("assets/js/shared/page-header.js", $GLOBALS["__tokencafe_page_scripts_src"], true)) {
     $enqueueModule("assets/js/shared/page-header.js");
   }
 
