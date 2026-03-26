@@ -137,6 +137,7 @@ function render_page(string $viewPath, array $options = []): void
       $viewPathReal = $maintenanceView;
       $options["showHeader"] = false;
       $options["showSidebar"] = false;
+      $options["showFooter"] = false;
       $options["headerVariant"] = "default";
       $options["pageTitle"] = "Manutenção - TokenCafe";
       $options["pageRobots"] = "noindex,nofollow";
@@ -159,6 +160,7 @@ function render_page(string $viewPath, array $options = []): void
   $bodyClass = $options["bodyClass"] ?? "bg-page-black";
   $showSidebar = array_key_exists("showSidebar", $options) ? (bool) $options["showSidebar"] : true;
   $showHeader = array_key_exists("showHeader", $options) ? (bool) $options["showHeader"] : true;
+  $showFooter = array_key_exists("showFooter", $options) ? (bool) $options["showFooter"] : true;
 
   $viewRel = __tokencafe_relpath($viewPathReal, $projectRoot);
   $viewRelNorm = strtolower(str_replace("\\", "/", $viewRel));

@@ -2,6 +2,9 @@
 $pageTitle = "Manutenção - TokenCafe";
 $pageDescription = "O TokenCafe está em manutenção.";
 $pageKeywords = "tokencafe, manutenção, web3";
+$showHeader = false;
+$showSidebar = false;
+$showFooter = false;
 ?>
 
 <div class="container py-5">

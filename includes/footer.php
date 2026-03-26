@@ -1,159 +1,162 @@
-<div class="section-divider"></div>
-<footer class="text-white py-2 bg-page-black">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-4">
-        <div class="d-flex align-items-center mb-3">
-          <img src="assets/imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 logo-standard" />
-          <div class="d-flex flex-column">
-            <a href="index.php" title="Home" class="text-no-decoration">
-              <span class="fw-bold text-white fs-4">
-                Token
-                <span class="text-warning">Cafe</span>
-              </span>
+<?php $tokencafe_show_footer = !isset($showFooter) || $showFooter; ?>
+<?php if ($tokencafe_show_footer) { ?>
+  <div class="section-divider"></div>
+  <footer class="text-white py-2 bg-page-black">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="d-flex align-items-center mb-3">
+            <img src="assets/imgs/tkncafe192x192.png" alt="TokenCafe Logo" class="me-2 logo-standard" />
+            <div class="d-flex flex-column">
+              <a href="index.php" title="Home" class="text-no-decoration">
+                <span class="fw-bold text-white fs-4">
+                  Token
+                  <span class="text-warning">Cafe</span>
+                </span>
+              </a>
+              <small class="text-white-50 text-small">Plataforma Web3</small>
+            </div>
+          </div>
+          <p class="text-white-50 mb-3 mt-2 text-line-height-normal">A plataforma mais avançada para criação e
+            gerenciamento de tokens personalizados no ecossistema Web3.</p>
+          <div class="social-icons mt-3">
+            <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Instagram">
+              <i class="fa-brands fa-instagram fs-4"></i>
             </a>
-            <small class="text-white-50 text-small">Plataforma Web3</small>
+            <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Twitter/X">
+              <i class="fa-brands fa-twitter fs-4"></i>
+            </a>
+            <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Telegram">
+              <i class="fa-brands fa-telegram fs-4"></i>
+            </a>
+            <a href="https://wa.me/5543999446606" class="text-white-50 me-3 neon-icon-hover" title="WhatsApp">
+              <i class="fa-brands fa-whatsapp fs-4"></i>
+            </a>
           </div>
         </div>
-        <p class="text-white-50 mb-3 mt-2 text-line-height-normal">A plataforma mais avançada para criação e
-          gerenciamento de tokens personalizados no ecossistema Web3.</p>
-        <div class="social-icons mt-3">
-          <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Instagram">
-            <i class="fa-brands fa-instagram fs-4"></i>
-          </a>
-          <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Twitter/X">
-            <i class="fa-brands fa-twitter fs-4"></i>
-          </a>
-          <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Telegram">
-            <i class="fa-brands fa-telegram fs-4"></i>
-          </a>
-          <a href="https://wa.me/5543999446606" class="text-white-50 me-3 neon-icon-hover" title="WhatsApp">
-            <i class="fa-brands fa-whatsapp fs-4"></i>
-          </a>
+        <div class="col-lg-2">
+          <h6 class="mb-3 text-white fw-semibold text-warning">Plataforma</h6>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <a href="index.php#token" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-coin me-1"></i>
+                Token
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="index.php#comofunciona" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-gear me-1"></i>
+                Como Funciona
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="index.php#ecosistema" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-globe me-1"></i>
+                EcoSistema
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="index.php#precos" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-currency-dollar me-1"></i>
+                Preços
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-tools me-1"></i>
+                Tools
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-lg-2">
+          <h6 class="mb-3 fw-semibold text-warning">Tokens</h6>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <span class="text-white-50 text-xs">
+                <i class="fab fa-ethereum me-1 text-info"></i>
+                ERC-20
+              </span>
+            </li>
+            <li class="mb-2">
+              <span class="text-white-50 text-xs">
+                <i class="bi bi-sun me-1 text-warning"></i>
+                SPL (Solana)
+              </span>
+            </li>
+            <li class="mb-2">
+              <span class="text-white-50 text-xs">
+                <i class="bi bi-droplet me-1 text-primary"></i>
+                Sui
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div class="col-lg-2">
+          <h6 class="mb-3 fw-semibold text-warning">Suporte</h6>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <a href="index.php#social" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-people me-1"></i>
+                Social
+              </a>
+            </li>
+            <li class="mb-2">
+              <span class="text-white-50 text-xs">
+                <i class="bi bi-book me-1"></i>
+                Documentação
+              </span>
+            </li>
+            <li class="mb-2">
+              <span class="text-white-50 text-xs">
+                <i class="bi bi-check-circle me-1 text-success"></i>
+                Status
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div class="col-lg-2">
+          <h6 class="mb-3 fw-semibold text-warning">Legal</h6>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              <span class="text-white-50 text-xs">
+                <i class="bi bi-shield me-1"></i>
+                <a href="privacidade.php" class="text-white-50 neon-link-small-hover text-xs">
+                  Privacidade
+                </a>
+              </span>
+            </li>
+            <li class="mb-2">
+              <span class="text-white-50 text-xs">
+                <i class="bi bi-file-earmark-text me-1"></i>
+                <a href="termos-e-servicos.php" class="text-white-50 neon-link-small-hover text-xs">
+                  Termos de Serviço
+                </a>
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
-      <div class="col-lg-2">
-        <h6 class="mb-3 text-white fw-semibold text-warning">Plataforma</h6>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <a href="index.php#token" class="text-white-50 neon-link-small-hover text-xs">
-              <i class="bi bi-coin me-1"></i>
-              Token
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="index.php#comofunciona" class="text-white-50 neon-link-small-hover text-xs">
-              <i class="bi bi-gear me-1"></i>
-              Como Funciona
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="index.php#ecosistema" class="text-white-50 neon-link-small-hover text-xs">
-              <i class="bi bi-globe me-1"></i>
-              EcoSistema
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="index.php#precos" class="text-white-50 neon-link-small-hover text-xs">
-              <i class="bi bi-currency-dollar me-1"></i>
-              Preços
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
-              <i class="bi bi-tools me-1"></i>
-              Tools
-            </a>
-          </li>
-        </ul>
-      </div>
-      <div class="col-lg-2">
-        <h6 class="mb-3 fw-semibold text-warning">Tokens</h6>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <span class="text-white-50 text-xs">
-              <i class="fab fa-ethereum me-1 text-info"></i>
-              ERC-20
-            </span>
-          </li>
-          <li class="mb-2">
-            <span class="text-white-50 text-xs">
-              <i class="bi bi-sun me-1 text-warning"></i>
-              SPL (Solana)
-            </span>
-          </li>
-          <li class="mb-2">
-            <span class="text-white-50 text-xs">
-              <i class="bi bi-droplet me-1 text-primary"></i>
-              Sui
-            </span>
-          </li>
-        </ul>
-      </div>
-      <div class="col-lg-2">
-        <h6 class="mb-3 fw-semibold text-warning">Suporte</h6>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <a href="index.php#social" class="text-white-50 neon-link-small-hover text-xs">
-              <i class="bi bi-people me-1"></i>
-              Social
-            </a>
-          </li>
-          <li class="mb-2">
-            <span class="text-white-50 text-xs">
-              <i class="bi bi-book me-1"></i>
-              Documentação
-            </span>
-          </li>
-          <li class="mb-2">
-            <span class="text-white-50 text-xs">
-              <i class="bi bi-check-circle me-1 text-success"></i>
-              Status
-            </span>
-          </li>
-        </ul>
-      </div>
-      <div class="col-lg-2">
-        <h6 class="mb-3 fw-semibold text-warning">Legal</h6>
-        <ul class="list-unstyled">
-          <li class="mb-2">
-            <span class="text-white-50 text-xs">
-              <i class="bi bi-shield me-1"></i>
-              <a href="privacidade.php" class="text-white-50 neon-link-small-hover text-xs">
-                Privacidade
-              </a>
-            </span>
-          </li>
-          <li class="mb-2">
-            <span class="text-white-50 text-xs">
-              <i class="bi bi-file-earmark-text me-1"></i>
-              <a href="termos-e-servicos.php" class="text-white-50 neon-link-small-hover text-xs">
-                Termos de Serviço
-              </a>
-            </span>
-          </li>
-        </ul>
-      </div>
-    </div>
 
-    <footer class="tokencafe-footer mt-3">
-      <p class="footer-text text-center text-white-50 small mb-2">
-        <b>Aviso Legal:</b>
-        Esta plataforma oferece apenas ferramentas para criação e administração de smarts contracts e tokens.<br>
-        Não há vínculo, endosso ou responsabilidade sobre qualquer documento, criptomoeda ou projeto criado por meio
-        dela.<br>
-        Toda responsabilidade, governança e risco pertencem exclusivamente aos criadores e à comunidade.<br>
-        O uso e intenções ocorre por conta e risco do usuário.<br>
-      </p>
-      <p class="footer-text text-center text-white-50 small mb-0">
-        <i class="bi bi-code-slash"></i>
-        Desenvolvido pela equipe
-        <strong class="footer-brand text-white">Token</strong>
-        <strong class="footer-brand text-warning">Cafe</strong>
-      </p>
-    </footer>
-  </div>
-</footer>
+      <footer class="tokencafe-footer mt-3">
+        <p class="footer-text text-center text-white-50 small mb-2">
+          <b>Aviso Legal:</b>
+          Esta plataforma oferece apenas ferramentas para criação e administração de smarts contracts e tokens.<br>
+          Não há vínculo, endosso ou responsabilidade sobre qualquer documento, criptomoeda ou projeto criado por meio
+          dela.<br>
+          Toda responsabilidade, governança e risco pertencem exclusivamente aos criadores e à comunidade.<br>
+          O uso e intenções ocorre por conta e risco do usuário.<br>
+        </p>
+        <p class="footer-text text-center text-white-50 small mb-0">
+          <i class="bi bi-code-slash"></i>
+          Desenvolvido pela equipe
+          <strong class="footer-brand text-white">Token</strong>
+          <strong class="footer-brand text-warning">Cafe</strong>
+        </p>
+      </footer>
+    </div>
+  </footer>
+<?php } ?>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
