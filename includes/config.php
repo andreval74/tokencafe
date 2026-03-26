@@ -24,3 +24,13 @@ if (!defined("BASE_URL")) {
 if (!defined("ASSET_VERSION")) {
   define("ASSET_VERSION", "9.9");
 }
+
+if (!defined("TOKENCAFE_MAINTENANCE_MODE")) {
+  $env = getenv("TOKENCAFE_MAINTENANCE_MODE");
+  if ($env !== false) {
+    $envVal = strtolower(trim((string) $env));
+    define("TOKENCAFE_MAINTENANCE_MODE", in_array($envVal, ["1", "true", "yes", "on"], true));
+  } else {
+    define("TOKENCAFE_MAINTENANCE_MODE", !$isLocalhost);
+  }
+}

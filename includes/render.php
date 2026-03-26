@@ -131,7 +131,10 @@ function render_page(string $viewPath, array $options = []): void
   $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
   $isAdmin = tokencafe_is_admin_wallet($walletCookie);
 
-  if (!$isLocal && !$isAdmin) {
+  $maintenanceEnabled = defined("TOKENCAFE_MAINTENANCE_MODE") ? (bool) TOKENCAFE_MAINTENANCE_MODE : false;
+  $maintenancePreview = $isAdmin && isset($_GET["maintenance"]) && (string) $_GET["maintenance"] === "1";
+
+  if (($maintenanceEnabled && !$isLocal && !$isAdmin) || $maintenancePreview) {
     $maintenanceView = $projectRoot . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "site" . DIRECTORY_SEPARATOR . "maintenance.php";
     if (is_file($maintenanceView)) {
       $viewPathReal = $maintenanceView;
