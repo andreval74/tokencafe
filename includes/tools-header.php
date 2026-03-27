@@ -55,7 +55,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         </a> -->
 
         <!-- botão de sair -->
-        <a href="javascript:void(0)" id="btn-logout" class="badge bg-danger me-2 badge-action" onclick="handleLogout()">
+        <a href="javascript:void(0)" id="btn-logout" class="badge bg-danger me-2 badge-action d-none" onclick="handleLogout()">
           <i class="bi bi-box-arrow-right me-1"></i>
           Sair
         </a>

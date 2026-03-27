@@ -867,9 +867,9 @@ class BaseSystem {
     if (!componentName) return;
 
     try {
-      const candidatePaths = [`includes/${componentName}`, componentName, `pages/${componentName}`, `pages/shared/${componentName}`, `pages/modules/${componentName}`];
+      const candidatePaths = [componentName, `includes/${componentName}`, `pages/${componentName}`, `pages/shared/${componentName}`, `pages/modules/${componentName}`];
 
-      let finalResponse = null;
+      let content = null;
       let resolvedPath = null;
 
       for (const path of candidatePaths) {
@@ -877,16 +877,26 @@ class BaseSystem {
           this.dlog("component:fetch:try", { component: componentName, path });
           const response = await this.fetchWithTimeout(path, 3000);
           if (response && response.ok) {
-            finalResponse = response;
-            resolvedPath = path;
-            this.dlog("component:fetch:ok", { component: componentName, path });
-            break;
+            const text = await this.withTimeout(response.text(), 3000).catch(() => "");
+            const head = String(text || "").slice(0, 2000).toLowerCase();
+            const looksLikeFullPage =
+              head.includes("<!doctype") ||
+              head.includes("<html") ||
+              head.includes("<head") ||
+              head.includes("<body") ||
+              head.includes('id="app-content"') ||
+              head.includes("tokencafe-app-content");
+            if (!looksLikeFullPage && String(text || "").trim() !== "") {
+              content = text;
+              resolvedPath = path;
+              this.dlog("component:fetch:ok", { component: componentName, path });
+              break;
+            }
           }
         } catch (_) {}
       }
 
-      if (finalResponse && finalResponse.ok) {
-        let content = await this.withTimeout(finalResponse.text(), 3000).catch(() => "");
+      if (typeof content === "string") {
         element.innerHTML = content;
 
         // Recursive: Load nested components immediately
@@ -901,6 +911,36 @@ class BaseSystem {
       const scripts = element.querySelectorAll("script");
       const scriptPromises = [];
 
+      const getAssetVersion = () => {
+        try {
+          if (window.__tokencafe_asset_version) return String(window.__tokencafe_asset_version);
+          const link = document.querySelector('link[href*="assets/css/styles.css?v="]') || document.querySelector('link[href*="assets/css/"][href*="?v="]');
+          const href = link ? String(link.getAttribute("href") || "") : "";
+          const idx = href.indexOf("?v=");
+          if (idx === -1) return null;
+          const v = href.slice(idx + 3).split("&")[0] || "";
+          if (!v) return null;
+          window.__tokencafe_asset_version = v;
+          return v;
+        } catch (_) {
+          return null;
+        }
+      };
+
+      const versionAssetSrc = (src) => {
+        try {
+          if (!src || typeof src !== "string") return src;
+          if (src.includes("://")) return src;
+          if (!src.startsWith("assets/")) return src;
+          if (src.includes("?")) return src;
+          const v = getAssetVersion();
+          if (!v) return src;
+          return src + "?v=" + encodeURIComponent(v);
+        } catch (_) {
+          return src;
+        }
+      };
+
       scripts.forEach((script) => {
         if (script.src) {
           const p = new Promise((resolve) => {
@@ -913,7 +953,7 @@ class BaseSystem {
 
             // Ajustar SRC se necessário
             let src = script.getAttribute("src");
-            newScript.src = src;
+            newScript.src = versionAssetSrc(src);
 
             const t = setTimeout(resolve, 3000);
             newScript.onload = () => {

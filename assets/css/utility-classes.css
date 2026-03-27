@@ -17,32 +17,9 @@
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
-.logo-large {
-  width: 80px;
-  height: 80px;
-  margin-bottom: 20px;
-}
-
 .logo-small {
   width: 40px;
   height: 40px;
-}
-
-.logo-medium {
-  width: 60px;
-  height: 60px;
-}
-
-.icon-large {
-  font-size: 4rem;
-}
-
-.icon-medium {
-  font-size: 1.5rem;
-}
-
-.icon-small {
-  font-size: 0.5rem;
 }
 
 /* Bootstrap-style icon sizes */
@@ -58,9 +35,6 @@
   font-size: 1.25rem;
 }
 
-.icon-sm {
-  font-size: 0.875rem;
-}
 
 /* ============================================================================
  * TEXT UTILITIES
@@ -98,10 +72,6 @@
 
 .min-width-250 {
   min-width: 250px;
-}
-
-.min-width-300 {
-  min-width: 300px;
 }
 
 .border-radius-50 {
@@ -152,17 +122,6 @@
 }
 
 
-.simple-network {
-  border: 1px solid #ccc;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  background: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .simple-message {
   margin-top: 15px;
   font-weight: bold;
@@ -181,26 +140,6 @@
 }
 
 /* ============================================================================
- * POSITION UTILITIES
- * ============================================================================ */
-
-.position-toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1050;
-}
-
-.position-loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-}
-
-/* ============================================================================
  * BACKGROUND UTILITIES
  * ============================================================================ */
 
@@ -213,60 +152,14 @@
 }
 
 
-.bg-coffee-light {
-  background-color: var(--tokencafe-primary-light);
-}
 .bg-dark-elevated {
   background-color: var(--tokencafe-bg-tertiary);
   color: var(--bs-body-color);
   border: 1px solid var(--bs-border-color);
 }
-/* Gradientes padronizados */
-.navbar-gradient-primary {
-  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
-  border-bottom: 2px solid var(--tokencafe-primary-light);
-}
 
-.bg-gradient-dark-135 {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-}
-
-/* Efeito glass para cards */
-.card-glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-}
-
-/* Alert suave na cor primária */
-.alert-soft-primary {
-  background: rgba(248, 93, 35, 0.1);
-  border: 1px solid rgba(248, 93, 35, 0.3);
-}
-
-
-/* Badge com cor de marca */
-.badge-brand {
-  background: var(--tokencafe-primary);
-  color: var(--tokencafe-text-inverse);
-}
-
-
-/* ============================================================================
- * PROGRESS UTILITIES
- * ============================================================================ */
-
-.progress-height-4 {
-  height: 4px;
-}
-
-.progress-width-0 {
-  width: 0%;
-}
 
 /* Alturas mínimas */
-.min-height-125 {
-  min-height: 1.25rem;
-}
 .min-height-180 {
   min-height: 180px;
 }
@@ -276,101 +169,73 @@
 .max-height-240 {
   max-height: 240px;
 }
-.max-height-400 {
-  max-height: 400px;
-}
 
 /* ============================================================================
  * BUTTON UTILITIES
  * ============================================================================ */
 
-.btn-transparent {
+.btn-transparent,
+.btn-transparent-warning,
+.btn-transparent-info {
   background: transparent;
   border: none;
   transition: all 0.3s ease;
 }
 
 .btn-transparent-warning {
-  background: transparent;
-  border: none;
   color: var(--bs-warning);
-  transition: all 0.3s ease;
+}
+
+.btn-transparent-warning:hover,
+.btn-transparent-info:hover {
+  transform: scale(1.1);
 }
 
 .btn-transparent-warning:hover {
-  transform: scale(1.1);
   color: #fbbf24;
 }
 
 .btn-transparent-info {
-  background: transparent;
-  border: none;
   color: var(--bs-info);
-  transition: all 0.3s ease;
 }
 
 .btn-transparent-info:hover {
-  transform: scale(1.1);
   color: #60a5fa;
 }
-
-/* Animações utilitárias (Definições principais no styles.css) */
-.animate-pulse {
-  animation: pulse 2s infinite;
-}
-
 
 /* ============================================================================
  * BADGE UTILITIES
  * ============================================================================ */
 
-.badge-notification {
-  position: absolute;
-  top: 0;
-  start: 100%;
-  transform: translate(-50%, -50%);
+.badge-circle,
+.badge-circle-lg,
+.badge-circle-xl {
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
 }
 
 .badge-circle {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .badge-circle-lg {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .badge-circle-xl {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ============================================================================
  * DISPLAY UTILITIES
  * ============================================================================ */
-
-.display-none {
-  display: none;
-}
-
-.display-flex-gap {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
 .cursor-pointer {
   cursor: pointer;
 }

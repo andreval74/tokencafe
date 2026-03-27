@@ -26,7 +26,7 @@
             <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Twitter/X">
               <i class="fa-brands fa-twitter fs-4"></i>
             </a>
-            <a href="#" class="text-white-50 me-3 neon-icon-hover" title="Telegram">
+            <a href="https://t.me/+O5b7SFmJX2UyYWQ5" class="text-white-50 me-3 neon-icon-hover" title="Telegram">
               <i class="fa-brands fa-telegram fs-4"></i>
             </a>
             <a href="https://wa.me/5543999446606" class="text-white-50 me-3 neon-icon-hover" title="WhatsApp">

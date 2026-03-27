@@ -19,7 +19,7 @@ $disablePageHeader = true;
           O futuro da tokenização está sendo refinado. Voltamos em breve.
         </p>
 
-        <a href="https://t.me/tokencafe" target="_blank" rel="noreferrer" class="text-white-50 text-decoration-none small">
+        <a href="https://t.me/+O5b7SFmJX2UyYWQ5" target="_blank" rel="noreferrer" class="text-white-50 text-decoration-none small">
           <i class="bi bi-telegram me-1"></i>
           Acompanhar atualizações
         </a>

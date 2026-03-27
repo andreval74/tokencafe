@@ -37,44 +37,10 @@ const initToolsHeader = () => {
       if (titleEl && title) titleEl.textContent = title;
       if (subtitleEl && subtitle) subtitleEl.textContent = subtitle;
 
-      const addrEl = el.querySelector("#wallet-address");
-      const addrText = el.querySelector("#wallet-address-text");
       const btnConnect = el.querySelector("#connect-metamask-btn") || el.querySelector("#btn-connect");
       const btnLogout = el.querySelector("#btn-logout");
       const walletDisplay = el.querySelector("#connected-wallet-display");
       const btnCopy = el.querySelector("#btn-copy-wallet");
-
-      const tryBind = () => {
-        if (!btnConnect) return true;
-        if (!window.bindWalletStatusUI) return false;
-        try {
-          try {
-            if (window.__tokencafe_debug) console.log("[TC][ToolsHeader] bindWalletStatusUI:try");
-          } catch (_) {}
-          window.bindWalletStatusUI({
-            addressEl: addrText,
-            connectBtnEl: btnConnect,
-          });
-          try {
-            if (window.__tokencafe_debug) console.log("[TC][ToolsHeader] bindWalletStatusUI:ok");
-          } catch (_) {}
-          return true;
-        } catch (_) {
-          return false;
-        }
-      };
-
-      if (!tryBind()) {
-        let attempts = 0;
-        const maxAttempts = 20;
-        const tick = () => {
-          attempts += 1;
-          if (tryBind()) return;
-          if (attempts >= maxAttempts) return;
-          setTimeout(tick, 250);
-        };
-        setTimeout(tick, 250);
-      }
 
       // Logic to update new UI elements (Button Color + Wallet Display below)
       const updateHeaderUI = (address) => {
@@ -82,6 +48,13 @@ const initToolsHeader = () => {
           // Connected
           if (btnConnect) {
             btnConnect.classList.add("d-none");
+            btnConnect.style.display = "none";
+            btnConnect.hidden = true;
+          }
+          if (btnLogout) {
+            btnLogout.classList.remove("d-none");
+            btnLogout.style.display = "";
+            btnLogout.hidden = false;
           }
           if (walletDisplay) {
             walletDisplay.textContent = address;
@@ -106,6 +79,13 @@ const initToolsHeader = () => {
           // Disconnected
           if (btnConnect) {
             btnConnect.classList.remove("d-none");
+            btnConnect.style.display = "";
+            btnConnect.hidden = false;
+          }
+          if (btnLogout) {
+            btnLogout.classList.add("d-none");
+            btnLogout.style.display = "none";
+            btnLogout.hidden = true;
           }
           if (walletDisplay) {
             walletDisplay.textContent = "Não Conectado";
