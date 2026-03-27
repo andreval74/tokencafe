@@ -126,6 +126,7 @@
                     Enviando...
                   </div>
                 </button>
+                <div id="form-status" class="small mt-3 d-none"></div>
                 <div class="mt-3">
                   <small class="text-secondary">
                     <i class="bi bi-asterisk text-danger me-1"></i>

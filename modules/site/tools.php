@@ -80,26 +80,24 @@ $isAdmin = tokencafe_is_admin_wallet($currentWallet);
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
+        <div class="tool-tile disabled-tile" aria-label="Análise de Carteira" aria-disabled="true">
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
-          <div class="tool-tile-icon">
-            <i class="bi bi-file-earmark-code"></i>
-          </div>
-          <div class="tool-tile-title">Gerador de Contratos</div>
-          <div class="tool-tile-desc">Crie, implante e valide contratos</div>
+          <div class="tool-tile-icon"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="tool-tile-title">Análise de Carteira</div>
+          <div class="tool-tile-desc">Relatorios, insights e metricas do seu carteira conectada</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=contrato-avancado" class="tool-link btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Contracts Builder - Avançado">
-              <i class="bi bi-door-open me-1"></i>
-              Modo Avançado
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100 disabled" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>
 
         <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
-          <div class="tool-tile-icon"><i class="bi bi-shield-check"></i></div>
-          <div class="tool-tile-title">Verificação de Contratos</div>
-          <div class="tool-tile-desc">Publicar código e validar no Sourcify/Explorer</div>
+          <div class="tool-tile-icon"><i class="bi bi-graph-up"></i></div>
+          <div class="tool-tile-title">Analise de Contratos</div>
+          <div class="tool-tile-desc">Relatorios, insights e metricas do seu contrato</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
             <a href="index.php?page=verifica" class="tool-link btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Verificação de Contratos">
               <i class="bi bi-door-open me-1"></i>
@@ -111,7 +109,7 @@ $isAdmin = tokencafe_is_admin_wallet($currentWallet);
         <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-rocket"></i></div>
-          <div class="tool-tile-title">Mini Widget</div>
+          <div class="tool-tile-title">Widget</div>
           <div class="tool-tile-desc">Venda de tokens plug & play</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
             <a href="index.php?page=widget" class="tool-link btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Widget de Compra">
@@ -124,27 +122,8 @@ $isAdmin = tokencafe_is_admin_wallet($currentWallet);
         <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-coin"></i></div>
-          <div class="tool-tile-title">Gerenciador de Token</div>
-          <div class="tool-tile-desc">Criação e gestão de tokens</div>
-          <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=token-add" class="tool-link btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Add">
-              <i class="bi bi-plus-lg me-1"></i>
-              Cadastro
-            </a>
-            <a href="index.php?page=token-manager" class="tool-link btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Token Manager">
-              <i class="bi bi-list-ul me-1"></i>
-              Gerenciador
-            </a>
-          </div>
-        </div>
-
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
-          <span class="tool-tile-status badge bg-warning">Em Breve</span>
-          <div class="tool-tile-icon">
-            <i class="bi bi-graph-up"></i>
-          </div>
-          <div class="tool-tile-title">Analytics</div>
-          <div class="tool-tile-desc">Relatórios e métricas</div>
+          <div class="tool-tile-title">Administração de Token</div>
+          <div class="tool-tile-desc">Gestão das propriedades dos tokens</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
             <a href="index.php?page=analytics" class="tool-link btn btn-sm btn-outline-primary rounded-3 w-100" aria-label="Abrir Analytics">
               <i class="bi bi-door-open me-1"></i>

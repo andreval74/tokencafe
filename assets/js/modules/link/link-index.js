@@ -3,12 +3,11 @@
 
 import { networkManager } from "../../shared/network-manager.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
-import { SystemResponse } from "../../shared/system-response.js";
 import { getFallbackRpc, getFallbackExplorer } from "../../shared/network-fallback.js";
 import { initContainer } from "../../shared/contract-search.js";
+import { showDiagnosis } from "../../ai/diagnostics.js";
 
 const utils = new SharedUtilities();
-const systemResponse = new SystemResponse();
 
 let lastContractData = null;
 
@@ -30,6 +29,7 @@ const ids = {
   addToWalletButton: "addToWalletButton",
   btnAddNetwork: "btnAddNetwork",
   btnOpenLink: "viewAddressBtn",
+  btnOpenExplorerSmall: "btnOpenExplorerSmall",
   btnClearAll: "btnClearAll",
   generatedLink: "generatedLink",
   btnShareWhatsAppSmall: "btnShareWhatsAppSmall",
@@ -112,7 +112,36 @@ function clearError() {
   } catch (_) {}
 }
 
+function isWalletLike(val) {
+  return val === false || val === "false" || val === 0 || val === "0";
+}
+
+function resetTokenState(silent = true) {
+  tokenFetched = false;
+  lastContractData = null;
+  setReadonlyMode(false);
+  setValue(ids.generatedLink, "");
+  hide("generate-section");
+  hide("add-network-section");
+  try {
+    const cs = document.querySelector('[data-component*="contract-search.php"]');
+    if (silent && typeof cs?.__tcContractSearchClear === "function") cs.__tcContractSearchClear({ silent: true });
+    const addrEl = document.getElementById("f_address");
+    if (addrEl) addrEl.value = "";
+  } catch (_) {}
+  try {
+    document.getElementById("btnAddToMetaMaskSmall")?.removeAttribute("disabled");
+    document.getElementById("btnAddToMetaMaskSmall")?.classList.remove("disabled");
+  } catch (_) {}
+}
+
 function selectNetwork(network) {
+  const prevChain = selectedNetwork?.chainId != null ? String(selectedNetwork.chainId) : "";
+  const nextChain = network?.chainId != null ? String(network.chainId) : "";
+  if (prevChain && nextChain && prevChain !== nextChain) {
+    resetTokenState(true);
+  }
+
   selectedNetwork = network;
   window.__selectedNetwork = network; // Help contract-search find the network
   
@@ -208,15 +237,21 @@ function buildLink() {
 
   // Compatível com instalação em subpasta e nova estrutura de rotas (?page=link)
   let shareUrl;
+  const isWallet = isWalletLike(lastContractData?.isContract);
   const currentPath = location.pathname;
-  if (currentPath.includes("/modules/link/")) {
-    shareUrl = new URL("link-token.php", location.href);
+  if (isWallet) {
+    shareUrl = new URL("index.php?page=wallet", document.baseURI);
+    shareUrl.searchParams.set("address", safeStr(address));
+    shareUrl.searchParams.set("chainId", String(selectedNetwork.chainId));
+    shareUrl.searchParams.set("explorer", selectedNetwork.explorers?.[0]?.url || "");
   } else {
-    // Agora o link gerado usa a rota index.php?page=link-token
-    shareUrl = new URL("index.php?page=link-token", document.baseURI);
+    if (currentPath.includes("/modules/link/")) {
+      shareUrl = new URL("link-token.php", location.href);
+    } else {
+      shareUrl = new URL("index.php?page=link-token", document.baseURI);
+    }
+    params.forEach((v, k) => shareUrl.searchParams.append(k, v));
   }
-  
-  params.forEach((v, k) => shareUrl.searchParams.append(k, v));
   
   return shareUrl.toString();
 }
@@ -224,44 +259,23 @@ function buildLink() {
 function updateGeneratedLink() {
   const url = buildLink();
 
-  // Atualizar input visível na seção estática
-  setValue(ids.generatedLink, url);
-
-  // Remove is-invalid from symbol if filled
-  const sEl = document.getElementById(ids.tokenSymbol);
-  // Note: sEl is now a span, so classList changes might not affect visual validation unless custom CSS exists
-  // but it's harmless.
-
-  // Garantir que a seção de links gerados seja exibida se houver URL
-  const genSection = document.getElementById("generate-section");
-  const addNetSection = document.getElementById("add-network-section");
-  if (url && genSection) {
-    genSection.classList.remove("d-none");
-    if (addNetSection) addNetSection.classList.remove("d-none");
-  } else if (!url && genSection) {
-    genSection.classList.add("d-none");
-    if (addNetSection) addNetSection.classList.add("d-none");
-  }
-
   const sym = getValue(ids.tokenSymbol);
   const dec = getValue(ids.tokenDecimals);
   const manualData = sym && dec && sym !== "TKN";
+  const walletMode = isWalletLike(lastContractData?.isContract);
+  const canShow = !!url && (tokenFetched || manualData || walletMode);
 
-  if (url && (tokenFetched || manualData)) {
+  const genSection = document.getElementById("generate-section");
+  const addNetSection = document.getElementById("add-network-section");
+  if (canShow && genSection) {
+    genSection.classList.remove("d-none");
+    if (addNetSection) addNetSection.classList.remove("d-none");
+    setValue(ids.generatedLink, url);
     clearError();
-  } else {
-    systemResponse.hide();
-    const addr = String(getValue(ids.tokenAddress) || "").replace(/\s+$/u, "");
-    if (!addr || !isValidAddress(addr)) {
-      setError("Endereço inválido ou não informado.");
-    } else if (!selectedNetwork) {
-      setError("Rede não selecionada.");
-    } else if (!tokenFetched && !manualData) {
-      const netName = selectedNetwork?.name || "";
-      const cid = selectedNetwork?.chainId != null ? String(selectedNetwork.chainId) : "";
-      const msg = netName && cid ? `Contrato não pertence à rede selecionada (${netName}, chainId ${cid}) ou sem dados ERC-20.` : "Contrato não pertence à rede selecionada ou sem dados ERC-20.";
-      setError(msg);
-    }
+  } else if (genSection) {
+    genSection.classList.add("d-none");
+    if (addNetSection) addNetSection.classList.add("d-none");
+    setValue(ids.generatedLink, "");
   }
 }
 
@@ -289,6 +303,12 @@ function clearAll() {
   tokenFetched = false;
   selectedNetwork = null;
   lastContractData = null;
+
+  try {
+    document.getElementById("btnAddToMetaMaskSmall")?.removeAttribute("disabled");
+    document.getElementById("btnAddToMetaMaskSmall")?.classList.remove("disabled");
+    document.getElementById("btnAddToMetaMaskSmall")?.classList.remove("d-none");
+  } catch (_) {}
   
   hide("selected-network-info");
   show("network-section");
@@ -452,6 +472,23 @@ function viewGeneratedLink() {
   try { window.open(u, "_blank"); } catch (_) {}
 }
 
+function viewExplorerAddress() {
+  const addr =
+    lastContractData?.contractAddress ||
+    String(getValue(ids.tokenAddress) || "").replace(/\s+$/u, "") ||
+    String(document.getElementById("f_address")?.value || "").replace(/\s+$/u, "");
+
+  const chainId = lastContractData?.chainId || selectedNetwork?.chainId || null;
+  const explorerBase = selectedNetwork?.explorers?.[0]?.url || (chainId ? getFallbackExplorer(chainId) : "");
+
+  if (!addr) return window.notify && window.notify("Endereço não informado.", "warning");
+  if (!isValidAddress(addr)) return window.notify && window.notify("Endereço inválido.", "error");
+  if (!explorerBase) return window.notify && window.notify("Explorer não disponível para esta rede.", "warning");
+
+  const url = `${String(explorerBase).replace(/\/$/u, "")}/address/${addr}`;
+  try { window.open(url, "_blank"); } catch (_) {}
+}
+
 async function addTokenToMetaMask() {
   try {
     const address = lastContractData?.contractAddress || String(getValue(ids.tokenAddress) || "").replace(/\s+$/u, "");
@@ -477,14 +514,24 @@ async function addTokenToMetaMask() {
     symbol = (symbol || "TKN").slice(0, 11); // MetaMask limits symbol length
     decimals = Number.isFinite(decimals) ? decimals : 18;
 
-    // Use networkManager to ensure network
     if (selectedNetwork?.chainId) {
-        try {
-            await networkManager.ensureNetwork(selectedNetwork.chainId);
-        } catch (e) {
-            console.warn("Could not switch network automatically:", e);
-            // Continue anyway, maybe user is already on right network or will handle it
+      try {
+        const status = window.walletConnector?.getStatus?.() || {};
+        const connected = !!status.account && !!status.sessionAuthorized;
+        if (connected && window.walletConnector && typeof window.walletConnector.switchNetwork === "function") {
+          await window.walletConnector.switchNetwork(selectedNetwork.chainId);
+        } else if (window.ethereum && typeof window.ethereum.request === "function") {
+          const hex = "0x" + Number(selectedNetwork.chainId).toString(16);
+          try {
+            await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+          } catch (err) {
+            if (err && err.code === 4902 && window.walletConnector && typeof window.walletConnector.addNetwork === "function") {
+              await window.walletConnector.addNetwork(selectedNetwork);
+              await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+            }
+          }
         }
+      } catch (_) {}
     }
 
     await window.ethereum.request({ 
@@ -504,7 +551,30 @@ async function addNetworkToWallet() {
       window.notify && window.notify("Selecione uma rede primeiro", "warning");
       return;
     }
-    await networkManager.addNetworkToWallet(selectedNetwork);
+    if (window.walletConnector && typeof window.walletConnector.addNetwork === "function") {
+      await window.walletConnector.addNetwork(selectedNetwork);
+      window.notify && window.notify("Rede enviada para a carteira", "success");
+      return;
+    }
+    if (window.ethereum && typeof window.ethereum.request === "function") {
+      const nd = selectedNetwork;
+      const chainIdHex = "0x" + Number(nd.chainId).toString(16);
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            chainId: chainIdHex,
+            chainName: nd.name,
+            nativeCurrency: nd.nativeCurrency,
+            rpcUrls: Array.isArray(nd.rpc) ? nd.rpc : [nd.rpc],
+            blockExplorerUrls: nd.explorers ? nd.explorers.map((e) => e.url || e) : [],
+          },
+        ],
+      });
+      window.notify && window.notify("Rede enviada para a carteira", "success");
+      return;
+    }
+    window.notify && window.notify("Carteira não detectada", "warning");
   } catch (e) {
     window.notify && window.notify(`Erro ao adicionar rede: ${e.message}`, "error");
   }
@@ -539,14 +609,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (readonlyLinkMode) return;
     selectedNetwork = null;
     tokenFetched = false;
+    lastContractData = null;
     hide("selected-network-info");
+    hide("token-section");
+    hide("generate-section");
+    hide("add-network-section");
   });
   
   document.addEventListener("network:required", () => {
     if (readonlyLinkMode) return;
     selectedNetwork = null;
     tokenFetched = false;
+    lastContractData = null;
     hide("selected-network-info");
+    hide("token-section");
+    hide("generate-section");
+    hide("add-network-section");
   });
 
   document.addEventListener("network:toggleInfo", (ev) => {
@@ -578,18 +656,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Inputs removed
       const hasData = !!(p?.tokenName || p?.tokenSymbol || p?.tokenDecimals != null);
-      tokenFetched = hasData;
+      const isWallet = isWalletLike(p?.isContract);
+      tokenFetched = hasData || isWallet;
       
       const loading = document.getElementById("tokenLoading");
       if (loading) loading.classList.add("d-none");
 
-      if (hasData || p?.contractAddress) {
+      if (hasData || isWallet) {
         updateGeneratedLink();
         const genSection = document.getElementById("generate-section");
         if (genSection) genSection.classList.remove("d-none");
 
         // Lock UI if we have data (mostly for image input)
         setReadonlyMode(true);
+
+        if (isWallet) {
+          try {
+            document.getElementById("btnAddToMetaMaskSmall")?.setAttribute("disabled", "true");
+            document.getElementById("btnAddToMetaMaskSmall")?.classList.add("disabled");
+          } catch (_) {}
+          window.notify && window.notify("Carteira detectada (EOA). Link gerado para a carteira.", "success");
+        } else {
+          try {
+            document.getElementById("btnAddToMetaMaskSmall")?.removeAttribute("disabled");
+            document.getElementById("btnAddToMetaMaskSmall")?.classList.remove("disabled");
+          } catch (_) {}
+        }
         
         const btnSearch = document.getElementById(ids.btnTokenSearch);
         if (btnSearch) {
@@ -599,7 +691,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         const ts = document.getElementById("token-section");
         if (ts) ts.classList.remove("d-none");
-        window.notify && window.notify("Não foi possível ler dados ERC-20 do contrato. Verifique a rede.", "warning");
+        showDiagnosis("VERIFY_NETWORK_OR_ADDRESS", {
+          badge: "Não foi possível ler dados ERC-20 do contrato.",
+          onClear: () => clearAll(),
+        });
       }
     } catch (e) {
         console.error("[link-index] Erro ao processar dados do contrato:", e);
@@ -609,8 +704,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Listeners removed
 
-  document.addEventListener("contract:clear", () => {
+  document.addEventListener("contract:clear", (ev) => {
     tokenFetched = false;
+    lastContractData = null;
     hide("generate-section");
     clearError();
     setReadonlyMode(false);
@@ -620,7 +716,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const badge = document.getElementById("metaValidatedBadge");
     if (badge) badge.classList.add("d-none");
 
-    window.showFormSuccess && window.showFormSuccess("Dados limpos com sucesso!");
+    try {
+      document.getElementById("btnAddToMetaMaskSmall")?.removeAttribute("disabled");
+      document.getElementById("btnAddToMetaMaskSmall")?.classList.remove("disabled");
+    } catch (_) {}
+
+    if (!ev?.detail?.silent) window.showFormSuccess && window.showFormSuccess("Dados limpos com sucesso!");
   });
 
   // UI Button Listeners
@@ -631,6 +732,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById(ids.btnShareWhatsAppSmall)?.addEventListener("click", shareWhatsAppSmall);
   document.getElementById(ids.btnShareTelegramSmall)?.addEventListener("click", shareTelegramSmall);
   document.getElementById(ids.btnShareEmailSmall)?.addEventListener("click", shareEmailSmall);
+  document.getElementById(ids.btnOpenExplorerSmall)?.addEventListener("click", viewExplorerAddress);
   document.getElementById(ids.addToWalletButton)?.addEventListener("click", addTokenToMetaMask);
   document.getElementById(ids.btnAddNetwork)?.addEventListener("click", addNetworkToWallet);
   document.getElementById(ids.btnClearToken)?.addEventListener("click", clearTokenOnly);

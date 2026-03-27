@@ -11,6 +11,7 @@ import { SharedUtilities } from "../core/shared_utilities_es6.js";
 import { walletConnector } from "../shared/wallet-connector.js";
 import { networkManager } from "../shared/network-manager.js";
 import { SystemResponse } from "../shared/system-response.js";
+import { showDiagnosis } from "../ai/diagnostics.js";
 
 const tokencafeIsDebugEnabled = () => {
   try {
@@ -209,6 +210,7 @@ class BaseSystem {
     window.walletConnector = walletConnector;
     window.networkManager = networkManager;
     window.SystemResponse = SystemResponse;
+    window.showDiagnosis = showDiagnosis;
 
     console.log("📦 Módulos unificados disponibilizados globalmente");
   }
@@ -416,55 +418,32 @@ class BaseSystem {
     // Aplicar por padrão em todas as páginas que carregam o Base System
     window.bindInputSanitizer();
 
-    // Padronização: delega mensagens de sucesso para o Modal SystemResponse
+    // Padronização: delega mensagens de sucesso/erro para a IA (modal global)
     window.showFormSuccess = (message, _opts = {}) => {
       try {
-        if (window.SystemResponse) {
-          const sys = new window.SystemResponse();
-          sys.show({
-            type: "success",
-            title: "Sucesso",
-            subtitle: message,
-            content: _opts.content || "",
-            onClear: _opts.onClear,
-          });
-          return;
-        }
-
-        const container = _opts?.container || document.querySelector(".container, .container-fluid") || document.body;
-        if (typeof window.notify === "function") {
-          return window.notify(String(message || "Sucesso"), "success", { container });
-        }
-        if (window.SuccessErrorUI?.showSuccess) return window.SuccessErrorUI.showSuccess(message, {});
-        console.log(message);
-        return null;
+        return showDiagnosis("SUCCESS", {
+          title: "Sucesso",
+          subtitle: String(message || "Sucesso"),
+          content: _opts.content || "",
+          htmlContent: _opts.htmlContent || "",
+          onClear: _opts.onClear,
+        });
       } catch (_) {
         return null;
       }
     };
 
-    // Padronização: delega mensagens de erro para notify
+    // Padronização: delega mensagens de erro para a IA (modal global)
     window.showFormError = (message, _opts = {}) => {
       try {
-        if (window.SystemResponse) {
-          const sys = new window.SystemResponse();
-          sys.show({
-            type: "error",
-            title: "Erro",
-            subtitle: message,
-            content: _opts.content || "",
-            onClear: _opts.onClear,
-          });
-          return;
-        }
-
-        const container = _opts?.container || document.querySelector(".container, .container-fluid") || document.body;
-        if (typeof window.notify === "function") {
-          return window.notify(String(message || "Erro"), "error", { container });
-        }
-        if (window.SuccessErrorUI?.showError) return window.SuccessErrorUI.showError(message, {});
-        console.error(message);
-        return null;
+        return showDiagnosis("ERROR", {
+          title: "Erro",
+          subtitle: String(message || "Erro"),
+          badge: _opts.badge || "",
+          content: _opts.content || "",
+          htmlContent: _opts.htmlContent || "",
+          onClear: _opts.onClear,
+        });
       } catch (_) {
         return null;
       }
@@ -473,28 +452,23 @@ class BaseSystem {
     // Padronização: modal de resultado de verificação
     window.showVerificationResultModal = (success, title, contentHtml, linkUrl) => {
       try {
-        if (window.SystemResponse) {
-          const sys = new window.SystemResponse();
-
-          let finalContent = contentHtml || "";
-          if (linkUrl) {
-            finalContent += `
+        let finalContent = contentHtml || "";
+        if (linkUrl) {
+          finalContent += `
                <div class="mt-3 text-center">
                    <a href="${linkUrl}" target="_blank" rel="noopener" class="btn btn-outline-success">
                        <i class="bi bi-box-arrow-up-right me-2"></i>Abrir no Explorer
                    </a>
                </div>
                `;
-          }
-
-          sys.show({
-            type: success ? "success" : "error",
-            title: title || (success ? "Sucesso" : "Erro"),
-            subtitle: "",
-            htmlContent: finalContent,
-          });
-          return;
         }
+
+        const ok = showDiagnosis(success ? "SUCCESS" : "ERROR", {
+          title: title || (success ? "Sucesso" : "Erro"),
+          subtitle: "",
+          htmlContent: finalContent,
+        });
+        if (ok) return;
 
         const modalEl = document.getElementById("verifyInfoModal");
         if (!modalEl) {

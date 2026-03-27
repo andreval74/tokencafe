@@ -2,6 +2,7 @@
 import { PriceService } from "../../shared/price-service.js";
 import { NetworkManager } from "../../shared/network-manager.js";
 import { PAYMENT_CONFIG } from "./payment-config.js";
+import { diagnoseEvmError, showDiagnosis } from "../../ai/diagnostics.js";
 
 export class FeeManager {
     constructor() {
@@ -51,6 +52,8 @@ export class FeeManager {
         // Saldo do Usuário
         const balanceWei = await signer.getBalance();
         const balanceCrypto = parseFloat(ethers.utils.formatEther(balanceWei));
+        const totalCostCrypto = serviceFeeCrypto + gasCostCrypto;
+        const isBalanceEnough = balanceCrypto >= totalCostCrypto;
 
         // 3. Renderizar Modal
         return new Promise((resolve) => {
@@ -60,19 +63,32 @@ export class FeeManager {
                 serviceFeeCrypto,
                 gasCostUSD,
                 gasCostCrypto,
+                totalCostCrypto,
                 balanceCrypto,
+                isBalanceEnough,
                 isTestnet,
                 onConfirm: async () => {
                     // Lógica de Pagamento ("Duas Cobranças")
                     try {
+                        if (!isBalanceEnough) {
+                            showDiagnosis("INSUFFICIENT_FUNDS", {
+                                badge: `Saldo atual: ${balanceCrypto.toFixed(4)} ${nativeSymbol}`,
+                                causes: ["Saldo insuficiente para pagar taxa e gás.", "Adicione saldo na rede selecionada e tente novamente."],
+                            });
+                            resolve(false);
+                            return;
+                        }
                         // 1ª Cobrança: Taxa de Serviço (Transferência)
                         if (serviceFeeCrypto > 0) {
                             await this.processServiceFeePayment(signer, serviceFeeCrypto, nativeSymbol);
                         }
                         resolve(true); // Prosseguir para o deploy (2ª cobrança/gas)
                     } catch (e) {
-                        console.error("Erro no pagamento da taxa:", e);
-                        alert("Pagamento da taxa falhou ou foi rejeitado. O contrato não será implantado.");
+                        const d = diagnoseEvmError(e, { nativeSymbol });
+                        showDiagnosis(d.code, {
+                            badge: d.badge,
+                            causes: d.causes,
+                        });
                         resolve(false);
                     }
                 },
@@ -177,15 +193,27 @@ export class FeeManager {
                                 <small class="text-muted">($${data.gasCostUSD.toFixed(2)})</small>
                             </span>
                         </div>
+
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Total estimado:</span>
+                            <span class="fw-bold">${data.totalCostCrypto.toFixed(6)} ${data.symbol}</span>
+                        </div>
+
+                        ${!data.isBalanceEnough ? `<div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><strong>Saldo insuficiente:</strong> adicione saldo na rede selecionada para continuar.</div>` : ''}
                         
                         <!-- Aviso Testnet -->
                         ${data.isTestnet ? '<div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><strong>Modo Testnet:</strong> A cobrança será realizada na moeda de teste da rede. Certifique-se de ter saldo na carteira.<br>A verificação de contrato é exclusiva para redes oficiais.</div>' : ''}
 
                     </div>
                     <div class="modal-footer border-secondary justify-content-center">
-                        <button type="button" class="btn btn-primary w-100 py-2" id="btnConfirmDeployFee" disabled>
-                            Implementar 🚀
-                        </button>
+                        <div class="d-flex gap-2 w-100">
+                            <button type="button" class="btn btn-outline-secondary w-50 py-2" data-bs-dismiss="modal" id="btnCancelDeployFee">
+                                Cancelar
+                            </button>
+                            <button type="button" class="btn btn-primary w-50 py-2" id="btnConfirmDeployFee" disabled>
+                                Implementar 🚀
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -198,25 +226,55 @@ export class FeeManager {
         
         // Elementos
         const btnConfirm = document.getElementById("btnConfirmDeployFee");
+        const btnCancel = document.getElementById("btnCancelDeployFee");
         const checkTerms = document.getElementById("checkTerms");
         const checkNonEU = document.getElementById("checkNonEU");
+        let didConfirm = false;
 
         // Validação dos checkboxes
         const validate = () => {
-            btnConfirm.disabled = !(checkTerms.checked && checkNonEU.checked);
+            btnConfirm.disabled = !(checkTerms.checked && checkNonEU.checked && data.isBalanceEnough);
         };
 
         checkTerms.addEventListener("change", validate);
         checkNonEU.addEventListener("change", validate);
 
+        if (btnCancel) {
+            btnCancel.addEventListener("click", () => {
+                try {
+                    btnCancel.disabled = true;
+                    if (btnConfirm) btnConfirm.disabled = true;
+                } catch (_) {}
+                try {
+                    bsModal.hide();
+                } catch (_) {}
+            });
+        }
+
         // Ação Confirmar
         btnConfirm.addEventListener("click", () => {
+            didConfirm = true;
+            try {
+                if (btnConfirm) btnConfirm.disabled = true;
+                if (btnCancel) btnCancel.disabled = true;
+            } catch (_) {}
+            try {
+                bsModal.hide();
+            } catch (_) {}
             data.onConfirm();
         });
 
         // Evento de fechamento (Cancelamento)
         modalEl.addEventListener('hidden.bs.modal', () => {
-            data.onCancel();
+            if (!didConfirm) {
+                try {
+                    data.onCancel();
+                } finally {
+                    try {
+                        window.location.reload();
+                    } catch (_) {}
+                }
+            }
             modalEl.remove();
         });
 

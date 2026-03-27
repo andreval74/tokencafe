@@ -1,10 +1,9 @@
 import { NetworkManager } from "../../shared/network-manager.js";
-import { SystemResponse } from "../../shared/system-response.js";
+import { diagnoseEvmError, showDiagnosis } from "../../ai/diagnostics.js";
 import { getFallbackRpc, getFallbackExplorer, getFallbackChainName, getFallbackNativeCurrency } from "../../shared/network-fallback.js";
 import { initContainer, updateContractDetailsView, performContractSearch } from "../../shared/contract-search.js";
 
 const networkManager = new NetworkManager();
-const systemResponse = new SystemResponse();
 
 let lastContractData = null;
 
@@ -23,12 +22,30 @@ async function switchNetwork() {
   }
 
   try {
-    await networkManager.ensureNetwork(targetChainId);
-    // UI update handled by chainChanged or checkNetwork
+    const status = window.walletConnector?.getStatus?.() || {};
+    const connected = !!status.account && !!status.sessionAuthorized;
+    const hex = "0x" + Number(targetChainId).toString(16);
+    if (connected && window.walletConnector && typeof window.walletConnector.switchNetwork === "function") {
+      await window.walletConnector.switchNetwork(targetChainId);
+    } else if (window.ethereum && typeof window.ethereum.request === "function") {
+      try {
+        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+      } catch (err) {
+        if (err && err.code === 4902) {
+          const nd = networkManager?.getNetworkById?.(targetChainId);
+          if (nd && window.walletConnector && typeof window.walletConnector.addNetwork === "function") {
+            await window.walletConnector.addNetwork(nd);
+            await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] });
+          }
+        } else {
+          throw err;
+        }
+      }
+    }
     checkNetwork();
   } catch (e) {
-    console.error(e);
-    window.notify && window.notify(`Erro ao trocar rede: ${e.message}`, "error");
+    const d = diagnoseEvmError(e);
+    showDiagnosis(d.code, { badge: d.badge, causes: d.causes });
   }
 }
 
@@ -81,11 +98,17 @@ async function checkNetwork() {
 async function addToWallet() {
   try {
     if (!window.ethereum) {
-      window.notify && window.notify("Carteira não detectada", "warning");
+      showDiagnosis("PRECONDITION", {
+        badge: "Carteira não detectada.",
+        causes: ["Instale/ative a carteira no navegador.", "Abra novamente a página após instalar."],
+      });
       return;
     }
     if (!lastContractData) {
-      window.notify && window.notify("Dados do token não carregados", "error");
+      showDiagnosis("PRECONDITION", {
+        badge: "Dados do token não carregados.",
+        causes: ["Recarregue o link do token.", "Aguarde a leitura dos dados do contrato."],
+      });
       return;
     }
 
@@ -99,7 +122,10 @@ async function addToWallet() {
     }
     
     if (!address || !chainId) {
-         window.notify && window.notify("Dados do token incompletos (endereço ou rede)", "error");
+         showDiagnosis("PRECONDITION", {
+           badge: "Dados incompletos (endereço ou rede).",
+           causes: ["O link está incompleto.", "Informe o address e a rede do token."],
+         });
          return;
     }
     
@@ -108,7 +134,10 @@ async function addToWallet() {
     // Verificação final de rede
     const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
     if (!currentHex || String(parseInt(currentHex, 16)) !== String(chainId)) {
-        window.notify && window.notify("Por favor, troque para a rede correta antes de adicionar o token.", "warning");
+        showDiagnosis("PRECONDITION", {
+          badge: "Troque para a rede correta antes de adicionar o token.",
+          causes: ["A carteira está em outra rede.", "Use o botão Trocar Rede."],
+        });
         checkNetwork(); // Atualiza UI para mostrar botão de troca
         return;
     }
@@ -130,19 +159,16 @@ async function addToWallet() {
       },
     });
 
-    // Show System Response
-    systemResponse.show({
+    // Sucesso padronizado pela IA
+    showDiagnosis("SUCCESS", {
       title: "Token Adicionado",
       subtitle: "O token foi enviado para sua carteira com sucesso.",
-      icon: "bi-check-circle",
-      onClear: () => {
-        // Resetar botão local
-        checkNetwork(); // Revalida estado
-      },
+      onClear: () => checkNetwork(),
     });
 
   } catch (e) {
-    window.notify && window.notify(`Erro ao adicionar token: ${e.message}`, "error");
+    const d = diagnoseEvmError(e);
+    showDiagnosis(d.code, { badge: d.badge, causes: d.causes });
   }
 }
 

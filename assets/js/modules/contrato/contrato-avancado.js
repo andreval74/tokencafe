@@ -173,7 +173,15 @@ class AdvancedTokenPageManager {
                                 console.warn("Validação falhou na aba atual.");
                                 // Feedback visual simples se toast não existir
                                 if (!document.querySelector('.toast-container')) {
-                                    alert("Por favor, preencha todos os campos obrigatórios marcados em vermelho.");
+                                    try {
+                                        if (typeof window.showDiagnosis === "function") {
+                                            window.showDiagnosis("WARNING", {
+                                                subtitle: "Por favor, preencha todos os campos obrigatórios marcados em vermelho.",
+                                            });
+                                        } else if (typeof window.showFormError === "function") {
+                                            window.showFormError("Por favor, preencha todos os campos obrigatórios marcados em vermelho.");
+                                        }
+                                    } catch (_) {}
                                 }
                                 return; // Se inválido, não avança
                             }
@@ -689,11 +697,11 @@ class AdvancedTokenPageManager {
                 try {
                     const net = state.form?.network;
                     if (!net || !net.chainId) {
-                        alert("Nenhuma rede definida.");
+                        window.showFormError?.("Nenhuma rede definida.");
                         return;
                     }
                     if (!window.ethereum) {
-                        alert("MetaMask não encontrada.");
+                        window.showFormError?.("Carteira não detectada (MetaMask).");
                         return;
                     }
                     const targetHex = "0x" + Number(net.chainId).toString(16);
@@ -742,10 +750,10 @@ class AdvancedTokenPageManager {
                                 }
                             }
                         }
-                        alert("Rede adicionada/trocada com sucesso!");
+                        window.showFormSuccess?.("Rede adicionada/trocada com sucesso!");
                     } catch (e) {
                         console.error(e);
-                        alert("Erro ao adicionar rede: " + (e.message || e));
+                        window.showFormError?.("Erro ao adicionar rede: " + (e.message || e));
                     }
                 } catch (e) {
                     console.error(e);
@@ -761,7 +769,10 @@ class AdvancedTokenPageManager {
                 const symbol = state?.form?.token?.symbol || "TKN";
                 const decimals = state?.form?.token?.decimals || 18;
                 
-                if (!address) return alert("Contrato não implantado ainda.");
+                if (!address) {
+                    window.showFormError?.("Contrato não implantado ainda.");
+                    return;
+                }
                 
                 if (addTokenBtn.disabled) return;
                 addTokenBtn.disabled = true;
@@ -769,13 +780,13 @@ class AdvancedTokenPageManager {
                 try {
                     const res = await addTokenToMetaMask({ address, symbol, decimals });
                     if (!res.success) {
-                        alert("Erro ao adicionar token: " + res.error);
+                        window.showFormError?.("Erro ao adicionar token: " + res.error);
                     } else {
-                        alert("Solicitação enviada para a carteira!");
+                        window.showFormSuccess?.("Solicitação enviada para a carteira!");
                     }
                 } catch (e) {
                     console.error(e);
-                    alert("Erro ao processar: " + e.message);
+                    window.showFormError?.("Erro ao processar: " + e.message);
                 } finally {
                     setTimeout(() => addTokenBtn.disabled = false, 2000);
                 }
@@ -812,7 +823,7 @@ class AdvancedTokenPageManager {
         
         // 1. Validate Network
         if (!state.form.network || !state.form.network.chainId) {
-            alert("Por favor, selecione uma rede (Blockchain) no topo da página.");
+            window.showFormError?.("Por favor, selecione uma rede (Blockchain) no topo da página.");
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
@@ -828,14 +839,14 @@ class AdvancedTokenPageManager {
                 firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 firstInvalid.focus();
             } else {
-               alert("Verifique os campos destacados em vermelho ou mensagens de erro.");
+               window.showFormError?.("Verifique os campos destacados em vermelho ou mensagens de erro.");
             }
             return;
         }
 
         // 3. Connect Wallet if not connected
         if (!state.wallet.signer) {
-            alert("Por favor, conecte sua carteira primeiro (botão no topo).");
+            window.showFormError?.("Por favor, conecte sua carteira primeiro (botão no topo).");
             return;
         }
 
@@ -868,14 +879,14 @@ class AdvancedTokenPageManager {
                     window.location.href = "index.php?page=contrato-detalhes";
                 } else {
                     console.error("Falha ao serializar estado.");
-                    alert("Contrato criado, mas houve erro ao salvar estado. Redirecionando...");
+                    window.showFormError?.("Contrato criado, mas houve erro ao salvar estado. Redirecionando...");
                     window.location.href = "index.php?page=contrato-detalhes";
                 }
             }
             
         } catch (err) {
             console.error(err);
-            alert(`Erro no processo: ${err.message || err}`);
+            window.showFormError?.(`Erro no processo: ${err.message || err}`);
             if (deployContainer) deployContainer.classList.add("d-none");
         } finally {
              if (btn) {

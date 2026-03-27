@@ -19,6 +19,16 @@
   }
 
   function showSuccess(message, opts = {}) {
+    try {
+      if (typeof window.showDiagnosis === "function") {
+        window.showDiagnosis("SUCCESS", {
+          title: "Sucesso",
+          subtitle: String(message || "Sucesso"),
+          onClear: opts.onClear,
+        });
+        return;
+      }
+    } catch (_) {}
     const sys = getSystemResponse();
     if (sys) {
       sys.show({
@@ -38,6 +48,16 @@
   }
 
   function showError(message, opts = {}) {
+    try {
+      if (typeof window.showDiagnosis === "function") {
+        window.showDiagnosis("ERROR", {
+          title: "Erro",
+          subtitle: String(message || "Erro"),
+          onClear: opts.onClear,
+        });
+        return;
+      }
+    } catch (_) {}
     const sys = getSystemResponse();
     if (sys) {
       sys.show({
@@ -93,13 +113,24 @@
   };
 
   // Compatibilidade Legada
-  window.showFormSuccess = (msg, opts) => showSuccess(msg, opts);
-  window.showFormError = (msg, opts) => showError(msg, opts);
+  if (typeof window.showFormSuccess !== "function") window.showFormSuccess = (msg, opts) => showSuccess(msg, opts);
+  if (typeof window.showFormError !== "function") window.showFormError = (msg, opts) => showError(msg, opts);
 
   window.notify = (message, type = "info", opts = {}) => {
     const t = String(type).toLowerCase();
     if (t === "success") return showSuccess(message, opts);
     if (t === "error") return showError(message, opts);
+
+    try {
+      if (typeof window.showDiagnosis === "function") {
+        if (t === "warning") {
+          window.showDiagnosis("WARNING", { subtitle: String(message || "Atenção"), onClear: opts.onClear });
+        } else {
+          window.showDiagnosis("INFO", { subtitle: String(message || "Informação"), onClear: opts.onClear });
+        }
+        return;
+      }
+    } catch (_) {}
 
     const sys = getSystemResponse();
     if (sys) {

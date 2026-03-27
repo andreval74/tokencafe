@@ -153,7 +153,16 @@ async function connectTrustWallet() {
 async function connectWalletConnect() {
   if (isMobile()) {
       // No mobile, tentar deep link genérico ou alertar
-      alert("Para conectar no celular, recomendamos usar os botões MetaMask ou Trust Wallet que abrirão o App diretamente.");
+      try {
+        if (typeof window.showDiagnosis === "function") {
+          window.showDiagnosis("INFO", {
+            title: "Conexão no celular",
+            subtitle: "Use MetaMask ou Trust Wallet para abrir o app diretamente.",
+          });
+        } else if (typeof window.showFormError === "function") {
+          window.showFormError("Use MetaMask ou Trust Wallet para abrir o app diretamente.");
+        }
+      } catch (_) {}
       return false;
   }
   throw new Error("WalletConnect requer biblioteca externa (não disponível neste ambiente). Use MetaMask ou Trust Wallet.");

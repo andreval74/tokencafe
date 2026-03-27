@@ -290,7 +290,12 @@ function initContainer(container) {
                   }
                 }
               }
-            } catch (_) {
+            } catch (err) {
+              try {
+                const { diagnoseEvmError, showDiagnosis } = await import("../ai/diagnostics.js");
+                const d = diagnoseEvmError(err);
+                showDiagnosis(d.code, { badge: d.badge, causes: d.causes });
+              } catch (_) {}
             } finally {
               setSwitching(false);
               autoDetectNetwork();

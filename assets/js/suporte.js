@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnContent = submitBtn?.querySelector(".btn-content");
   const btnLoading = submitBtn?.querySelector(".btn-loading");
   const statusEl = document.getElementById("form-status");
+  if (!form) return;
 
   // Máscara para WhatsApp
   const whatsappInput = document.getElementById("contact-whatsapp");
@@ -123,8 +124,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const success = await sendSupportEmail(formData);
 
         if (success) {
-          // Mostrar toast de sucesso
-          window.notify && window.notify("Sua mensagem foi enviada com sucesso. Entraremos em contato em breve!", "success", { container: form });
+          window.showFormSuccess
+            ? window.showFormSuccess("Sua mensagem foi enviada com sucesso. Entraremos em contato em breve!", { onClear: null })
+            : window.notify && window.notify("Sua mensagem foi enviada com sucesso. Entraremos em contato em breve!", "success", { container: form });
 
           // Resetar formulário
           form.reset();
@@ -139,7 +141,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } catch (error) {
         console.error("Erro ao enviar formulário:", error);
-        window.notify && window.notify("Ocorreu um erro ao enviar sua mensagem. Tente novamente.", "error", { container: form });
+        window.showFormError
+          ? window.showFormError("Ocorreu um erro ao enviar sua mensagem. Tente novamente.", { onClear: null })
+          : window.notify && window.notify("Ocorreu um erro ao enviar sua mensagem. Tente novamente.", "error", { container: form });
       } finally {
         // Restaurar botão
         btnContent?.classList.remove("d-none");
@@ -171,29 +175,7 @@ async function sendSupportEmail(formData) {
       replyTo: formData.email,
     };
 
-    // Tentar diferentes métodos de envio
-
-    // Método 1: API própria (se disponível)
-    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      try {
-        const response = await fetch("/api/send-support-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(emailData),
-        });
-
-        if (response.ok) {
-          console.log(" Email enviado via API própria");
-          return true;
-        }
-      } catch (error) {
-        console.log("API própria não disponível, tentando outros métodos...");
-      }
-    }
-
-    // Método 2: EmailJS (gratuito para até 200 emails/mês)
+    // Método 1: EmailJS (opcional)
     try {
       if (typeof emailjs !== "undefined") {
         await emailjs.send("default_service", "template_1", {
@@ -214,7 +196,7 @@ async function sendSupportEmail(formData) {
       console.log("EmailJS não configurado, tentando método alternativo...");
     }
 
-    // Método 3: FormSubmit (sem backend)
+    // Método 2: FormSubmit (sem backend)
     try {
       const endpoint = `https://formsubmit.co/ajax/${encodeURIComponent(emailData.to)}`;
 
@@ -230,6 +212,8 @@ async function sendSupportEmail(formData) {
       payload.set("_captcha", "false");
       payload.set("_template", "box");
 
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 10000);
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -237,7 +221,8 @@ async function sendSupportEmail(formData) {
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
         body: payload.toString(),
-      });
+        signal: ctrl.signal,
+      }).finally(() => clearTimeout(t));
 
       if (response.ok) {
         console.log(" Email enviado via FormSubmit");
@@ -247,7 +232,7 @@ async function sendSupportEmail(formData) {
       console.log("FormSubmit não disponível, usando método local...");
     }
 
-    // Método 4: Salvar localmente e notificar (último recurso)
+    // Método 3: Salvar localmente (último recurso)
     saveSupportDataLocally(formData);
     console.log(" Dados de suporte salvos localmente");
     return false;

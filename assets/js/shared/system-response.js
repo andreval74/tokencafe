@@ -56,7 +56,7 @@ export class SystemResponse {
               </div>
 
               <!-- Conteúdo HTML Customizado -->
-              <div id="sr-modal-custom-content" class="d-none text-start bg-dark-subtle p-3 rounded border border-secondary"></div>
+              <div id="sr-modal-custom-content" class="d-none text-start bg-dark text-light p-3 rounded border border-secondary"></div>
             </div>
             <div class="modal-footer border-top border-secondary justify-content-center flex-wrap" id="sr-modal-footer">
               <!-- Botões de Ação Dinâmicos -->
@@ -131,6 +131,13 @@ export class SystemResponse {
     if (badgeEl && badgeTextEl) {
       if (config.badge) {
         badgeTextEl.textContent = config.badge;
+        try {
+          let cls = "badge bg-success";
+          if (config.type === "error") cls = "badge bg-danger";
+          else if (config.type === "warning") cls = "badge bg-warning text-dark";
+          else if (config.type === "info") cls = "badge bg-info text-dark";
+          badgeTextEl.className = cls;
+        } catch (_) {}
         badgeEl.classList.remove("d-none");
       } else {
         badgeEl.classList.add("d-none");
@@ -194,6 +201,22 @@ export class SystemResponse {
   createActionButton(action, content) {
     const btn = document.createElement("button");
     btn.className = "btn btn-outline-light btn-sm d-flex align-items-center gap-2";
+
+    if (action && typeof action === "object") {
+      const label = action.label || "Ação";
+      const icon = action.icon || "";
+      const variant = action.variant || "outline-light";
+      btn.className = `btn btn-${variant} btn-sm d-flex align-items-center gap-2`;
+      btn.innerHTML = `${icon ? `<i class="bi ${icon}"></i>` : ""}${label}`;
+      btn.onclick = async () => {
+        try {
+          if (typeof action.onClick === "function") await action.onClick({ content, config: this.config });
+        } finally {
+          if (action.dismiss) this.hide();
+        }
+      };
+      return btn;
+    }
 
     switch (action) {
       case "copy":

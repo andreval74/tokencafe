@@ -482,7 +482,7 @@ class ContractDetailsManager {
                 }, 2000);
             }).catch(err => {
                 console.error("Erro ao copiar:", err);
-                alert("Erro ao copiar para área de transferência.");
+                window.showFormError?.("Erro ao copiar para área de transferência.");
             });
         };
 
@@ -517,7 +517,7 @@ class ContractDetailsManager {
             document.body.removeChild(a);
         } catch (e) {
             console.error("Erro ao fazer download:", e);
-            alert("Erro ao iniciar download: " + e.message);
+            window.showFormError?.("Erro ao iniciar download: " + e.message);
         }
     }
 }

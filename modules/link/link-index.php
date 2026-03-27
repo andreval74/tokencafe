@@ -22,7 +22,7 @@
 
         <!-- ===== SEÇÃO 2: DADOS DO TOKEN ===== -->
         <div id="token-section" class="mb-4 d-none">
-          <div data-component="shared/components/contract-search.php"></div>
+          <div data-component="shared/components/contract-search.php" data-cs-strict-errors="true" data-cs-allow-wallet="true"></div>
         </div>
 
         <!-- ===== SEÇÃO 3: LINK GERADO ===== -->
@@ -46,7 +46,7 @@
                   <i class="bi bi-clipboard"></i>
                 </button>
 
-                <button class="btn btn-outline-light" type="button" id="viewAddressBtn" title="Visualizar na Rede">
+                <button class="btn btn-outline-light" type="button" id="viewAddressBtn" title="Visitar">
                   <i class="bi bi-box-arrow-up-right"></i>
                 </button>
               </div>
@@ -60,6 +60,9 @@
                 </button>
                 <button id="btnShareEmailSmall" class="btn btn-outline-secondary flex-fill">
                   <i class="bi bi-envelope me-2"></i>Email
+                </button>
+                <button id="btnOpenExplorerSmall" class="btn btn-outline-light flex-fill">
+                  <i class="bi bi-box-arrow-up-right me-2"></i>Visitar
                 </button>
                 <button id="btnAddNetworkSmall" class="btn btn-outline-primary flex-fill">
                   <i class="bi bi-hdd-network me-2"></i>Adicionar Carteira

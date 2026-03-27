@@ -194,10 +194,17 @@ async function checkExplorerDirectly(chainId, address) {
         
         if (!resp.ok) {
             console.warn(`[verify-utils] Fallback fetch failed with status: ${resp.status}`);
-            return null;
+            return { success: false, verified: false, error: true, message: `HTTP ${resp.status}` };
         }
         
         const data = await resp.json();
+
+        if (data && data.status === "0" && typeof data.result === "string") {
+            const msg = data.result;
+            if (msg.toLowerCase().includes("invalid api key") || msg.toLowerCase().includes("missing") || msg.toLowerCase().includes("apikey")) {
+                return { success: false, verified: false, error: true, message: msg };
+            }
+        }
         
         // Handle V1 Deprecation Warning specifically
         if (data.status === "0" && data.result && typeof data.result === "string" && data.result.includes("deprecated")) {
@@ -262,7 +269,7 @@ export async function getVerificationStatus(chainId, address, forceRefresh = fal
             }
             return directResult;
         }
-        return { success: false, verified: false };
+        return { success: false, verified: false, error: true, message: "Não foi possível consultar o explorer agora." };
     } catch (e) {
         console.warn("[verify-utils] getVerificationStatus error:", e);
         return { success: false, error: true, message: e.message || String(e) };

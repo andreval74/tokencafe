@@ -2,6 +2,7 @@ import { updateContractDetailsView } from "../../shared/contract-search.js";
 import { NetworkManager } from "../../shared/network-manager.js";
 import { isWalletAdmin } from "../../shared/admin-security.js";
 import { FeeManager } from "./fee-manager.js";
+import { diagnoseEvmError, showDiagnosis } from "../../ai/diagnostics.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -612,11 +613,66 @@ export function runAllFieldValidation() {
   return ok;
 }
 
+function setOwnerHolderDefaults(address) {
+  try {
+    const addr = String(address || "").replace(/\s+$/u, "");
+    if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) return;
+    const ownerInput = document.getElementById("initialOwner");
+    const holderInput = document.getElementById("initialHolder");
+    if (ownerInput && !String(ownerInput.value || "").trim()) {
+      ownerInput.value = addr;
+      ownerInput.dispatchEvent(new Event("input"));
+      ownerInput.dispatchEvent(new Event("change"));
+    }
+    if (holderInput && !String(holderInput.value || "").trim()) {
+      holderInput.value = addr;
+      holderInput.dispatchEvent(new Event("input"));
+      holderInput.dispatchEvent(new Event("change"));
+    }
+  } catch (_) {}
+}
+
+function getCookieValue(name) {
+  try {
+    const key = `${name}=`;
+    const parts = String(document.cookie || "").split(";").map((s) => s.trim());
+    for (const p of parts) {
+      if (p.startsWith(key)) return decodeURIComponent(p.slice(key.length));
+    }
+    return "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function getLastKnownWalletAddress() {
+  try {
+    const st = window.walletConnector?.getStatus?.() || {};
+    const a0 = st.account || st.currentAccount || "";
+    if (a0) return String(a0);
+  } catch (_) {}
+  const c = getCookieValue("tokencafe_wallet_address");
+  if (c) return c;
+  try {
+    const ls = window.localStorage?.getItem?.("tokencafe_wallet_address") || "";
+    if (ls) return String(ls);
+  } catch (_) {}
+  return "";
+}
+
+function hydrateOwnerHolderDefaults() {
+  const addr = getLastKnownWalletAddress();
+  if (addr) setOwnerHolderDefaults(addr);
+}
+
 export async function connectWallet() {
   try {
     if (!window.ethereum) {
       log("MetaMask não encontrada. Instale a extensão para continuar.");
-      alert("MetaMask não encontrada. Instale a extensão para continuar.");
+      showDiagnosis("PRECONDITION", {
+        badge: "Carteira não detectada (MetaMask).",
+        causes: ["Instale/ative a carteira no navegador.", "Abra novamente a página após instalar."],
+      });
       return;
     }
     await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -626,24 +682,13 @@ export async function connectWallet() {
     const { chainId } = await provider.getNetwork();
     state.wallet = { provider, signer, address, chainId };
     log(`Carteira conectada: ${address} (chainId ${chainId})`);
-
-    // Preencher campos de Owner e Holder se estiverem vazios
-    try {
-        const ownerInput = document.getElementById("initialOwner");
-        const holderInput = document.getElementById("initialHolder");
-        if (ownerInput && !ownerInput.value) {
-            ownerInput.value = address;
-            // Disparar evento para limpar validação
-            ownerInput.dispatchEvent(new Event('input'));
-        }
-        if (holderInput && !holderInput.value) {
-            holderInput.value = address;
-            holderInput.dispatchEvent(new Event('input'));
-        }
-    } catch (_) {}
+    setOwnerHolderDefaults(address);
   } catch (err) {
     log(`Falha ao conectar carteira: ${err.message || err}`);
-    alert(`Falha ao conectar carteira: ${err.message || err}`);
+    try {
+      const d = diagnoseEvmError(err);
+      showDiagnosis(d.code, { badge: d.badge, causes: d.causes });
+    } catch (_) {}
   }
 }
 
@@ -700,16 +745,12 @@ function showConnectionDiagnosis(attempts) {
         </div>
     `;
 
-    if (window.SystemResponse) {
-        new window.SystemResponse().show({
-            type: "error",
-            title: "Sem Conexão com API",
-            subtitle: "Todos os servidores falharam",
-            htmlContent: content
-        });
-    } else {
-        alert("Erro Crítico: Nenhum servidor de API disponível.\n\nVerifique sua conexão ou se o backend está rodando.");
-    }
+    showDiagnosis("API_UNAVAILABLE", {
+        title: "Sem Conexão com API",
+        subtitle: "Não foi possível conectar aos servidores agora.",
+        badge: "Todos os servidores falharam",
+        htmlContent: content
+    });
     
     try {
         const help = document.getElementById("apiErrorHelp");
@@ -1111,13 +1152,16 @@ export async function compileContract() {
   const ok = runAllFieldValidation() && validateForm();
   if (!ok) {
     log("Corrija os erros nos campos antes de compilar.");
-    return;
+    showDiagnosis("WARNING", {
+      badge: "Corrija os campos obrigatórios.",
+      causes: ["Existem campos inválidos no formulário.", "Ajuste os campos em vermelho e tente novamente."],
+    });
+    return false;
   }
   
   const serverOk = await ensureServersOnline();
   if (!serverOk) {
       log("Erro: Não foi possível conectar a nenhum servidor de API (Local ou Produção).");
-      // alert("Erro de Conexão: O sistema não conseguiu contactar o servidor de compilação.\n\nVerifique sua internet ou se o backend local está rodando.");
       return false;
   }
   let base = getApiBase();
@@ -1326,7 +1370,10 @@ export async function compileContract() {
                  contractName: src.contractName,
             };
             log("Código fonte salvo localmente (sem bytecode).");
-            alert("Erro CRÍTICO: Não foi possível conectar ao servidor de compilação (Render).\n\nVerifique se o backend está rodando ou se a URL da API está correta em api-config.js.");
+            showDiagnosis("API_UNAVAILABLE", {
+              badge: "Servidor de compilação indisponível.",
+              causes: ["Servidor fora do ar ou em sleep.", "Falha de conexão/CORS.", "Tente novamente em instantes."],
+            });
         } catch (_) {}
       }
     } else {
@@ -1487,8 +1534,12 @@ export function getEncodedConstructorArgs() {
 }
 
 const SERVER_DEPLOY_ENABLED = false;
+let __deployContractLocked = false;
 
 export async function deployContract() {
+  if (__deployContractLocked) return false;
+  __deployContractLocked = true;
+  try {
   // Fallback de rede: se nenhuma rede foi selecionada mas a carteira está conectada, usar a rede da carteira
   if (!state.form.network && state.wallet?.chainId) {
       const cid = state.wallet.chainId;
@@ -1766,15 +1817,35 @@ export async function deployContract() {
   }
   // Deploy real via MetaMask (cliente) usando ethers.js
   try {
-    if (!state.compilation?.abi || !state.compilation?.bytecode) {
-      log("Compile o contrato antes do deploy. ABI/bytecode ausentes.");
-      stopOpStatus("ABI/bytecode ausentes");
-      return false;
+    if (!state.wallet?.signer) {
+      log("Carteira não conectada. Solicitando conexão...");
+      try {
+        await connectWallet();
+      } catch (_) {}
     }
     if (!state.wallet?.signer) {
-      log("Conecte sua carteira para assinar o deploy no MetaMask.");
       stopOpStatus("Carteira não conectada");
+      showDiagnosis("PRECONDITION", {
+        badge: "Conecte a carteira para continuar.",
+        causes: ["A conexão com a carteira não foi autorizada.", "Abra a carteira e confirme a solicitação."],
+      });
       return false;
+    }
+
+    if (!state.compilation?.abi || !state.compilation?.bytecode) {
+      log("ABI/bytecode ausentes. Compilando automaticamente...");
+      stopOpStatus("Compilando");
+      const okCompile = await compileContract();
+      if (!okCompile || !state.compilation?.abi || !state.compilation?.bytecode) {
+        stopOpStatus("Falha na compilação");
+        showDiagnosis("ERROR", {
+          title: "Falha na compilação",
+          subtitle: "Não foi possível compilar o contrato agora.",
+          badge: "Compilação necessária para implementar.",
+          causes: ["Servidor de compilação indisponível.", "Dados do formulário inválidos."],
+        });
+        return false;
+      }
     }
 
     const abi = state.compilation.abi;
@@ -2205,6 +2276,13 @@ export async function deployContract() {
     log(`Erro no deploy via MetaMask: ${err?.message || err}`);
     stopOpStatus("Erro no deploy");
     try {
+      const d = diagnoseEvmError(err, { nativeSymbol: state?.form?.network?.nativeCurrency?.symbol });
+      showDiagnosis(d.code, {
+        badge: d.badge,
+        causes: d.causes,
+      });
+    } catch (_) {}
+    try {
       const d = getDeployButton();
       if (d) {
         d.disabled = true;
@@ -2218,6 +2296,9 @@ export async function deployContract() {
       const mm = document.getElementById("btnAddToMetaMask");
       if (mm) mm.disabled = true;
     } catch (_) {}
+  }
+  } finally {
+    __deployContractLocked = false;
   }
 }
 
@@ -2530,21 +2611,7 @@ async function initWalletIfConnected() {
     const { chainId } = await provider.getNetwork();
     state.wallet = { provider, signer, address, chainId };
     log(`Carteira detectada: ${address} (chainId ${chainId}).`);
-
-    // Preencher campos de Owner e Holder se estiverem vazios
-    try {
-        const ownerInput = document.getElementById("initialOwner");
-        const holderInput = document.getElementById("initialHolder");
-        if (ownerInput && !ownerInput.value) {
-            ownerInput.value = address;
-            // Disparar evento para limpar validação
-            ownerInput.dispatchEvent(new Event('input'));
-        }
-        if (holderInput && !holderInput.value) {
-            holderInput.value = address;
-            holderInput.dispatchEvent(new Event('input'));
-        }
-    } catch (_) {}
+    setOwnerHolderDefaults(address);
     // Não ajustar automaticamente a seleção de rede ou campo de busca
   } catch (err) {
     // silencioso
@@ -2638,6 +2705,15 @@ async function autoVerifyContract() {
 
 async function bindUI() {
   // setupClearButton removido - usa btnClearAll global
+  hydrateOwnerHolderDefaults();
+  try {
+    setTimeout(() => hydrateOwnerHolderDefaults(), 600);
+  } catch (_) {}
+  try {
+    document.addEventListener("wallet:connected", (ev) => setOwnerHolderDefaults(ev?.detail?.account));
+    document.addEventListener("wallet:accountChanged", (ev) => setOwnerHolderDefaults(ev?.detail?.account));
+  } catch (_) {}
+
   const btnClearAll = document.getElementById("btnClearAll");
   if (btnClearAll) {
       btnClearAll.addEventListener("click", () => {
@@ -4104,7 +4180,10 @@ async function runVerifyDirect(p) {
             } else {
                 log(`⚠️ Ainda não verificado no explorer.`);
                 // Não forçamos UI de sucesso aqui se falhou
-                alert("A verificação está demorando um pouco para propagar no explorer.\n\nAguarde alguns instantes e clique em 'Verificar Contrato' novamente.");
+                showDiagnosis("INFO", {
+                  title: "Verificação pendente",
+                  subtitle: "A verificação ainda está propagando no explorer. Aguarde alguns instantes e tente novamente.",
+                });
                 
                 // Reativar botão para permitir nova tentativa
                 const launch = document.getElementById("erc20VerifyLaunch");

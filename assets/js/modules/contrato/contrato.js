@@ -254,7 +254,7 @@ class TokenPageManager {
      
      // 1. Validate Network
      if (!state.form.network || !state.form.network.chainId) {
-         alert("Por favor, selecione uma rede (Blockchain) no topo da página.");
+         window.showFormError?.("Por favor, selecione uma rede (Blockchain) no topo da página.");
          window.scrollTo({ top: 0, behavior: 'smooth' });
          return;
      }
@@ -271,14 +271,14 @@ class TokenPageManager {
              firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
              firstInvalid.focus();
          } else {
-            alert("Verifique os campos destacados em vermelho ou mensagens de erro.");
+            window.showFormError?.("Verifique os campos destacados em vermelho ou mensagens de erro.");
          }
          return;
      }
 
      // 3. Connect Wallet if not connected
      if (!state.wallet.signer) {
-         alert("Por favor, conecte sua carteira primeiro (botão no topo).");
+         window.showFormError?.("Por favor, conecte sua carteira primeiro (botão no topo).");
          return;
      }
 
@@ -374,7 +374,10 @@ class TokenPageManager {
                          } else {
                              btnMan.disabled = false;
                              btnMan.innerHTML = '<i class="bi bi-shield-check me-1"></i> Tentar Verificar Novamente';
-                             alert("Ainda não verificado. Aguarde mais um pouco e tente novamente.");
+                             window.showDiagnosis?.("INFO", {
+                               title: "Verificação pendente",
+                               subtitle: "Ainda não verificado. Aguarde mais um pouco e tente novamente.",
+                             });
                          }
                      };
                  }
@@ -420,7 +423,7 @@ class TokenPageManager {
          }
      } catch (e) {
          console.error("Erro ao redirecionar:", e);
-         alert("Contrato criado com sucesso! Redirecionando...");
+         window.showFormSuccess?.("Contrato criado com sucesso! Redirecionando...");
         window.location.href = "index.php?page=contrato-detalhes";
      }
   }

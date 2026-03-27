@@ -95,7 +95,7 @@
                 <div class="col-6">
                   <div class="d-flex align-items-baseline gap-2">
                     <span>Status:</span>
-                    <span class="text-success small"><i class="bi bi-circle-fill me-1"></i>Conectado</span>
+                    <span id="walletStatusLabel" class="text-success small"><i class="bi bi-circle-fill me-1"></i>Conectado</span>
                   </div>
                 </div>
 

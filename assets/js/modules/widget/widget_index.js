@@ -67,7 +67,7 @@ function showVerificationResultModal(title, message, type = 'info', link = null)
   if (window.showVerificationResultModal) {
     window.showVerificationResultModal(type === 'success', title, message, link);
   } else {
-    alert(`${title}\n${message}`);
+    window.showDiagnosis?.("INFO", { title: String(title || "Informação"), subtitle: String(message || "") });
   }
 }
 

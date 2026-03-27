@@ -94,12 +94,15 @@ export class ShareManager {
         
         // Wallet Actions
         addListener("btnAddNetworkSmall", () => {
-             alert("Para adicionar a rede, use o botão Conectar Carteira no topo e verifique se está na rede correta.");
+             window.showDiagnosis?.("PRECONDITION", {
+                 badge: "Para adicionar a rede, conecte a carteira.",
+                 causes: ["Use o botão Conectar Carteira no topo.", "Verifique se está na rede correta."],
+             });
         });
 
         addListener("btnAddToMetaMaskSmall", async () => {
             if (!this.config.address) {
-                alert("Endereço do contrato não disponível.");
+                window.showFormError?.("Endereço do contrato não disponível.");
                 return;
             }
             await addTokenToMetaMask({

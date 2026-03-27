@@ -3,6 +3,7 @@ import { getApiBase, getVerificationStatus } from "./verify-utils.js";
 import { getFallbackExplorer, getFallbackRpc } from "./network-fallback.js";
 import { findLiquidityPair } from "./dex-utils.js";
 import { isWalletAdmin, getConnectedWalletAddress } from "./admin-security.js";
+import { showDiagnosis, getDefaultAddressCauses } from "../ai/diagnostics.js";
 
 // =============================================================================
 // SHARED CONSTANTS & STATE
@@ -402,31 +403,15 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
     // Feedback visual imediato: Spinner
     let loadingSpinner = null;
 
-    // Restrição de Testnet (exceto Admin)
-    const isTestNet = networkManager?.isTestNetwork?.(chainId);
-    
     // Admin check assíncrono (melhor esforço)
-    let isAdmin = false;
-    if (window.ethereum && window.ethereum.selectedAddress) {
-        isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
-    } else {
-        const addr = await getConnectedWalletAddress();
-        if (addr) isAdmin = isWalletAdmin(addr);
-    }
-
-    if (isTestNet && !isAdmin) {
-        if (vStatus) {
-            vStatus.innerHTML = "";
-            const span = document.createElement("span");
-            span.className = "badge-verif-status badge ms-2 bg-danger-subtle text-danger border border-danger";
-            span.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
-            span.title = "Verificação não disponível em redes de teste.";
-            vStatus.appendChild(span);
+    try {
+        if (window.ethereum && window.ethereum.selectedAddress) {
+            isWalletAdmin(window.ethereum.selectedAddress);
+        } else {
+            const addr = await getConnectedWalletAddress();
+            if (addr) isWalletAdmin(addr);
         }
-        const warningDiv = container?.querySelector?.("#cs_verifiedWarning");
-        if (warningDiv) warningDiv.classList.add("d-none");
-        return;
-    }
+    } catch (_) {}
 
     if (vStatus) {
         // Se já tiver badge, mantemos até atualizar, mas adicionamos spinner se for forceRefresh ou primeira vez
@@ -709,6 +694,112 @@ function showStatus(container, msg) {
   } catch (_) {}
 }
 
+function isStrictErrorsEnabled(container) {
+  try {
+    return String(container?.getAttribute?.("data-cs-strict-errors") || "false") === "true";
+  } catch (_) {
+    return false;
+  }
+}
+
+function isAllowWalletEnabled(container) {
+  try {
+    return String(container?.getAttribute?.("data-cs-allow-wallet") || "false") === "true";
+  } catch (_) {
+    return false;
+  }
+}
+
+async function quickHasCodeOnChain(address, chainId, timeoutMs = 1400) {
+  try {
+    const rpc = getPrimaryRpc(chainId);
+    if (!rpc) return null;
+    const body = { jsonrpc: "2.0", id: 100, method: "eth_getCode", params: [String(address), "latest"] };
+    const js = await fetchJsonWithTimeout(rpc, body, timeoutMs);
+    const code = js && js.result ? String(js.result) : "0x";
+    return code !== "0x" && code !== "0x0";
+  } catch (_) {
+    return null;
+  }
+}
+
+async function detectContractOnOtherNetwork(address, currentChainId) {
+  try {
+    const cur = parseInt(String(currentChainId || ""), 10);
+    const candidates = [];
+
+    [1, 56, 97, 137, 10, 42161].forEach((cid) => {
+      if (cid && cid !== cur) candidates.push(cid);
+    });
+
+    try {
+      const popular = networkManager?.getPopularNetworks?.(12) || [];
+      popular.forEach((n) => {
+        const cid = n?.chainId != null ? Number(n.chainId) : null;
+        if (cid && cid !== cur) candidates.push(cid);
+      });
+    } catch (_) {}
+
+    const unique = Array.from(new Set(candidates)).slice(0, 10);
+    const start = Date.now();
+    for (const cid of unique) {
+      if (Date.now() - start > 3500) break;
+      const hasCode = await quickHasCodeOnChain(address, cid, 1200);
+      if (hasCode) return cid;
+    }
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function hasEoaActivityOnChain(address, chainId) {
+  try {
+    const rpc = getPrimaryRpc(chainId);
+    if (!rpc) return false;
+    const bodies = [
+      { jsonrpc: "2.0", id: 201, method: "eth_getTransactionCount", params: [String(address), "latest"] },
+      { jsonrpc: "2.0", id: 202, method: "eth_getBalance", params: [String(address), "latest"] },
+    ];
+    const js = await fetchJsonWithTimeout(rpc, bodies, 1800);
+    if (!Array.isArray(js)) return false;
+    const r201 = js.find((x) => x && x.id === 201);
+    const r202 = js.find((x) => x && x.id === 202);
+    const cntHex = r201 && r201.result ? String(r201.result) : "0x0";
+    const balHex = r202 && r202.result ? String(r202.result) : "0x0";
+    const cnt = parseInt(cntHex, 16) || 0;
+    const bal = toBigInt(balHex);
+    return cnt > 0 || bal > 0n;
+  } catch (_) {
+    return false;
+  }
+}
+
+function getStrictAddressErrorHtml() {
+  return `
+    <div class="text-start">
+      <div class="mb-2">Possíveis causas:</div>
+      <ul class="mb-0">
+        <li>Endereço não informado</li>
+        <li>Endereço inválido</li>
+        <li>Endereço não pertence a esta rede (ou é uma carteira pessoal)</li>
+      </ul>
+    </div>
+  `;
+}
+
+function showStrictAddressError(container, subtitle, onClear) {
+  try {
+    return showDiagnosis("VERIFY_NETWORK_OR_ADDRESS", {
+      badge: subtitle || "",
+      causes: getDefaultAddressCauses(),
+      onClear,
+    });
+  } catch (_) {
+    return false;
+  }
+}
+
 async function performContractSearch(container, chainId, address) {
     if (isSearching) return null;
     isSearching = true;
@@ -722,18 +813,53 @@ async function performContractSearch(container, chainId, address) {
       if (btn) btn.disabled = true;
     } catch (_) {}
 
+    const resetUi = () => {
+      try {
+        const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
+        if (sp) sp.classList.add("d-none");
+        if (btn) btn.disabled = false;
+      } catch (_) {}
+    };
+
     const addrRaw = String(address || "").replace(/\s+$/u, "");
     const okAddr = /^0x[0-9a-fA-F]{40}$/.test(addrRaw);
     const chainIdRaw = String(chainId || "");
 
+    const strict = isStrictErrorsEnabled(container);
+    if (strict && !addrRaw) {
+      showStatus(container, "");
+      if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear({ silent: true });
+      showStrictAddressError(container, "Endereço não informado.", () => {
+        const clearAllBtn = document.getElementById("btnClearAll");
+        if (clearAllBtn) clearAllBtn.click();
+        else if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear();
+        const addrEl = container.querySelector("#f_address") || document.getElementById("f_address");
+        if (addrEl) addrEl.value = "";
+      });
+      isSearching = false;
+      resetUi();
+      return null;
+    }
+
+    if (strict && addrRaw && !okAddr) {
+      showStatus(container, "");
+      if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear({ silent: true });
+      showStrictAddressError(container, "Endereço inválido.", () => {
+        const clearAllBtn = document.getElementById("btnClearAll");
+        if (clearAllBtn) clearAllBtn.click();
+        else if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear();
+        const addrEl = container.querySelector("#f_address") || document.getElementById("f_address");
+        if (addrEl) addrEl.value = "";
+      });
+      isSearching = false;
+      resetUi();
+      return null;
+    }
+
     if (!okAddr || !chainIdRaw) {
       showStatus(container, "Endereço inválido ou rede não selecionada.");
       isSearching = false;
-      try {
-          const sp = container.querySelector("#contractSearchSpinner") || document.getElementById("contractSearchSpinner");
-          if (sp) sp.classList.add("d-none");
-          if (btn) btn.disabled = false;
-      } catch(_) {}
+      resetUi();
       return null;
     }
 
@@ -770,6 +896,65 @@ async function performContractSearch(container, chainId, address) {
         extra.isContract = true;
     }
 
+    const hasData = !!(extra.tokenName || extra.tokenSymbol || extra.tokenDecimals != null || extra.tokenSupply);
+    if (strict && !hasData) {
+      const allowWallet = isAllowWalletEnabled(container);
+      const contractDetermined = isC_raw !== null;
+      if (allowWallet && extra.isContract === false && contractDetermined) {
+        // Primeiro, verificar se é contrato em outra rede (para evitar falso positivo de carteira)
+        const otherChain = await detectContractOnOtherNetwork(addrRaw, chainIdRaw);
+        if (otherChain) {
+          showStatus(container, "");
+          if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear({ silent: true });
+          const otherNet = networkManager?.getNetworkById?.(otherChain);
+          const label = otherNet?.name ? `${otherNet.name} (${otherChain})` : `chainId ${otherChain}`;
+          const subtitle = `Endereço não pertence a esta rede. Encontrado em ${label}.`;
+          showStrictAddressError(container, subtitle, () => {
+            const clearAllBtn = document.getElementById("btnClearAll");
+            if (clearAllBtn) clearAllBtn.click();
+            else if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear();
+            const addrEl = container.querySelector("#f_address") || document.getElementById("f_address");
+            if (addrEl) addrEl.value = "";
+          });
+          isSearching = false;
+          resetUi();
+          return null;
+        }
+        // Em seguida, validar "existência" mínima da carteira na rede: saldo > 0 ou nonce > 0
+        const hasActivity = await hasEoaActivityOnChain(addrRaw, chainIdRaw);
+        if (!hasActivity) {
+          showStatus(container, "");
+          if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear({ silent: true });
+          showStrictAddressError(container, "Endereço não encontrado nesta rede.", () => {
+            const clearAllBtn = document.getElementById("btnClearAll");
+            if (clearAllBtn) clearAllBtn.click();
+            else if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear();
+            const addrEl = container.querySelector("#f_address") || document.getElementById("f_address");
+            if (addrEl) addrEl.value = "";
+          });
+          isSearching = false;
+          resetUi();
+          return null;
+        }
+        // Caso tenha atividade, permitir fluxo de carteira (EOA)
+        showStatus(container, "Endereço identificado como Carteira (EOA).");
+      } else {
+      showStatus(container, "");
+      if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear({ silent: true });
+      const subtitle = "Endereço com erro para a rede selecionada.";
+      showStrictAddressError(container, subtitle, () => {
+        const clearAllBtn = document.getElementById("btnClearAll");
+        if (clearAllBtn) clearAllBtn.click();
+        else if (typeof container?.__tcContractSearchClear === "function") container.__tcContractSearchClear();
+        const addrEl = container.querySelector("#f_address") || document.getElementById("f_address");
+        if (addrEl) addrEl.value = "";
+      });
+      isSearching = false;
+      resetUi();
+      return null;
+      }
+    }
+
     // Dispatch event
     const evt = new CustomEvent("contract:found", { detail: { contract: { ...payload, ...extra } }, bubbles: true });
     try { container.dispatchEvent(evt); } catch (_) {}
@@ -779,7 +964,6 @@ async function performContractSearch(container, chainId, address) {
     await updateContractDetailsView(container, chainIdRaw, addrRaw);
     
     // Status Logic
-    const hasData = !!(extra.tokenName || extra.tokenSymbol || extra.tokenDecimals != null || extra.tokenSupply);
     const infoBtn = container.querySelector("#csInfoBtn");
     
     if (!hasData) {
@@ -844,8 +1028,9 @@ function initContainer(container) {
     }
   } catch (_) {}
 
-  function clearVisualState() {
+  function clearVisualState(options = {}) {
     try {
+      const silent = !!options?.silent;
       const infoBtn = container.querySelector("#csInfoBtn");
       const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
 
@@ -889,10 +1074,13 @@ function initContainer(container) {
       if (vWalletStatus) vWalletStatus.innerHTML = "-";
       if (topExp) { topExp.href = "#"; topExp.classList.add("disabled"); }
 
-      const evt = new CustomEvent("contract:clear", { bubbles: true });
+      const evt = new CustomEvent("contract:clear", { detail: { silent }, bubbles: true });
       try { container.dispatchEvent(evt); } catch (_) {}
     } catch (e) {}
   }
+  try {
+    container.__tcContractSearchClear = clearVisualState;
+  } catch (_) {}
 
   // Helper: Find Chain ID
   function findChainId() {

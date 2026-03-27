@@ -357,7 +357,7 @@ async function runVerify() {
   if (!window.downloadVerifyPayload) {
       window.downloadVerifyPayload = function() {
           if (!window.lastVerifyPayload) {
-              alert("Nenhum payload disponível.");
+              window.showFormError?.("Nenhum payload disponível.");
               return;
           }
           const blob = new Blob([JSON.stringify(window.lastVerifyPayload, null, 2)], { type: "application/json" });
