@@ -119,6 +119,13 @@ function isMobile() {
 }
 
 async function connectMetaMask() {
+  try {
+    if (window.walletConnector && typeof window.walletConnector.connect === "function") {
+      const res = await window.walletConnector.connect("metamask");
+      return !!res?.success;
+    }
+  } catch (_) {}
+
   if (!window.ethereum) {
     if (isMobile()) {
       const currentUrl = window.location.href.replace(/(^\w+:|^)\/\//, '');
@@ -128,10 +135,7 @@ async function connectMetaMask() {
     throw new Error("MetaMask não encontrado. Por favor, instale a extensão.");
   }
 
-  const accounts = await window.ethereum.request({
-    method: "eth_requestAccounts",
-  });
-
+  const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
   return accounts.length > 0;
 }
 
@@ -144,9 +148,13 @@ async function connectTrustWallet() {
     }
     throw new Error("Trust Wallet não encontrada. Verifique se está instalada.");
   }
-  const accounts = await window.ethereum.request({
-    method: "eth_requestAccounts",
-  });
+  try {
+    if (window.walletConnector && typeof window.walletConnector.connect === "function") {
+      const res = await window.walletConnector.connect("trust");
+      return !!res?.success;
+    }
+  } catch (_) {}
+  const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
   return accounts.length > 0;
 }
 
@@ -260,17 +268,6 @@ async function handleConnectionSuccess(account, chainId) {
   // Emitir também como CustomEvent para integração unificada
   document.dispatchEvent(new CustomEvent("wallet:connected", { detail: { account, chainId } }));
 
-  // Sincronizar estado com WalletConnector unificado, quando disponível
-  try {
-    if (window.walletConnector) {
-      // Detectar tipo de carteira pelo provider
-      const walletType = window.ethereum?.isTrust ? "trust" : window.ethereum?.isMetaMask ? "metamask" : "metamask";
-      await window.walletConnector.connect(walletType);
-    }
-  } catch (e) {
-    console.warn("Falha ao sincronizar WalletConnector:", e.message);
-  }
-
   // Emit global wallet events for compatibility
   if (window.walletIntegration) {
     // The integration system will handle event emission
@@ -287,7 +284,7 @@ async function handleConnectionSuccess(account, chainId) {
     
     // Redirecionar diretamente como fallback, além dos listeners do PageManager
     try {
-      const target = "/tools.php";
+      const target = "index.php?page=tools";
       setTimeout(() => {
         window.location.href = target;
       }, 400);
