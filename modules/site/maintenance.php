@@ -59,7 +59,12 @@ $disablePageHeader = true;
 
     try {
       document.addEventListener("wallet:connected", function () {
-        try { window.location.href = "index.php?page=tools"; } catch (_) {}
+        try {
+          var k = "tokencafe_maintenance_redirected";
+          if (window.sessionStorage && sessionStorage.getItem(k) === "1") return;
+          if (window.sessionStorage) sessionStorage.setItem(k, "1");
+          window.location.replace("index.php?page=tools");
+        } catch (_) {}
       });
     } catch (_) {}
 
@@ -69,6 +74,24 @@ $disablePageHeader = true;
         for (var i = 1; i < cards.length; i += 1) {
           try { cards[i].remove(); } catch (_) {}
         }
+      }
+    } catch (_) {}
+
+    try {
+      var k2 = "tokencafe_maintenance_redirected";
+      if (window.sessionStorage && sessionStorage.getItem(k2) === "1") {
+        setTimeout(function () {
+          try {
+            if (window.showDiagnosis) {
+              window.showDiagnosis("INFO", {
+                title: "Acesso em manutenção",
+                subtitle: "Conectamos sua carteira, mas o acesso de admin ainda não foi liberado nesta sessão.",
+                badge: "Dica: valide o cookie tokencafe_wallet_address.",
+                causes: ["O cookie não foi gravado/enviado.", "O domínio/path do cookie está diferente.", "O servidor não está lendo admins.txt corretamente."],
+              });
+            }
+          } catch (_) {}
+        }, 600);
       }
     } catch (_) {}
   })();
