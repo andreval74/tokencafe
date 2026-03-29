@@ -1823,8 +1823,8 @@ Classes reutilizáveis para efeitos neon padronizados
   border-radius: 14px;
   text-decoration: none;
   color: var(--tokencafe-text-primary);
-  background: rgba(26, 26, 26, 0.75);
-  border: 1px solid var(--tokencafe-border-light);
+  background: rgba(19, 19, 19, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   transition:
     transform 0.2s ease,
@@ -1835,7 +1835,7 @@ Classes reutilizáveis para efeitos neon padronizados
 
 .tool-tile:hover {
   transform: translateY(-4px);
-  border-color: rgba(248, 93, 35, 0.35);
+  border-color: rgba(255, 255, 255, 0.16);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
 }
 
@@ -1846,9 +1846,9 @@ Classes reutilizáveis para efeitos neon padronizados
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
-  color: #0a0a0a;
-  box-shadow: 0 8px 20px rgba(248, 93, 35, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .tool-tile-title {
@@ -1858,7 +1858,7 @@ Classes reutilizáveis para efeitos neon padronizados
 
 .tool-tile-desc {
   font-size: 0.8rem;
-  color: var(--tokencafe-text-secondary);
+  color: rgba(255, 255, 255, 0.62);
   line-height: 1.35;
   min-height: 44px; /* altura mínima para descrição, evitando variação entre tiles */
 }
@@ -1936,7 +1936,31 @@ Classes reutilizáveis para efeitos neon padronizados
 
 /* Dark theme adjustments */
 [data-bs-theme="dark"] .tool-tile {
-  background: rgba(26, 26, 26, 0.85);
+  background: rgba(19, 19, 19, 0.92);
+}
+
+.tc-tools-hero-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.tc-tools-hero-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.tc-action-btn {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.tc-action-btn:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
 }
 /* ============================================================================
  * ADDITIONAL UTILITIES
