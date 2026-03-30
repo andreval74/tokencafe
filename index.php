@@ -23,6 +23,7 @@ require_once __DIR__ . "/includes/config.php";
 require __DIR__ . "/includes/render.php";
 
 $page = isset($_GET["page"]) ? (string) $_GET["page"] : "home";
+if (in_array($page, ["admin", "logs-resumo", "meu-dashboard"], true)) $page = "logs";
 $resolved = tokencafe_resolve_page($page);
 
 if ($resolved && is_file($resolved)) {

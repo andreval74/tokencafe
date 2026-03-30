@@ -34,6 +34,21 @@ if (!defined("TOKENCAFE_ADMIN_BYPASS_KEY")) {
   define("TOKENCAFE_ADMIN_BYPASS_KEY", $env !== false ? (string) $env : "");
 }
 
+if (!defined("TOKENCAFE_CHIEF_ADMIN_WALLET")) {
+  $envChief = getenv("TOKENCAFE_CHIEF_ADMIN_WALLET");
+  if ($envChief !== false && trim($envChief) !== "") {
+    define("TOKENCAFE_CHIEF_ADMIN_WALLET", strtolower(trim($envChief)));
+  } else {
+    $chief = is_array(TOKENCAFE_ADMIN_WALLETS) && count(TOKENCAFE_ADMIN_WALLETS) > 0 ? TOKENCAFE_ADMIN_WALLETS[0] : "";
+    define("TOKENCAFE_CHIEF_ADMIN_WALLET", strtolower(trim((string) $chief)));
+  }
+}
+
+if (!defined("TOKENCAFE_LOG_ARCHIVE_EMAIL")) {
+  $envEmail = getenv("TOKENCAFE_LOG_ARCHIVE_EMAIL");
+  define("TOKENCAFE_LOG_ARCHIVE_EMAIL", $envEmail !== false && trim($envEmail) !== "" ? trim((string) $envEmail) : "andreval74@gmail.com");
+}
+
 function tokencafe_is_admin_wallet(?string $address): bool
 {
   if (!$address) return false;
@@ -68,4 +83,12 @@ function tokencafe_check_admin_bypass_key(?string $provided): bool
   if ($p === "") return false;
   if (function_exists("hash_equals")) return hash_equals($key, $p);
   return $key === $p;
+}
+
+function tokencafe_is_chief_admin(?string $address): bool
+{
+  if (!$address) return false;
+  $addr = strtolower(trim($address));
+  $chief = defined("TOKENCAFE_CHIEF_ADMIN_WALLET") ? (string) TOKENCAFE_CHIEF_ADMIN_WALLET : "";
+  return $chief !== "" && $addr === $chief;
 }

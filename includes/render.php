@@ -8,6 +8,174 @@
 
 require_once __DIR__ . "/config.php";
 require_once __DIR__ . "/admin-config.php";
+require_once __DIR__ . "/log-mail.php";
+
+function tokencafe_get_client_ip(): string
+{
+  $candidates = [
+    "HTTP_CF_CONNECTING_IP",
+    "HTTP_X_REAL_IP",
+    "HTTP_X_FORWARDED_FOR",
+    "REMOTE_ADDR",
+  ];
+  foreach ($candidates as $k) {
+    if (!isset($_SERVER[$k])) continue;
+    $raw = trim((string) $_SERVER[$k]);
+    if ($raw === "") continue;
+    if ($k === "HTTP_X_FORWARDED_FOR") {
+      $parts = explode(",", $raw);
+      $raw = trim((string) ($parts[0] ?? ""));
+    }
+    if ($raw === "") continue;
+    return $raw;
+  }
+  return "";
+}
+
+function tokencafe_logs_dir(): string
+{
+  $root = dirname(__DIR__);
+  return $root . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "logs";
+}
+
+function tokencafe_admin_logs_dir(): string
+{
+  $root = dirname(__DIR__);
+  return $root . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "admin-logs";
+}
+
+function tokencafe_append_log(string $fileBase, string $line): void
+{
+  $dir = tokencafe_logs_dir();
+  if (!is_dir($dir)) {
+    @mkdir($dir, 0775, true);
+  }
+  if (!is_dir($dir)) return;
+  $date = gmdate("Y-m-d");
+  $file = $dir . DIRECTORY_SEPARATOR . $fileBase . "-" . $date . ".log";
+  $line = rtrim($line);
+  @file_put_contents($file, $line . "\n", FILE_APPEND | LOCK_EX);
+}
+
+function tokencafe_append_admin_log(string $type, string $line): void
+{
+  // type: ip | sc
+  $dir = tokencafe_admin_logs_dir();
+  if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
+  if (!is_dir($dir)) return;
+  $date = gmdate("Y-m-d");
+  $base = $type === "ip" ? "IPLogs" : "SCLogs";
+  $file = $dir . DIRECTORY_SEPARATOR . $base . "-" . $date . ".php";
+  if (!is_file($file)) {
+    @file_put_contents($file, "<?php exit; ?>\n", FILE_APPEND | LOCK_EX);
+    @file_put_contents($file, "data;hora;ip;wallet;page;chain;contract\n", FILE_APPEND | LOCK_EX);
+  }
+  $line = rtrim($line);
+  @file_put_contents($file, $line . "\n", FILE_APPEND | LOCK_EX);
+}
+
+function tokencafe_log_visit(string $pageHint = ""): void
+{
+  $d = gmdate("Y-m-d");
+  $t = gmdate("H:i:s");
+  $ip = tokencafe_get_client_ip();
+  $wallet = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? strtolower(trim((string) $_COOKIE[TOKENCAFE_WALLET_COOKIE])) : "";
+  $chain = isset($_COOKIE["tokencafe_chain_id"]) ? trim((string) $_COOKIE["tokencafe_chain_id"]) : "";
+  $contract = isset($_COOKIE["tokencafe_contract"]) ? trim((string) $_COOKIE["tokencafe_contract"]) : "";
+  $uri = isset($_SERVER["REQUEST_URI"]) ? (string) $_SERVER["REQUEST_URI"] : "";
+  $page = trim((string) $pageHint);
+  $line = "[" . $d . " " . $t . "] ip=" . $ip . ($wallet !== "" ? " wallet=" . $wallet : "") . " page=" . $page . " uri=" . $uri;
+  tokencafe_append_log("visits", $line);
+  tokencafe_append_admin_log("ip", $d . ";" . $t . ";" . $ip . ";" . $wallet . ";" . $page . ";" . $chain . ";" . $contract);
+}
+
+function tokencafe_log_client_access(string $pageHint = ""): void
+{
+  $d = gmdate("Y-m-d");
+  $t = gmdate("H:i:s");
+  $ip = tokencafe_get_client_ip();
+  $wallet = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? strtolower(trim((string) $_COOKIE[TOKENCAFE_WALLET_COOKIE])) : "";
+  $chain = isset($_COOKIE["tokencafe_chain_id"]) ? trim((string) $_COOKIE["tokencafe_chain_id"]) : "";
+  $contract = isset($_COOKIE["tokencafe_contract"]) ? trim((string) $_COOKIE["tokencafe_contract"]) : "";
+  $page = trim((string) $pageHint);
+  $line = "[" . $d . " " . $t . "] ip=" . $ip . ($wallet !== "" ? " wallet=" . $wallet : "") . " page=" . $page;
+  tokencafe_append_log("client", $line);
+  tokencafe_append_admin_log("sc", $d . ";" . $t . ";" . $ip . ";" . $wallet . ";" . $page . ";" . $chain . ";" . $contract);
+}
+
+function tokencafe_admin_log_should_cleanup_today(): bool
+{
+  $dir = tokencafe_admin_logs_dir();
+  if (!is_dir($dir)) return true;
+  $flag = $dir . DIRECTORY_SEPARATOR . ".cleanup-last.txt";
+  $today = gmdate("Y-m-d");
+  $last = "";
+  try { if (is_file($flag)) $last = trim((string) file_get_contents($flag)); } catch (Throwable $e) {}
+  if ($last === $today) return false;
+  try { @file_put_contents($flag, $today, LOCK_EX); } catch (Throwable $e) {}
+  return true;
+}
+
+function tokencafe_archive_and_delete_file(string $filePath, string $reason): bool
+{
+  $to = defined("TOKENCAFE_LOG_ARCHIVE_EMAIL") ? (string) TOKENCAFE_LOG_ARCHIVE_EMAIL : "";
+  $to = trim($to);
+  if ($to === "") return false;
+  $file = basename($filePath);
+  $subject = "TokenCafe Logs Archive: " . $file;
+  $body = "Motivo: " . $reason . "\nArquivo: " . $file . "\nData (UTC): " . gmdate("Y-m-d H:i:s") . "\n";
+  $sent = tokencafe_send_mail_with_attachment($to, $subject, $body, $filePath);
+  if (!$sent) return false;
+  @unlink($filePath);
+  return true;
+}
+
+function tokencafe_cleanup_admin_logs(int $daysToKeep = 30): void
+{
+  if ($daysToKeep < 1) $daysToKeep = 1;
+  if (!tokencafe_admin_log_should_cleanup_today()) return;
+  $dir = tokencafe_admin_logs_dir();
+  if (!is_dir($dir)) return;
+  $threshold = strtotime(gmdate("Y-m-d") . " 00:00:00 UTC") - ($daysToKeep * 86400);
+  $filesIp = @glob($dir . DIRECTORY_SEPARATOR . "IPLogs-*.php");
+  $filesSc = @glob($dir . DIRECTORY_SEPARATOR . "SCLogs-*.php");
+  $files = [];
+  if (is_array($filesIp)) $files = array_merge($files, $filesIp);
+  if (is_array($filesSc)) $files = array_merge($files, $filesSc);
+  if (!$files) return;
+
+  $toArchive = [];
+  foreach ($files as $fp) {
+    $bn = basename((string) $fp);
+    if (!preg_match('/^(IPLogs|SCLogs)-(\d{4}-\d{2}-\d{2})\.php$/', $bn, $m)) continue;
+    $d = $m[2];
+    $ts = strtotime($d . " 00:00:00 UTC");
+    if ($ts === false) continue;
+    if ($ts >= $threshold) continue;
+    $toArchive[] = (string) $fp;
+  }
+
+  if (!$toArchive) return;
+  $to = defined("TOKENCAFE_LOG_ARCHIVE_EMAIL") ? (string) TOKENCAFE_LOG_ARCHIVE_EMAIL : "";
+  $to = trim($to);
+  if ($to === "") return;
+
+  $zipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "tokencafe-admin-logs-" . gmdate("Ymd-His") . ".zip";
+  $okZip = tokencafe_create_zip($toArchive, $zipPath);
+  if (!$okZip) return;
+
+  $subject = "TokenCafe Logs Archive: admin-logs (" . count($toArchive) . " arquivos)";
+  $body = "Motivo: auto-retencao-" . $daysToKeep . "-dias\nArquivos: " . count($toArchive) . "\nData (UTC): " . gmdate("Y-m-d H:i:s") . "\n";
+  $sent = tokencafe_send_mail_with_attachment($to, $subject, $body, $zipPath);
+  if (!$sent) {
+    @unlink($zipPath);
+    return;
+  }
+  foreach ($toArchive as $fp) {
+    @unlink($fp);
+  }
+  @unlink($zipPath);
+}
 
 function __tokencafe_relpath(string $path, string $baseDir): string
 {
@@ -61,18 +229,23 @@ function __tokencafe_guess_module_header(string $viewPath): array
     "token add" => "Criar Token",
     "contrato" => "Gerador de Contratos",
     "verifica" => "Verificação de Contratos",
+    "logs" => "Logs do Sistema",
     "settings" => "Configurações do Sistema",
     "templates" => "Template Gallery",
     "analytics" => "Analytics",
     "profile" => "Perfil",
-    "admin" => "Admin Dashboard",
+    "admin" => "Logs do Sistema",
     "widget" => "Widget",
   ];
   if (isset($known[$titleLower])) $title = $known[$titleLower];
 
+  $subtitle = "TokenCafe Tools";
+  if ($titleLower === "logs") $subtitle = "Relatórios técnicos de acesso";
+  if ($titleLower === "admin") $subtitle = "Relatórios técnicos de acesso";
+
   return [
     "title" => $title,
-    "subtitle" => "TokenCafe Tools",
+    "subtitle" => $subtitle,
     "icon" => "bi-grid",
     "iconAlt" => $title,
   ];
@@ -87,6 +260,8 @@ function tokencafe_resolve_page(string $page): ?string
   $map = [
     "tools" => __DIR__ . "/../modules/site/tools.php",
     "maintenance" => __DIR__ . "/../modules/site/maintenance.php",
+    "logs" => __DIR__ . "/../modules/logs/logs-index.php",
+    "admin" => __DIR__ . "/../modules/logs/logs-index.php",
     "wallet" => __DIR__ . "/../modules/wallet/wallet-index.php",
     "rpc" => __DIR__ . "/../modules/rpc/rpc-index.php",
     "link" => __DIR__ . "/../modules/link/link-index.php",
@@ -102,7 +277,6 @@ function tokencafe_resolve_page(string $page): ?string
     "templates" => __DIR__ . "/../modules/templates/template-gallery.php",
     "analytics" => __DIR__ . "/../modules/analytics/analytics-reports.php",
     "profile" => __DIR__ . "/../modules/profile/user-profile.php",
-    "admin" => __DIR__ . "/../modules/admin/activity-dashboard.php",
     "widget" => __DIR__ . "/../modules/widget/widget-index.php",
   ];
 
@@ -127,6 +301,9 @@ function render_page(string $viewPath, array $options = []): void
   $host = strtolower((string)($_SERVER["HTTP_HOST"] ?? $_SERVER["SERVER_NAME"] ?? "localhost"));
   $host = preg_replace('/:\d+$/', "", $host);
   $isLocal = in_array($host, ["localhost", "127.0.0.1", "::1"], true);
+  $pageHint = isset($_GET["page"]) ? (string) $_GET["page"] : basename((string)($_SERVER["SCRIPT_NAME"] ?? ""));
+  tokencafe_log_visit($pageHint);
+  tokencafe_cleanup_admin_logs(30);
 
   $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
   $isAdmin = tokencafe_is_admin_wallet($walletCookie);
@@ -187,6 +364,8 @@ function render_page(string $viewPath, array $options = []): void
   $viewRel = __tokencafe_relpath($viewPathReal, $projectRoot);
   $viewRelNorm = strtolower(str_replace("\\", "/", $viewRel));
   $isSiteView = str_starts_with($viewRelNorm, "modules/site/") || str_contains($viewRelNorm, "/modules/site/");
+  $isClientArea = !$isSiteView;
+  if ($isClientArea) tokencafe_log_client_access($pageHint !== "" ? $pageHint : $viewRelNorm);
 
   $headerVariant = $options["headerVariant"] ?? ($isSiteView ? "default" : "module");
   $mh = __tokencafe_guess_module_header($viewPathReal);

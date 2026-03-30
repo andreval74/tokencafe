@@ -159,6 +159,12 @@ export class WalletConnector {
         const v = encodeURIComponent(String(this.currentAccount || ""));
         document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
       } catch (_) {}
+      try {
+        if (this.currentChainId) {
+          const cid = encodeURIComponent(String(this.currentChainId));
+          document.cookie = `tokencafe_chain_id=${cid}; Path=/; SameSite=Lax`;
+        }
+      } catch (_) {}
 
       try {
         const url = new URL(window.location.href);
@@ -424,6 +430,10 @@ export class WalletConnector {
       this.updateNetworkInfo();
       this.emitEvent("wallet:chainChanged", { chainId });
       this.log(`🔄 Rede alterada: ${chainId}`);
+      try {
+        const cid = encodeURIComponent(String(chainId || ""));
+        document.cookie = `tokencafe_chain_id=${cid}; Path=/; SameSite=Lax`;
+      } catch (_) {}
     };
 
     window.ethereum.on("accountsChanged", accountsHandler);

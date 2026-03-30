@@ -97,46 +97,46 @@ $isAdmin = tokencafe_is_admin_wallet($currentWallet);
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
+        <div class="tool-tile disabled-tile" aria-label="Analise de Contratos" aria-disabled="true">
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-graph-up"></i></div>
           <div class="tool-tile-title">Analise de Contratos</div>
           <div class="tool-tile-desc">Relatórios, insights e métricas do seu contrato</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=verifica" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir Verificação de Contratos">
-              <i class="bi bi-door-open me-1"></i>
-              Abrir Módulo
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
+        <div class="tool-tile disabled-tile" aria-label="Widget" aria-disabled="true">
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-rocket"></i></div>
           <div class="tool-tile-title">Widget</div>
           <div class="tool-tile-desc">Venda de tokens plug & play</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=widget" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir Widget de Compra">
-              <i class="bi bi-door-open me-1"></i>
-              Abrir Widget
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
+        <div class="tool-tile disabled-tile" aria-label="Administração de Token" aria-disabled="true">
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-coin"></i></div>
           <div class="tool-tile-title">Administração de Token</div>
           <div class="tool-tile-desc">Gestão das propriedades dos tokens</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=analytics" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir Analytics">
-              <i class="bi bi-door-open me-1"></i>
-              Abrir Módulo
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
+        <div class="tool-tile disabled-tile" aria-label="Template Gallery" aria-disabled="true">
           <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon">
             <i class="bi bi-layers"></i>
@@ -144,63 +144,70 @@ $isAdmin = tokencafe_is_admin_wallet($currentWallet);
           <div class="tool-tile-title">Template Gallery</div>
           <div class="tool-tile-desc">Explore e gerencie templates</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=templates" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir Template Gallery">
-              <i class="bi bi-door-open me-1"></i>
-              Abrir Módulo
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="System Settings" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
-          <span class="tool-tile-status badge bg-info">Admin</span>
+        <div class="tool-tile disabled-tile" aria-label="System Settings" aria-disabled="true">
+          <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-gear"></i></div>
           <div class="tool-tile-title">System Settings</div>
           <div class="tool-tile-desc">Preferências e configurações do sistema</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=settings" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir System Settings">
-              <i class="bi bi-door-open me-1"></i>
-              Abrir Módulo
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Dashboard (Admin)" data-status="admin-only">
-          <span class="tool-tile-status badge bg-info">Admin</span>
+        <?php
+          $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
+          $isChief = function_exists("tokencafe_is_chief_admin") ? tokencafe_is_chief_admin($walletCookie) : false;
+          if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
+          $hasWallet = trim($walletCookie) !== "";
+          $canSeeLogs = $isChief || $hasWallet;
+        ?>
+        <div class="tool-tile <?= $canSeeLogs ? "" : "disabled-tile" ?>" aria-label="Logs do Sistema" data-status="finished">
+          <span class="tool-tile-status badge <?= $isChief ? "bg-info" : "bg-secondary" ?>"><?= $isChief ? "Admin" : "Pessoal" ?></span>
           <div class="tool-tile-icon">
-            <i class="bi bi-speedometer2"></i>
+            <i class="bi bi-journal-text"></i>
           </div>
-          <div class="tool-tile-title">Dashboard</div>
-          <div class="tool-tile-desc">Relatório de movimentação, conexões e arquivos.</div>
+          <div class="tool-tile-title">Logs</div>
+          <div class="tool-tile-desc">KPIs, projeções, top páginas e dados do dia.</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=admin" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir Dashboard">
-              <i class="bi bi-graph-up me-1"></i>
-              Abrir Relatórios
+            <a href="index.php?page=logs" class="tool-link btn btn-sm tc-action-btn w-100 <?= $canSeeLogs ? "" : "disabled" ?>" aria-label="Abrir Logs do Sistema" <?= $canSeeLogs ? "" : "tabindex=\"-1\" aria-disabled=\"true\"" ?>>
+              <i class="bi bi-door-open me-1"></i>
+              Abrir
             </a>
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?> id="systemStatusTile">
-          <span class="tool-tile-status badge bg-warning">em breve</span>
+        <div class="tool-tile disabled-tile" aria-label="System Status" aria-disabled="true" id="systemStatusTile">
+          <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-heart-pulse"></i></div>
           <div class="tool-tile-title">System Status</div>
           <div class="tool-tile-desc">Verificar saúde do sistema, se todas as funcionalidades estão operacionais e atualizadas.</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="index.php?page=settings&tab=status" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir System Status">
-              <i class="bi bi-heart-pulse me-1"></i>
-              Abrir Status
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>
 
-        <div class="tool-tile <?= $isAdmin ? "" : "disabled-tile" ?>" aria-label="Template Gallery" <?= $isAdmin ? "" : "aria-disabled=\"true\"" ?>>
-          <span class="tool-tile-status badge bg-warning">em breve</span>
+        <div class="tool-tile disabled-tile" aria-label="Guia de Estilos" aria-disabled="true">
+          <span class="tool-tile-status badge bg-warning">Em Breve</span>
           <div class="tool-tile-icon"><i class="bi bi-palette"></i></div>
           <div class="tool-tile-title">Guia de Estilos</div>
           <div class="tool-tile-desc">Referência de padrões de UI e CSS</div>
           <div class="tool-tile-footer d-flex flex-column gap-2 mt-2">
-            <a href="style-guide.php" class="tool-link btn btn-sm tc-action-btn w-100" aria-label="Abrir Guia de Estilos">
-              <i class="bi bi-book me-1"></i>
-              Abrir Guia
+            <a href="#" class="tool-link btn btn-sm btn-outline-secondary rounded-3 w-100" tabindex="-1" aria-disabled="true">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Em breve
             </a>
           </div>
         </div>

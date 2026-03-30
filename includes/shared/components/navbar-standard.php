@@ -59,10 +59,10 @@ Uso: Inclua via data-component="navbar-standard"
           Conectar Carteira
         </button>
 
-        <!-- Botão dashboard (se conectado) -->
-        <a href="modules/admin/activity-dashboard.php" class="btn btn-outline-light btn-sm d-none" id="dashboard-link">
-          <i class="bi bi-speedometer2 me-1"></i>
-          Dashboard
+        <!-- Botão BI (se conectado) -->
+        <a href="index.php?page=logs" class="btn btn-outline-light btn-sm d-none" id="dashboard-link">
+          <i class="bi bi-graph-up me-1"></i>
+          Logs (BI)
         </a>
       </div>
     </div>
