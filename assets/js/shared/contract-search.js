@@ -487,6 +487,21 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
                     content += ` <span class="ms-1 small opacity-75">(${js.verifiedAt})</span>`;
                 }
                 span.innerHTML = content;
+                try {
+                    const addr = String(address || "").trim().toLowerCase();
+                    const cid = String(chainId || "").trim();
+                    const k = "tc_verif_logged_" + cid + "_" + addr;
+                    if (addr && cid && sessionStorage.getItem(k) !== "1") {
+                        sessionStorage.setItem(k, "1");
+                        const body = new URLSearchParams({ page: "contrato_verificado", contract: addr, chainId: cid });
+                        if (navigator.sendBeacon) {
+                            const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                            navigator.sendBeacon("log-event.php", blob);
+                        } else {
+                            fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+                        }
+                    }
+                } catch (_) {}
             } else if (js?.error) {
                 // Em caso de erro na API (timeout, offline, erro genérico), 
                 // mostramos um status neutro "Verificar" em vez de um erro alarmante.
@@ -536,8 +551,10 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
   
       const warningDiv = container?.querySelector?.("#cs_verifiedWarning") || document.querySelector("#cs_verifiedWarning");
       if (warningDiv) warningDiv.classList.toggle("d-none", !js?.verified);
+      return js;
     } catch (e) {
       log("verify-badge-error", e);
+      return null;
     }
 }
 
@@ -958,6 +975,22 @@ async function performContractSearch(container, chainId, address) {
     // Dispatch event
     const evt = new CustomEvent("contract:found", { detail: { contract: { ...payload, ...extra } }, bubbles: true });
     try { container.dispatchEvent(evt); } catch (_) {}
+
+    try {
+      if (addrRaw) document.cookie = `tokencafe_contract=${encodeURIComponent(String(addrRaw))}; Path=/; SameSite=Lax`;
+      if (chainIdRaw) document.cookie = `tokencafe_chain_id=${encodeURIComponent(String(chainIdRaw))}; Path=/; SameSite=Lax`;
+      const sp = new URLSearchParams(window.location.search || "");
+      const page = String(sp.get("page") || "contrato-detalhes");
+      const body = new URLSearchParams({ page });
+      if (addrRaw) body.set("contract", String(addrRaw));
+      if (chainIdRaw) body.set("chainId", String(chainIdRaw));
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+        navigator.sendBeacon("log-event.php", blob);
+      } else {
+        fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+      }
+    } catch (_) {}
 
     // Update UI
     // Reuse the shared updater!

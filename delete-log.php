@@ -32,19 +32,46 @@ if (!is_file($file)) {
   echo "Arquivo não encontrado.";
   exit;
 }
+
+$ts = strtotime($date . " 00:00:00 UTC");
+$threshold = strtotime(gmdate("Y-m-d") . " 00:00:00 UTC") - (365 * 86400);
+if ($ts === false || $ts >= $threshold) {
+  http_response_code(403);
+  echo "Exclusão não permitida antes de 1 ano.";
+  exit;
+}
+
 function tokencafe_archive_and_delete_file_local(string $filePath, string $reason): bool
 {
   $to = defined("TOKENCAFE_LOG_ARCHIVE_EMAIL") ? (string) TOKENCAFE_LOG_ARCHIVE_EMAIL : "";
   $to = trim($to);
   if ($to === "") return false;
   $file = basename($filePath);
-  $zipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "tokencafe-log-" . $file . "-" . gmdate("Ymd-His") . ".zip";
-  $okZip = tokencafe_create_zip([$filePath], $zipPath);
-  if (!$okZip) return false;
-  $subject = "TokenCafe Logs Archive: " . $file . " (zip)";
+  $tmpTxt = sys_get_temp_dir() . DIRECTORY_SEPARATOR . preg_replace('/\.php$/', '', $file) . "-" . gmdate("Ymd-His") . ".txt";
+  $in = @fopen($filePath, "rb");
+  $out = @fopen($tmpTxt, "wb");
+  if (!$in || !$out) {
+    if (is_resource($in)) fclose($in);
+    if (is_resource($out)) fclose($out);
+    @unlink($tmpTxt);
+    return false;
+  }
+  $first = true;
+  while (!feof($in)) {
+    $line = fgets($in);
+    if ($line === false) break;
+    if ($first) {
+      $first = false;
+      if (str_starts_with(trim($line), "<?php")) continue;
+    }
+    fwrite($out, $line);
+  }
+  fclose($in);
+  fclose($out);
+  $subject = "TokenCafe Logs Archive: " . preg_replace('/\.php$/', '.txt', $file);
   $body = "Motivo: " . $reason . "\nArquivo: " . $file . "\nData (UTC): " . gmdate("Y-m-d H:i:s") . "\n";
-  $sent = tokencafe_send_mail_with_attachment($to, $subject, $body, $zipPath);
-  @unlink($zipPath);
+  $sent = tokencafe_send_mail_with_attachment($to, $subject, $body, $tmpTxt);
+  @unlink($tmpTxt);
   if (!$sent) return false;
   @unlink($filePath);
   return true;

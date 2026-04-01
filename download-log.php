@@ -5,7 +5,10 @@ $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOK
 $isChief = tokencafe_is_chief_admin($walletCookie);
 if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
 
-if (!$isChief) {
+$walletCookie = strtolower(trim($walletCookie));
+$hasWallet = $walletCookie !== "";
+$isUser = !$isChief;
+if ($isUser && !$hasWallet) {
   http_response_code(403);
   echo "Acesso negado.";
   exit;
@@ -13,32 +16,85 @@ if (!$isChief) {
 
 $type = isset($_GET["type"]) ? strtolower(trim((string) $_GET["type"])) : "";
 $date = isset($_GET["date"]) ? trim((string) $_GET["date"]) : "";
+$start = isset($_GET["start"]) ? trim((string) $_GET["start"]) : "";
+$end = isset($_GET["end"]) ? trim((string) $_GET["end"]) : "";
 $format = isset($_GET["format"]) ? strtolower(trim((string) $_GET["format"])) : "txt";
 $fltPage = isset($_GET["page"]) ? strtolower(trim((string) $_GET["page"])) : "";
 $fltIp = isset($_GET["ip"]) ? strtolower(trim((string) $_GET["ip"])) : "";
 $fltWallet = isset($_GET["wallet"]) ? strtolower(trim((string) $_GET["wallet"])) : "";
+$fltContract = isset($_GET["contract"]) ? strtolower(trim((string) $_GET["contract"])) : "";
 $fltHour = isset($_GET["hour"]) ? trim((string) $_GET["hour"]) : "";
 if (!in_array($type, ["visits", "client", "ip", "sc"], true)) {
   http_response_code(400);
   echo "Tipo inválido.";
   exit;
 }
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-  http_response_code(400);
-  echo "Data inválida.";
+
+if ($isUser && !in_array($type, ["ip", "sc"], true)) {
+  http_response_code(403);
+  echo "Acesso negado.";
   exit;
 }
 
-if ($type === "ip" || $type === "sc") {
-  $base = $type === "ip" ? "IPLogs" : "SCLogs";
-  $file = __DIR__ . "/modules/logs/storage/admin-logs/" . $base . "-" . $date . ".php";
-} else {
-  $file = __DIR__ . "/modules/logs/storage/logs/" . $type . "-" . $date . ".log";
+if ($isUser) {
+  $fltWallet = $walletCookie;
+  $fltIp = "";
 }
-if (!is_file($file)) {
-  http_response_code(404);
-  echo "Arquivo não encontrado.";
-  exit;
+
+$rangeMode = preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $end);
+if (!$rangeMode) {
+  if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+    http_response_code(400);
+    echo "Data inválida.";
+    exit;
+  }
+}
+
+function file_for_date(string $type, string $date): string {
+  if ($type === "ip" || $type === "sc") {
+    $base = $type === "ip" ? "IPLogs" : "SCLogs";
+    return __DIR__ . "/modules/logs/storage/admin-logs/" . $base . "-" . $date . ".php";
+  }
+  return __DIR__ . "/modules/logs/storage/logs/" . $type . "-" . $date . ".log";
+}
+
+$files = [];
+if ($rangeMode) {
+  $tsStart = strtotime($start . " 00:00:00 UTC");
+  $tsEnd = strtotime($end . " 00:00:00 UTC");
+  if ($tsStart === false || $tsEnd === false) {
+    http_response_code(400);
+    echo "Período inválido.";
+    exit;
+  }
+  if ($tsStart > $tsEnd) { $tmp = $start; $start = $end; $end = $tmp; $tsStart = strtotime($start . " 00:00:00 UTC"); $tsEnd = strtotime($end . " 00:00:00 UTC"); }
+  $maxDays = 366;
+  $days = (int) floor(($tsEnd - $tsStart) / 86400) + 1;
+  if ($days > $maxDays) {
+    http_response_code(400);
+    echo "Período muito grande (máx. 366 dias).";
+    exit;
+  }
+  for ($ts = $tsStart; $ts <= $tsEnd; $ts += 86400) {
+    $d = gmdate("Y-m-d", $ts);
+    $p = file_for_date($type, $d);
+    if (is_file($p)) $files[] = $p;
+  }
+  if (!$files) {
+    http_response_code(404);
+    echo "Arquivos não encontrados no período.";
+    exit;
+  }
+} else {
+  $file = file_for_date($type, $date);
+  if (!is_file($file)) {
+    http_response_code(404);
+    echo "Arquivo não encontrado.";
+    exit;
+  }
+  $files = [$file];
+  $start = $date;
+  $end = $date;
 }
 
 function dl_txt(string $path): void {
@@ -61,6 +117,32 @@ function dl_txt(string $path): void {
     echo $line;
   }
   fclose($fh);
+  exit;
+}
+
+function dl_txt_range(array $paths, string $filename, bool $skipCsvHeaderOnNext = true): void {
+  header("Content-Type: text/plain; charset=utf-8");
+  header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
+  header("X-Content-Type-Options: nosniff");
+  $firstFile = true;
+  foreach ($paths as $path) {
+    $fh = @fopen($path, "rb");
+    if (!$fh) continue;
+    $firstLine = true;
+    while (!feof($fh)) {
+      $line = fgets($fh);
+      if ($line === false) break;
+      $t = trim($line);
+      if ($firstLine) {
+        $firstLine = false;
+        if (str_starts_with($t, "<?php")) continue;
+      }
+      if (!$firstFile && $skipCsvHeaderOnNext && ($t === "data;hora;ip;wallet;page" || $t === "data;hora;ip;wallet;page;chain;contract")) continue;
+      echo $line;
+    }
+    fclose($fh);
+    $firstFile = false;
+  }
   exit;
 }
 
@@ -105,10 +187,11 @@ function parse_line(string $line): ?array {
   return null;
 }
 
-function match_filters(array $row, string $page, string $ip, string $wallet, string $hour): bool {
+function match_filters(array $row, string $page, string $ip, string $wallet, string $contract, string $hour): bool {
   if ($page !== "" && strtolower((string) ($row["page"] ?? "")) !== $page) return false;
   if ($ip !== "" && strtolower((string) ($row["ip"] ?? "")) !== $ip) return false;
   if ($wallet !== "" && strtolower((string) ($row["wallet"] ?? "")) !== $wallet) return false;
+  if ($contract !== "" && strtolower((string) ($row["contract"] ?? "")) !== $contract) return false;
   if ($hour !== "") {
     $hh = substr((string) ($row["time"] ?? ""), 0, 2);
     if ($hh !== $hour) return false;
@@ -116,7 +199,7 @@ function match_filters(array $row, string $page, string $ip, string $wallet, str
   return true;
 }
 
-function dl_txt_filtered(string $path, string $page, string $ip, string $wallet, string $hour): void {
+function dl_txt_filtered(string $path, string $page, string $ip, string $wallet, string $contract, string $hour): void {
   header("Content-Type: text/plain; charset=utf-8");
   header("Content-Disposition: attachment; filename=\"" . preg_replace('/\.(php|log)$/', '.txt', basename($path)) . "\"");
   header("X-Content-Type-Options: nosniff");
@@ -126,8 +209,59 @@ function dl_txt_filtered(string $path, string $page, string $ip, string $wallet,
   foreach ($lines as $ln) {
     $r = parse_line($ln);
     if (!$r) continue;
-    if (!match_filters($r, $page, $ip, $wallet, $hour)) continue;
+    if (!match_filters($r, $page, $ip, $wallet, $contract, $hour)) continue;
     echo ($r["date"] ?? "") . ";" . ($r["time"] ?? "") . ";" . ($r["ip"] ?? "") . ";" . ($r["wallet"] ?? "") . ";" . ($r["page"] ?? "") . ";" . ($r["chain"] ?? "") . ";" . ($r["contract"] ?? "") . "\n";
+  }
+  exit;
+}
+
+function dl_txt_filtered_range(array $paths, string $filename, string $page, string $ip, string $wallet, string $contract, string $hour): void {
+  header("Content-Type: text/plain; charset=utf-8");
+  header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
+  header("X-Content-Type-Options: nosniff");
+  echo "data;hora;ip;wallet;page;chain;contract\n";
+  foreach ($paths as $path) {
+    $lines = @file($path, FILE_IGNORE_NEW_LINES);
+    if (!is_array($lines)) continue;
+    foreach ($lines as $ln) {
+      $r = parse_line($ln);
+      if (!$r) continue;
+      if (!match_filters($r, $page, $ip, $wallet, $contract, $hour)) continue;
+      echo ($r["date"] ?? "") . ";" . ($r["time"] ?? "") . ";" . ($r["ip"] ?? "") . ";" . ($r["wallet"] ?? "") . ";" . ($r["page"] ?? "") . ";" . ($r["chain"] ?? "") . ";" . ($r["contract"] ?? "") . "\n";
+    }
+  }
+  exit;
+}
+
+function dl_txt_report_range(array $paths, string $filename, string $type, string $start, string $end, string $page, string $ip, string $wallet, string $contract, string $hour, bool $includeIp): void {
+  header("Content-Type: text/plain; charset=utf-8");
+  header("Content-Disposition: attachment; filename=\"" . $filename . "\"");
+  header("X-Content-Type-Options: nosniff");
+  $tLabel = $type === "ip" ? "IPLogs (Acessos)" : ($type === "sc" ? "SCLogs (Movimentações)" : strtoupper($type));
+  echo "TokenCafe\n";
+  echo "Relatório: " . $tLabel . "\n";
+  echo "Gerado em (UTC): " . gmdate("Y-m-d H:i:s") . "\n";
+  echo "Período: " . $start . " a " . $end . "\n";
+  $filters = [];
+  $filters[] = "página=" . ($page !== "" ? $page : "todas");
+  if ($includeIp) $filters[] = "ip=" . ($ip !== "" ? $ip : "todos");
+  $filters[] = "wallet=" . ($wallet !== "" ? $wallet : "todas");
+  $filters[] = "contrato=" . ($contract !== "" ? $contract : "todos");
+  $filters[] = "hora=" . ($hour !== "" ? $hour : "todas");
+  echo "Filtros: " . implode(" | ", $filters) . "\n";
+  echo "Colunas: data;hora;" . ($includeIp ? "ip;" : "") . "wallet;page;chain;contract\n";
+  echo "Legenda: data=YYYY-MM-DD; hora=HH:MM:SS; chain=Chain ID; contract=Contrato\n";
+  echo "\n";
+  echo "data;hora;" . ($includeIp ? "ip;" : "") . "wallet;page;chain;contract\n";
+  foreach ($paths as $path) {
+    $lines = @file($path, FILE_IGNORE_NEW_LINES);
+    if (!is_array($lines)) continue;
+    foreach ($lines as $ln) {
+      $r = parse_line($ln);
+      if (!$r) continue;
+      if (!match_filters($r, $page, $ip, $wallet, $contract, $hour)) continue;
+      echo ($r["date"] ?? "") . ";" . ($r["time"] ?? "") . ";" . ($includeIp ? (($r["ip"] ?? "") . ";") : "") . ($r["wallet"] ?? "") . ";" . ($r["page"] ?? "") . ";" . ($r["chain"] ?? "") . ";" . ($r["contract"] ?? "") . "\n";
+    }
   }
   exit;
 }
@@ -136,14 +270,18 @@ function pdf_escape(string $s): string {
   return str_replace(["\\", "(", ")"], ["\\\\", "\\(", "\\)"], $s);
 }
 
-function dl_pdf(string $path, string $title, string $page, string $ip, string $wallet, string $hour): void {
+function dl_pdf(string $path, string $title, string $page, string $ip, string $wallet, string $contract, string $hour): void {
   $lines = @file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
   if (!is_array($lines)) $lines = [];
   $rows = [];
   foreach ($lines as $ln) {
     $r = parse_line($ln);
-    if ($r && match_filters($r, $page, $ip, $wallet, $hour)) $rows[] = $r;
+    if ($r && match_filters($r, $page, $ip, $wallet, $contract, $hour)) $rows[] = $r;
   }
+  dl_pdf_rows($rows, $title, preg_replace('/\.(php|log)$/', '.pdf', basename($path)));
+}
+
+function dl_pdf_rows(array $rows, string $title, string $filename): void {
   $max = min(count($rows), 1000);
   $content = "BT\n/F1 12 Tf\n72 800 Td\n(".pdf_escape($title).") Tj\n0 -18 Td\n";
   $content .= "(Data  Hora   IP                Wallet                          Page) Tj\n0 -14 Td\n";
@@ -173,20 +311,34 @@ function dl_pdf(string $path, string $title, string $page, string $ip, string $w
   }
   $pdf .= "trailer\n<< /Root 1 0 R /Size ".(count($objs)+1)." >>\nstartxref\n".$xrefPos."\n%%EOF";
   header("Content-Type: application/pdf");
-  header("Content-Disposition: attachment; filename=\"".preg_replace('/\.(php|log)$/', '.pdf', basename($path))."\"");
+  header("Content-Disposition: attachment; filename=\"".$filename."\"");
   header("X-Content-Type-Options: nosniff");
   echo $pdf;
   exit;
 }
 
 $hasFilters = ($fltPage !== "" || $fltIp !== "" || $fltWallet !== "" || $fltHour !== "");
+$baseName = ($type === "ip" ? "IPLogs" : ($type === "sc" ? "SCLogs" : $type));
+$outName = $baseName . "-" . $start . ($start !== $end ? "_to_" . $end : "") . "." . ($format === "pdf" ? "pdf" : "txt");
+
+$hasFilters = ($fltPage !== "" || $fltIp !== "" || $fltWallet !== "" || $fltHour !== "");
 if ($format !== "pdf") {
-  if ($hasFilters) {
-    dl_txt_filtered($file, $fltPage, $fltIp, $fltWallet, $fltHour);
-  }
-  dl_txt($file);
+  $includeIp = $isChief;
+  dl_txt_report_range($files, $outName, $type, $start, $end, $fltPage, $fltIp, $fltWallet, $fltContract, $fltHour, $includeIp);
 }
 
-$title = ($type === "ip" ? "IPLogs " : ($type === "sc" ? "SCLogs " : "Logs ")) . $date;
-dl_pdf($file, $title, $fltPage, $fltIp, $fltWallet, $fltHour);
+$title = ($type === "ip" ? "IPLogs " : ($type === "sc" ? "SCLogs " : "Logs ")) . $start . ($start !== $end ? " a " . $end : "");
+if (count($files) === 1) {
+  dl_pdf($files[0], $title, $fltPage, $fltIp, $fltWallet, $fltContract, $fltHour);
+}
+$rows = [];
+foreach ($files as $path) {
+  $lines = @file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+  if (!is_array($lines)) continue;
+  foreach ($lines as $ln) {
+    $r = parse_line($ln);
+    if ($r && match_filters($r, $fltPage, $fltIp, $fltWallet, $fltContract, $fltHour)) $rows[] = $r;
+  }
+}
+dl_pdf_rows($rows, $title, $outName);
 exit;

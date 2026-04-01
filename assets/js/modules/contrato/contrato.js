@@ -318,10 +318,53 @@ class TokenPageManager {
          const success = await deployContract();
          
          // 8. Success
+         if (!success) {
+             const chainId = state.form?.network?.chainId;
+                 try {
+                     document.cookie = "tokencafe_contract=; Path=/; Max-Age=0; SameSite=Lax";
+                     const body = new URLSearchParams({ page: "contrato_cancelada" });
+                     if (chainId && !isNaN(Number(chainId))) {
+                         const hex = "0x" + Number(chainId).toString(16);
+                         document.cookie = `tokencafe_chain_id=${encodeURIComponent(hex)}; Path=/; SameSite=Lax`;
+                         body.set("chainId", String(chainId));
+                     }
+                 if (navigator.sendBeacon) {
+                     const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                     navigator.sendBeacon("log-event.php", blob);
+                 } else {
+                     fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+                 }
+             } catch (_) {}
+             if (statusText) {
+                 statusText.textContent = "Operação cancelada na carteira.";
+                 statusText.className = "fw-bold text-warning";
+             }
+             return;
+         }
          if (success) {
              const chainId = state.form?.network?.chainId;
              // Redes locais geralmente não verificam
              const isLocal = chainId == 1337 || chainId == 31337; 
+
+             try {
+                 const addr = state.deployed?.address ? String(state.deployed.address) : "";
+                 if (addr) document.cookie = `tokencafe_contract=${encodeURIComponent(addr)}; Path=/; SameSite=Lax`;
+                 if (chainId && !isNaN(Number(chainId))) {
+                     const hex = "0x" + Number(chainId).toString(16);
+                     document.cookie = `tokencafe_chain_id=${encodeURIComponent(hex)}; Path=/; SameSite=Lax`;
+                 }
+                 try {
+                     const body = new URLSearchParams({ page: "contrato_criado" });
+                     if (addr) body.set("contract", addr);
+                     if (chainId !== undefined && chainId !== null) body.set("chainId", String(chainId));
+                     if (navigator.sendBeacon) {
+                         const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                         navigator.sendBeacon("log-event.php", blob);
+                     } else {
+                         fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+                     }
+                 } catch (_) {}
+             } catch (_) {}
 
              if (isLocal) {
                  this.showSuccessScreen();
@@ -338,9 +381,34 @@ class TokenPageManager {
              
              // If immediate success, skipped (testnet), or already verified
              if (verifyRes?.success || verifyRes?.skipped || verifyRes?.alreadyVerified || (verifyRes?.error && String(verifyRes.error).toLowerCase().includes("already verified"))) {
+                 try {
+                     const page = verifyRes?.success || verifyRes?.alreadyVerified ? "contrato_verificado" : "contrato_nao_verificado";
+                     const body = new URLSearchParams({ page });
+                     const addr = state.deployed?.address ? String(state.deployed.address) : "";
+                     if (addr) body.set("contract", addr);
+                     if (chainId !== undefined && chainId !== null) body.set("chainId", String(chainId));
+                     if (navigator.sendBeacon) {
+                         const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                         navigator.sendBeacon("log-event.php", blob);
+                     } else {
+                         fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+                     }
+                 } catch (_) {}
                  this.showSuccessScreen();
                  return;
              }
+             try {
+                 const body = new URLSearchParams({ page: "contrato_nao_verificado" });
+                 const addr = state.deployed?.address ? String(state.deployed.address) : "";
+                 if (addr) body.set("contract", addr);
+                 if (chainId !== undefined && chainId !== null) body.set("chainId", String(chainId));
+                 if (navigator.sendBeacon) {
+                     const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                     navigator.sendBeacon("log-event.php", blob);
+                 } else {
+                     fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+                 }
+             } catch (_) {}
              
              // If pending or failed, show manual controls
              if (statusText) {
@@ -370,6 +438,19 @@ class TokenPageManager {
                          const res = await verifyCurrentContract();
                          
                          if (res?.success || res?.alreadyVerified || (res?.error && String(res.error).includes("already"))) {
+                             try {
+                                 const body = new URLSearchParams({ page: "contrato_verificado" });
+                                 const addr = state.deployed?.address ? String(state.deployed.address) : "";
+                                 const chainId = state.form?.network?.chainId;
+                                 if (addr) body.set("contract", addr);
+                                 if (chainId !== undefined && chainId !== null) body.set("chainId", String(chainId));
+                                 if (navigator.sendBeacon) {
+                                     const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                                     navigator.sendBeacon("log-event.php", blob);
+                                 } else {
+                                     fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+                                 }
+                             } catch (_) {}
                              this.showSuccessScreen();
                          } else {
                              btnMan.disabled = false;
@@ -387,6 +468,19 @@ class TokenPageManager {
                      btnSkip.onclick = (e) => {
                          e.preventDefault();
                          if (confirm("Se pular, o contrato pode não aparecer como verificado na próxima tela. Deseja continuar mesmo assim?")) {
+                             try {
+                                 const body = new URLSearchParams({ page: "contrato_nao_verificado" });
+                                 const addr = state.deployed?.address ? String(state.deployed.address) : "";
+                                 const chainId = state.form?.network?.chainId;
+                                 if (addr) body.set("contract", addr);
+                                 if (chainId !== undefined && chainId !== null) body.set("chainId", String(chainId));
+                                 if (navigator.sendBeacon) {
+                                     const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                                     navigator.sendBeacon("log-event.php", blob);
+                                 } else {
+                                     fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+                                 }
+                             } catch (_) {}
                              this.showSuccessScreen();
                          }
                      };
@@ -417,7 +511,18 @@ class TokenPageManager {
          if (safeState) {
              sessionStorage.setItem("lastDeployedContract", JSON.stringify(safeState));
              // Redirect to details page
-             window.location.href = "index.php?page=contrato-detalhes";
+             try {
+                 const addr = safeState?.deployed?.address ? String(safeState.deployed.address) : "";
+                 const chainId = safeState?.wallet?.chainId ?? safeState?.form?.network?.chainId;
+                 const cid = chainId !== undefined && chainId !== null ? String(chainId) : "";
+                 if (addr) {
+                     window.location.href = "index.php?page=contrato-detalhes&address=" + encodeURIComponent(addr) + (cid ? "&chainId=" + encodeURIComponent(cid) : "");
+                 } else {
+                     window.location.href = "index.php?page=contrato-detalhes";
+                 }
+             } catch (_) {
+                 window.location.href = "index.php?page=contrato-detalhes";
+             }
          } else {
              throw new Error("Falha ao serializar estado do contrato.");
          }

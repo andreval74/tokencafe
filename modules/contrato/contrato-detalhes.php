@@ -28,12 +28,6 @@
         <!-- Ação de Deploy -->
         <div class="mb-4" id="actions-section">
           <div class="d-flex gap-2 justify-content-end align-items-center">
-            <!-- Botão Verificar Manualmente (inicialmente oculto ou visível conforme estado) -->
-            <button id="btnManualVerify" class="btn btn-warning btn-lg px-4 d-none"
-              title="Forçar verificação do contrato na blockchain">
-              <i class="bi bi-shield-check me-2"></i> VERIFICAR CONTRATO
-            </button>
-
             <!-- Botão Novo Contrato -->
             <a href="index.php?page=contrato" id="btnNewContract" class="btn btn-outline-secondary"
               title="Criar um novo contrato">

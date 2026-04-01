@@ -12,6 +12,9 @@
   }
   
   function applyTheme(theme) {
+    try {
+      document.documentElement.setAttribute('data-bs-theme', theme === 'light' ? 'light' : 'dark');
+    } catch (_) {}
     if (theme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
     } else {
@@ -24,7 +27,9 @@
       icon.className = theme === 'light' ? 'bi bi-moon-stars' : 'bi bi-sun';
     });
     
-    console.log('🌓 Tema aplicado:', theme);
+    try {
+      window.dispatchEvent(new CustomEvent('tokencafe:theme', { detail: { theme } }));
+    } catch (_) {}
   }
   
   // 1. Aplicar tema imediatamente (evita flash)

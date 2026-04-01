@@ -2,33 +2,7 @@
   $pageTitle = "Gerador de Tokens - TokenCafe";
   $pageDescription = "Crie, valide, verifique e faça deploy de contratos de forma simples.";
   $pageKeywords = "token, contrato, smart contract, deploy, Web3, ERC-20";
-  $pageHeadExtra = '<style>
-    .contract-card.disabled-option {
-      opacity: 0.6;
-      pointer-events: none;
-      position: relative;
-      cursor: not-allowed !important;
-      filter: grayscale(0.8);
-    }
-
-    .contract-card.disabled-option::after {
-      content: "Em Breve";
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 1.2rem;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 10;
-      border-radius: inherit;
-    }
-  </style>';
+  $pageHeadExtra = "";
   $headerVariant = "module";
   $moduleHeaderTitle = "Gerador de Tokens";
   $moduleHeaderSubtitle = "Simples, Rápido e Seguro";

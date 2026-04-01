@@ -4,150 +4,238 @@
  * ================================================================================
  */
 
-/* Importar classes utilitárias */
-@import url("utility-classes.css");
-
-
-
 /* ============================================================================
    SISTEMA DE CORES E VARIÁVEIS TOKENCAFE
    ========================================================================== */
 :root {
-  /* ===== CORES PRIMÁRIAS TOKENCAFE ===== */
-  --tokencafe-primary: #f85d23;
-  --tokencafe-primary-dark: #d97706;
-  --tokencafe-primary-light: #fbbf24;
-  --tokencafe-secondary: #6b7280;
+ /* IDENTIDADE VISUAL - NOVAS CORES DO STITCH */
+  --tokencafe-primary: #f85d23;        /* Laranja Principal */
+  --tokencafe-primary-dark: #b43d10;   /* Laranja Escuro */
+  --tokencafe-primary-light: #fbbf24;  /* Destaques */
+  
+  /* GLASSMORPHISM & TEMA ESCURO (PROFISSIONAL) */
+  --tokencafe-bg-primary: #0f172a;     /* Fundo mais moderno (Azul Noturno) */
+  --tokencafe-bg-secondary: #0a0a0a;
+  --tokencafe-bg-tertiary: rgba(30, 41, 59, 0.7); /* Efeito Vidro */
+  --tokencafe-surface: rgba(255, 255, 255, 0.05);
+  --tokencafe-border: rgba(255, 255, 255, 0.1);
+  --tokencafe-glass-blur: blur(12px);
 
-  /* ===== CORES DE STATUS ===== */
+  /* TIPOGRAFIA */
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --tokencafe-text-primary: #ffffff;
+  --tokencafe-text-secondary: rgba(255, 255, 255, 0.7);
+
+  /* TOKENS DE CORES (SEM HEX/RGB “SOLTOS” NO CÓDIGO) */
+  --tokencafe-white: #ffffff;
+  --tokencafe-text-dark: #1a202c;
+  --tokencafe-border-light-solid: #e2e8f0;
+  --tokencafe-border-medium-solid: #cbd5e1;
   --tokencafe-success: #10b981;
+  --tokencafe-success-dark: #059669;
   --tokencafe-success-light: #6ee7b7;
   --tokencafe-danger: #ef4444;
   --tokencafe-danger-light: #fca5a5;
-  --tokencafe-warning: #f85d23; /* Mapeado para laranja */
-  --tokencafe-info: #f85d23;    /* Mapeado para laranja */
-  --tokencafe-info-light: #fbbf24;
+  --tokencafe-info: #3b82f6;
+  --tokencafe-info-dark: #2563eb;
+  --tokencafe-info-light: #60a5fa;
+  --tokencafe-amber: #f59e0b;
+  --tokencafe-gray: #9ca3af;
+  --tokencafe-gray-700: #334155;
+  --tokencafe-gray-800: #1f2937;
+  --tokencafe-bg-elevated-solid: #1a1a1a;
 
-  /* ===== TEMA (PADRÃO ESCURO) ===== */
-  --tokencafe-bg-primary: #000000;
-  --tokencafe-bg-secondary: #0a0a0a;
-  --tokencafe-bg-tertiary: #1a1a1a;
-  --tokencafe-bg-quaternary: #2d2d2d;
-  --tokencafe-bg-surface: #374151;
-  --tokencafe-bg-gradient-1: #0d1117;
+  /* SUPERFÍCIES E ESTADOS */
+  --tokencafe-success-surface: #e8f5e9;
+  --tokencafe-success-text: #1f5132;
+  --tokencafe-success-border: #1f5132;
 
-  --tokencafe-text-primary: #ffffff;
-  --tokencafe-text-secondary: #e5e7eb;
-  --tokencafe-text-muted: #9ca3af;
-  --tokencafe-text-inverse: #000000;
+  /* OPACIDADES E SOMBRAS (CENTRALIZADAS EM TOKENS) */
+  --tokencafe-shadow-black-08: rgba(0, 0, 0, 0.08);
+  --tokencafe-shadow-black-10: rgba(0, 0, 0, 0.10);
+  --tokencafe-shadow-black-15: rgba(0, 0, 0, 0.15);
+  --tokencafe-shadow-black-35: rgba(0, 0, 0, 0.35);
+  --tokencafe-shadow-black-45: rgba(0, 0, 0, 0.45);
+  --tokencafe-white-03: rgba(255, 255, 255, 0.03);
+  --tokencafe-white-05: rgba(255, 255, 255, 0.05);
+  --tokencafe-white-06: rgba(255, 255, 255, 0.06);
+  --tokencafe-white-08: rgba(255, 255, 255, 0.08);
+  --tokencafe-white-10: rgba(255, 255, 255, 0.10);
+  --tokencafe-white-12: rgba(255, 255, 255, 0.12);
+  --tokencafe-white-14: rgba(255, 255, 255, 0.14);
+  --tokencafe-white-16: rgba(255, 255, 255, 0.16);
+  --tokencafe-white-22: rgba(255, 255, 255, 0.22);
+  --tokencafe-white-55: rgba(255, 255, 255, 0.55);
+  --tokencafe-white-58: rgba(255, 255, 255, 0.58);
+  --tokencafe-white-62: rgba(255, 255, 255, 0.62);
+  --tokencafe-white-70: rgba(255, 255, 255, 0.70);
+  --tokencafe-white-82: rgba(255, 255, 255, 0.82);
+  --tokencafe-white-80: rgba(255, 255, 255, 0.80);
+  --tokencafe-white-92: rgba(255, 255, 255, 0.92);
+  --tokencafe-primary-05: rgba(248, 93, 35, 0.05);
+  --tokencafe-primary-10: rgba(248, 93, 35, 0.10);
+  --tokencafe-primary-15: rgba(248, 93, 35, 0.15);
+  --tokencafe-primary-20: rgba(248, 93, 35, 0.20);
+  --tokencafe-primary-22: rgba(248, 93, 35, 0.22);
+  --tokencafe-primary-25: rgba(248, 93, 35, 0.25);
+  --tokencafe-primary-30: rgba(248, 93, 35, 0.30);
+  --tokencafe-primary-40: rgba(248, 93, 35, 0.40);
+  --tokencafe-primary-45: rgba(248, 93, 35, 0.45);
+  --tokencafe-primary-50: rgba(248, 93, 35, 0.50);
+  --tokencafe-primary-60: rgba(248, 93, 35, 0.60);
+  --tokencafe-primary-70: rgba(248, 93, 35, 0.70);
+  --tokencafe-primary-80: rgba(248, 93, 35, 0.80);
+  --tokencafe-success-15: rgba(16, 185, 129, 0.15);
+  --tokencafe-elevated-surface-90: rgba(19, 19, 19, 0.90);
+  --tokencafe-elevated-surface-92: rgba(19, 19, 19, 0.92);
+  --tokencafe-modal-backdrop: rgba(0, 0, 0, 0.85);
+  --tokencafe-black-60: rgba(0, 0, 0, 0.60);
+  --tokencafe-ring-primary-25: 0 0 0 0.25rem var(--tokencafe-primary-25);
+  --tokencafe-ring-primary-20: 0 0 0 0.2rem var(--tokencafe-primary-20);
+  --tokencafe-shadow-card-sm: 0 4px 6px -1px var(--tokencafe-shadow-black-10);
+  --tokencafe-shadow-card-md: 0 10px 24px var(--tokencafe-shadow-black-35);
+  --tokencafe-shadow-card-lg: 0 15px 35px var(--tokencafe-shadow-black-35);
+  --tokencafe-shadow-card-xl: 0 18px 44px var(--tokencafe-shadow-black-45);
+  --tokencafe-shadow-card-soft: 0 10px 24px var(--tokencafe-shadow-black-08);
+  --tokencafe-shadow-float: 0 0.5rem 1rem var(--tokencafe-shadow-black-15);
+  --tokencafe-shadow-black-20: rgba(0, 0, 0, 0.20);
+  --tokencafe-shadow-black-30: rgba(0, 0, 0, 0.30);
+  --tokencafe-success-10: rgba(16, 185, 129, 0.10);
+  --tokencafe-danger-10: rgba(239, 68, 68, 0.10);
+  --tokencafe-warning-10: rgba(245, 158, 11, 0.10);
+  --tokencafe-info-10: rgba(59, 130, 246, 0.10);
+  --tokencafe-text-muted: var(--tokencafe-white-55);
+  --tokencafe-bg-surface: var(--tokencafe-white-05);
+  --tokencafe-shadow-logo: drop-shadow(0 2px 4px var(--tokencafe-shadow-black-30));
 
-  --tokencafe-border-light: rgba(255, 255, 255, 0.1);
-  --tokencafe-border-medium: rgba(255, 255, 255, 0.2);
+  /* BORDAS (PADRÃO) */
+  --tokencafe-border-light: var(--tokencafe-white-12);
+  --tokencafe-border-medium: var(--tokencafe-white-16);
 
-  /* ===== BOOTSTRAP OVERRIDES ===== */
+  /* ESTADOS (ALINHADOS AO BOOTSTRAP) */
+  --tokencafe-warning: var(--tokencafe-primary-light);
+  --tokencafe-ink-95: rgba(10, 10, 10, 0.95);
+
+  /* COMPATIBILIDADE COM BOOTSTRAP (MANTÉM OS COMANDOS ORIGINAIS) */
   --bs-primary: var(--tokencafe-primary);
   --bs-body-bg: var(--tokencafe-bg-primary);
   --bs-body-color: var(--tokencafe-text-primary);
   --bs-card-bg: var(--tokencafe-bg-tertiary);
-  --bs-border-color: var(--tokencafe-border-light);
-
-  /* Bootstrap Status Overrides */
-  --bs-warning: var(--tokencafe-primary);
-  --bs-info: var(--tokencafe-primary);
-  --bs-success: var(--tokencafe-success);
-  --bs-danger: var(--tokencafe-danger);
 }
 
-/* ===== VARIAÇÃO CLARA (LIGHT THEME) ===== */
-[data-theme="light"] {
-  --tokencafe-bg-primary: #ffffff;
-  --tokencafe-bg-secondary: #f8fafc;
-  --tokencafe-bg-tertiary: #f1f5f9;
-  --tokencafe-bg-quaternary: #e2e8f0;
-  --tokencafe-bg-surface: #cbd5e1;
-  --tokencafe-bg-gradient-1: #f8fafc;
-
-  --tokencafe-text-primary: #0f172a;
-  --tokencafe-text-secondary: #334155;
-  --tokencafe-text-muted: #64748b;
-  --tokencafe-text-inverse: #ffffff;
-
-  --tokencafe-border-light: rgba(0, 0, 0, 0.1);
-  --tokencafe-border-medium: rgba(0, 0, 0, 0.2);
-
-  --bs-body-bg: var(--tokencafe-bg-primary);
-  --bs-body-color: var(--tokencafe-text-primary);
-  --bs-card-bg: #ffffff;
-  --bs-border-color: var(--tokencafe-border-light);
-  --bs-secondary-bg: #f1f5f9;
-  --bs-tertiary-bg: #e2e8f0;
+/* Tema claro (override de tokens) */
+[data-theme="light"],
+[data-bs-theme="light"] {
+  --tokencafe-bg-primary: var(--tokencafe-white);
+  --tokencafe-bg-secondary: var(--tokencafe-white);
+  --tokencafe-bg-tertiary: var(--tokencafe-white);
+  --tokencafe-surface: var(--tokencafe-white);
+  --tokencafe-border: var(--tokencafe-border-light-solid);
+  --tokencafe-text-primary: var(--tokencafe-text-dark);
+  --tokencafe-text-secondary: var(--tokencafe-gray-700);
+  --tokencafe-text-muted: var(--tokencafe-gray);
+  --tokencafe-bg-surface: var(--tokencafe-white);
+  --tokencafe-border-light: var(--tokencafe-border-light-solid);
+  --tokencafe-border-medium: var(--tokencafe-border-medium-solid);
+  --bs-body-bg: var(--tokencafe-white);
+  --bs-body-color: var(--tokencafe-text-dark);
+  --bs-card-bg: var(--tokencafe-white);
 }
 
 /* Forçar cores de texto e fundo no modo claro */
 [data-theme="light"],
+[data-bs-theme="light"],
 [data-theme="light"] body,
+[data-bs-theme="light"] body,
 [data-theme="light"] .TokenCafe-container,
+[data-bs-theme="light"] .TokenCafe-container,
 [data-theme="light"] .TokenCafe-content,
+[data-bs-theme="light"] .TokenCafe-content,
 [data-theme="light"] section,
-[data-theme="light"] .section {
+[data-bs-theme="light"] section,
+[data-theme="light"] .section,
+[data-bs-theme="light"] .section {
   background-color: var(--tokencafe-bg-primary) !important;
   color: var(--tokencafe-text-primary) !important;
   background-image: none !important;
 }
 
 [data-theme="light"] .text-white,
+[data-bs-theme="light"] .text-white,
 [data-theme="light"] .text-light,
+[data-bs-theme="light"] .text-light,
 [data-theme="light"] .display-2,
+[data-bs-theme="light"] .display-2,
 [data-theme="light"] .display-4,
+[data-bs-theme="light"] .display-4,
 [data-theme="light"] .display-5,
-[data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3, 
+[data-bs-theme="light"] .display-5,
+[data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3,
+[data-bs-theme="light"] h1, [data-bs-theme="light"] h2, [data-bs-theme="light"] h3,
 [data-theme="light"] h4, [data-theme="light"] h5, [data-theme="light"] h6,
+[data-bs-theme="light"] h4, [data-bs-theme="light"] h5, [data-bs-theme="light"] h6,
 [data-theme="light"] .navbar-brand,
-[data-theme="light"] .navbar-brand span:not(.text-warning) {
+[data-bs-theme="light"] .navbar-brand,
+[data-theme="light"] .navbar-brand span:not(.text-warning),
+[data-bs-theme="light"] .navbar-brand span:not(.text-warning) {
   color: var(--tokencafe-text-primary) !important;
 }
 
 [data-theme="light"] .text-white-50,
+[data-bs-theme="light"] .text-white-50,
 [data-theme="light"] .text-secondary,
+[data-bs-theme="light"] .text-secondary,
 [data-theme="light"] .lead,
+[data-bs-theme="light"] .lead,
 [data-theme="light"] .nav-link,
+[data-bs-theme="light"] .nav-link,
 [data-theme="light"] .navbar-nav .nav-link,
-[data-theme="light"] .text-light-50 {
+[data-bs-theme="light"] .navbar-nav .nav-link,
+[data-theme="light"] .text-light-50,
+[data-bs-theme="light"] .text-light-50 {
   color: var(--tokencafe-text-secondary) !important;
 }
 
 [data-theme="light"] .bg-page-black,
+[data-bs-theme="light"] .bg-page-black,
 [data-theme="light"] .navbar.bg-page-black,
+[data-bs-theme="light"] .navbar.bg-page-black,
 [data-theme="light"] .dashboard-header,
-[data-theme="light"] nav.navbar {
+[data-bs-theme="light"] .dashboard-header,
+[data-theme="light"] nav.navbar,
+[data-bs-theme="light"] nav.navbar {
   background-color: var(--tokencafe-bg-primary) !important;
   background: var(--tokencafe-bg-primary) !important;
   border-bottom: 1px solid var(--tokencafe-border-light) !important;
 }
 
 [data-theme="light"] .card,
-[data-theme="light"] .card {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
+[data-bs-theme="light"] .card {
+  background-color: var(--tokencafe-white) !important;
+  background: var(--tokencafe-white) !important;
   border-color: var(--tokencafe-border-light) !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: var(--tokencafe-shadow-card-sm) !important;
 }
 
 
-[data-theme="light"] .navbar-dark .navbar-toggler-icon {
+[data-theme="light"] .navbar-dark .navbar-toggler-icon,
+[data-bs-theme="light"] .navbar-dark .navbar-toggler-icon {
   filter: invert(1);
 }
 
-[data-theme="light"] .nav-link:hover {
+[data-theme="light"] .nav-link:hover,
+[data-bs-theme="light"] .nav-link:hover {
   color: var(--tokencafe-primary) !important;
 }
 
-[data-theme="light"] .btn-transparent-warning {
+[data-theme="light"] .btn-transparent-warning,
+[data-bs-theme="light"] .btn-transparent-warning {
   color: var(--tokencafe-primary) !important;
 }
 
-[data-theme="light"] .btn-transparent-info {
-  color: #3b82f6 !important;
+[data-theme="light"] .btn-transparent-info,
+[data-bs-theme="light"] .btn-transparent-info {
+  color: var(--tokencafe-info) !important;
 }
 
 
@@ -190,11 +278,45 @@ div[style*="gradient"] {
   transition: all 0.3s ease;
 }
 
+[data-bs-theme="dark"] .form-select {
+  color-scheme: dark;
+}
+
+[data-bs-theme="dark"] .form-select option,
+[data-bs-theme="dark"] .form-select optgroup {
+  color: var(--tokencafe-text-dark);
+  background: var(--tokencafe-white);
+}
+
+/* Forçar contraste do dropdown em navegadores que ignoram o tema */
+.form-select option,
+.form-select optgroup {
+  color: var(--tokencafe-text-dark);
+  background: var(--tokencafe-white);
+}
+
+.tc-ns-compact #network-search-root {
+  margin-top: 0 !important;
+}
+
+.tc-ns-compact .d-flex.align-items-center.mb-2 {
+  display: none !important;
+}
+
+.tc-ns-compact #selected-network-info {
+  display: none !important;
+}
+
+.tc-ns-compact #nsInfoBtn,
+.tc-ns-compact #nsClearBtn {
+  display: none !important;
+}
+
 .form-control:focus, .form-select:focus {
   background-color: var(--tokencafe-bg-quaternary) !important;
   border-color: var(--bs-primary) !important;
   color: var(--bs-body-color) !important;
-  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
+  box-shadow: var(--tokencafe-ring-primary-25) !important;
   outline: none;
 }
 
@@ -205,7 +327,7 @@ div[style*="gradient"] {
 /* Cards */
 .card {
   background-color: var(--bs-card-bg) !important;
-  border: 1px solid rgba(248, 93, 35, 0.1) !important;
+  border: 1px solid var(--tokencafe-primary-10) !important;
   color: var(--bs-body-color) !important;
   border-radius: 12px;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
@@ -213,8 +335,8 @@ div[style*="gradient"] {
 
 .card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.2) !important;
-  border-color: rgba(248, 93, 35, 0.3) !important;
+  box-shadow: 0 20px 40px var(--tokencafe-primary-20) !important;
+  border-color: var(--tokencafe-primary-30) !important;
 }
 
 
@@ -227,20 +349,46 @@ div[style*="gradient"] {
 /* Seleção de Cards (Contract Card) */
 .contract-card {
   transition: all 0.2s ease-in-out;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid var(--tokencafe-white-10) !important;
   position: relative;
 }
 
 .contract-card:hover {
   transform: translateY(-3px);
   border-color: var(--tokencafe-primary) !important;
-  background-color: rgba(248, 93, 35, 0.05) !important;
+  background-color: var(--tokencafe-primary-05) !important;
 }
 
 .contract-card.selected {
   border: 2px solid var(--tokencafe-primary) !important;
-  background-color: rgba(248, 93, 35, 0.1) !important;
-  box-shadow: 0 0 15px rgba(248, 93, 35, 0.2);
+  background-color: var(--tokencafe-primary-10) !important;
+  box-shadow: 0 0 15px var(--tokencafe-primary-20);
+}
+
+.contract-card.disabled-option {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+  cursor: not-allowed !important;
+  filter: grayscale(0.8);
+}
+
+.contract-card.disabled-option::after {
+  content: "Em Breve";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--tokencafe-white-80);
+  font-size: 1.2rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--tokencafe-black-60);
+  z-index: 10;
+  border-radius: inherit;
 }
 
 .contract-card .check-indicator {
@@ -272,13 +420,13 @@ div[style*="gradient"] {
 .btn-primary {
   background: linear-gradient(135deg, var(--tokencafe-primary-dark) 0%, var(--tokencafe-primary) 100%) !important;
   border: none !important;
-  color: white !important;
+  color: var(--tokencafe-white) !important;
 }
 
 .btn-primary:hover {
   filter: brightness(1.1);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(248, 93, 35, 0.4);
+  box-shadow: 0 4px 15px var(--tokencafe-primary-40);
 }
 
 /* Outline Primário (Laranja Outline) */
@@ -290,9 +438,9 @@ div[style*="gradient"] {
 
 .btn-outline-primary:hover {
   background: var(--tokencafe-primary) !important;
-  color: white !important;
+  color: var(--tokencafe-white) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(248, 93, 35, 0.3);
+  box-shadow: 0 4px 15px var(--tokencafe-primary-30);
 }
 
 /* Outline Warning (Mapeado para Laranja para consistência) */
@@ -304,7 +452,7 @@ div[style*="gradient"] {
 
 .btn-outline-warning:hover, .btn-outline-info:hover {
   background: var(--tokencafe-primary) !important;
-  color: white !important;
+  color: var(--tokencafe-white) !important;
 }
 
 /* Estilo para o botão "Conectar" no Header (se usar btn-warning ou outline-warning) */
@@ -360,72 +508,72 @@ div[style*="gradient"] {
 }
 
 .tc-theme-light .tc-card {
-  background: #ffffff;
-  color: #1a202c;
-  border: 1px solid #e2e8f0;
+  background: var(--tokencafe-white);
+  color: var(--tokencafe-text-dark);
+  border: 1px solid var(--tokencafe-border-light-solid);
 }
 .tc-theme-light .tc-input {
-  background: #ffffff;
-  color: #1a202c;
-  border-color: #cbd5e1;
+  background: var(--tokencafe-white);
+  color: var(--tokencafe-text-dark);
+  border-color: var(--tokencafe-border-medium-solid);
 }
 .tc-theme-light .tc-input:focus {
   border-color: var(--tokencafe-primary);
-  box-shadow: 0 0 0 0.2rem rgba(248, 93, 35, 0.2);
+  box-shadow: var(--tokencafe-ring-primary-20);
 }
 .tc-theme-light .tc-input-suffix {
   background: var(--tokencafe-primary);
-  color: #fff;
+  color: var(--tokencafe-white);
 }
 .tc-theme-light .tc-total-value {
   color: var(--tokencafe-primary);
 }
 .tc-theme-light .tc-connected {
-  background: #e8f5e9;
-  color: #1f5132;
-  border: 1px solid #1f5132;
+  background: var(--tokencafe-success-surface);
+  color: var(--tokencafe-success-text);
+  border: 1px solid var(--tokencafe-success-border);
 }
 .tc-theme-light .tc-btn-primary {
   background: var(--tokencafe-primary);
-  color: #fff;
+  color: var(--tokencafe-white);
 }
 
 .tc-theme-dark .tc-card {
-  background: #0f172a;
-  color: #e5e7eb;
-  border: 1px solid #334155;
+  background: var(--tokencafe-bg-primary);
+  color: var(--tokencafe-white);
+  border: 1px solid var(--tokencafe-gray-700);
 }
 .tc-theme-dark .tc-input {
-  background: #1f2937;
-  color: #e5e7eb;
-  border-color: #334155;
+  background: var(--tokencafe-gray-800);
+  color: var(--tokencafe-white);
+  border-color: var(--tokencafe-gray-700);
 }
 .tc-theme-dark .tc-input:focus {
   border-color: var(--tokencafe-primary);
-  box-shadow: 0 0 0 0.2rem rgba(248, 93, 35, 0.2);
+  box-shadow: var(--tokencafe-ring-primary-20);
 }
 .tc-theme-dark .tc-input-suffix {
   background: var(--tokencafe-primary);
-  color: #fff;
+  color: var(--tokencafe-white);
 }
 .tc-theme-dark .tc-total-value {
   color: var(--tokencafe-primary-light);
 }
 
 .tc-theme-dark .tc-connected {
-  background: rgba(16, 185, 129, 0.15);
-  color: #6ee7b7;
-  border: 1px solid #10b981;
+  background: var(--tokencafe-success-15);
+  color: var(--tokencafe-success-light);
+  border: 1px solid var(--tokencafe-success);
 }
 .tc-theme-dark .tc-btn-primary {
-  background: #10b981;
-  color: #fff;
+  background: var(--tokencafe-success);
+  color: var(--tokencafe-white);
 }
 
 .tc-card {
   border-radius: 14px;
   padding: 18px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--tokencafe-shadow-card-soft);
 }
 .tc-card-header {
   display: flex;
@@ -449,9 +597,9 @@ div[style*="gradient"] {
   font-weight: 700;
 }
 .tc-badge-demo {
-  background: #e8f5e9;
-  color: #1f5132;
-  border: 1px solid #1f5132;
+  background: var(--tokencafe-success-surface);
+  color: var(--tokencafe-success-text);
+  border: 1px solid var(--tokencafe-success-border);
 }
 
 .tc-token-row {
@@ -464,8 +612,8 @@ div[style*="gradient"] {
   font-weight: 600;
 }
 .tc-chip {
-  background: #2563eb;
-  color: #fff;
+  background: var(--tokencafe-info-dark);
+  color: var(--tokencafe-white);
   border-radius: 8px;
   padding: 2px 8px;
   font-size: 12px;
@@ -582,10 +730,10 @@ div[style*="gradient"] {
    ========================================================================== */
 
 /* Alerts */
-.alert-success { --bs-alert-bg: rgba(16, 185, 129, 0.1); --bs-alert-color: var(--tokencafe-success-light); --bs-alert-border-color: var(--bs-success); border-left: 4px solid var(--bs-success); }
-.alert-danger { --bs-alert-bg: rgba(239, 68, 68, 0.1); --bs-alert-color: #fca5a5; --bs-alert-border-color: var(--bs-danger); border-left: 4px solid var(--bs-danger); }
-.alert-warning { --bs-alert-bg: rgba(245, 158, 11, 0.1); --bs-alert-color: var(--tokencafe-primary-light); --bs-alert-border-color: var(--bs-warning); border-left: 4px solid var(--bs-warning); }
-.alert-info { --bs-alert-bg: rgba(59, 130, 246, 0.1); --bs-alert-color: var(--tokencafe-info-light); --bs-alert-border-color: var(--bs-info); border-left: 4px solid var(--bs-info); }
+.alert-success { --bs-alert-bg: var(--tokencafe-success-10); --bs-alert-color: var(--tokencafe-success-light); --bs-alert-border-color: var(--bs-success); border-left: 4px solid var(--bs-success); }
+.alert-danger { --bs-alert-bg: var(--tokencafe-danger-10); --bs-alert-color: var(--tokencafe-danger-light); --bs-alert-border-color: var(--bs-danger); border-left: 4px solid var(--bs-danger); }
+.alert-warning { --bs-alert-bg: var(--tokencafe-warning-10); --bs-alert-color: var(--tokencafe-primary-light); --bs-alert-border-color: var(--bs-warning); border-left: 4px solid var(--bs-warning); }
+.alert-info { --bs-alert-bg: var(--tokencafe-info-10); --bs-alert-color: var(--tokencafe-info-light); --bs-alert-border-color: var(--bs-info); border-left: 4px solid var(--bs-info); }
 
 /* Progress */
 .progress { background-color: var(--tokencafe-bg-surface) !important; border-radius: 8px; overflow: hidden; height: 8px; }
@@ -600,7 +748,7 @@ div[style*="gradient"] {
 .text-muted { color: var(--tokencafe-text-muted) !important; }
 
 .bg-primary { background-color: var(--bs-primary) !important; }
-.bg-dark-custom { background-color: #1a1a1a !important; }
+.bg-dark-custom { background-color: var(--tokencafe-bg-elevated-solid) !important; }
 
 /* Loading Screen */
 .loading-screen {
@@ -609,7 +757,7 @@ div[style*="gradient"] {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.85);
+  background-color: var(--tokencafe-modal-backdrop);
   backdrop-filter: blur(10px);
   color: var(--bs-body-color);
   z-index: 2000;
@@ -621,7 +769,7 @@ div[style*="gradient"] {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
+  border: 4px solid var(--tokencafe-white-10);
   border-top-color: var(--bs-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -782,7 +930,7 @@ section {
 
 /* CTA Section Enhancement */
 .py-5.bg-dark {
-  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important;
+  background: linear-gradient(135deg, var(--tokencafe-bg-elevated-solid) 0%, var(--tokencafe-bg-secondary) 100%) !important;
 }
 
 /* Smooth Transitions for All Interactive Elements */
@@ -832,7 +980,7 @@ Sistema de animações reutilizáveis para todas as páginas
 
 /* Badges and Buttons */
 .TokenCafe-badge {
-  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, #f59e0b 100%);
+  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, var(--tokencafe-amber) 100%);
   color: var(--tokencafe-text-primary);
   padding: 0.8rem 2rem;
   border-radius: 50px;
@@ -897,7 +1045,7 @@ Sistema de animações reutilizáveis para todas as páginas
 
 .TokenCafe-feature-desc {
   font-size: 0.9rem;
-  color: #9ca3af;
+  color: var(--tokencafe-gray);
 }
 
 /* Container and Layout Classes */
@@ -1118,7 +1266,7 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
 }
 
 body {
-  /*  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); */
+  /* background: linear-gradient(135deg, var(--tokencafe-bg-secondary) 0%, var(--tokencafe-bg-elevated-solid) 50%, var(--tokencafe-bg-secondary) 100%); */
   min-height: 100vh;
   font-family: "Inter", sans-serif;
   overflow-x: hidden;
@@ -1142,7 +1290,7 @@ body {
   left: -15px;
   right: -15px;
   bottom: -15px;
-  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b);
+  background: linear-gradient(135deg, var(--tokencafe-primary), var(--tokencafe-amber));
   border-radius: 25px;
   opacity: 0.2;
   filter: blur(15px);
@@ -1164,7 +1312,7 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, #f59e0b 50%, var(--tokencafe-primary-light) 100%);
+  background: linear-gradient(135deg, var(--tokencafe-primary) 0%, var(--tokencafe-amber) 50%, var(--tokencafe-primary-light) 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1277,20 +1425,20 @@ body {
 }
 
 .badge.bg-primary {
-  background: linear-gradient(135deg, var(--tokencafe-primary), #f59e0b) !important;
-  color: #0a0a0a !important;
+  background: linear-gradient(135deg, var(--tokencafe-primary), var(--tokencafe-amber)) !important;
+  color: var(--tokencafe-bg-secondary) !important;
 }
 
 .badge.bg-success {
-  background: linear-gradient(135deg, var(--tokencafe-success), #059669) !important;
+  background: linear-gradient(135deg, var(--tokencafe-success), var(--tokencafe-success-dark)) !important;
 }
 
 .badge.bg-warning {
-  background: linear-gradient(135deg, #f59e0b, var(--tokencafe-primary-dark)) !important;
+  background: linear-gradient(135deg, var(--tokencafe-amber), var(--tokencafe-primary-dark)) !important;
 }
 
 .badge.bg-info {
-  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  background: linear-gradient(135deg, var(--tokencafe-info), var(--tokencafe-info-dark)) !important;
 }
 
 /* Text Color Fixes */
@@ -1303,7 +1451,7 @@ body {
 }
 
 .text-muted {
-  color: #9ca3af !important;
+  color: var(--tokencafe-gray) !important;
 }
 
 .text-white {
@@ -1379,9 +1527,9 @@ body {
 }
 
 .section-divider {
-  height: 5px;
-  background: linear-gradient(90deg, transparent, rgba(248, 93, 35, 0.3), transparent);
-  margin: 20px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--tokencafe-primary-30), transparent);
+  margin: 10px 0;
 }
 
 /* Responsive Design */
@@ -1823,9 +1971,9 @@ Classes reutilizáveis para efeitos neon padronizados
   border-radius: 14px;
   text-decoration: none;
   color: var(--tokencafe-text-primary);
-  background: rgba(19, 19, 19, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
+  background: var(--tokencafe-bg-tertiary);
+  border: 1px solid var(--tokencafe-border);
+  backdrop-filter: var(--tokencafe-glass-blur);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -1835,8 +1983,8 @@ Classes reutilizáveis para efeitos neon padronizados
 
 .tool-tile:hover {
   transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+  border-color: var(--tokencafe-border-medium);
+  box-shadow: var(--tokencafe-shadow-card-lg);
 }
 
 .tool-tile-icon {
@@ -1846,23 +1994,23 @@ Classes reutilizáveis para efeitos neon padronizados
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  background: var(--tokencafe-white-06);
+  color: var(--tokencafe-white-82);
+  box-shadow: var(--tokencafe-shadow-card-md);
 }
 
 .tool-tile[data-status="finished"] .tool-tile-icon {
   background: var(--tokencafe-primary);
-  color: rgba(10, 10, 10, 0.95);
-  border: 1px solid rgba(248, 93, 35, 0.45);
+  color: var(--tokencafe-ink-95);
+  border: 1px solid var(--tokencafe-primary-45);
   box-shadow:
-    0 12px 28px rgba(248, 93, 35, 0.22),
-    0 10px 24px rgba(0, 0, 0, 0.35);
+    0 12px 28px var(--tokencafe-primary-22),
+    var(--tokencafe-shadow-card-md);
 }
 
 .tool-tile[data-status="finished"]:hover {
-  border-color: rgba(248, 93, 35, 0.45);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+  border-color: var(--tokencafe-primary-45);
+  box-shadow: var(--tokencafe-shadow-card-xl);
 }
 
 .tool-tile[data-status="finished"] .tc-action-btn {
@@ -2009,6 +2157,16 @@ Classes reutilizáveis para efeitos neon padronizados
 .tc-kpi--orange { border-color: rgba(255, 159, 74, 0.45); background: linear-gradient(135deg, rgba(255,159,74,0.10), rgba(19,19,19,0.92)); box-shadow: inset 0 0 0 1px rgba(255,159,74,0.15); }
 .tc-kpi--orange .tc-kpi-value { color: rgba(255, 225, 200, 0.92); }
 
+/* Cores adicionais para mini-resumos */
+.tc-kpi--slate { border-color: rgba(148, 163, 184, 0.45); background: linear-gradient(135deg, rgba(148,163,184,0.12), rgba(19,19,19,0.92)); box-shadow: inset 0 0 0 1px rgba(148,163,184,0.18); }
+.tc-kpi--slate .tc-kpi-value { color: rgba(226, 232, 240, 0.92); }
+
+.tc-kpi--violet { border-color: rgba(139, 92, 246, 0.45); background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(19,19,19,0.92)); box-shadow: inset 0 0 0 1px rgba(139,92,246,0.18); }
+.tc-kpi--violet .tc-kpi-value { color: rgba(221, 214, 254, 0.92); }
+
+.tc-kpi--teal { border-color: rgba(45, 212, 191, 0.45); background: linear-gradient(135deg, rgba(45,212,191,0.12), rgba(19,19,19,0.92)); box-shadow: inset 0 0 0 1px rgba(45,212,191,0.18); }
+.tc-kpi--teal .tc-kpi-value { color: rgba(178, 245, 234, 0.92); }
+
 .tc-kpi-label {
   font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.58);
@@ -2046,8 +2204,8 @@ Classes reutilizáveis para efeitos neon padronizados
 }
 
 .badge-action {
-  background-color: #343a40 !important;
-  color: #fff !important;
+  background-color: var(--tokencafe-gray-700) !important;
+  color: var(--tokencafe-white) !important;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   opacity: 0.9;
@@ -2056,17 +2214,17 @@ Classes reutilizáveis para efeitos neon padronizados
 
 .badge-action:hover {
   background-color: var(--tokencafe-primary) !important;
-  color: #fff !important;
+  color: var(--tokencafe-white) !important;
   opacity: 1;
   transform: translateY(-2px);
   filter: brightness(1.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 8px var(--tokencafe-shadow-black-30);
   text-decoration: none !important;
 }
 
 .badge-action:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px var(--tokencafe-shadow-black-20);
   filter: brightness(0.95);
 }
 
@@ -2080,3 +2238,117 @@ Classes reutilizáveis para efeitos neon padronizados
   cursor: not-allowed;
   opacity: 0.5;
 }
+
+/* ============================================================================
+   UTILITÁRIOS (UNIFICADOS DO utility-classes.css)
+   ========================================================================== */
+
+/* Logo e imagens */
+.logo-standard {
+  width: 48px;
+  height: 48px;
+  filter: var(--tokencafe-shadow-logo);
+}
+
+.logo-small {
+  width: 40px;
+  height: 40px;
+}
+
+/* Tamanhos de ícones */
+.icon-xl { font-size: 3rem; }
+.icon-lg { font-size: 2rem; }
+.icon-md { font-size: 1.25rem; }
+
+/* Tipografia utilitária */
+.text-small { font-size: 0.75rem; line-height: 1; margin-top: -2px; }
+.text-xs { font-size: 0.9rem; }
+.text-line-height-normal { line-height: 1.6; }
+.text-no-decoration { text-decoration: none; }
+.text-coffee { color: var(--tokencafe-primary-dark); }
+.text-gold { color: var(--tokencafe-warning); }
+
+/* Layout utilitário */
+.min-width-250 { min-width: 250px; }
+.border-radius-50 { border-radius: 50px; }
+.square-80 { width: 80px; height: 80px; }
+.resize-vertical { resize: vertical; }
+
+/* Página simples (ex.: Mini Chainlist) */
+.simple-page-body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  background: var(--tokencafe-bg-secondary);
+  color: var(--tokencafe-text-primary);
+}
+.simple-page-title { color: var(--tokencafe-text-primary); }
+.simple-input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 16px;
+  background: var(--tokencafe-bg-primary);
+  color: var(--tokencafe-text-primary);
+  border: 1px solid var(--tokencafe-border-medium);
+}
+.simple-button {
+  cursor: pointer;
+  background-color: var(--tokencafe-primary);
+  color: var(--tokencafe-white);
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 16px;
+}
+.simple-message { margin-top: 15px; font-weight: bold; }
+.simple-message.success { color: var(--tokencafe-success); }
+.simple-message.error { color: var(--tokencafe-danger); }
+.simple-form-group { margin-bottom: 10px; }
+
+/* Background utilitário */
+.bg-transparent { background: transparent !important; }
+.bg-page-black { background: var(--tokencafe-bg-primary) !important; }
+.bg-dark-elevated { background-color: var(--tokencafe-bg-tertiary); color: var(--bs-body-color); border: 1px solid var(--bs-border-color); }
+
+/* Alturas mínimas */
+.min-height-180 { min-height: 180px; }
+.min-height-240 { min-height: 240px; }
+.max-height-240 { max-height: 240px; }
+
+/* Botões utilitários */
+.btn-transparent,
+.btn-transparent-warning,
+.btn-transparent-info {
+  background: transparent;
+  border: none;
+  transition: all 0.3s ease;
+}
+.btn-transparent-warning { color: var(--bs-warning); }
+.btn-transparent-warning:hover,
+.btn-transparent-info:hover { transform: scale(1.1); }
+.btn-transparent-warning:hover { color: var(--tokencafe-primary-light); }
+.btn-transparent-info { color: var(--bs-info); }
+.btn-transparent-info:hover { color: var(--tokencafe-info-light); }
+
+/* Badges utilitários */
+.badge-circle,
+.badge-circle-lg,
+.badge-circle-xl {
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+}
+.badge-circle { width: 32px; height: 32px; display: flex; }
+.badge-circle-lg { width: 40px; height: 40px; display: flex; }
+.badge-circle-xl { width: 60px; height: 60px; display: inline-flex; }
+
+/* Display utilitário */
+.cursor-pointer { cursor: pointer; }
+
+/* Exibição de código */
+.code-display { white-space: pre-wrap; word-wrap: break-word; margin-top: 20px; }
+
+/* Form utilitário */
+.form-status { margin-bottom: 1rem; margin-top: 1.5rem; }

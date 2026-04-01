@@ -59,19 +59,136 @@ function tokencafe_append_log(string $fileBase, string $line): void
 
 function tokencafe_append_admin_log(string $type, string $line): void
 {
-  // type: ip | sc
   $dir = tokencafe_admin_logs_dir();
   if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
   if (!is_dir($dir)) return;
   $date = gmdate("Y-m-d");
   $base = $type === "ip" ? "IPLogs" : "SCLogs";
   $file = $dir . DIRECTORY_SEPARATOR . $base . "-" . $date . ".php";
-  if (!is_file($file)) {
-    @file_put_contents($file, "<?php exit; ?>\n", FILE_APPEND | LOCK_EX);
-    @file_put_contents($file, "data;hora;ip;wallet;page;chain;contract\n", FILE_APPEND | LOCK_EX);
-  }
   $line = rtrim($line);
-  @file_put_contents($file, $line . "\n", FILE_APPEND | LOCK_EX);
+  $key = "";
+  try {
+    $parts = explode(";", $line);
+    if (count($parts) >= 5) {
+      $key = trim((string) $parts[0]) . ";" . trim((string) $parts[1]) . ";" . trim((string) $parts[2]) . ";" . trim((string) $parts[3]) . ";" . trim((string) $parts[4]);
+    }
+  } catch (Throwable $e) {}
+  $fh = @fopen($file, "c+b");
+  if (!$fh) return;
+  if (!@flock($fh, LOCK_EX)) { @fclose($fh); return; }
+  try {
+    $st = @fstat($fh);
+    $size = is_array($st) && isset($st["size"]) ? (int) $st["size"] : 0;
+    if ($size <= 0) {
+      @fwrite($fh, "<?php exit; ?>\n");
+      @fwrite($fh, "data;hora;ip;wallet;page;chain;contract\n");
+    } else {
+      if ($key !== "") {
+        $tailBytes = 24000;
+        $start = max(0, $size - $tailBytes);
+        @fseek($fh, $start);
+        $chunk = (string) @stream_get_contents($fh);
+        $lines = preg_split("/\r?\n/", $chunk) ?: [];
+        foreach ($lines as $ln) {
+          $t = trim((string) $ln);
+          if ($t === "" || str_starts_with($t, "<?php") || str_starts_with($t, "data;")) continue;
+          $p = explode(";", $t);
+          if (count($p) < 5) continue;
+          $k2 = trim((string) $p[0]) . ";" . trim((string) $p[1]) . ";" . trim((string) $p[2]) . ";" . trim((string) $p[3]) . ";" . trim((string) $p[4]);
+          if ($k2 === $key) {
+            return;
+          }
+        }
+      }
+      $pos = $size - 1;
+      while ($pos >= 0) {
+        @fseek($fh, $pos);
+        $ch = @fgetc($fh);
+        if ($ch === "\n" || $ch === "\r") $pos--;
+        else break;
+      }
+      $buf = "";
+      while ($pos >= 0) {
+        @fseek($fh, $pos);
+        $ch = @fgetc($fh);
+        if ($ch === "\n") break;
+        $buf = $ch . $buf;
+        $pos--;
+      }
+      if (trim($buf) === trim($line)) {
+        return;
+      }
+    }
+    @fseek($fh, 0, SEEK_END);
+    @fwrite($fh, $line . "\n");
+  } finally {
+    @flock($fh, LOCK_UN);
+    @fclose($fh);
+  }
+}
+
+function tokencafe_normalize_chain_id(string $chain): string
+{
+  $chain = trim($chain);
+  if ($chain === "") return "";
+  $lower = strtolower($chain);
+  if (str_starts_with($lower, "0x")) {
+    $hex = substr($lower, 2);
+    if ($hex === "") return "";
+    $n = hexdec($hex);
+    return $n > 0 ? (string) $n : "";
+  }
+  if (preg_match('/^\d+$/', $chain)) return ltrim($chain, "0") !== "" ? ltrim($chain, "0") : "0";
+  return $chain;
+}
+
+function tokencafe_contract_for_page(string $page, string $contractCookie): string
+{
+  $contractCookie = trim($contractCookie);
+  if ($contractCookie === "") return "";
+  $page = trim($page);
+  if ($page === "") return "";
+  if (stripos($page, "contrato") !== false) return $contractCookie;
+  return "";
+}
+
+function tokencafe_is_valid_contract_address(string $addr): bool
+{
+  $addr = trim($addr);
+  return $addr !== "" && preg_match('/^0x[a-f0-9]{40}$/i', $addr) === 1;
+}
+
+function tokencafe_contract_from_request(): string
+{
+  $addr = isset($_GET["address"]) ? (string) $_GET["address"] : (isset($_GET["contract"]) ? (string) $_GET["contract"] : "");
+  $addr = trim($addr);
+  if (!tokencafe_is_valid_contract_address($addr)) return "";
+  return $addr;
+}
+
+function tokencafe_chain_from_request(): string
+{
+  $chain = isset($_GET["chainId"]) ? (string) $_GET["chainId"] : (isset($_GET["chain"]) ? (string) $_GET["chain"] : "");
+  return tokencafe_normalize_chain_id($chain);
+}
+
+function tokencafe_apply_contract_context_from_request(string $page, string &$chain, string &$contract): void
+{
+  if (stripos($page, "contrato") === false) return;
+  if ($contract === "") {
+    $req = tokencafe_contract_from_request();
+    if ($req !== "") {
+      $contract = $req;
+      @setcookie("tokencafe_contract", $req, ["path" => "/", "samesite" => "Lax"]);
+    }
+  }
+  if ($chain === "") {
+    $reqChain = tokencafe_chain_from_request();
+    if ($reqChain !== "") {
+      $chain = $reqChain;
+      @setcookie("tokencafe_chain_id", $reqChain, ["path" => "/", "samesite" => "Lax"]);
+    }
+  }
 }
 
 function tokencafe_log_visit(string $pageHint = ""): void
@@ -80,10 +197,11 @@ function tokencafe_log_visit(string $pageHint = ""): void
   $t = gmdate("H:i:s");
   $ip = tokencafe_get_client_ip();
   $wallet = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? strtolower(trim((string) $_COOKIE[TOKENCAFE_WALLET_COOKIE])) : "";
-  $chain = isset($_COOKIE["tokencafe_chain_id"]) ? trim((string) $_COOKIE["tokencafe_chain_id"]) : "";
-  $contract = isset($_COOKIE["tokencafe_contract"]) ? trim((string) $_COOKIE["tokencafe_contract"]) : "";
+  $chain = isset($_COOKIE["tokencafe_chain_id"]) ? tokencafe_normalize_chain_id((string) $_COOKIE["tokencafe_chain_id"]) : "";
   $uri = isset($_SERVER["REQUEST_URI"]) ? (string) $_SERVER["REQUEST_URI"] : "";
   $page = trim((string) $pageHint);
+  $contract = tokencafe_contract_for_page($page, isset($_COOKIE["tokencafe_contract"]) ? (string) $_COOKIE["tokencafe_contract"] : "");
+  tokencafe_apply_contract_context_from_request($page, $chain, $contract);
   $line = "[" . $d . " " . $t . "] ip=" . $ip . ($wallet !== "" ? " wallet=" . $wallet : "") . " page=" . $page . " uri=" . $uri;
   tokencafe_append_log("visits", $line);
   tokencafe_append_admin_log("ip", $d . ";" . $t . ";" . $ip . ";" . $wallet . ";" . $page . ";" . $chain . ";" . $contract);
@@ -95,9 +213,10 @@ function tokencafe_log_client_access(string $pageHint = ""): void
   $t = gmdate("H:i:s");
   $ip = tokencafe_get_client_ip();
   $wallet = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? strtolower(trim((string) $_COOKIE[TOKENCAFE_WALLET_COOKIE])) : "";
-  $chain = isset($_COOKIE["tokencafe_chain_id"]) ? trim((string) $_COOKIE["tokencafe_chain_id"]) : "";
-  $contract = isset($_COOKIE["tokencafe_contract"]) ? trim((string) $_COOKIE["tokencafe_contract"]) : "";
+  $chain = isset($_COOKIE["tokencafe_chain_id"]) ? tokencafe_normalize_chain_id((string) $_COOKIE["tokencafe_chain_id"]) : "";
   $page = trim((string) $pageHint);
+  $contract = tokencafe_contract_for_page($page, isset($_COOKIE["tokencafe_contract"]) ? (string) $_COOKIE["tokencafe_contract"] : "");
+  tokencafe_apply_contract_context_from_request($page, $chain, $contract);
   $line = "[" . $d . " " . $t . "] ip=" . $ip . ($wallet !== "" ? " wallet=" . $wallet : "") . " page=" . $page;
   tokencafe_append_log("client", $line);
   tokencafe_append_admin_log("sc", $d . ";" . $t . ";" . $ip . ";" . $wallet . ";" . $page . ";" . $chain . ";" . $contract);
@@ -122,15 +241,37 @@ function tokencafe_archive_and_delete_file(string $filePath, string $reason): bo
   $to = trim($to);
   if ($to === "") return false;
   $file = basename($filePath);
-  $subject = "TokenCafe Logs Archive: " . $file;
+  $tmpTxt = sys_get_temp_dir() . DIRECTORY_SEPARATOR . preg_replace('/\.(php|log)$/', '', $file) . "-" . gmdate("Ymd-His") . ".txt";
+  $in = @fopen($filePath, "rb");
+  $out = @fopen($tmpTxt, "wb");
+  if (!$in || !$out) {
+    if (is_resource($in)) fclose($in);
+    if (is_resource($out)) fclose($out);
+    @unlink($tmpTxt);
+    return false;
+  }
+  $first = true;
+  while (!feof($in)) {
+    $line = fgets($in);
+    if ($line === false) break;
+    if ($first) {
+      $first = false;
+      if (str_starts_with(trim($line), "<?php")) continue;
+    }
+    fwrite($out, $line);
+  }
+  fclose($in);
+  fclose($out);
+  $subject = "TokenCafe Logs Archive: " . preg_replace('/\.(php|log)$/', '.txt', $file);
   $body = "Motivo: " . $reason . "\nArquivo: " . $file . "\nData (UTC): " . gmdate("Y-m-d H:i:s") . "\n";
-  $sent = tokencafe_send_mail_with_attachment($to, $subject, $body, $filePath);
+  $sent = tokencafe_send_mail_with_attachment($to, $subject, $body, $tmpTxt);
+  @unlink($tmpTxt);
   if (!$sent) return false;
   @unlink($filePath);
   return true;
 }
 
-function tokencafe_cleanup_admin_logs(int $daysToKeep = 30): void
+function tokencafe_cleanup_admin_logs(int $daysToKeep = 365): void
 {
   if ($daysToKeep < 1) $daysToKeep = 1;
   if (!tokencafe_admin_log_should_cleanup_today()) return;
@@ -159,22 +300,9 @@ function tokencafe_cleanup_admin_logs(int $daysToKeep = 30): void
   $to = defined("TOKENCAFE_LOG_ARCHIVE_EMAIL") ? (string) TOKENCAFE_LOG_ARCHIVE_EMAIL : "";
   $to = trim($to);
   if ($to === "") return;
-
-  $zipPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "tokencafe-admin-logs-" . gmdate("Ymd-His") . ".zip";
-  $okZip = tokencafe_create_zip($toArchive, $zipPath);
-  if (!$okZip) return;
-
-  $subject = "TokenCafe Logs Archive: admin-logs (" . count($toArchive) . " arquivos)";
-  $body = "Motivo: auto-retencao-" . $daysToKeep . "-dias\nArquivos: " . count($toArchive) . "\nData (UTC): " . gmdate("Y-m-d H:i:s") . "\n";
-  $sent = tokencafe_send_mail_with_attachment($to, $subject, $body, $zipPath);
-  if (!$sent) {
-    @unlink($zipPath);
-    return;
-  }
   foreach ($toArchive as $fp) {
-    @unlink($fp);
+    tokencafe_archive_and_delete_file((string) $fp, "auto-retencao-" . $daysToKeep . "-dias");
   }
-  @unlink($zipPath);
 }
 
 function __tokencafe_relpath(string $path, string $baseDir): string
@@ -303,7 +431,7 @@ function render_page(string $viewPath, array $options = []): void
   $isLocal = in_array($host, ["localhost", "127.0.0.1", "::1"], true);
   $pageHint = isset($_GET["page"]) ? (string) $_GET["page"] : basename((string)($_SERVER["SCRIPT_NAME"] ?? ""));
   tokencafe_log_visit($pageHint);
-  tokencafe_cleanup_admin_logs(30);
+  tokencafe_cleanup_admin_logs(365);
 
   $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
   $isAdmin = tokencafe_is_admin_wallet($walletCookie);

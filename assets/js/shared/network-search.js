@@ -20,6 +20,7 @@ function initContainer(container) {
   const minChars = parseInt(container.getAttribute("data-ns-min-chars") || "1", 10);
   const showPopular = String(container.getAttribute("data-ns-show-popular") || "false") === "true";
   const showOnSelect = String(container.getAttribute("data-ns-show-details-on-select") || "false") === "true";
+  const autoDetect = String(container.getAttribute("data-ns-auto-detect") || "true") === "true";
 
   input.setAttribute("placeholder", placeholder);
   try {
@@ -200,7 +201,7 @@ function initContainer(container) {
     } catch (_) {}
   }
   applyMemoryPrefill();
-  autoDetectNetwork();
+  if (autoDetect) autoDetectNetwork();
 
   function hideList() {
     list.classList.add("d-none");
@@ -298,7 +299,7 @@ function initContainer(container) {
               } catch (_) {}
             } finally {
               setSwitching(false);
-              autoDetectNetwork();
+              if (autoDetect) autoDetectNetwork();
               const evtRes = new CustomEvent("network:switchResult", { detail: { chainId }, bubbles: true });
               container.dispatchEvent(evtRes);
             }

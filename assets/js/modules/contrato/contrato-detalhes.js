@@ -8,7 +8,61 @@ import { checkIsAdmin } from "./builder.js";
 class ContractDetailsManager {
     constructor() {
         this.state = null;
+        this.verifPoll = null;
         this.init();
+    }
+
+    writeContractContext(address, chainId, pageName = "contrato-detalhes") {
+        try {
+            const addr = String(address || "").trim();
+            const cid = Number(chainId);
+            if (addr) document.cookie = `tokencafe_contract=${encodeURIComponent(addr)}; Path=/; SameSite=Lax`;
+            if (cid && !isNaN(cid)) {
+                const hex = "0x" + cid.toString(16);
+                document.cookie = `tokencafe_chain_id=${encodeURIComponent(hex)}; Path=/; SameSite=Lax`;
+            }
+        } catch (_) {}
+        try {
+            const addr = String(address || "").trim();
+            const cid = String(chainId || "").trim();
+            const body = new URLSearchParams({ page: String(pageName || "contrato-detalhes") });
+            if (addr) body.set("contract", addr);
+            if (cid) body.set("chainId", cid);
+            if (navigator.sendBeacon) {
+                const blob = new Blob([body.toString()], { type: "application/x-www-form-urlencoded" });
+                navigator.sendBeacon("log-event.php", blob);
+            } else {
+                fetch("log-event.php", { method: "POST", body, credentials: "include", keepalive: true, headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" } });
+            }
+        } catch (_) {}
+    }
+
+    startVerificationPolling(chainId, address) {
+        try {
+            if (this.verifPoll) return;
+            const cid = String(chainId || "").trim();
+            const addr = String(address || "").trim();
+            if (!cid || !addr) return;
+            let attempts = 0;
+            const maxAttempts = 12;
+            const poll = async () => {
+                attempts++;
+                if (attempts > maxAttempts) {
+                    try { clearInterval(this.verifPoll); } catch (_) {}
+                    this.verifPoll = null;
+                    return;
+                }
+                try {
+                    const js = await updateVerificationBadge(document, cid, addr, true);
+                    if (js?.verified) {
+                        try { clearInterval(this.verifPoll); } catch (_) {}
+                        this.verifPoll = null;
+                    }
+                } catch (_) {}
+            };
+            this.verifPoll = setInterval(poll, 10000);
+            poll();
+        } catch (_) {}
     }
 
     init() {
@@ -51,6 +105,7 @@ class ContractDetailsManager {
     async initFromUrl(address, chainId) {
         try {
             console.log("Initializing from URL params:", address, chainId);
+            this.writeContractContext(address, chainId, "contrato-detalhes");
             
             // Mock minimal state for View Mode
             this.state = {
@@ -71,6 +126,7 @@ class ContractDetailsManager {
 
             // Setup UI for View Mode
             this.setupContractView();
+            this.startVerificationPolling(chainId, address);
             
             // Share Section
             const shareConfig = {
@@ -106,6 +162,12 @@ class ContractDetailsManager {
     async initFromState() {
         try {
             console.log("Initializing from Session State (Fresh Deploy)");
+            try {
+                const addr = this.state?.deployed?.address || this.state?.deployed?.contractAddress || "";
+                const cid = this.state?.form?.network?.chainId || "";
+                this.writeContractContext(addr, cid, "contrato-detalhes");
+                this.writeContractContext(addr, cid, "contrato_criado");
+            } catch (_) {}
             
             // Wait for shared components to load
             await this.waitForActionsComponent();
@@ -145,6 +207,11 @@ class ContractDetailsManager {
 
             this.setupDownloads();
             this.setupContractView();
+            try {
+                const addr = this.state?.deployed?.address || "";
+                const cid = this.state?.form?.network?.chainId || "";
+                if (addr && cid) this.startVerificationPolling(cid, addr);
+            } catch (_) {}
 
         } catch (e) {
             console.error("Erro fatal em initFromState:", e);
@@ -292,79 +359,9 @@ class ContractDetailsManager {
             }
 
             await updateContractDetailsView(container, chainId, address, preloaded, { autoShowCard: true });
-            
-            this.setupManualVerifyButton(); // Ensure button is set up
         } catch (e) {
             console.error("Erro ao atualizar view detalhada:", e);
         }
-    }
-
-    setupManualVerifyButton() {
-        const btnVerify = document.getElementById("btnManualVerify");
-        if (!btnVerify) return;
-        
-        // Remove existing listeners to avoid duplicates (if any)
-        const newBtn = btnVerify.cloneNode(true);
-        if (btnVerify.parentNode) {
-            btnVerify.parentNode.replaceChild(newBtn, btnVerify);
-        }
-        
-        newBtn.addEventListener("click", async () => {
-            const { deployed, form } = this.state;
-            const chainId = form.network?.chainId;
-            const address = deployed?.address;
-            
-            if (chainId && address) {
-                newBtn.disabled = true;
-                const originalHtml = newBtn.innerHTML;
-                newBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
-                
-                try {
-                    const container = document.getElementById("contract-search-container");
-                    // Force refresh = true
-                    await updateVerificationBadge(container, chainId, address, true);
-                } catch (e) {
-                    console.error("Erro na verificação manual:", e);
-                } finally {
-                    this.checkVerificationStatus();
-                    newBtn.disabled = false;
-                    newBtn.innerHTML = originalHtml;
-                }
-            }
-        });
-        
-        // Initial check
-        this.checkVerificationStatus();
-    }
-    
-    checkVerificationStatus() {
-        const btnVerify = document.getElementById("btnManualVerify");
-        if (!btnVerify) return;
-
-        // Restrição de Testnet
-        const chainId = this.state?.form?.network?.chainId;
-        const nm = new NetworkManager();
-        if (nm.isTestNetwork(chainId) && !checkIsAdmin()) {
-            btnVerify.classList.add("d-none");
-            return;
-        }
-        
-        // Check if verification badge indicates success
-        setTimeout(() => {
-            const badge = document.querySelector(".badge-verif-status");
-            // Check for success class OR text content "Verificado"
-            const isVerified = badge && (
-                badge.classList.contains("bg-success") || 
-                badge.classList.contains("bg-success-subtle") ||
-                (badge.textContent && badge.textContent.toLowerCase().includes("verificado"))
-            );
-            
-            if (isVerified) {
-                btnVerify.classList.add("d-none");
-            } else {
-                btnVerify.classList.remove("d-none");
-            }
-        }, 500); 
     }
 
     setupDownloads() {
