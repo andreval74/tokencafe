@@ -1,1 +1,7 @@
 node_modules
+
+# Runtime logs (do not version)
+modules/logs/storage/logs/*.log
+modules/logs/storage/admin-logs/IPLogs-*.php*
+modules/logs/storage/admin-logs/SCLogs-*.php*
+modules/logs/storage/admin-logs/.cleanup-last.txt

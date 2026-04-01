@@ -578,17 +578,17 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
       <div class="col-12 col-md-4">
         <?php if ($isChief) { ?>
           <div class="d-flex gap-2">
-            <button class="btn tc-action-btn flex-grow-1" style="height: calc(1.5em + .75rem + 2px);" id="btnLoadLogs">
+            <button class="btn tc-action-btn flex-grow-1 h-control" id="btnLoadLogs">
               <i class="bi bi-arrow-repeat me-1"></i>
               Carregar
             </button>
-            <button class="btn btn-outline-secondary" style="height: calc(1.5em + .75rem + 2px);" id="btnClearInvestigation" title="Limpar filtros de investigação (wallet/rede/contrato)">
+            <button class="btn btn-outline-secondary h-control" id="btnClearInvestigation" title="Limpar filtros de investigação (wallet/rede/contrato)">
               <i class="bi bi-x-lg"></i>
             </button>
           </div>
         <?php } else { ?>
           <div class="d-grid">
-            <button class="btn tc-action-btn w-100" style="height: calc(1.5em + .75rem + 2px);" id="btnLoadLogs">
+            <button class="btn tc-action-btn w-100 h-control" id="btnLoadLogs">
               <i class="bi bi-arrow-repeat me-1"></i>
               Carregar
             </button>
@@ -609,13 +609,13 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
 
     <div class="row g-3">
       <div class="col-12">
-        <div class="tool-tile" style="min-height:auto;">
+        <div class="tool-tile">
           <div class="d-flex align-items-center gap-2">
             <div class="tool-tile-icon"><i class="bi bi-globe2"></i></div>
             <div class="tool-tile-title m-0"><i class="bi bi-diagram-2 me-2 text-secondary"></i>Movimentos (IP/SC)</div>
           </div>
-          <div class="tool-tile-desc" style="min-height: 0;">Top páginas por acesso (janela), ações e amostra do dia.</div>
-          <div class="tool-tile-footer d-flex flex-column gap-1 mt-1" style="margin-top: 0;">
+          <div class="tool-tile-desc">Top páginas por acesso (janela), ações e amostra do dia.</div>
+          <div class="tool-tile-footer d-flex flex-column gap-1 mt-1">
           <div class="d-flex flex-wrap align-items-center">
             <?php if (!$topIpPages) { ?>
               <span class="text-white-50">Sem registros.</span>
@@ -630,9 +630,9 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
                 <?php if (!$topIps) { ?>
                   <span class="text-white-50">Sem IPs destacados.</span>
                 <?php } else { foreach ($topIps as $t) { $ip = (string) $t["ip"]; $ct=(int)$t["count"]; ?>
-                  <span class="pg-chip" style="display:inline-block;padding:.2rem .5rem;border-radius:8px;margin:.15rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);">
+                  <span class="pg-chip">
                     <span class="pg-chip-label"><?= htmlspecialchars($ip, ENT_QUOTES, "UTF-8") ?></span>
-                    <span class="pg-chip-count" style="opacity:.85;">(<?= $ct ?>)</span>
+                    <span class="pg-chip-count">(<?= $ct ?>)</span>
                   </span>
                 <?php } } ?>
               </div>
@@ -723,14 +723,14 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
             </div>
             <?php } ?>
             <div class="table-responsive mt-1">
-              <table class="table table-sm mb-0 w-100" style="color: rgba(255,255,255,0.78);">
-                <thead style="color: rgba(255,255,255,0.55);">
+              <table class="table table-sm mb-0 w-100">
+                <thead class="text-white-50">
                   <tr>
                     <th data-sort="when" class="tc-sortable"><i class="bi bi-calendar3 me-1"></i>Data/Hora<span class="tc-sort-ind ms-1"></span></th>
                     <th data-sort="chain" class="tc-sortable"><i class="bi bi-diagram-3 me-1"></i>Rede<span class="tc-sort-ind ms-1"></span></th>
                     <th data-sort="wallet" class="tc-sortable"><i class="bi bi-wallet2 me-1"></i>Wallet<span class="tc-sort-ind ms-1"></span></th>
                     <th data-sort="contract" class="tc-sortable"><i class="bi bi-box me-1"></i>Contrato<span class="tc-sort-ind ms-1"></span></th>
-                    <th data-sort="page" class="tc-sortable text-end" style="width: 160px;"><i class="bi bi-box-arrow-in-right me-1"></i>Page<span class="tc-sort-ind ms-1"></span></th>
+                    <th data-sort="page" class="tc-sortable text-end tc-w-160"><i class="bi bi-box-arrow-in-right me-1"></i>Page<span class="tc-sort-ind ms-1"></span></th>
                   </tr>
                 </thead>
                 <tbody id="visitsRows"></tbody>
@@ -740,7 +740,7 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
               <div class="text-white-50 small d-flex align-items-center gap-2">
                 <span id="visitsCountInfo"></span>
                 <label class="ms-3 small">Linhas/página</label>
-                <select class="form-select form-select-sm" id="pageSizeSel" style="width:auto;">
+                <select class="form-select form-select-sm w-auto" id="pageSizeSel">
                   <option value="10" selected>10</option>
                   <option value="25">25</option>
                   <option value="50">50</option>
@@ -748,7 +748,7 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
                 </select>
               </div>
               <div class="d-flex align-items-center gap-1">
-                <div class="btn-group btn-group-sm" id="visitsPager" style="display:none;"></div>
+                <div class="btn-group btn-group-sm d-none" id="visitsPager"></div>
                 <?php if ($isChief || $hasWallet) { ?>
                   <button class="btn btn-sm tc-action-btn" id="btnDownloadLog" type="button">
                     <i class="bi bi-download me-1"></i>Baixar arquivo
@@ -821,11 +821,9 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
         var pager = document.getElementById("visitsPager");
         var info = document.getElementById("visitsCountInfo");
         function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-        var palette=['#d4af37','#2dd4bf','#60a5fa','#a78bfa','#f472b6','#f59e0b','#34d399','#fb7185','#f97316','#22c55e'];
-        function hashKey(s){var h=0; for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i); h|=0;} return Math.abs(h);}
         function pageLabel(key){var k=String(key||''); return k==='index.php' ? 'home' : k;}
-        function pageChip(key){var raw=String(key||''); var k=pageLabel(raw); var clr=palette[hashKey(raw)%palette.length]; var bg=clr+'33'; var bd=clr+'55'; return '<span style="display:inline-block;padding:.15rem .5rem;border-radius:999px;background:'+bg+';border:1px solid '+bd+';color:'+clr+'">'+esc(k)+'</span>';}
-        function pageChipCount(key, count){var raw=String(key||''); var k=pageLabel(raw); var clr=palette[hashKey(raw)%palette.length]; var bg=clr+'33'; var bd=clr+'55'; return '<span style="display:inline-block;padding:.15rem .5rem;border-radius:999px;margin:.15rem;background:'+bg+';border:1px solid '+bd+';color:'+clr+'">'+esc(k)+' <span style=\"opacity:.92;color:'+clr+'\">('+esc(String(count||0))+')</span></span>';}
+        function pageChip(key){var k=pageLabel(key); return '<span class="pg-chip tc-pill-chip">'+esc(k)+'</span>';}
+        function pageChipCount(key, count){var k=pageLabel(key); return '<span class="pg-chip tc-pill-chip">'+esc(k)+' <span class="pg-chip-count">('+esc(String(count||0))+')</span></span>';}
         function formatLocal(dateStr, timeStr){
           try{
             var d=String(dateStr||'').trim();
@@ -895,10 +893,10 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
               var cttRaw = String(r.contract||"").toLowerCase().trim();
               var whenTop = esc(formatLocal(r.date||"", r.time||""));
               var chain = esc(r.chain||"");
-              var whenHtml = '<div style="white-space:nowrap;">'+whenTop+'</div>';
+              var whenHtml = '<div class="text-nowrap">'+whenTop+'</div>';
               var ipMini = esc(r.ip||"");
-              if(ipMini){ whenHtml += '<div class="text-white-50" style="font-size:12px;white-space:nowrap;" title="Hora do servidor (UTC): '+esc(String(r.date||"")+' '+String(r.time||""))+'">IP: '+ipMini+'</div>'; }
-              var wHtml = '<div style="word-break:break-all;white-space:normal;line-height:1.1;">'+w+'</div>';
+              if(ipMini){ whenHtml += '<div class="text-white-50 text-small text-nowrap" title="Hora do servidor (UTC): '+esc(String(r.date||"")+' '+String(r.time||""))+'">IP: '+ipMini+'</div>'; }
+              var wHtml = '<div class="tc-break-all tc-lh-11">'+w+'</div>';
               var cHtml = '';
               if(ctt){
                 var chainNum = 1;
@@ -910,15 +908,15 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
                 var addr = String(r.contract||"").trim();
                 var hrefDetails = "index.php?page=contrato-detalhes&address=" + encodeURIComponent(addr) + "&chainId=" + encodeURIComponent(String(chainNum||""));
                 var ok = !!verifiedContracts[cttRaw];
-                var clr = ok ? "#22c55e" : "#ef4444";
-                cHtml = '<a href="'+hrefDetails+'" target="_blank" rel="noopener" style="color:'+clr+';text-decoration:underline;word-break:break-all;white-space:normal;line-height:1.1;">'+ctt+'</a>';
+                var linkClass = ok ? "tc-contract-link tc-contract-link--ok" : "tc-contract-link tc-contract-link--bad";
+                cHtml = '<a href="'+hrefDetails+'" target="_blank" rel="noopener" class="'+linkClass+' tc-break-all tc-lh-11">'+ctt+'</a>';
               }
               html+='<tr>'
                 +'<td>'+whenHtml+'</td>';
               html+='<td>'+esc(r.chain||"")+'</td>'
                 +'<td>'+wHtml+'</td>'
                 +'<td>'+cHtml+'</td>'
-                +'<td class="text-end" style="width:160px;white-space:nowrap;">'+pageChip(r.page||"")+'</td>'
+                +'<td class="text-end tc-w-160 text-nowrap">'+pageChip(r.page||"")+'</td>'
                 +'</tr>';
             });
           }
@@ -928,7 +926,7 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
           info.textContent='Mostrando '+shownFrom+'-'+shownTo+' de '+total;
           var pages=Math.ceil(total/pageSize);
           if(pages>1){
-            pager.style.display="";
+            pager.classList.remove("d-none");
             var phtml="";
             var maxBtns=Math.min(8,pages);
             var startBtn=Math.max(1,Math.min(cur-3,pages-maxBtns+1));
@@ -936,7 +934,7 @@ $showCancelHint = $isChief && $filterWalletNorm === "" && $hasAnyCancelations;
             pager.innerHTML=phtml;
             pager.querySelectorAll('button[data-pg]').forEach(function(b){b.addEventListener('click',function(){var n=parseInt(b.getAttribute('data-pg'),10);if(Number.isFinite(n)) renderPage(n);});});
           } else {
-            pager.style.display="none";
+            pager.classList.add("d-none");
             pager.innerHTML="";
           }
         }

@@ -29,6 +29,9 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
     <!-- Status da Carteira (padrão minimalista) -->
     <div class="d-flex flex-column align-items-end text-end">
       <div class="d-flex align-items-center">
+        <button id="sidebar-toggle-btn" class="btn btn-sm btn-transparent-warning me-2 d-lg-none" type="button" aria-label="Abrir menu">
+          <i class="bi bi-list"></i>
+        </button>
         <!-- Botão tema -->
         <button id="theme-toggle" class="btn btn-sm btn-transparent-warning me-3" type="button" title="Alternar Tema">
           <i class="bi bi-sun" id="theme-icon"></i>
@@ -67,8 +70,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         <div id="connected-wallet-display" class="small text-muted">
           Não Conectado
         </div>
-        <button id="btn-copy-wallet" class="btn btn-sm btn-link p-0 text-success ms-2 d-none" title="Copiar endereço"
-          style="text-decoration: none;">
+        <button id="btn-copy-wallet" class="btn btn-sm btn-link p-0 text-success ms-2 d-none text-no-decoration" title="Copiar endereço">
           <i class="bi bi-clipboard"></i>
         </button>
       </div>

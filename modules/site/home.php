@@ -48,61 +48,61 @@
           <div class="blockchain-track">
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/ethereum.png" alt="Ethereum"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Ethereum</span></span>
+                class="tc-chain-icon" /><span>Ethereum</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/bnb.png" alt="BNB Chain"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>BNB</span></span>
+                class="tc-chain-icon" /><span>BNB</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/polygon.png" alt="Polygon"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Polygon</span></span>
+                class="tc-chain-icon" /><span>Polygon</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/base.png" alt="Base"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Base</span></span>
+                class="tc-chain-icon" /><span>Base</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/arbitrumone.png" alt="Arbitrum One"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Arbitrum</span></span>
+                class="tc-chain-icon" /><span>Arbitrum</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/optimism.png" alt="Optimism"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Optimism</span></span>
+                class="tc-chain-icon" /><span>Optimism</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/avalanche.png" alt="Avalanche"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Avalanche</span></span>
+                class="tc-chain-icon" /><span>Avalanche</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/linea.png" alt="Linea"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Linea</span></span>
+                class="tc-chain-icon" /><span>Linea</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/scroll.png" alt="Scroll"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Scroll</span></span>
+                class="tc-chain-icon" /><span>Scroll</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/blast.png" alt="Blast"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Blast</span></span>
+                class="tc-chain-icon" /><span>Blast</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/mantle.png" alt="Mantle"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Mantle</span></span>
+                class="tc-chain-icon" /><span>Mantle</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/metis.png" alt="Metis"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Metis</span></span>
+                class="tc-chain-icon" /><span>Metis</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/cronos.png" alt="Cronos"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Cronos</span></span>
+                class="tc-chain-icon" /><span>Cronos</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/core.png" alt="Core"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Core</span></span>
+                class="tc-chain-icon" /><span>Core</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/pulsechain.png" alt="PulseChain"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>PulseChain</span></span>
+                class="tc-chain-icon" /><span>PulseChain</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/unichain.png" alt="Unichain"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Unichain</span></span>
+                class="tc-chain-icon" /><span>Unichain</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/sonic.png" alt="Sonic"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Sonic</span></span>
+                class="tc-chain-icon" /><span>Sonic</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/monad.png" alt="Monad"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>Monad</span></span>
+                class="tc-chain-icon" /><span>Monad</span></span>
             <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
                 src="assets/imgs/blockchains/hyperevm.png" alt="HyperEVM"
-                style="width: 22px; height: 22px; object-fit: contain;" /><span>HyperEVM</span></span>
+                class="tc-chain-icon" /><span>HyperEVM</span></span>
             </div>
         </div>
       </div>
@@ -840,8 +840,7 @@
           <ul class="list-unstyled">
 
             <li class="mb-4 d-flex align-items-center text-start">
-              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0"
-                style="width: 48px; height: 48px; min-width: 48px;">
+              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0 square-48">
                 <i class="bi bi-mortarboard fs-5"></i>
               </div>
               <div class="text-start flex-grow-1">
@@ -852,8 +851,7 @@
 
 
             <li class="mb-4 d-flex align-items-center text-start">
-              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0"
-                style="width: 48px; height: 48px; min-width: 48px;">
+              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0 square-48">
                 <i class="bi bi-people fs-5"></i>
               </div>
               <div class="text-start flex-grow-1">
@@ -863,8 +861,7 @@
             </li>
 
             <li class="mb-4 d-flex align-items-center text-start">
-              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0"
-                style="width: 48px; height: 48px; min-width: 48px;">
+              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0 square-48">
                 <i class="bi bi-award fs-5"></i>
               </div>
               <div class="text-start flex-grow-1">
@@ -874,8 +871,7 @@
             </li>
 
             <li class="mb-4 d-flex align-items-center text-start">
-              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0"
-                style="width: 48px; height: 48px; min-width: 48px;">
+              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0 square-48">
                 <i class="bi bi-heart fs-5"></i>
               </div>
               <div class="text-start flex-grow-1">
@@ -885,8 +881,7 @@
             </li>
 
             <li class="mb-4 d-flex align-items-center text-start">
-              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0"
-                style="width: 48px; height: 48px; min-width: 48px;">
+              <div class="icon-circle bg-dark-elevated text-primary me-3 flex-shrink-0 square-48">
                 <i class="bi bi-geo-alt fs-5"></i>
               </div>
               <div class="text-start flex-grow-1">

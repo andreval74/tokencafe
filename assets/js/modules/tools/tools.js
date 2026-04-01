@@ -103,20 +103,16 @@ const accessControl = {
       if (isAdmin) {
         // Admin sees everything
         tile.classList.remove('d-none');
-        // Optional: Add visual indicator for non-finished items being visible due to admin
         if (!isFinished) {
-           tile.style.opacity = '0.8'; 
-           tile.style.border = '1px dashed #666';
+           tile.classList.add("tc-tool-tile--admin-preview");
         } else {
-           tile.style.opacity = '1';
-           tile.style.border = '';
+           tile.classList.remove("tc-tool-tile--admin-preview");
         }
       } else {
         // Regular user sees only finished items
         if (isFinished) {
           tile.classList.remove('d-none');
-          tile.style.opacity = '1';
-          tile.style.border = '';
+          tile.classList.remove("tc-tool-tile--admin-preview");
         } else {
           tile.classList.add('d-none');
         }

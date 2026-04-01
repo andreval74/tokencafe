@@ -71,7 +71,7 @@
         <div class="important">
           <strong>IMPORTANTE FINAL:</strong> A TokenCafe é apenas uma ferramenta técnica. Você é o único responsável pela legalidade, conformidade regulatória e uso dos tokens gerados em TODAS as jurisdições do mundo. Nunca use os Serviços se não tiver certeza absoluta da conformidade legal em seu país.
         </div>
-        <p style="text-align:center; margin-top:50px;">
+        <p class="tc-legal-contact">
           <strong>Contato:</strong> <a href="mailto:contact@tokencafe.app">contact@tokencafe.app</a><br>
           TokenCafe.app – Infraestrutura Web3 Global
         </p>

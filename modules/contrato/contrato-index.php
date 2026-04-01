@@ -44,8 +44,7 @@
                       <div class="card-body p-3">
                         <div class="row align-items-center">
                           <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-warning mb-0"
-                              style="width: 50px; height: 50px; line-height: 50px;">
+                            <div class="icon-circle bg-dark-elevated text-warning mb-0 square-50">
                               <i class="bi bi-shield-check fs-4"></i>
                             </div>
                           </div>
@@ -75,8 +74,7 @@
                       <div class="card-body p-3">
                         <div class="row align-items-center">
                           <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-info mb-0"
-                              style="width: 50px; height: 50px; line-height: 50px;">
+                            <div class="icon-circle bg-dark-elevated text-info mb-0 square-50">
                               <i class="bi bi-sliders fs-4"></i>
                             </div>
                           </div>
@@ -106,8 +104,7 @@
                       <div class="card-body p-3">
                         <div class="row align-items-center">
                           <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-danger mb-0"
-                              style="width: 50px; height: 50px; line-height: 50px;">
+                            <div class="icon-circle bg-dark-elevated text-danger mb-0 square-50">
                               <i class="bi bi-lightning-charge fs-4"></i>
                             </div>
                           </div>
@@ -137,8 +134,7 @@
                       <div class="card-body p-3">
                         <div class="row align-items-center">
                           <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-success mb-0"
-                              style="width: 50px; height: 50px; line-height: 50px;">
+                            <div class="icon-circle bg-dark-elevated text-success mb-0 square-50">
                               <i class="bi bi-shop fs-4"></i>
                             </div>
                           </div>
@@ -168,8 +164,7 @@
                       <div class="card-body p-3">
                         <div class="row align-items-center">
                           <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-warning mb-0"
-                              style="width: 50px; height: 50px; line-height: 50px;">
+                            <div class="icon-circle bg-dark-elevated text-warning mb-0 square-50">
                               <i class="bi bi-box-arrow-in-right fs-4"></i>
                             </div>
                           </div>
@@ -199,8 +194,7 @@
                       <div class="card-body p-3">
                         <div class="row align-items-center">
                           <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-primary mb-0"
-                              style="width: 50px; height: 50px; line-height: 50px;">
+                            <div class="icon-circle bg-dark-elevated text-primary mb-0 square-50">
                               <i class="bi bi-arrow-repeat fs-4"></i>
                             </div>
                           </div>
@@ -228,7 +222,7 @@
               <div class="col-lg-3 border-start border-secondary">
                 <div class="p-2 mb-2 bg-dark rounded border border-secondary text-center text-warning fw-bold small">
                   Características do Contrato</div>
-                <div id="contractGroupInfo" class="mb-3 sticky-top" style="top: 1rem; z-index: 1;"></div>
+                <div id="contractGroupInfo" class="mb-3 sticky-top tc-sticky-top-1"></div>
               </div>
             </div>
           </div>

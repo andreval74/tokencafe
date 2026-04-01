@@ -17,6 +17,7 @@
   --tokencafe-bg-primary: #0f172a;     /* Fundo mais moderno (Azul Noturno) */
   --tokencafe-bg-secondary: #0a0a0a;
   --tokencafe-bg-tertiary: rgba(30, 41, 59, 0.7); /* Efeito Vidro */
+  --tokencafe-bg-quaternary: rgba(255, 255, 255, 0.05);
   --tokencafe-surface: rgba(255, 255, 255, 0.05);
   --tokencafe-border: rgba(255, 255, 255, 0.1);
   --tokencafe-glass-blur: blur(12px);
@@ -100,6 +101,7 @@
   --tokencafe-shadow-float: 0 0.5rem 1rem var(--tokencafe-shadow-black-15);
   --tokencafe-shadow-black-20: rgba(0, 0, 0, 0.20);
   --tokencafe-shadow-black-30: rgba(0, 0, 0, 0.30);
+  --tokencafe-sidebar-w: 260px;
   --tokencafe-success-10: rgba(16, 185, 129, 0.10);
   --tokencafe-danger-10: rgba(239, 68, 68, 0.10);
   --tokencafe-warning-10: rgba(245, 158, 11, 0.10);
@@ -129,6 +131,7 @@
   --tokencafe-bg-primary: var(--tokencafe-white);
   --tokencafe-bg-secondary: var(--tokencafe-white);
   --tokencafe-bg-tertiary: var(--tokencafe-white);
+  --tokencafe-bg-quaternary: var(--tokencafe-white);
   --tokencafe-surface: var(--tokencafe-white);
   --tokencafe-border: var(--tokencafe-border-light-solid);
   --tokencafe-text-primary: var(--tokencafe-text-dark);
@@ -758,7 +761,7 @@ div[style*="gradient"] {
   width: 100%;
   height: 100%;
   background-color: var(--tokencafe-modal-backdrop);
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--tokencafe-glass-blur);
   color: var(--bs-body-color);
   z-index: 2000;
   display: flex;
@@ -790,7 +793,7 @@ div[style*="gradient"] {
 /* Form Styling */
 .form-control:focus {
   border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.2rem rgba(248, 93, 35, 0.25);
+  box-shadow: 0 0 0 0.2rem var(--tokencafe-primary-25);
 }
 
 
@@ -1011,13 +1014,13 @@ Sistema de animações reutilizáveis para todas as páginas
 }
 
 .TokenCafe-feature-item {
-  background: rgba(248, 93, 35, 0.1);
-  border: 1px solid rgba(248, 93, 35, 0.3);
+  background: var(--tokencafe-primary-10);
+  border: 1px solid var(--tokencafe-primary-30);
   padding: 1.5rem;
   border-radius: 15px;
   text-align: center;
   max-width: 200px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--tokencafe-glass-blur);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
@@ -1025,8 +1028,8 @@ Sistema de animações reutilizáveis para todas as páginas
 
 .TokenCafe-feature-item:hover {
   transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.3);
-  background: rgba(248, 93, 35, 0.15);
+  box-shadow: 0 20px 40px var(--tokencafe-primary-30);
+  background: var(--tokencafe-primary-15);
 }
 
 .TokenCafe-feature-icon {
@@ -1229,13 +1232,13 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
 
 /* Widget Container */
 .widget-container {
-  background: linear-gradient(135deg, rgba(248, 93, 35, 0.05) 0%, rgba(26, 26, 26, 0.95) 50%, rgba(248, 93, 35, 0.05) 100%);
-  border: 2px solid rgba(248, 93, 35, 0.2);
+  background: linear-gradient(135deg, var(--tokencafe-primary-05) 0%, var(--tokencafe-ink-95) 50%, var(--tokencafe-primary-05) 100%);
+  border: 2px solid var(--tokencafe-primary-20);
   border-radius: 16px;
   padding: 2rem;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--tokencafe-glass-blur);
 }
 
 .widget-container::before {
@@ -1245,7 +1248,7 @@ EXEMPLO USO WIDGET - STYLES ESPECÍFICOS
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(248, 93, 35, 0.1) 50%, transparent 70%);
+  background: linear-gradient(45deg, transparent 30%, var(--tokencafe-primary-10) 50%, transparent 70%);
   pointer-events: none;
   animation: shimmer 3s ease-in-out infinite;
 }
@@ -1462,7 +1465,7 @@ body {
   border: 1px solid rgba(248, 93, 35, 0.2);
   border-radius: 16px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--tokencafe-glass-blur);
 }
 
 .feature-card:hover {
@@ -1481,7 +1484,7 @@ body {
   border: 1px solid rgba(55, 65, 81, 0.3);
   border-radius: 16px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--tokencafe-glass-blur);
 }
 
 .tool-card:hover {
@@ -1496,7 +1499,7 @@ body {
   border-radius: 16px;
   padding: 2rem;
   text-align: center;
-  backdrop-filter: blur(10px);
+  backdrop-filter: var(--tokencafe-glass-blur);
 }
 
 /* Blockchain Slider */
@@ -1671,9 +1674,130 @@ Classes reutilizáveis para efeitos neon padronizados
   position: relative;
 }
 
+.tokencafe-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--tokencafe-sidebar-w);
+  height: 100vh;
+  background: var(--tokencafe-bg-tertiary);
+  backdrop-filter: var(--tokencafe-glass-blur);
+  border-right: 1px solid var(--tokencafe-border-light);
+  padding: 1rem;
+  overflow-y: auto;
+  z-index: 1040;
+}
+
+.tokencafe-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--tokencafe-black-60);
+  backdrop-filter: blur(2px);
+  z-index: 1030;
+}
+
+.tokencafe-sidebar + main#app-content {
+  margin-left: var(--tokencafe-sidebar-w);
+}
+
+@media (max-width: 991.98px) {
+  .tokencafe-sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+  }
+  .tokencafe-sidebar.is-open {
+    transform: translateX(0);
+  }
+  .tokencafe-sidebar + main#app-content {
+    margin-left: 0;
+  }
+}
+
+.h-control {
+  height: calc(1.5em + .75rem + 2px);
+}
+
+.tc-chain-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.tc-logo-56 {
+  height: 56px;
+  width: auto;
+}
+
+.tc-maintenance-login-trigger {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  opacity: 0;
+  z-index: 2147483647;
+}
+
+.tc-legal-contact {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.tc-legal-contact--small {
+  font-size: 0.9rem;
+}
+
+.tc-sticky-top-1 {
+  top: 1rem;
+  z-index: 1;
+}
+
+.pg-chip {
+  display: inline-block;
+  padding: .2rem .5rem;
+  border-radius: 8px;
+  margin: .15rem;
+  background: var(--tokencafe-white-05);
+  border: 1px solid var(--tokencafe-white-12);
+}
+
+.pg-chip-count {
+  opacity: .85;
+}
+
+.tc-pill-chip {
+  border-radius: 999px;
+  padding: .15rem .5rem;
+}
+
+.tc-w-160 {
+  width: 160px;
+}
+
+.tc-break-all {
+  word-break: break-all;
+  white-space: normal;
+}
+
+.tc-lh-11 {
+  line-height: 1.1;
+}
+
+.tc-contract-link {
+  text-decoration: underline;
+}
+
+.tc-contract-link--ok {
+  color: var(--tokencafe-success);
+}
+
+.tc-contract-link--bad {
+  color: var(--tokencafe-danger);
+}
+
 .pricing-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.15) !important;
+  box-shadow: 0 20px 40px var(--tokencafe-primary-15) !important;
 }
 
 .pricing-card::before {
@@ -1987,6 +2111,11 @@ Classes reutilizáveis para efeitos neon padronizados
   box-shadow: var(--tokencafe-shadow-card-lg);
 }
 
+.tool-tile.tc-tool-tile--admin-preview {
+  opacity: 0.8;
+  border-style: dashed;
+}
+
 .tool-tile-icon {
   width: 38px;
   height: 38px;
@@ -2272,6 +2401,8 @@ Classes reutilizáveis para efeitos neon padronizados
 .min-width-250 { min-width: 250px; }
 .border-radius-50 { border-radius: 50px; }
 .square-80 { width: 80px; height: 80px; }
+.square-48 { width: 48px; height: 48px; min-width: 48px; }
+.square-50 { width: 50px; height: 50px; }
 .resize-vertical { resize: vertical; }
 
 /* Página simples (ex.: Mini Chainlist) */

@@ -16,6 +16,64 @@ class AnalytcsReports {
     this.init();
   }
 
+  getCssVar(name, fallback = "") {
+    try {
+      const value = window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return value || fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  getChartTheme() {
+    return {
+      primary: this.getCssVar("--tokencafe-primary", "#f85d23"),
+      primary10: this.getCssVar("--tokencafe-primary-10", "rgba(248, 93, 35, 0.10)"),
+      primary15: this.getCssVar("--tokencafe-primary-15", "rgba(248, 93, 35, 0.15)"),
+      primary30: this.getCssVar("--tokencafe-primary-30", "rgba(248, 93, 35, 0.30)"),
+      info: this.getCssVar("--tokencafe-info", "#3b82f6"),
+      success: this.getCssVar("--tokencafe-success", "#10b981"),
+      warning: this.getCssVar("--tokencafe-warning", "#fbbf24"),
+      grid: this.getCssVar("--tokencafe-white-12", "rgba(255,255,255,0.12)"),
+      text: this.getCssVar("--tokencafe-text-primary", "#ffffff"),
+      textMuted: this.getCssVar("--tokencafe-text-secondary", "rgba(255,255,255,0.7)"),
+    };
+  }
+
+  buildChartOptions({ legend = false, legendPosition = "bottom", yCurrency = false } = {}) {
+    const theme = this.getChartTheme();
+    const base = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: !!legend,
+          position: legendPosition,
+          labels: {
+            color: theme.textMuted,
+          },
+        },
+      },
+    };
+
+    const scales = {
+      x: {
+        ticks: { color: theme.textMuted },
+        grid: { color: theme.grid },
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: theme.textMuted,
+          callback: yCurrency ? (value) => this.formatCurrency(value) : undefined,
+        },
+        grid: { color: theme.grid },
+      },
+    };
+
+    return { ...base, scales };
+  }
+
   /**
    * ncalzao do mdulo
    */
@@ -111,6 +169,8 @@ class AnalytcsReports {
       // Smular carregamento de dados (substtur por AP real)
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      const theme = this.getChartTheme();
+
       // Mock data - substtur por dados reas da AP
       this.data = {
         summary: {
@@ -131,9 +191,10 @@ class AnalytcsReports {
             {
               label: "Volume (USD)",
               data: this.generateVolumeData(),
-              borderColor: "#8B4513",
-              backgroundColor: "rgba(139, 69, 19, 0.1)",
-              tenson: 0.4,
+              borderColor: theme.primary,
+              backgroundColor: theme.primary10,
+              tension: 0.4,
+              fill: true,
             },
           ],
         },
@@ -143,10 +204,10 @@ class AnalytcsReports {
             {
               label: "Holders",
               data: this.generateHoldersData(),
-              borderColor: "#D2691E",
-              backgroundColor: "rgba(210, 105, 30, 0.1)",
-              fll: true,
-              tenson: 0.4,
+              borderColor: theme.warning,
+              backgroundColor: theme.primary10,
+              fill: true,
+              tension: 0.4,
             },
           ],
         },
@@ -155,7 +216,7 @@ class AnalytcsReports {
           datasets: [
             {
               data: [65, 30, 5],
-              backgroundColor: ["#8B4513", "#D2691E", "#F4A460"],
+              backgroundColor: [theme.primary, theme.warning, theme.info],
             },
           ],
         },
@@ -165,7 +226,9 @@ class AnalytcsReports {
             {
               label: "Volume",
               data: [850000, 420000, 280000, 180000, 120000],
-              backgroundColor: "#8B4513",
+              backgroundColor: theme.primary30,
+              borderColor: theme.primary,
+              borderWidth: 1,
             },
           ],
         },
@@ -264,21 +327,7 @@ class AnalytcsReports {
       type: "line",
       data: this.data.volumeData,
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: (value) => this.formatCurrency(value),
-            },
-          },
-        },
+        ...this.buildChartOptions({ legend: false, yCurrency: true }),
       },
     });
   }
@@ -294,18 +343,7 @@ class AnalytcsReports {
       type: "line",
       data: this.data.holdersData,
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
-        },
+        ...this.buildChartOptions({ legend: false, yCurrency: false }),
       },
     });
   }
@@ -321,13 +359,7 @@ class AnalytcsReports {
       type: "doughnut",
       data: this.data.typeDstrbuton,
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "bottom",
-          },
-        },
+        ...this.buildChartOptions({ legend: true, legendPosition: "bottom" }),
       },
     });
   }
@@ -343,21 +375,7 @@ class AnalytcsReports {
       type: "bar",
       data: this.data.topTokens,
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: (value) => this.formatCurrency(value),
-            },
-          },
-        },
+        ...this.buildChartOptions({ legend: false, yCurrency: true }),
       },
     });
   }
@@ -393,7 +411,7 @@ class AnalytcsReports {
                             token.address
                               ? `
                             <button class="btn btn-sm btn-link p-0 text-muted" onclick="window.copyToClipboard('${token.address}')" title="Copiar Endereço">
-                              <i class="bi bi-clipboard" style="font-size: 0.8rem;"></i>
+                              <i class="bi bi-clipboard fs-6"></i>
                             </button>
                           `
                               : ""

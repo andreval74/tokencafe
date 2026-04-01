@@ -41,6 +41,7 @@ const initToolsHeader = () => {
       const btnLogout = el.querySelector("#btn-logout");
       const walletDisplay = el.querySelector("#connected-wallet-display");
       const btnCopy = el.querySelector("#btn-copy-wallet");
+      const sidebarToggleBtn = el.querySelector("#sidebar-toggle-btn");
 
       // Logic to update new UI elements (Button Color + Wallet Display below)
       const updateHeaderUI = (address) => {
@@ -48,12 +49,10 @@ const initToolsHeader = () => {
           // Connected
           if (btnConnect) {
             btnConnect.classList.add("d-none");
-            btnConnect.style.display = "none";
             btnConnect.hidden = true;
           }
           if (btnLogout) {
             btnLogout.classList.remove("d-none");
-            btnLogout.style.display = "";
             btnLogout.hidden = false;
           }
           if (walletDisplay) {
@@ -79,12 +78,10 @@ const initToolsHeader = () => {
           // Disconnected
           if (btnConnect) {
             btnConnect.classList.remove("d-none");
-            btnConnect.style.display = "";
             btnConnect.hidden = false;
           }
           if (btnLogout) {
             btnLogout.classList.add("d-none");
-            btnLogout.style.display = "none";
             btnLogout.hidden = true;
           }
           if (walletDisplay) {
@@ -134,6 +131,59 @@ const initToolsHeader = () => {
       };
 
       checkInitialStatus();
+
+      try {
+        const sidebar = document.querySelector(".tokencafe-sidebar");
+        let backdrop = null;
+
+        const closeSidebar = () => {
+          try {
+            sidebar?.classList?.remove("is-open");
+          } catch (_) {}
+          try {
+            backdrop?.remove?.();
+          } catch (_) {}
+          backdrop = null;
+        };
+
+        const openSidebar = () => {
+          try {
+            if (!sidebar) return;
+            sidebar.classList.add("is-open");
+            if (!backdrop) {
+              backdrop = document.createElement("div");
+              backdrop.className = "tokencafe-sidebar-backdrop";
+              backdrop.addEventListener("click", closeSidebar);
+              document.body.appendChild(backdrop);
+            }
+          } catch (_) {}
+        };
+
+        const toggleSidebar = () => {
+          try {
+            if (!sidebar) return;
+            if (sidebar.classList.contains("is-open")) closeSidebar();
+            else openSidebar();
+          } catch (_) {}
+        };
+
+        if (sidebarToggleBtn) {
+          if (!sidebar) {
+            sidebarToggleBtn.classList.add("d-none");
+          } else {
+            sidebarToggleBtn.addEventListener("click", (e) => {
+              try {
+                e?.preventDefault?.();
+              } catch (_) {}
+              toggleSidebar();
+            });
+          }
+        }
+
+        document.addEventListener("keydown", (e) => {
+          if (String(e?.key || "") === "Escape") closeSidebar();
+        });
+      } catch (_) {}
 
       // Listen for TokenCafe system events
       document.addEventListener("wallet:connected", (e) => {

@@ -130,7 +130,7 @@ window.googleTranslateElementInit = function() {
     }
     .lang-grid-name {
       font-size: 10px;
-      color: #fff;
+      color: var(--tokencafe-text-primary);
       font-weight: 500;
     }
 
@@ -149,20 +149,20 @@ window.googleTranslateElementInit = function() {
       gap: 12px;
       padding: 10px;
       border-radius: 8px;
-      color: #ccc;
+      color: var(--tokencafe-text-secondary);
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
     }
     .lang-list-item:hover {
-      background: rgba(255,255,255,0.05);
-      color: #fff;
+      background: var(--tokencafe-white-05);
+      color: var(--tokencafe-text-primary);
     }
     
     /* Scrollbar Customizada */
     .lang-list-scroll::-webkit-scrollbar { width: 4px; }
     .lang-list-scroll::-webkit-scrollbar-track { background: transparent; }
-    .lang-list-scroll::-webkit-scrollbar-thumb { background: rgba(248, 93, 35, 0.3); border-radius: 10px; }
+    .lang-list-scroll::-webkit-scrollbar-thumb { background: var(--tokencafe-primary-30); border-radius: 10px; }
 
     #google_translate_element { display: none !important; }
   `;

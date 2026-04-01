@@ -52,7 +52,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css" rel="stylesheet" />
   <link href="assets/css/styles.css?v=<?= htmlspecialchars(defined('ASSET_VERSION') ? ASSET_VERSION : '9.9', ENT_QUOTES, 'UTF-8') ?>" rel="stylesheet" />
-  <link href="assets/css/utility-classes.css?v=<?= htmlspecialchars(defined('ASSET_VERSION') ? ASSET_VERSION : '9.9', ENT_QUOTES, 'UTF-8') ?>" rel="stylesheet" />
 
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"

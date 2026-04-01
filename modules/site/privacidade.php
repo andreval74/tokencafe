@@ -56,7 +56,7 @@
         <h2>10. Contato</h2>
         <p>Qualquer dúvida, reclamação ou exercício de direitos:</p>
         <p><strong>E-mail:</strong> <a href="mailto:contact@tokencafe.app">contact@tokencafe.app</a></p>
-        <p style="text-align:center; margin-top:50px; font-size:0.9rem;">
+        <p class="tc-legal-contact tc-legal-contact--small">
           TokenCafe.app – Infraestrutura Web3 Global<br>
           Privacidade máxima. Descentralização total. Conformidade LGPD + RGPD.
         </p>
