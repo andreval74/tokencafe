@@ -35,7 +35,7 @@
           </div>
         </div>
         <div class="col-lg-2">
-          <h6 class="mb-3 text-white fw-semibold text-warning">Plataforma</h6>
+          <h6 class="mb-3 fw-semibold text-warning">Plataforma</h6>
           <ul class="list-unstyled">
             <li class="mb-2">
               <a href="index.php#token" class="text-white-50 neon-link-small-hover text-xs">
