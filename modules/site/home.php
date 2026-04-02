@@ -1,109 +1,125 @@
 <div class="TokenCafe-content">
   <section>
     <div class="container">
-      <div class="row justify-content-center text-center mb-5">
-        <div class="col-lg-12 text-center">
+      <div class="row align-items-center g-4 mb-5">
+        <div class="col-lg-6 text-start">
           <div class="hero-content">
-            <h1 class="display-2 fw-bold mb-4 text-white">
-              Crie o seu
-              <span class="gradient-text">Token</span> em apenas
-              <span class="text-primary">alguns cliques</span>.
+            <h1 class="display-2 fw-bold mb-3 text-white">
+              Um hub completo para sua jornada
+              <span class="gradient-text">Web3</span>
             </h1>
-            <p class="lead text-light mb-5 fs-4">
-              A plataforma ideal para sua tokenização.
-              <br />
-              <strong>Deploy instantâneo • IA integrada • Multi-blockchain</strong>
+
+            <p class="lead text-light mb-4 fs-4">
+              Crie, valide e gerencie contratos e tokens com módulos prontos para usar agora.
             </p>
 
-            <a href="tools.php" class="btn btn-outline-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
-              <i class="bi bi-box-arrow-in-right me-1"></i>
-              Entrar na Plataforma
-            </a>
+            <div class="d-flex flex-wrap gap-2">
+              <a href="tools.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+                <i class="bi bi-door-open me-1"></i>
+                Abrir Ferramentas
+              </a>
+              <a href="index.php#comofunciona" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-play-circle me-1"></i>
+                Ver Como Funciona
+              </a>
+            </div>
 
-            <div class="text-center mt-4">
-              <div class="d-flex justify-content-center gap-4">
-                <div>
-                  <i class="bi bi-person text-primary me-2"></i>
-                  <small class="text-light">Sem Habilidades Técnicas</small>
+            <div class="mt-4">
+              <div class="d-flex flex-wrap gap-3">
+                <div class="d-inline-flex align-items-center">
+                  <i class="bi bi-shield-lock text-warning me-2"></i>
+                  <small class="text-light">Sem custódia</small>
                 </div>
-                <div>
-                  <i class="bi bi-diagram-3 text-warning me-2"></i>
-                  <small class="text-light">Rede descentralizada</small>
+                <div class="d-inline-flex align-items-center">
+                  <i class="bi bi-check2-circle text-success me-2"></i>
+                  <small class="text-light">Testnets para validar</small>
                 </div>
-                <div>
-                  <i class="bi bi-currency-dollar text-warning me-2"></i>
-                  <small class="text-light">Pagamento descomplicado</small>
+                <div class="d-inline-flex align-items-center">
+                  <i class="bi bi-stack text-primary me-2"></i>
+                  <small class="text-light">Módulos independentes</small>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div class="col-lg-6">
+          <div class="tool-card p-0">
+            <div class="glass-frame">
+              <img src="assets/imgs/graficos-token.png" alt="TokenCafe Tools" class="img-fluid glass-image" loading="lazy">
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
+    <!-- Blockchains Suportadas -->
     <div class="row mt-5">
       <div class="col-12">
-        <div class="text-center text-secondary small mb-3">Blockchains Suportadas</div>
-        <div class="blockchain-slider">
-          <div class="blockchain-track">
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/ethereum.png" alt="Ethereum"
-                class="tc-chain-icon" /><span>Ethereum</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/bnb.png" alt="BNB Chain"
-                class="tc-chain-icon" /><span>BNB</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/polygon.png" alt="Polygon"
-                class="tc-chain-icon" /><span>Polygon</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/base.png" alt="Base"
-                class="tc-chain-icon" /><span>Base</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/arbitrumone.png" alt="Arbitrum One"
-                class="tc-chain-icon" /><span>Arbitrum</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/optimism.png" alt="Optimism"
-                class="tc-chain-icon" /><span>Optimism</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/avalanche.png" alt="Avalanche"
-                class="tc-chain-icon" /><span>Avalanche</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/linea.png" alt="Linea"
-                class="tc-chain-icon" /><span>Linea</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/scroll.png" alt="Scroll"
-                class="tc-chain-icon" /><span>Scroll</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/blast.png" alt="Blast"
-                class="tc-chain-icon" /><span>Blast</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/mantle.png" alt="Mantle"
-                class="tc-chain-icon" /><span>Mantle</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/metis.png" alt="Metis"
-                class="tc-chain-icon" /><span>Metis</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/cronos.png" alt="Cronos"
-                class="tc-chain-icon" /><span>Cronos</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/core.png" alt="Core"
-                class="tc-chain-icon" /><span>Core</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/pulsechain.png" alt="PulseChain"
-                class="tc-chain-icon" /><span>PulseChain</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/unichain.png" alt="Unichain"
-                class="tc-chain-icon" /><span>Unichain</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/sonic.png" alt="Sonic"
-                class="tc-chain-icon" /><span>Sonic</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/monad.png" alt="Monad"
-                class="tc-chain-icon" /><span>Monad</span></span>
-            <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
-                src="assets/imgs/blockchains/hyperevm.png" alt="HyperEVM"
-                class="tc-chain-icon" /><span>HyperEVM</span></span>
+        <div class="bg-page-black tc-black-panel rounded-0 p-1 p-md-1">
+
+          <div class="blockchain-slider">
+            <div class="blockchain-track">
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/ethereum.png" alt="Ethereum"
+                  class="tc-chain-icon" /><span>Ethereum</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/bnb.png" alt="BNB Chain"
+                  class="tc-chain-icon" /><span>BNB</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/polygon.png" alt="Polygon"
+                  class="tc-chain-icon" /><span>Polygon</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/base.png" alt="Base"
+                  class="tc-chain-icon" /><span>Base</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/arbitrumone.png" alt="Arbitrum One"
+                  class="tc-chain-icon" /><span>Arbitrum</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/optimism.png" alt="Optimism"
+                  class="tc-chain-icon" /><span>Optimism</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/avalanche.png" alt="Avalanche"
+                  class="tc-chain-icon" /><span>Avalanche</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/linea.png" alt="Linea"
+                  class="tc-chain-icon" /><span>Linea</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/scroll.png" alt="Scroll"
+                  class="tc-chain-icon" /><span>Scroll</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/blast.png" alt="Blast"
+                  class="tc-chain-icon" /><span>Blast</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/mantle.png" alt="Mantle"
+                  class="tc-chain-icon" /><span>Mantle</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/metis.png" alt="Metis"
+                  class="tc-chain-icon" /><span>Metis</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/cronos.png" alt="Cronos"
+                  class="tc-chain-icon" /><span>Cronos</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/core.png" alt="Core"
+                  class="tc-chain-icon" /><span>Core</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/pulsechain.png" alt="PulseChain"
+                  class="tc-chain-icon" /><span>PulseChain</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/unichain.png" alt="Unichain"
+                  class="tc-chain-icon" /><span>Unichain</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/sonic.png" alt="Sonic"
+                  class="tc-chain-icon" /><span>Sonic</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/monad.png" alt="Monad"
+                  class="tc-chain-icon" /><span>Monad</span></span>
+              <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><img
+                  src="assets/imgs/blockchains/hyperevm.png" alt="HyperEVM"
+                  class="tc-chain-icon" /><span>HyperEVM</span></span>
             </div>
+          </div>
         </div>
       </div>
     </div>

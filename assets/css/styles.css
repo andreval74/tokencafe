@@ -2483,3 +2483,33 @@ Classes reutilizáveis para efeitos neon padronizados
 
 /* Form utilitário */
 .form-status { margin-bottom: 1rem; margin-top: 1.5rem; }
+
+.glass-frame {
+  position: relative;
+  padding: 1px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: var(--tokencafe-glass-blur);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+}
+
+.glass-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(248, 93, 35, 0.12), rgba(59, 130, 246, 0.12));
+  mix-blend-mode: screen;
+}
+
+.glass-image {
+  display: block;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.tc-black-panel {
+  background: #000 !important;
+}

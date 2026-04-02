@@ -18,18 +18,16 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
   <header>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-page-black">
       <div class="container">
-        <div class="d-flex align-items-center mb-3">
-          <a href="index.php" title="Home" class="text-no-decoration">
-            <img src="assets/imgs/tkncafe-semfundo.png" alt="TokenCafe Logo" class="me-2 logo-standard" />
-          </a>
-          <div class="d-flex flex-column">
+        <a href="index.php" title="Home" class="navbar-brand d-flex align-items-center gap-2 text-no-decoration m-0">
+          <img src="assets/imgs/tkncafe-semfundo.png" alt="TokenCafe Logo" class="logo-standard" />
+          <div class="d-flex flex-column lh-1">
             <span class="fw-bold text-white fs-4">
               Token
               <span class="text-warning">Cafe</span>
             </span>
-            <small class="text-white-50 text-small">Plataforma Web3</small>
+            <small class="text-white-50 text-small">Hub de Ferramentas Web3</small>
           </div>
-        </div>
+        </a>
 
         <button
           class="navbar-toggler border-0 shadow-sm"
@@ -40,11 +38,11 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto me-3">
+          <ul class="navbar-nav mx-auto gap-lg-1">
             <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#token">
-                <i class="bi bi-coin me-1"></i>
-                Token
+              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="tools.php" data-action="connect-wallet">
+                <i class="bi bi-grid-1x2-fill me-1"></i>
+                Ferramentas
               </a>
             </li>
             <li class="nav-item">
@@ -55,20 +53,14 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
             </li>
             <li class="nav-item">
               <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#ecosistema">
-                <i class="bi bi-globe me-1"></i>
-                EcoSistema
+                <i class="bi bi-boxes me-1"></i>
+                Módulos
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#social">
                 <i class="bi bi-people me-1"></i>
                 Social
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="tools.php" data-action="connect-wallet">
-                <i class="bi bi-tools me-1"></i>
-                Tools
               </a>
             </li>
             <li class="nav-item">
@@ -94,6 +86,11 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
                 <span id="header-wallet-address"></span>
               </small>
             </div>
+
+            <a href="tools.php" class="btn btn-sm btn-primary fw-bold" data-action="connect-wallet" aria-label="Abrir Ferramentas">
+              <i class="bi bi-door-open me-1"></i>
+              Abrir
+            </a>
 
             <button id="connect-metamask-btn" class="btn btn-sm btn-outline-primary fw-bold" type="button" title="Conectar MetaMask">
               <i class="bi bi-wallet2 me-1"></i>
