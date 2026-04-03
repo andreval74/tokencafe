@@ -124,7 +124,7 @@
           <span class="gradient-text">Cafe</span><br>
           Democratizando a Web3
         </h2>
-        <p class="lead text-light mb-4">A plataforma que foi criada especialmente para você e seus projetos.</p>
+        <p class="lead text-light mb-4">Criamos uma plataforma feita especialmente para você e seus projetos. Sem complicação, sem barreiras técnicas e com foco total em acessibilidade.</p>
         <div class="badge bg-primary text-dark px-4 py-2">
           <i class="bi bi-globe2 me-2"></i>
           Plataforma Mundial
