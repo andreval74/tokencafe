@@ -4,6 +4,13 @@
   if (!btn) return;
   if (btn.classList.contains("badge")) return;
 
+  const nav = document.querySelector("nav.navbar");
+  const updateNavScrollState = () => {
+    if (!nav) return;
+    const scrolled = (window.scrollY || 0) > 8;
+    nav.classList.toggle("tc-navbar-scrolled", scrolled);
+  };
+
   const isWalletUiDisabled = () => {
     try {
       const url = new URL(window.location.href);
@@ -64,6 +71,11 @@
   try {
     updateStatusByStatus();
   } catch {}
+
+  try {
+    updateNavScrollState();
+    window.addEventListener("scroll", updateNavScrollState, { passive: true });
+  } catch (_) {}
 
   const refresh = () => updateStatusByStatus();
   if (!isWalletUiDisabled()) {

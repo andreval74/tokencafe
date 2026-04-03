@@ -16,7 +16,7 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
     data-subtitle="<?= htmlspecialchars($moduleHeaderSubtitle, ENT_QUOTES, "UTF-8") ?>"></div>
 <?php } else { ?>
   <header>
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-page-black">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top tc-navbar">
       <div class="container">
         <a href="index.php" title="Home" class="navbar-brand d-flex align-items-center gap-2 text-no-decoration m-0">
           <img src="assets/imgs/tkncafe-semfundo.png" alt="TokenCafe Logo" class="logo-standard" />
@@ -25,7 +25,7 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
               Token
               <span class="text-warning">Cafe</span>
             </span>
-            <small class="text-white-50 text-small">Hub de Ferramentas Web3</small>
+            <small class="text-white-50 text-small">Plataforma Web3</small>
           </div>
         </a>
 
@@ -39,12 +39,6 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav mx-auto gap-lg-1">
-            <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="tools.php" data-action="connect-wallet">
-                <i class="bi bi-grid-1x2-fill me-1"></i>
-                Ferramentas
-              </a>
-            </li>
             <li class="nav-item">
               <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#comofunciona">
                 <i class="bi bi-gear me-1"></i>
@@ -87,12 +81,7 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
               </small>
             </div>
 
-            <a href="tools.php" class="btn btn-sm btn-primary fw-bold" data-action="connect-wallet" aria-label="Abrir Ferramentas">
-              <i class="bi bi-door-open me-1"></i>
-              Abrir
-            </a>
-
-            <button id="connect-metamask-btn" class="btn btn-sm btn-outline-primary fw-bold" type="button" title="Conectar MetaMask">
+            <button id="connect-metamask-btn" class="btn btn-sm btn-primary fw-bold" type="button" title="Conectar MetaMask">
               <i class="bi bi-wallet2 me-1"></i>
               Conectar
             </button>
