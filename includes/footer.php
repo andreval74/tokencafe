@@ -96,7 +96,7 @@
           <h6 class="mb-3 fw-semibold text-warning">Suporte</h6>
           <ul class="list-unstyled">
             <li class="mb-2">
-              <a href="index.php#social" class="text-white-50 neon-link-small-hover text-xs">
+              <a href="index.php?page=social" class="text-white-50 neon-link-small-hover text-xs">
                 <i class="bi bi-people me-1"></i>
                 Social
               </a>

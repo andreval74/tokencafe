@@ -2518,6 +2518,18 @@ Classes reutilizáveis para efeitos neon padronizados
   background: #000 !important;
 }
 
+.tc-blue-panel {
+  background: rgba(59, 130, 246, 0.12);
+  border-top: 1px solid rgba(59, 130, 246, 0.25);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.tc-impact-card-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
 .tc-hero-section {
   position: relative;
   background: #000;

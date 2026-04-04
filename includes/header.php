@@ -52,7 +52,7 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#social">
+              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php?page=social">
                 <i class="bi bi-people me-1"></i>
                 Social
               </a>

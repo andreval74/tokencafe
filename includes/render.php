@@ -364,6 +364,7 @@ function __tokencafe_guess_module_header(string $viewPath): array
     "profile" => "Perfil",
     "admin" => "Logs do Sistema",
     "widget" => "Widget",
+    "social" => "Impacto Social",
   ];
   if (isset($known[$titleLower])) $title = $known[$titleLower];
 
@@ -406,6 +407,7 @@ function tokencafe_resolve_page(string $page): ?string
     "analytics" => __DIR__ . "/../modules/analytics/analytics-reports.php",
     "profile" => __DIR__ . "/../modules/profile/user-profile.php",
     "widget" => __DIR__ . "/../modules/widget/widget-index.php",
+    "social" => __DIR__ . "/../modules/site/social.php",
   ];
 
   return $map[$page] ?? null;
