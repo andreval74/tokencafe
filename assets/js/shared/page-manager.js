@@ -26,7 +26,7 @@ class PageManager {
       main: {
         hasWalletConnect: true,
         hasAnimations: false,
-        redirectTarget: "/tools.php",
+        redirectTarget: null,
         autoConnectOnLoad: false,
       },
       tools: {
@@ -181,10 +181,6 @@ class PageManager {
       try {
         const account = ev.detail?.account || walletConnector?.getStatus()?.account;
         this.showSuccessState(account);
-        const config = this.pageConfigs[this.pageType] || {};
-        if (config.redirectTarget) {
-          setTimeout(() => this.redirectTo(config.redirectTarget), 800);
-        }
       } catch (e) {
         console.warn("Falha ao processar wallet:connected no PageManager:", e.message);
       }
@@ -236,10 +232,6 @@ class PageManager {
         const result = await walletConnector.connect("metamask");
         if (result?.success) {
           this.showSuccessState();
-          const config = this.pageConfigs[this.pageType];
-          if (config.redirectTarget) {
-            setTimeout(() => this.redirectTo(config.redirectTarget), 1200);
-          }
         } else {
           throw new Error(result?.error || "Falha na conexão");
         }

@@ -170,6 +170,28 @@ export class WalletConnector {
         const url = new URL(window.location.href);
         const isHome = url.pathname.endsWith("/index.php") && (!url.searchParams.get("page") || url.searchParams.get("page") === "home");
         if (isHome) {
+          // Se algum clique salvou um redirect pós-conexão (ex.: abrir tools, token-add, etc),
+          // respeitar esse destino antes do fallback padrão.
+          try {
+            const raw = sessionStorage.getItem("tokencafe_post_connect_redirect");
+            if (raw) {
+              sessionStorage.removeItem("tokencafe_post_connect_redirect");
+              const parsed = JSON.parse(raw);
+              const href = parsed && typeof parsed.href === "string" ? parsed.href : "";
+              const ts = parsed && typeof parsed.ts === "number" ? parsed.ts : 0;
+              if (href && (!ts || Date.now() - ts <= 2 * 60 * 1000)) {
+                window.location.href = href;
+                return {
+                  success: true,
+                  account: this.currentAccount,
+                  wallet: this.connectedWallet,
+                  chainId: this.currentChainId,
+                  network: this.currentNetwork,
+                  balance: this.balance,
+                };
+              }
+            }
+          } catch (_) {}
           window.location.href = "tools.php";
         }
       } catch (_) {}

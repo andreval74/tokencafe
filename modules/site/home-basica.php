@@ -1,8 +1,3 @@
-<?php
-$tokencafe_nav_mode = "basic";
-$tokencafe_footer_mode = "basic";
-$tokencafe_create_token_href = "tools.php";
-?>
 <div class="TokenCafe-content">
   <!-- ==================== HERO (PRIMEIRA DOBRA) ==================== -->
   <section class="tc-hero-section">
@@ -25,7 +20,7 @@ $tokencafe_create_token_href = "tools.php";
             </p>
 
             <div class="d-flex flex-wrap gap-2 justify-content-center">
-              <a href="<?= htmlspecialchars($tokencafe_create_token_href, ENT_QUOTES, "UTF-8") ?>" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+              <a href="tools.php" class="btn btn-primary btn-lg">
                 <i class="bi bi-coin me-2"></i>
                 Criar Token Agora
               </a>

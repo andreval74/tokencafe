@@ -545,17 +545,6 @@ function render_page(string $viewPath, array $options = []): void
   $enqueue_script_src = $enqueueScriptSrc;
   $enqueue_script_module = $enqueueModule;
 
-  $tokencafe_nav_mode = isset($tokencafe_nav_mode) && is_string($tokencafe_nav_mode) ? $tokencafe_nav_mode : "full";
-  $tokencafe_footer_mode = isset($tokencafe_footer_mode) && is_string($tokencafe_footer_mode) ? $tokencafe_footer_mode : "full";
-  $tokencafe_create_token_href = isset($tokencafe_create_token_href) && is_string($tokencafe_create_token_href) ? $tokencafe_create_token_href : "tools.php";
-  $tokencafe_basic_pages = ["home-basica.php", "suporte.php", "privacidade.php", "termos-e-servicos.php"];
-  $tokencafe_view_base = strtolower((string) pathinfo($viewPathReal, PATHINFO_BASENAME));
-  if (in_array($tokencafe_view_base, $tokencafe_basic_pages, true)) {
-    $tokencafe_nav_mode = "basic";
-    $tokencafe_footer_mode = "basic";
-    if ($tokencafe_create_token_href === "") $tokencafe_create_token_href = "tools.php";
-  }
-
   include $viewPathReal;
   $module_content = ob_get_clean();
 

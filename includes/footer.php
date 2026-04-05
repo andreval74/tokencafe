@@ -1,9 +1,5 @@
 <?php $tokencafe_show_footer = !isset($showFooter) || $showFooter; ?>
 <?php if ($tokencafe_show_footer) { ?>
-  <?php
-  $tokencafe_footer_mode = isset($tokencafe_footer_mode) && is_string($tokencafe_footer_mode) ? $tokencafe_footer_mode : "full";
-  $tokencafe_create_token_href = isset($tokencafe_create_token_href) && is_string($tokencafe_create_token_href) ? $tokencafe_create_token_href : "tools.php";
-  ?>
   <div class="section-divider"></div>
   <footer class="text-white py-2 bg-page-black">
     <div class="container">
@@ -41,53 +37,47 @@
         <div class="col-lg-2">
           <h6 class="mb-3 fw-semibold text-warning">Plataforma</h6>
           <ul class="list-unstyled">
-            <?php if ($tokencafe_footer_mode === "basic") { ?>
-              <li class="mb-2">
-                <a href="<?= htmlspecialchars($tokencafe_create_token_href, ENT_QUOTES, "UTF-8") ?>" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-coin me-1"></i>
-                  Criar Token
-                </a>
-              </li>
-              <li class="mb-2">
-                <a href="suporte.php" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-headset me-1"></i>
-                  Suporte
-                </a>
-              </li>              
-            <?php } else { ?>
-              <li class="mb-2">
-                <a href="index.php#token" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-coin me-1"></i>
-                  Token
-                </a>
-              </li>
-              <li class="mb-2">
-                <a href="index.php#comofunciona" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-gear me-1"></i>
-                  Como Funciona
-                </a>
-              </li>
-              <li class="mb-2">
-                <a href="index.php#ecosistema" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-globe me-1"></i>
-                  EcoSistema
-                </a>
-              </li>
-              <li class="mb-2">
-                <a href="index.php#precos" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-currency-dollar me-1"></i>
-                  Preços
-                </a>
-              </li>
-              <li class="mb-2">
-                <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-tools me-1"></i>
-                  Tools
-                </a>
-              </li>
-            <?php } ?>
+            <li class="mb-2">
+              <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-coin me-1"></i>
+                Criar Token
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="suporte.php" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-headset me-1"></i>
+                Suporte
+              </a>
+            </li>
+
+            <!-- <li class="mb-2">
+              <a href="index.php#comofunciona" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-gear me-1"></i>
+                Como Funciona
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="index.php#ecosistema" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-globe me-1"></i>
+                EcoSistema
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="index.php#precos" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-currency-dollar me-1"></i>
+                Preços
+              </a>
+            </li>
+            <li class="mb-2">
+              <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
+                <i class="bi bi-tools me-1"></i>
+                Tools
+              </a>
+            </li> -->
+
           </ul>
         </div>
+
         <div class="col-lg-2">
           <h6 class="mb-3 fw-semibold text-warning">Tokens</h6>
           <ul class="list-unstyled">
@@ -190,7 +180,7 @@
 <script type="module" src="assets/js/shared/wallet-connector.js"></script>
 <?php if (isset($pageScripts)) echo $pageScripts; ?>
 <script>
-  (function () {
+  (function() {
     try {
       var host = String(location.hostname || "");
       var isLocal = host === "localhost" || host === "127.0.0.1" || host === "::1";
@@ -228,27 +218,32 @@
       box.appendChild(pre);
       document.body.appendChild(box);
 
-      var append = function (label, payload) {
+      var append = function(label, payload) {
         try {
           box.style.display = "block";
           pre.textContent += "[" + label + "] " + payload + "\n";
         } catch (_) {}
       };
 
-      window.addEventListener("error", function (e) {
+      window.addEventListener("error", function(e) {
         var msg = (e && e.message) ? e.message : String(e);
         var src = e && e.filename ? (" @ " + e.filename + ":" + (e.lineno || 0) + ":" + (e.colno || 0)) : "";
         append("error", msg + src);
       });
 
-      window.addEventListener("unhandledrejection", function (e) {
+      window.addEventListener("unhandledrejection", function(e) {
         var reason = e && e.reason ? e.reason : e;
         var msg = "";
-        try { msg = reason && reason.stack ? reason.stack : (reason && reason.message ? reason.message : String(reason)); } catch (_) { msg = String(reason); }
+        try {
+          msg = reason && reason.stack ? reason.stack : (reason && reason.message ? reason.message : String(reason));
+        } catch (_) {
+          msg = String(reason);
+        }
         append("promise", msg);
       });
     } catch (_) {}
   })();
 </script>
 </body>
+
 </html>

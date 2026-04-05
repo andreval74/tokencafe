@@ -19,7 +19,7 @@
             </p>
 
             <div class="d-flex flex-wrap gap-2 justify-content-center">
-              <a href="modules/tools.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+              <a href="tools.php" class="btn btn-primary btn-lg">
                 <i class="bi bi-coin me-2"></i>
                 Criar Token Agora
               </a>
@@ -138,7 +138,7 @@
             </div>
           </div>
 
-          <a href="modules/tokens/token-add.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+          <a href="modules/tokens/token-add.php" class="btn btn-primary btn-lg">
             <i class="bi bi-coin me-2"></i>Criar Token Agora
           </a>
         </div>
@@ -425,7 +425,7 @@
       </div>
 
       <div class="text-center mt-5">
-        <a href="tools.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+        <a href="tools.php" class="btn btn-primary btn-lg">
           <i class="bi bi-grid-3x3-gap me-2"></i>
           Abrir o Hub de Ferramentas
         </a>
@@ -543,7 +543,7 @@
             <div class="card-body p-4">
               <div class="text-white fw-bold mb-2">Criar Token</div>
               <div class="text-secondary mb-3">A partir de <span class="text-primary fw-bold">$12</span></div>
-              <a href="modules/tokens/token-add.php" class="btn btn-outline-primary w-100 btn-connect-wallet" data-action="connect-wallet">Começar</a>
+              <a href="modules/tokens/token-add.php" class="btn btn-outline-primary w-100">Começar</a>
             </div>
           </div>
         </div>
@@ -656,7 +656,7 @@
         <div class="col-lg-8">
           <h2 class="display-5 fw-bold mb-3">Pronto para criar?</h2>
           <p class="lead text-secondary mb-4">Escolha uma ferramenta e comece agora.</p>
-          <a href="modules/tokens/token-add.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+          <a href="modules/tokens/token-add.php" class="btn btn-primary btn-lg">
             <i class="bi bi-rocket-takeoff me-2"></i>
             Começar Agora
           </a>

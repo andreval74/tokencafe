@@ -335,37 +335,111 @@ class BaseSystem {
 
     console.log("🛠️ Utilitários globais configurados");
 
-    document.addEventListener("click", async (e) => {
-      const connectBtn = e.target.closest('[data-action="connect-wallet"]');
-      if (connectBtn) {
-        e.preventDefault();
-        try {
-          const status = window.walletConnector?.getStatus?.() || {};
-          if (status.isConnected && status.sessionAuthorized) {
-            window.location.href = "tools.php";
-            return;
-          }
-          await window.walletConnector?.connect?.("metamask");
-          window.location.href = "tools.php";
-        } catch (_) {}
-        return;
+    // Conexão exigida + redirecionamento:
+    // - Funciona para elementos com data-action="connect-wallet"
+    // - E também para links diretos para /tools.php e /modules/* (para evitar ter que marcar cada link manualmente)
+    const isModifiedClick = (ev) => !!(ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey || ev.button !== 0);
+    const getHrefFromEl = (el) => {
+      try {
+        const raw = el?.getAttribute?.("data-redirect") || el?.getAttribute?.("data-target") || "";
+        if (raw) return raw;
+        const a = el?.tagName === "A" ? el : el?.closest?.("a");
+        const href = a && a.getAttribute ? a.getAttribute("href") : "";
+        return href && href !== "#" ? href : "";
+      } catch (_) {
+        return "";
       }
+    };
+    const resolveUrl = (href) => {
+      try {
+        return new URL(href, window.location.href);
+      } catch (_) {
+        return null;
+      }
+    };
+    const requiresWalletForHref = (href) => {
+      const url = resolveUrl(href);
+      if (!url) return false;
+      if (url.origin !== window.location.origin) return false;
+      const path = String(url.pathname || "");
+      if (path.includes("/modules/contrato/contrato-index.php")) return false;
+      if (path.endsWith("/tools.php")) return true;
+      if (path.includes("/modules/")) return true;
+      return false;
+    };
+    const persistPostConnectRedirect = (href) => {
+      try {
+        sessionStorage.setItem("tokencafe_post_connect_redirect", JSON.stringify({ href: String(href), ts: Date.now() }));
+      } catch (_) {}
+    };
+    const consumePostConnectRedirect = () => {
+      try {
+        const raw = sessionStorage.getItem("tokencafe_post_connect_redirect");
+        if (!raw) return "";
+        sessionStorage.removeItem("tokencafe_post_connect_redirect");
+        const parsed = JSON.parse(raw);
+        const href = parsed && typeof parsed.href === "string" ? parsed.href : "";
+        const ts = parsed && typeof parsed.ts === "number" ? parsed.ts : 0;
+        if (!href) return "";
+        if (ts && Date.now() - ts > 2 * 60 * 1000) return "";
+        return href;
+      } catch (_) {
+        return "";
+      }
+    };
+    const ensureWalletAndNavigate = async (href) => {
+      const targetHref = href || "tools.php";
+      persistPostConnectRedirect(targetHref);
+      try {
+        const status = window.walletConnector?.getStatus?.() || {};
+        if (status.isConnected && status.sessionAuthorized) {
+          window.location.href = targetHref;
+          return;
+        }
+        await window.walletConnector?.connect?.("metamask");
+        window.location.href = targetHref;
+      } catch (_) {}
+    };
+
+    document.addEventListener("click", async (e) => {
       const scrollBtn = e.target.closest('[data-action="scroll-to-top"]');
       if (scrollBtn) {
         e.preventDefault();
         window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
       }
 
       const reloadBtn = e.target.closest('[data-action="reload-page"]') || e.target.closest("#btnClearAll");
       if (reloadBtn) {
         e.preventDefault();
-        // Forçar limpeza de inputs para evitar restauração de cache do navegador
         try {
           const inputs = document.querySelectorAll("input, textarea");
           inputs.forEach((el) => (el.value = ""));
         } catch (_) {}
         window.location.reload();
+        return;
       }
+
+      if (isModifiedClick(e)) return;
+
+      const connectActionEl = e.target.closest('[data-action="connect-wallet"]');
+      if (connectActionEl) {
+        e.preventDefault();
+        await ensureWalletAndNavigate(getHrefFromEl(connectActionEl));
+        return;
+      }
+
+      const a = e.target.closest("a");
+      const href = a && a.getAttribute ? a.getAttribute("href") : "";
+      if (href && href !== "#" && requiresWalletForHref(href)) {
+        e.preventDefault();
+        await ensureWalletAndNavigate(href);
+      }
+    });
+
+    document.addEventListener("wallet:connected", () => {
+      const redirect = consumePostConnectRedirect();
+      if (redirect) window.location.href = redirect;
     });
 
     // Sanitização global de campos: exposta como função reutilizável
@@ -551,7 +625,6 @@ class BaseSystem {
       
       // Whitelist de páginas que não requerem autenticação imediata
       if (path.includes("/modules/contrato/contrato-index.php")) return;
-      if (path.endsWith("/tools.php")) return;
 
       const requiresAuth = path.includes("/modules/") || path.endsWith("/tools.php");
       if (!requiresAuth) return;

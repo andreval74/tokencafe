@@ -90,6 +90,11 @@
       e.preventDefault();
       try {
         const status = window.walletConnector?.getStatus?.() || {};
+        // Padronização: ao clicar no botão do header, se já estiver conectado vai para o hub.
+        // Se não estiver conectado, salva o destino e abre o fluxo de conexão.
+        try {
+          sessionStorage.setItem("tokencafe_post_connect_redirect", JSON.stringify({ href: "tools.php", ts: Date.now() }));
+        } catch (_) {}
         if (status.isConnected && status.sessionAuthorized) {
           window.location.href = "tools.php";
           return;
