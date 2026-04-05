@@ -1,3 +1,8 @@
+<?php
+$tokencafe_nav_mode = "basic";
+$tokencafe_footer_mode = "basic";
+$tokencafe_create_token_href = "tools.php";
+?>
 <div class="TokenCafe-container align-items-start">
   <div class="TokenCafe-content TokenCafe-fade-in-up text-align-left pt-2 mt-2">
     <div class="row justify-content-center">

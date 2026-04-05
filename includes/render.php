@@ -384,9 +384,11 @@ function tokencafe_resolve_page(string $page): ?string
 {
   $page = strtolower(trim($page));
   $page = preg_replace('/[^a-z0-9_-]+/', "", $page);
-  if ($page === "" || $page === "home") return __DIR__ . "/../modules/site/home.php";
+  if ($page === "" || $page === "home") return __DIR__ . "/../modules/site/home-basica.php";
 
   $map = [
+    "home-basica" => __DIR__ . "/../modules/site/home-basica.php",
+    "home-dev" => __DIR__ . "/../modules/site/home.php",
     "tools" => __DIR__ . "/../modules/site/tools.php",
     "maintenance" => __DIR__ . "/../modules/site/maintenance.php",
     "logs" => __DIR__ . "/../modules/logs/logs-index.php",

@@ -4,6 +4,7 @@ $moduleHeaderTitle = isset($moduleHeaderTitle) && is_string($moduleHeaderTitle) 
 $moduleHeaderSubtitle = isset($moduleHeaderSubtitle) && is_string($moduleHeaderSubtitle) ? $moduleHeaderSubtitle : "Hub Central de Ferramentas Web3";
 $moduleHeaderIcon = isset($moduleHeaderIcon) && is_string($moduleHeaderIcon) ? $moduleHeaderIcon : "bi-tools";
 $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIconAlt) ? $moduleHeaderIconAlt : "Tools";
+$tokencafe_nav_mode = isset($tokencafe_nav_mode) && is_string($tokencafe_nav_mode) ? $tokencafe_nav_mode : "full";
 ?>
 
 <?php if ($headerVariant === "module") { ?>
@@ -39,30 +40,39 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav mx-auto gap-lg-1">
-            <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#comofunciona">
-                <i class="bi bi-gear me-1"></i>
-                Como Funciona
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#ecosistema">
-                <i class="bi bi-boxes me-1"></i>
-                Módulos
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php?page=social">
-                <i class="bi bi-people me-1"></i>
-                Social
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="suporte.php">
-                <i class="bi bi-headset me-1"></i>
-                Suporte
-              </a>
-            </li>
+            <?php if ($tokencafe_nav_mode === "basic") { ?>
+              <li class="nav-item">
+                <a class="nav-link text-white-50 fw-medium neon-link-hover" href="suporte.php">
+                  <i class="bi bi-headset me-1"></i>
+                  Suporte
+                </a>
+              </li>
+            <?php } else { ?>
+              <li class="nav-item">
+                <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#comofunciona">
+                  <i class="bi bi-gear me-1"></i>
+                  Como Funciona
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php#ecosistema">
+                  <i class="bi bi-boxes me-1"></i>
+                  Módulos
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php?page=social">
+                  <i class="bi bi-people me-1"></i>
+                  Social
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white-50 fw-medium neon-link-hover" href="suporte.php">
+                  <i class="bi bi-headset me-1"></i>
+                  Suporte
+                </a>
+              </li>
+            <?php } ?>
           </ul>
 
           <div class="d-flex align-items-center gap-2">

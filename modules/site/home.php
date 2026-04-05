@@ -1,29 +1,27 @@
 <div class="TokenCafe-content">
-
-  <!-- ==================== HERO - PORTAL WEB3 ==================== -->
+  <!-- ==================== HERO (PRIMEIRA DOBRA) ==================== -->
   <section class="tc-hero-section">
     <div class="container">
-      <div class="row align-items-center g-4 mb-5">
-        <div class="col-lg-12 text-center">
+      <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-10">
           <div class="hero-content">
+            <div class="badge bg-primary text-dark mb-4 px-3 py-2 pulse-animation">
+              <i class="bi bi-rocket me-2"></i>
+              COMEÇE AGORA!!
+            </div>
             <h1 class="display-3 fw-bold mb-3 text-white">
-              Portal Completo de<br>
-              Ferramentas <span class="gradient-text">Web3</span>
+              Crie seu <span class="gradient-text">token</span> em minutos.
             </h1>
 
             <p class="lead text-light mb-4 fs-4">
-              Crie tokens, audite contratos com IA, gerencie liquidez, acompanhe dashboards e acesse <strong>todas as ferramentas Web3</strong><br>
-              em um único lugar. +30 blockchains • IA integrada • Fácil para iniciantes • Poderoso para projetos profissionais.
+              Automatize seu projeto, desde a criação até verificação,<br>
+              pagando em crypto e apenas quando usar.
             </p>
 
-            <div class="d-flex flex-wrap gap-2 text-center justify-content-center">
-              <a href="tools.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
-                <i class="bi bi-grid-3x3-gap me-2"></i>
-                Acessar Todas as Ferramentas
-              </a>
-              <a href="#ferramentas" class="btn btn-outline-primary btn-lg">
-                <i class="bi bi-tools me-1"></i>
-                Explorar Ferramentas
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+              <a href="modules/tools.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+                <i class="bi bi-coin me-2"></i>
+                Criar Token Agora
               </a>
             </div>
 
@@ -52,7 +50,7 @@
       </div>
     </div>
 
-    <!-- Blockchain Slider -->
+    <!-- ==================== REDES SUPORTADAS (SLIDER) ==================== -->
     <div class="tc-black-panel rounded-0 py-2">
       <div class="blockchain-slider">
         <div class="blockchain-track">
@@ -80,365 +78,406 @@
     </div>
   </section>
 
-  <!-- ==================== FERRAMENTAS WEB3 ==================== -->
-  <div id="ferramentas" class="section-divider"></div>
-  <section class="py-5">
+  <!-- ==================== GRID DO TOKEN ==================== -->
+  <div id="token" class="section-divider"></div>
+  <section id="token" class="py-5">
     <div class="container">
-      <div class="row text-center mb-5">
+      <div class="row align-items-center">
         <div class="col-lg-12">
-          <h2 class="display-4 fw-bold mb-3">
-            Ferramentas <span class="gradient-text">Web3</span>
-          </h2>
-          <p class="lead text-light">Tudo que você precisa para criar, lançar, gerenciar e crescer seu projeto em um só portal</p>
-        </div>
-      </div>
-
-      <div class="row g-4">
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card h-100 p-4 text-center">
-            <div class="feature-icon mb-4">
-              <i class="bi bi-currency-exchange text-primary icon-lg"></i>
-            </div>
-            <h4 class="card-title mb-3 text-white">Token Creator</h4>
-            <p class="card-text text-light mb-4">Gere ERC-20, BEP-20, SPL e outros tokens com IA, taxas customizadas, revoke authorities e deploy rápido.</p>
-            <a href="modules/tokens/token-add.php" class="btn btn-outline-primary w-100">Criar Token Agora</a>
-            <div class="mt-3"><span class="badge bg-success">Pronto</span></div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card h-100 p-4 text-center">
-            <div class="feature-icon mb-4">
-              <i class="bi bi-shield-check text-primary icon-lg"></i>
-            </div>
-            <h4 class="card-title mb-3 text-white">Auditoria com IA</h4>
-            <p class="card-text text-light mb-4">Análise automática de smart contracts com relatórios de segurança e sugestões.</p>
-            <a href="#" class="btn btn-outline-primary w-100">Auditar Contrato</a>
-            <div class="mt-3"><span class="badge bg-warning">Em breve</span></div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card h-100 p-4 text-center">
-            <div class="feature-icon mb-4">
-              <i class="bi bi-graph-up text-primary icon-lg"></i>
-            </div>
-            <h4 class="card-title mb-3 text-white">Dashboard de Projetos</h4>
-            <p class="card-text text-light mb-4">Monitore holders, liquidez, transações e métricas completas dos seus tokens.</p>
-            <a href="#" class="btn btn-outline-primary w-100">Abrir Dashboard</a>
-            <div class="mt-3"><span class="badge bg-success">Pronto</span></div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card h-100 p-4 text-center">
-            <div class="feature-icon mb-4">
-              <i class="bi bi-dropbox text-primary icon-lg"></i>
-            </div>
-            <h4 class="card-title mb-3 text-white">Liquidez & Pools</h4>
-            <p class="card-text text-light mb-4">Crie pools de liquidez, adicione/remove LP e gerencie farming.</p>
-            <a href="#" class="btn btn-outline-primary w-100">Gerenciar Liquidez</a>
-            <div class="mt-3"><span class="badge bg-danger">Em desenvolvimento</span></div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card h-100 p-4 text-center">
-            <div class="feature-icon mb-4">
-              <i class="bi bi-mortarboard text-primary icon-lg"></i>
-            </div>
-            <h4 class="card-title mb-3 text-white">Universidade TokenCafe</h4>
-            <p class="card-text text-light mb-4">Aprenda Web3 do zero com trilhas em português e sistema Learn-to-Earn.</p>
-            <a href="#" class="btn btn-outline-primary w-100">Acessar Cursos</a>
-            <div class="mt-3"><span class="badge bg-success">Pronto</span></div>
-          </div>
-        </div>
-
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card h-100 p-4 text-center">
-            <div class="feature-icon mb-4">
-              <i class="bi bi-shop text-primary icon-lg"></i>
-            </div>
-            <h4 class="card-title mb-3 text-white">Marketplace</h4>
-            <p class="card-text text-light mb-4">Compre, venda e descubra tokens e projetos lançados na plataforma.</p>
-            <a href="#" class="btn btn-outline-primary w-100">Explorar Marketplace</a>
-            <div class="mt-3"><span class="badge bg-danger">Em breve</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="text-center mt-5">
-        <a href="tools.php" class="btn btn-primary btn-lg">
-          <i class="bi bi-grid-3x3-gap me-2"></i> Ver Todas as Ferramentas →
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== COMO FUNCIONA ==================== -->
-  <div id="comofunciona" class="section-divider"></div>
-  <section>
-    <div class="container">
-      <div class="row justify-content-center text-center mb-5">
-        <div class="col-lg-10">
-          <h2 class="display-4 fw-bold mb-3">
-            Como <span class="gradient-text">Funciona</span> ?
-          </h2>
-          <p class="lead text-secondary mb-4">Democratizamos a criação e gestão de projetos Web3 com 4 passos simples e intuitivos</p>
           <div class="badge bg-primary text-dark mb-4 px-3 py-2 pulse-animation">
             <i class="bi bi-rocket me-2"></i>
-            Do zero ao seu projeto live em poucos minutos
+            TOKEN DO SEU JEITO
           </div>
+          <h1 class="display-3 fw-bold mb-3 text-white">
+            Você pode criar seu <span class="gradient-text">token</span>,<br> 
+            da sua maneira e com suas regras.
+          </h1>
         </div>
-      </div>
+        <div class="col-lg-6">
+          <p class="lead text-secondary mb-4">
+            Crie, configure, personalize e faça deploy em minutos.<br>
+            Sem necessidade de conhecimeto técnico em código e baixo custo.
+          </p>
 
-      <div class="row g-4">
-        <div class="col-lg-6 col-md-6">
-          <div class="tool-card h-100 p-4 position-relative">
-            <div class="d-flex align-items-start mb-3">
-              <div class="feature-icon me-3">
-                <i class="bi bi-wallet2 text-primary icon-xl"></i>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="d-flex align-items-start gap-3">
+                <div>
+                  <i class="bi bi-lock text-warning me-2"></i>
+                  <div class="text-white fw-semibold mb-1">Independência total</div>
+                  <div class="text-secondary small">Controle seu token direto pela wallet, sem depender de desenvolvedores</div>
+                </div>
               </div>
-              <div class="flex-grow-1">
-                <h5 class="card-title mb-2 fw-bold">Conecte sua Carteira Web3</h5>
-                <p class="card-text text-secondary mb-3">
-                  Conecte MetaMask, TrustWallet ou qualquer carteira Web3. Escolha a blockchain ideal.
-                </p>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                  <span class="badge bg-danger">MetaMask</span>
-                  <span class="badge bg-danger">TrustWallet</span>
-                  <span class="badge bg-danger">WalletConnect</span>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start gap-3">
+                <div>
+                  <i class="bi bi-lightning-charge text-warning me-2"></i>
+                  <div class="text-white fw-semibold mb-1">Velocidade de lançamento</div>
+                  <div class="text-secondary small">Crie, configure e publique seu token em poucos minutos</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start gap-3">
+                <div>
+                  <i class="bi bi-cash-coin text-warning me-2"></i>
+                  <div class="text-white fw-semibold mb-1">Economia real</div>
+                  <div class="text-secondary small">Evite gastar milhares com desenvolvimento e reduza taxas ao mínimo</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start gap-3">
+                <div>
+                  <i class="bi bi-shield-lock text-warning me-2"></i>
+                  <div class="text-white fw-semibold mb-1">Segurança no processo</div>
+                  <div class="text-secondary small">Use contratos padronizados e minimize erros críticos no deploy</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="col-lg-6 col-md-6">
-          <div class="tool-card h-100 p-4 position-relative">
-            <div class="d-flex align-items-start mb-3">
-              <div class="feature-icon me-3">
-                <i class="bi bi-gear text-primary icon-xl"></i>
-              </div>
-              <div class="flex-grow-1">
-                <h5 class="card-title mb-2 fw-bold">Configure seu Token ou Ferramenta</h5>
-                <p class="card-text text-secondary mb-3">
-                  Personalize nome, símbolo, supply, taxas e recursos avançados com ajuda da IA.
-                </p>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                  <span class="badge bg-success">ERC-20</span>
-                  <span class="badge bg-success">BEP-20</span>
-                  <span class="badge bg-success">SPL</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <a href="modules/tokens/token-add.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+            <i class="bi bi-coin me-2"></i>Criar Token Agora
+          </a>
         </div>
-
-        <div class="col-lg-6 col-md-6">
-          <div class="tool-card h-100 p-4 position-relative">
-            <div class="d-flex align-items-start mb-3">
-              <div class="feature-icon me-3">
-                <i class="bi bi-shield-check text-primary icon-xl"></i>
-              </div>
-              <div class="flex-grow-1">
-                <h5 class="card-title mb-2 fw-bold">Teste e Valide Gratuitamente</h5>
-                <p class="card-text text-secondary mb-3">
-                  Seu contrato é analisado por IA, testado em testnets e auditado automaticamente.
-                </p>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                  <span class="badge bg-info">Testnet</span>
-                  <span class="badge bg-info">IA Audit</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-6 col-md-6">
-          <div class="tool-card h-100 p-4 position-relative">
-            <div class="d-flex align-items-start mb-3">
-              <div class="feature-icon me-3">
-                <i class="bi bi-graph-up text-primary icon-xl"></i>
-              </div>
-              <div class="flex-grow-1">
-                <h5 class="card-title mb-2 fw-bold">Deploy e Gerencie no Dashboard</h5>
-                <p class="card-text text-secondary mb-3">
-                  Deploy seguro na mainnet e acesse seu dashboard completo para gerenciar tudo.
-                </p>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                  <span class="badge bg-warning text-dark">Dashboard</span>
-                  <span class="badge bg-warning text-dark">Analytics</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="col-lg-6 text-center">
+          <img src="assets/imgs/illustrations/token-illustration.svg" alt="Token illustration" class="img-fluid">
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ==================== PREÇOS COMPLETOS ==================== -->
-  <div id="precos" class="section-divider"></div>
+  <!-- ==================== GRID DO ECOSSISTEMA ==================== -->
+  <div id="ecosistema" class="section-divider"></div>
   <section>
     <div class="container">
       <div class="row">
         <div class="col-lg-12 text-center mb-5">
           <h2 class="display-4 fw-bold mb-3">
-            Preços Tokencafe <span class="gradient-text">— Base USDT</span>
+            Token
+            <span class="gradient-text">Cafe</span><br>
+            Democratizando a Web3
           </h2>
-          <p class="lead text-light mb-4">
-            Todos os valores são em USDT (conversão automática na criação para a moeda da sua carteira: USDT, ETH, BNB, SOL, PIX etc.).<br>
-            Cotação BRL é apenas referência aproximada.<br>
-            <strong>Pague 100% com TOKENCAFE = 20% OFF automático!</strong><br>
-            Testnets: Grátis ilimitado em todas as redes.
-          </p>
+          <p class="lead text-light mb-4">A plataforma que foi criada especialmente para você e seus projetos.</p>
+          <div class="badge bg-primary text-dark px-4 py-2">
+            <i class="bi bi-globe2 me-2"></i>
+            Plataforma Mundial
+          </div>
         </div>
       </div>
 
-      <div class="d-flex justify-content-center mb-4">
-        <ul class="nav nav-pills gap-2" role="tablist" aria-label="Alternar tipo de rede">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="pricing-mainnets-tab" data-bs-toggle="pill" data-bs-target="#pricing-mainnets" type="button" role="tab" aria-controls="pricing-mainnets" aria-selected="true">Mainnets</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="pricing-testnets-tab" data-bs-toggle="pill" data-bs-target="#pricing-testnets" type="button" role="tab" aria-controls="pricing-testnets" aria-selected="false">Testnets (Grátis)</button>
-          </li>
-        </ul>
+      <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+          <div class="feature-card text-center p-4">
+            <div class="feature-icon mb-4 text-center">
+              <i class="bi bi-translate text-white icon-lg"></i>
+            </div>
+            <h4 class="card-title mb-3 text-white">Linguagem Adaptada</h4>
+            <p class="card-text text-light mb-4">Em vários idiomas, IA especializada no mercado
+              financeiro. Sem termos técnicos complexos.</p>
+            <ul class="list-unstyled text-start">
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                Interface em vários idiomas
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                IA treinada para o mercado financeiro
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                Templates de smart-contracts
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="feature-card h-100 text-center p-4">
+            <div class="feature-icon mb-4">
+              <i class="bi bi-currency-dollar text-white icon-lg"></i>
+            </div>
+            <h4 class="card-title mb-3 text-white">Pagamentos</h4>
+            <p class="card-text text-light mb-4">Aceite cartões, PIX e crypto. Nossa principal moeda são
+              criptomoedas com conversão automática para múltiplas moedas.</p>
+            <ul class="list-unstyled text-start">
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                PIX e cartões nacionais
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                Crypto como moeda principal
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                Conversão automática
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="feature-card h-100 text-center p-4">
+            <div class="feature-icon mb-4">
+              <i class="bi bi-globe text-white icon-lg"></i>
+            </div>
+            <h4 class="card-title mb-3 text-white">EcoSistema Completo</h4>
+            <p class="card-text text-light mb-4">Não somos apenas uma ferramenta de criação. Oferecemos marketplace,
+              rede social, IA e suporte completo do Brasil para o mundo.</p>
+            <ul class="list-unstyled text-start">
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                Marketplace integrado
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                Rede social Web3
+              </li>
+              <li class="mb-2">
+                <i class="bi bi-check text-success me-2"></i>
+                Suporte multilíngue
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
-      <div class="tab-content">
-        <!-- Mainnets -->
-        <div class="tab-pane fade show active" id="pricing-mainnets" role="tabpanel" aria-labelledby="pricing-mainnets-tab" tabindex="0">
-          <div class="row g-4 justify-content-center">
-            <!-- Basic -->
-            <div class="col-lg-4 col-md-6">
-              <div class="card pricing-card h-100 border-0 shadow-lg">
-                <div class="card-body p-4 text-center">
-                  <div class="pricing-icon mb-3">
-                    <i class="bi bi-rocket-takeoff fs-1 text-primary"></i>
+      <div class="row g-4">
+        <div class="col-lg-3">
+          <div class="card bg-dark border-0 h-100 p-4 shadow">
+            <div class="text-center">
+              <div class="feature-icon mb-3">
+                <i class="bi bi-shield-lock text-primary icon-xl"></i>
+              </div>
+              <h5 class="text-white fw-bold mb-3">100% Descentralizado</h5>
+              <p class="text-light mb-0">Acesso via carteira Web3, sem contas tradicionais. Sua custódia permanece
+                sempre com você.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <div class="card bg-dark border-0 h-100 p-4 shadow">
+            <div class="text-center">
+              <div class="feature-icon mb-3">
+                <i class="bi bi-people text-primary icon-xl"></i>
+              </div>
+              <h5 class="text-white fw-bold mb-3">Impacto Social</h5>
+              <p class="text-light mb-0">Democratizamos a Web3 para pessoas comuns, pequenos negócios e comunidades
+                brasileiras.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <div class="card bg-dark border-0 h-100 p-4 shadow">
+            <div class="text-center">
+              <div class="feature-icon mb-3">
+                <i class="bi bi-magic text-primary icon-xl"></i>
+              </div>
+              <h5 class="text-white fw-bold mb-3">Deploy em 1 Clique</h5>
+              <p class="text-light mb-0">Interface drag & drop com templates prontos. Do zero ao token live em menos
+                de 5 minutos.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3">
+          <div class="card bg-dark border-0 h-100 p-4 shadow">
+            <div class="text-center">
+              <div class="feature-icon mb-3">
+                <i class="bi bi-graph-up text-primary icon-xl"></i>
+              </div>
+              <h5 class="text-white fw-bold mb-3">Multi-Blockchain</h5>
+              <p class="text-light mb-0">Suporte nativo para Ethereum, BSC, Polygon, Solana e mais de 30
+                blockchains.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== GRID DE FERRAMENTAS (PRINCIPAL) ==================== -->
+  <div id="ferramentas" class="section-divider"></div>
+  <section class="py-5">
+    <div class="container">
+      <div class="row text-center mb-5">
+        <div class="col-lg-10 mx-auto">
+          <h2 class="display-4 fw-bold mb-3">
+            Escolha uma <span class="gradient-text">ferramenta</span> e comece
+          </h2>
+          <p class="lead text-light mb-0">Clique, configure e publique. Simples.</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Ferramenta: ERC-20 -->
+        <div class="col-lg-4 col-md-6">
+          <a href="modules/tokens/token-add.php" class="text-no-decoration">
+            <div class="feature-card h-100 p-4">
+              <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-coin text-primary icon-lg"></i>
+                <div class="flex-grow-1">
+                  <div class="text-white fw-bold mb-1">Criar Token ERC-20</div>
+                  <div class="text-secondary">Crie um token em redes EVM com deploy via wallet.</div>
+                  <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-success">Disponível</span>
+                    <span class="text-white-50 small">Abrir</span>
                   </div>
-                  <h3 class="card-title text-white fw-bold mb-3">Mainnets Basic</h3>
-                  <div class="pricing-amount mb-4">
-                    <div class="text-secondary small mb-2">
-                      From <span class="text-white fw-semibold">$15</span>
-                      <span class="text-decoration-line-through text-muted">$20</span>
-                      → <span class="text-primary fw-bold">$12</span> com TOKENCAFE
-                    </div>
-                    <div class="d-flex justify-content-center align-items-baseline gap-2 flex-wrap">
-                      <span class="price-value display-4 fw-bold text-primary">$12</span>
-                    </div>
-                  </div>
-                  <ul class="list-unstyled text-start mb-4">
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Criação instantânea ERC-20/BEP-20</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Revoke Mint + Freeze</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Supply editável</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>IA nome/logo/descrição</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Dashboard básico</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Contrato auditado básico</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Testnet grátis ilimitado</li>
-                  </ul>
-                  <a href="modules/tokens/token-add.php" class="btn btn-outline-primary btn-lg px-5 py-3 w-100">Criar Token Basic</a>
                 </div>
               </div>
             </div>
+          </a>
+        </div>
 
-            <!-- Pro -->
-            <div class="col-lg-4 col-md-6">
-              <div class="card pricing-card h-100 border-0 shadow-lg">
-                <div class="card-body p-4 text-center">
-                  <div class="pricing-icon mb-3">
-                    <i class="bi bi-crown fs-1 text-primary"></i>
+        <!-- Ferramenta: BEP-20 -->
+        <div class="col-lg-4 col-md-6">
+          <a href="modules/tokens/token-add.php" class="text-no-decoration">
+            <div class="feature-card h-100 p-4">
+              <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-currency-exchange text-primary icon-lg"></i>
+                <div class="flex-grow-1">
+                  <div class="text-white fw-bold mb-1">Criar Token BEP-20</div>
+                  <div class="text-secondary">Mesma ideia, com foco em BNB Chain e redes compatíveis.</div>
+                  <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-success">Disponível</span>
+                    <span class="text-white-50 small">Abrir</span>
                   </div>
-                  <div class="text-center mb-3">
-                    <span class="badge bg-warning text-dark px-4 py-2 fw-bold position-relative">
-                      <i class="bi bi-star-fill me-2"></i>
-                      MAIS VENDIDO
-                    </span>
-                  </div>
-                  <h3 class="card-title text-white fw-bold mb-3">Mainnets Pro</h3>
-                  <div class="pricing-amount mb-3">
-                    <div class="text-secondary small mb-2">
-                      From <span class="text-white fw-semibold">$29</span>
-                      <span class="text-decoration-line-through text-muted">$39</span>
-                      → <span class="text-primary fw-bold">$23.20</span>
-                    </div>
-                    <div class="d-flex justify-content-center align-items-baseline gap-2 flex-wrap">
-                      <span class="price-value display-4 fw-bold text-primary">$23.20</span>
-                    </div>
-                  </div>
-                  <div class="text-secondary small mb-2">Tudo do Basic +</div>
-                  <ul class="list-unstyled text-start mb-4">
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Até 5 taxes custom</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Anti-bot + MEV Protection</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Liquidity Pool automático</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Multisender em lote</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>IA Marketing (textos X/Telegram)</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Revoke Authorities completo</li>
-                  </ul>
-                  <a href="modules/tokens/token-add.php" class="btn btn-outline-primary btn-lg px-5 py-3 w-100">Criar Token Pro</a>
                 </div>
               </div>
             </div>
+          </a>
+        </div>
 
-            <!-- Premium -->
-            <div class="col-lg-4 col-md-6">
-              <div class="card pricing-card h-100 border-0 shadow-lg">
-                <div class="card-body p-4 text-center">
-                  <div class="pricing-icon mb-3">
-                    <i class="bi bi-gem fs-1 text-primary"></i>
-                  </div>
-                  <h3 class="card-title text-white fw-bold mb-3">Mainnets Premium</h3>
-                  <div class="pricing-amount mb-3">
-                    <div class="text-secondary small mb-2">
-                      From <span class="text-white fw-semibold">$59</span>
-                      <span class="text-decoration-line-through text-muted">$79</span>
-                      → <span class="text-primary fw-bold">$47.20</span>
-                    </div>
-                    <div class="d-flex justify-content-center align-items-baseline gap-2 flex-wrap">
-                      <span class="price-value display-4 fw-bold text-primary">$47.20</span>
-                    </div>
-                  </div>
-                  <div class="text-secondary small mb-2">Tudo do Pro +</div>
-                  <ul class="list-unstyled text-start mb-4">
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Mint NFT em lote (até 10.000)</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Integração Marketplace Tokencafe (taxa 1%)</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>White-label (seu logo/domínio)</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Auditoria avançada + PDF</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Suporte prioritário WhatsApp/Telegram</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Multi-wallet dashboard</li>
-                  </ul>
-                  <a href="modules/tokens/token-add.php" class="btn btn-outline-primary btn-lg px-5 py-3 w-100">Criar Token Premium</a>
+        <!-- Ferramenta: NFT Collection -->
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-image text-primary icon-lg"></i>
+              <div class="flex-grow-1">
+                <div class="text-white fw-bold mb-1">Criar NFT Collection</div>
+                <div class="text-secondary">Crie uma coleção e publique com poucos cliques.</div>
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                  <span class="badge bg-warning text-dark">Em breve</span>
+                  <span class="text-white-50 small">Indisponível</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Testnets -->
-        <div class="tab-pane fade" id="pricing-testnets" role="tabpanel" aria-labelledby="pricing-testnets-tab" tabindex="0">
-          <div class="row g-4 justify-content-center">
-            <div class="col-lg-6 col-md-8">
-              <div class="card pricing-card h-100 border-0 shadow-lg">
-                <div class="card-body p-4 text-center">
-                  <div class="pricing-icon mb-3">
-                    <i class="bi bi-flask fs-1 text-primary"></i>
-                  </div>
-                  <h3 class="card-title text-white fw-bold mb-3">Testnets</h3>
-                  <div class="pricing-amount mb-4">
-                    <div class="d-flex justify-content-center align-items-baseline gap-2 flex-wrap">
-                      <span class="price-value display-4 fw-bold text-primary">Grátis</span>
-                    </div>
-                  </div>
-                  <ul class="list-unstyled text-start mb-4">
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Testnets: Grátis ilimitado em todas as redes</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Deploy para testes sem custo</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>IA nome/logo/descrição</li>
-                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Dashboard básico</li>
-                    <li class="mb-2 text-muted"><i class="bi bi-x text-secondary me-2"></i>Verificação: indisponível em testnets</li>
-                  </ul>
-                  <a href="modules/tokens/token-add.php" class="btn btn-outline-primary btn-lg px-5 py-3 w-100">Testar em Testnet</a>
+        <!-- Ferramenta: Presale -->
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-megaphone text-primary icon-lg"></i>
+              <div class="flex-grow-1">
+                <div class="text-white fw-bold mb-1">Criar Presale</div>
+                <div class="text-secondary">Configure parâmetros e publique o contrato de presale.</div>
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                  <span class="badge bg-warning text-dark">Em breve</span>
+                  <span class="text-white-50 small">Indisponível</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ferramenta: Verificar Contrato -->
+        <div class="col-lg-4 col-md-6">
+          <a href="tools.php" class="text-no-decoration">
+            <div class="feature-card h-100 p-4">
+              <div class="d-flex align-items-start gap-3">
+                <i class="bi bi-shield-check text-primary icon-lg"></i>
+                <div class="flex-grow-1">
+                  <div class="text-white fw-bold mb-1">Verificar Contrato</div>
+                  <div class="text-secondary">Verifique e organize dados do contrato após o deploy.</div>
+                  <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-success">Disponível</span>
+                    <span class="text-white-50 small">Abrir</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Ferramenta: Simular Taxas -->
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-calculator text-primary icon-lg"></i>
+              <div class="flex-grow-1">
+                <div class="text-white fw-bold mb-1">Simular Taxas</div>
+                <div class="text-secondary">Simule custos e taxas antes de publicar em mainnet.</div>
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                  <span class="badge bg-warning text-dark">Em breve</span>
+                  <span class="text-white-50 small">Indisponível</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-5">
+        <a href="tools.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+          <i class="bi bi-grid-3x3-gap me-2"></i>
+          Abrir o Hub de Ferramentas
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== COMO FUNCIONA (3 PASSOS) ==================== -->
+  <div id="comofunciona" class="section-divider"></div>
+  <section class="py-5">
+    <div class="container">
+      <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-10">
+          <h2 class="display-4 fw-bold mb-3">
+            Como <span class="gradient-text">funciona</span>
+          </h2>
+          <p class="lead text-secondary mb-0">3 passos simples.</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="tool-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-tools text-primary icon-xl"></i>
+              <div>
+                <div class="text-white fw-bold mb-2">1. Escolha a ferramenta</div>
+                <div class="text-secondary">Token, contrato, verificação, utilitários. Você decide.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="tool-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-gear text-primary icon-xl"></i>
+              <div>
+                <div class="text-white fw-bold mb-2">2. Configure</div>
+                <div class="text-secondary">Preencha os campos, revise e valide em testnet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="tool-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-rocket-takeoff text-primary icon-xl"></i>
+              <div>
+                <div class="text-white fw-bold mb-2">3. Publique</div>
+                <div class="text-secondary">Faça deploy na rede escolhida e siga para o próximo passo.</div>
               </div>
             </div>
           </div>
@@ -447,8 +486,182 @@
     </div>
   </section>
 
+  <!-- ==================== MODELO DE PAGAMENTO ==================== -->
+  <section class="py-5 bg-dark">
+    <div class="container">
+      <div class="row justify-content-center text-center mb-4">
+        <div class="col-lg-10">
+          <h2 class="display-4 fw-bold mb-3">
+            Sem mensalidade. <span class="gradient-text">Pague apenas pelo que usar.</span>
+          </h2>
+          <p class="lead text-light mb-0">
+            Sem planos. Sem compromisso. Cada ferramenta tem um custo individual.
+          </p>
+        </div>
+      </div>
 
+      <div class="row g-4 align-items-stretch">
+        <div class="col-lg-6">
+          <div class="tool-card h-100 p-4">
+            <div class="text-white fw-bold mb-3">O que isso significa na prática?</div>
+            <ul class="text-secondary mb-0">
+              <li>✔ Sem assinatura</li>
+              <li>✔ Pagamento em crypto (moeda da rede)</li>
+              <li>✔ Funciona em testnet</li>
+              <li>✔ Use apenas o que precisar</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="tool-card h-100 p-4">
+            <div class="text-white fw-bold mb-3">Destaques</div>
+            <div class="text-secondary mb-0">
+              Você consegue testar com moedas de faucet (testnet) e, quando for para a rede oficial (mainnet), paga direto na moeda nativa da rede.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <!-- ==================== SERVIÇOS / PREÇOS (SEM PLANOS) ==================== -->
+  <div id="precos" class="section-divider"></div>
+  <section class="py-5">
+    <div class="container">
+      <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-10">
+          <h2 class="display-4 fw-bold mb-3">
+            Preços por <span class="gradient-text">serviço</span>
+          </h2>
+          <p class="lead text-secondary mb-0">Sem mensalidade. Sem pegadinhas.</p>
+        </div>
+      </div>
 
-  
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+          <div class="card pricing-card h-100 border-0 shadow-lg">
+            <div class="card-body p-4">
+              <div class="text-white fw-bold mb-2">Criar Token</div>
+              <div class="text-secondary mb-3">A partir de <span class="text-primary fw-bold">$12</span></div>
+              <a href="modules/tokens/token-add.php" class="btn btn-outline-primary w-100 btn-connect-wallet" data-action="connect-wallet">Começar</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="card pricing-card h-100 border-0 shadow-lg">
+            <div class="card-body p-4">
+              <div class="text-white fw-bold mb-2">Adicionar Taxas</div>
+              <div class="text-secondary mb-3"><span class="text-primary fw-bold">$5</span></div>
+              <button class="btn btn-outline-primary w-100" type="button" disabled>Em breve</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="card pricing-card h-100 border-0 shadow-lg">
+            <div class="card-body p-4">
+              <div class="text-white fw-bold mb-2">Renunciar Ownership</div>
+              <div class="text-secondary mb-3"><span class="text-primary fw-bold">$2</span></div>
+              <button class="btn btn-outline-primary w-100" type="button" disabled>Em breve</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="card pricing-card h-100 border-0 shadow-lg">
+            <div class="card-body p-4">
+              <div class="text-white fw-bold mb-2">Criar Presale</div>
+              <div class="text-secondary mb-3"><span class="text-primary fw-bold">$10</span></div>
+              <button class="btn btn-outline-primary w-100" type="button" disabled>Em breve</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== LOOP DE ENGAJAMENTO ==================== -->
+  <section class="py-5 bg-dark">
+    <div class="container">
+      <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-10">
+          <h2 class="display-4 fw-bold mb-3">Próximo passo</h2>
+          <p class="lead text-light mb-0">Depois de criar, o que você faz?</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="tool-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-droplet text-primary icon-xl"></i>
+              <div>
+                <div class="text-white fw-bold mb-2">Adicionar liquidez</div>
+                <div class="text-secondary">Prepare seu token para operar no mercado.</div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-outline-primary w-100" type="button" disabled>Em breve</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="tool-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-megaphone text-primary icon-xl"></i>
+              <div>
+                <div class="text-white fw-bold mb-2">Criar presale</div>
+                <div class="text-secondary">Configure a venda e acompanhe resultados.</div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-outline-primary w-100" type="button" disabled>Em breve</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="tool-card h-100 p-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-percent text-primary icon-xl"></i>
+              <div>
+                <div class="text-white fw-bold mb-2">Ativar taxas</div>
+                <div class="text-secondary">Defina regras para o seu projeto.</div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-outline-primary w-100" type="button" disabled>Em breve</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== AVISO DE ATUALIZAÇÃO (OBRIGATÓRIO) ==================== -->
+  <section class="py-4">
+    <div class="container">
+      <div class="alert alert-warning mb-0" role="alert">
+        <strong>🚧 Plataforma em atualização contínua</strong> — novas ferramentas sendo adicionadas.
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CTA FINAL ==================== -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-8">
+          <h2 class="display-5 fw-bold mb-3">Pronto para criar?</h2>
+          <p class="lead text-secondary mb-4">Escolha uma ferramenta e comece agora.</p>
+          <a href="modules/tokens/token-add.php" class="btn btn-primary btn-lg btn-connect-wallet" data-action="connect-wallet">
+            <i class="bi bi-rocket-takeoff me-2"></i>
+            Começar Agora
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>

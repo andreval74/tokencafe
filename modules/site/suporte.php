@@ -1,3 +1,8 @@
+<?php
+$tokencafe_nav_mode = "basic";
+$tokencafe_footer_mode = "basic";
+$tokencafe_create_token_href = "tools.php";
+?>
 <div class="TokenCafe-content">
   <div class="container py-4 bg-page-black min-vh-100">
     <div class="row g-4">

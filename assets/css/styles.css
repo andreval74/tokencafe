@@ -2541,7 +2541,7 @@ Classes reutilizáveis para efeitos neon padronizados
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("../imgs/mundo.jpg");
+  background-image: url("../imgs/mundo.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

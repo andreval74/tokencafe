@@ -1,5 +1,9 @@
 <?php $tokencafe_show_footer = !isset($showFooter) || $showFooter; ?>
 <?php if ($tokencafe_show_footer) { ?>
+  <?php
+  $tokencafe_footer_mode = isset($tokencafe_footer_mode) && is_string($tokencafe_footer_mode) ? $tokencafe_footer_mode : "full";
+  $tokencafe_create_token_href = isset($tokencafe_create_token_href) && is_string($tokencafe_create_token_href) ? $tokencafe_create_token_href : "tools.php";
+  ?>
   <div class="section-divider"></div>
   <footer class="text-white py-2 bg-page-black">
     <div class="container">
@@ -37,36 +41,51 @@
         <div class="col-lg-2">
           <h6 class="mb-3 fw-semibold text-warning">Plataforma</h6>
           <ul class="list-unstyled">
-            <li class="mb-2">
-              <a href="index.php#token" class="text-white-50 neon-link-small-hover text-xs">
-                <i class="bi bi-coin me-1"></i>
-                Token
-              </a>
-            </li>
-            <li class="mb-2">
-              <a href="index.php#comofunciona" class="text-white-50 neon-link-small-hover text-xs">
-                <i class="bi bi-gear me-1"></i>
-                Como Funciona
-              </a>
-            </li>
-            <li class="mb-2">
-              <a href="index.php#ecosistema" class="text-white-50 neon-link-small-hover text-xs">
-                <i class="bi bi-globe me-1"></i>
-                EcoSistema
-              </a>
-            </li>
-            <li class="mb-2">
-              <a href="index.php#precos" class="text-white-50 neon-link-small-hover text-xs">
-                <i class="bi bi-currency-dollar me-1"></i>
-                Preços
-              </a>
-            </li>
-            <li class="mb-2">
-              <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
-                <i class="bi bi-tools me-1"></i>
-                Tools
-              </a>
-            </li>
+            <?php if ($tokencafe_footer_mode === "basic") { ?>
+              <li class="mb-2">
+                <a href="<?= htmlspecialchars($tokencafe_create_token_href, ENT_QUOTES, "UTF-8") ?>" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-coin me-1"></i>
+                  Criar Token
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="suporte.php" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-headset me-1"></i>
+                  Suporte
+                </a>
+              </li>              
+            <?php } else { ?>
+              <li class="mb-2">
+                <a href="index.php#token" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-coin me-1"></i>
+                  Token
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="index.php#comofunciona" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-gear me-1"></i>
+                  Como Funciona
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="index.php#ecosistema" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-globe me-1"></i>
+                  EcoSistema
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="index.php#precos" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-currency-dollar me-1"></i>
+                  Preços
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-tools me-1"></i>
+                  Tools
+                </a>
+              </li>
+            <?php } ?>
           </ul>
         </div>
         <div class="col-lg-2">
