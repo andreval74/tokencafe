@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary": "#571a00",
+                    "tertiary-fixed-dim": "#e89b09",
+                    "surface-container": "#161a21",
+                    "inverse-surface": "#f9f9ff",
+                    "secondary-dim": "#d4d4d7",
+                    "on-surface": "#ecedf6",
+                    "on-error-container": "#ffa8a3",
+                    "outline": "#73757d",
+                    "on-background": "#ecedf6",
+                    "surface-tint": "#ff9064",
+                    "on-tertiary-container": "#4d3100",
+                    "primary-fixed-dim": "#ff5e07",
+                    "on-tertiary": "#5a3900",
+                    "tertiary-container": "#f8a91f",
+                    "tertiary-fixed": "#f8a91f",
+                    "on-secondary-fixed-variant": "#5a5c5e",
+                    "primary-fixed": "#ff7941",
+                    "on-primary-container": "#431200",
+                    "surface": "#0b0e14",
+                    "inverse-on-surface": "#52555c",
+                    "surface-container-highest": "#22262f",
+                    "on-tertiary-fixed-variant": "#593900",
+                    "error-container": "#9f0519",
+                    "on-secondary": "#505254",
+                    "secondary": "#e2e2e5",
+                    "tertiary-dim": "#e89b09",
+                    "primary-dim": "#ff7439",
+                    "on-error": "#490006",
+                    "error-dim": "#d7383b",
+                    "tertiary": "#ffb951",
+                    "on-primary-fixed-variant": "#531900",
+                    "on-surface-variant": "#a9abb3",
+                    "surface-container-lowest": "#000000",
+                    "primary-container": "#ff7941",
+                    "primary": "#ff9064",
+                    "surface-variant": "#22262f",
+                    "on-primary-fixed": "#000000",
+                    "background": "#0b0e14",
+                    "secondary-container": "#454749",
+                    "on-tertiary-fixed": "#301c00",
+                    "on-secondary-container": "#d0d0d3",
+                    "surface-container-high": "#1c2028",
+                    "surface-container-low": "#10131a",
+                    "surface-dim": "#0b0e14",
+                    "surface-bright": "#282c36",
+                    "on-secondary-fixed": "#3e3f42",
+                    "secondary-fixed": "#e2e2e5",
+                    "secondary-fixed-dim": "#d4d4d7",
+                    "outline-variant": "#45484f",
+                    "inverse-primary": "#a83a00",
+                    "error": "#ff716c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .glass-card {
+        background: rgba(28, 32, 40, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      .active-glow {
+        box-shadow: 0 0 20px -5px rgba(255, 144, 100, 0.15);
+      }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-slate-950/70 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full max-w-none shadow-[0_0_40px_rgba(236,237,246,0.08)]">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-bold tracking-tighter text-orange-400 font-headline">TokenCafe Tools</span>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-headline tracking-tight text-orange-400 border-b-2 border-orange-400 pb-1 hover:text-orange-300 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Dashboard</a>
+<a class="font-headline tracking-tight text-slate-400 hover:text-orange-300 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Market</a>
+<a class="font-headline tracking-tight text-slate-400 hover:text-orange-300 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Tools</a>
+<a class="font-headline tracking-tight text-slate-400 hover:text-orange-300 transition-colors duration-300 scale-95 active:scale-90 transition-transform" href="#">Nodes</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex gap-2 mr-4">
+<button class="p-2 text-slate-400 hover:text-orange-400 transition-colors">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-orange-400 transition-colors">
+<span class="material-symbols-outlined">language</span>
+</button>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-high px-4 py-2 rounded-xl text-sm font-medium border border-outline-variant/20">0x...4f2e</button>
+<button class="bg-gradient-to-br from-primary-dim to-primary text-on-primary px-6 py-2 rounded-xl text-sm font-bold scale-95 active:scale-90 transition-transform">Connect Wallet</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-slate-900 flex flex-col h-screen p-4 border-r border-slate-800/50 pt-24 hidden lg:flex">
+<div class="mb-8 px-2">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface leading-none">The Sovereign</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Verified Vault</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-orange-400 bg-slate-800/50 rounded-lg transition-all duration-200 font-medium" href="#">
+<span class="material-symbols-outlined text-lg">terminal</span>
+<span>RPC Manager</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-800/30 hover:text-slate-200 rounded-lg transition-all duration-200 font-medium" href="#">
+<span class="material-symbols-outlined text-lg">account_balance_wallet</span>
+<span>Portfolio</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-800/30 hover:text-slate-200 rounded-lg transition-all duration-200 font-medium" href="#">
+<span class="material-symbols-outlined text-lg">layers</span>
+<span>Staking</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-800/30 hover:text-slate-200 rounded-lg transition-all duration-200 font-medium" href="#">
+<span class="material-symbols-outlined text-lg">gavel</span>
+<span>Governance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-800/30 hover:text-slate-200 rounded-lg transition-all duration-200 font-medium" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-800/50">
+<button class="w-full bg-orange-400/10 text-orange-400 py-3 rounded-xl font-bold mb-6 hover:bg-orange-400/20 transition-all">Launch Terminal</button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-200 text-sm" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-200 text-sm" href="#">
+<span class="material-symbols-outlined text-sm">description</span>
+                    Docs
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="lg:ml-64 pt-32 pb-20 px-8 max-w-7xl mx-auto">
+<!-- Hero Section -->
+<header class="mb-12 relative overflow-hidden rounded-3xl p-12 bg-surface-container-low">
+<div class="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
+<div class="absolute inset-0 bg-gradient-to-l from-primary/30 to-transparent"></div>
+</div>
+<div class="relative z-10">
+<h1 class="text-4xl md:text-5xl font-bold font-headline tracking-tighter text-on-surface mb-4">
+                    TokenCafe Tools<br/>
+<span class="text-primary">Hub Central de Ferramentas Web3</span>
+</h1>
+<div class="flex items-center gap-4 text-on-surface-variant font-medium">
+<div class="flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-full border border-outline-variant/20">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-xs font-label tracking-widest uppercase">Connected</span>
+</div>
+<span class="text-sm font-headline tracking-tight">0x...4bc5</span>
+<button class="text-xs font-bold text-primary hover:underline transition-all">Sair</button>
+</div>
+</div>
+</header>
+<!-- Tool Grid Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-2xl font-headline font-bold text-on-surface">Ferramentas Ativas</h2>
+<p class="text-on-surface-variant">Explore os módulos disponíveis para gestão avançada</p>
+</div>
+</div>
+<!-- Active Modules Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+<!-- Card: RPC Manager (Double Span Example) -->
+<div class="md:col-span-2 group relative overflow-hidden bg-surface-container-high rounded-3xl p-8 transition-all hover:bg-surface-container-highest active-glow border-t border-transparent hover:border-primary/30">
+<div class="flex justify-between items-start mb-12">
+<div class="p-4 bg-primary/10 rounded-2xl text-primary">
+<span class="material-symbols-outlined text-4xl">terminal</span>
+</div>
+<span class="bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-label font-extrabold tracking-widest uppercase border border-emerald-500/20">Finalizado</span>
+</div>
+<h3 class="text-2xl font-headline font-bold mb-2">RPC Manager</h3>
+<p class="text-on-surface-variant mb-8 max-w-md">Gerencie endpoints RPC personalizados com balanceamento de carga e monitoramento de latência em tempo real para dApps de alta performance.</p>
+<button class="bg-gradient-to-br from-primary-dim to-primary text-on-primary px-8 py-3 rounded-xl text-sm font-bold inline-flex items-center gap-2 group-hover:scale-105 transition-transform">
+                    Abrir Módulo
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<!-- Card: Gerenciador de Carteira -->
+<div class="group bg-surface-container-high rounded-3xl p-6 transition-all hover:bg-surface-container-highest border-t border-transparent hover:border-primary/30">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary/10 rounded-xl text-primary">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+</div>
+<span class="bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-label font-extrabold tracking-widest uppercase border border-emerald-500/20">Finalizado</span>
+</div>
+<h3 class="text-xl font-headline font-bold mb-2">Gerenciador de Carteira</h3>
+<p class="text-sm text-on-surface-variant mb-6">Consolide e monitore múltiplos endereços em uma única interface segura.</p>
+<button class="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 py-3 rounded-xl text-sm font-bold hover:border-primary/50 transition-colors">Abrir Módulo</button>
+</div>
+<!-- Card: Link Generator -->
+<div class="group bg-surface-container-high rounded-3xl p-6 transition-all hover:bg-surface-container-highest border-t border-transparent hover:border-primary/30">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary/10 rounded-xl text-primary">
+<span class="material-symbols-outlined text-2xl">link</span>
+</div>
+<span class="bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-label font-extrabold tracking-widest uppercase border border-emerald-500/20">Finalizado</span>
+</div>
+<h3 class="text-xl font-headline font-bold mb-2">Link Generator</h3>
+<p class="text-sm text-on-surface-variant mb-6">Crie links de pagamento e interações on-chain simplificadas para seus usuários.</p>
+<button class="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 py-3 rounded-xl text-sm font-bold hover:border-primary/50 transition-colors">Abrir Módulo</button>
+</div>
+<!-- Card: Gerador de Contratos -->
+<div class="group bg-surface-container-high rounded-3xl p-6 transition-all hover:bg-surface-container-highest border-t border-transparent hover:border-primary/30">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary/10 rounded-xl text-primary">
+<span class="material-symbols-outlined text-2xl">history_edu</span>
+</div>
+<span class="bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-label font-extrabold tracking-widest uppercase border border-emerald-500/20">Finalizado</span>
+</div>
+<h3 class="text-xl font-headline font-bold mb-2">Gerador de Contratos</h3>
+<p class="text-sm text-on-surface-variant mb-6">Deploy de Smart Contracts verificados sem a necessidade de escrever código manual.</p>
+<button class="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 py-3 rounded-xl text-sm font-bold hover:border-primary/50 transition-colors">Abrir Módulo</button>
+</div>
+<!-- Card: Relatórios -->
+<div class="group bg-surface-container-high rounded-3xl p-6 transition-all hover:bg-surface-container-highest border-t border-transparent hover:border-primary/30">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary/10 rounded-xl text-primary">
+<span class="material-symbols-outlined text-2xl">monitoring</span>
+</div>
+<span class="bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-label font-extrabold tracking-widest uppercase border border-emerald-500/20">Finalizado</span>
+</div>
+<h3 class="text-xl font-headline font-bold mb-2">Relatórios de Contratos</h3>
+<p class="text-sm text-on-surface-variant mb-6">Análises detalhadas de performance e interações de contratos em qualquer rede EVM.</p>
+<button class="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 py-3 rounded-xl text-sm font-bold hover:border-primary/50 transition-colors">Abrir Módulo</button>
+</div>
+<!-- Card: Suporte Técnico -->
+<div class="group bg-surface-container-high rounded-3xl p-6 transition-all hover:bg-surface-container-highest border-t border-transparent hover:border-primary/30">
+<div class="flex justify-between items-start mb-6">
+<div class="p-3 bg-primary/10 rounded-xl text-primary">
+<span class="material-symbols-outlined text-2xl">support_agent</span>
+</div>
+<span class="bg-emerald-900/40 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-label font-extrabold tracking-widest uppercase border border-emerald-500/20">Finalizado</span>
+</div>
+<h3 class="text-xl font-headline font-bold mb-2">Suporte Técnico</h3>
+<p class="text-sm text-on-surface-variant mb-6">Atendimento especializado 24/7 para desenvolvedores e operadores de ferramentas.</p>
+<button class="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 py-3 rounded-xl text-sm font-bold hover:border-primary/50 transition-colors">Abrir Módulo</button>
+</div>
+</div>
+<!-- Upcoming Modules Section -->
+<div class="mb-8">
+<h2 class="text-2xl font-headline font-bold text-on-surface">Próximos Lançamentos</h2>
+<p class="text-on-surface-variant">Módulos em fase final de auditoria e desenvolvimento</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 opacity-70">
+<!-- Em Breve Cards -->
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">analytics</span>
+<h4 class="font-headline font-bold text-sm">Análise de Carteira</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">security</span>
+<h4 class="font-headline font-bold text-sm">Analise de Contratos</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">widgets</span>
+<h4 class="font-headline font-bold text-sm">Widget</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">token</span>
+<h4 class="font-headline font-bold text-sm">Administração de Token</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">collections_bookmark</span>
+<h4 class="font-headline font-bold text-sm">Template Gallery</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">settings_input_component</span>
+<h4 class="font-headline font-bold text-sm">System Settings</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">pulse_alert</span>
+<h4 class="font-headline font-bold text-sm">System Status</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 flex flex-col grayscale transition-all hover:grayscale-0">
+<span class="bg-secondary-container text-on-surface-variant px-2 py-0.5 rounded text-[9px] font-label tracking-tighter uppercase self-start mb-4">Em Breve</span>
+<span class="material-symbols-outlined text-2xl text-on-surface-variant mb-3">palette</span>
+<h4 class="font-headline font-bold text-sm">Guia de Estilos</h4>
+<button class="mt-6 w-full py-2 rounded-lg bg-surface-variant text-on-surface-variant text-xs font-bold cursor-not-allowed" disabled="">Em breve</button>
+</div>
+</div>
+</main>
+<!-- Footer Decoration -->
+<footer class="lg:ml-64 py-8 border-t border-slate-800/50 text-center">
+<p class="text-xs text-on-surface-variant font-label tracking-widest uppercase">TokenCafe Tools © 2024 • Built for the Sovereignty</p>
+</footer>
+</body></html>
