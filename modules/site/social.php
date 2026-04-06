@@ -7,17 +7,12 @@
             Impacto <span class="gradient-text">Social</span>
           </h1>
           <p class="lead text-light mb-3">
-            Programa TokenCafe Social: democratizando o acesso ao mundo crypto para TODOS.
+            Espalhando o acesso ao mundo crypto para TODOS.
           </p>
           <div class="d-flex flex-wrap justify-content-center gap-3">
             <span class="badge bg-primary text-dark px-3 py-2">
-              <i class="bi bi-heart-fill me-2"></i>
-              2% da receita no Fundo Social
-            </span>
-
-            <span class="badge bg-dark text-white-50 px-3 py-2 border border-secondary">
               <i class="bi bi-mortarboard me-2"></i>
-              Educação Web3 em PT-BR
+              Educação Web3
             </span>
           </div>
         </div>
@@ -50,6 +45,15 @@
           <ul class="list-unstyled m-0">
             <li class="d-flex gap-3 align-items-start mb-3">
               <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
+                <i class="bi bi-heart text-primary"></i>
+              </div>
+              <div>
+                <div class="text-white fw-semibold">Fundo TokenCafe Social</div>
+                <div class="text-secondary">2% da receita dedicada ao Fundo TokenCafe Social</div>
+              </div>
+            </li>            
+            <li class="d-flex gap-3 align-items-start mb-3">
+              <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
                 <i class="bi bi-mortarboard text-primary"></i>
               </div>
               <div>
@@ -73,15 +77,6 @@
               <div>
                 <div class="text-white fw-semibold">Learn-to-Earn</div>
                 <div class="text-secondary">Missões educativas com recompensas em tokens</div>
-              </div>
-            </li>
-            <li class="d-flex gap-3 align-items-start mb-3">
-              <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
-                <i class="bi bi-heart text-primary"></i>
-              </div>
-              <div>
-                <div class="text-white fw-semibold">Fundo TokenCafe Social</div>
-                <div class="text-secondary">2% da receita dedicada ao Fundo TokenCafe Social</div>
               </div>
             </li>
             <li class="d-flex gap-3 align-items-start">

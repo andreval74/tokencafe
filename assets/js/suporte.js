@@ -8,7 +8,8 @@
  */
 
 // Inicialização do módulo de suporte: máscara, contador, validação e envio
-document.addEventListener("DOMContentLoaded", function () {
+(function () {
+  const start = function () {
   const form = document.getElementById("contact-support-form");
   const submitBtn = document.getElementById("submit-btn");
   const btnContent = submitBtn?.querySelector(".btn-content");
@@ -31,15 +32,19 @@ document.addEventListener("DOMContentLoaded", function () {
   // Contador de caracteres para mensagem
   const messageTextarea = document.getElementById("contact-message");
   const charCount = document.getElementById("char-count");
+  const updateCharCount = () => {
+    if (!messageTextarea || !charCount) return;
+    let currentLength = messageTextarea.value.length;
+    if (currentLength > 1000) {
+      messageTextarea.value = messageTextarea.value.substring(0, 1000);
+      currentLength = 1000;
+    }
+    charCount.textContent = `${currentLength}/1000 caracteres`;
+  };
   if (messageTextarea && charCount) {
-    messageTextarea.addEventListener("input", function () {
-      const currentLength = this.value.length;
-      charCount.textContent = currentLength;
-
-      if (currentLength > 1000) {
-        this.value = this.value.substring(0, 1000);
-        charCount.textContent = 1000;
-      }
+    updateCharCount();
+    ["input", "keyup", "change"].forEach((evt) => {
+      messageTextarea.addEventListener(evt, updateCharCount);
     });
   }
 
@@ -53,7 +58,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const message = String(document.getElementById("contact-message")?.value || "").replace(/\s+$/u, "");
     const terms = !!document.getElementById("contact-terms")?.checked;
 
-    const sVald = name && email && whatsapp && subject && message.length >= 10 && terms;
+    const whatsappDigits = whatsapp.replace(/\D/g, "");
+    const whatsappValid = whatsappDigits.length === 10 || whatsappDigits.length === 11;
+    const whatsappEl = document.getElementById("contact-whatsapp");
+    if (whatsappEl && typeof whatsappEl.setCustomValidity === "function") {
+      whatsappEl.setCustomValidity(whatsappValid ? "" : "WhatsApp inválido");
+    }
+
+    const sVald = name && email && whatsappValid && subject && message.length >= 10 && terms;
 
     if (submitBtn) {
       submitBtn.disabled = !sVald;
@@ -80,6 +92,8 @@ document.addEventListener("DOMContentLoaded", function () {
         statusEl.classList.remove("d-none");
       }
     }
+
+    updateCharCount();
   }
 
   // Adicionar event listeners para validação em tempo real
@@ -114,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
           wallet: document.getElementById("contact-wallet")?.value || null,
           subject: document.getElementById("contact-subject")?.value || "",
           message: document.getElementById("contact-message")?.value || "",
-          supportEmail: form?.dataset?.supportEmail || "suporte@tokencafe.com",
+          supportEmail: form?.dataset?.supportEmail || "suporte@tokencafe.app",
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
           currentPage: window.location.href,
@@ -133,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
           form.classList.remove("was-validated");
           
           // Resetar contador
-          if (charCount) charCount.textContent = "0";
+          if (charCount) charCount.textContent = "0/1000 caracteres";
           
           validateForm();
         } else {
@@ -155,7 +169,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Validação inicial
   validateForm();
-});
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
+})();
 
 /**
  * Função para enviar email de suporte
@@ -165,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // Envio por API/EmailJS/Formspree com fallback local
 async function sendSupportEmail(formData) {
   try {
-    const supportEmail = String(formData?.supportEmail || "suporte@tokencafe.com").trim();
+    const supportEmail = String(formData?.supportEmail || "suporte@tokencafe.app").trim();
 
     // Configurar dados para envio
     const emailData = {
