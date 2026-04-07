@@ -202,68 +202,10 @@ $activeTiles = array_values(array_filter($tiles, fn ($t) => isset($t["status"]) 
 $upcomingTiles = array_values(array_filter($tiles, fn ($t) => isset($t["disabled"]) && (bool) $t["disabled"]));
 ?>
 
-<div class="container-fluid py-4">
-  <div class="tc-tools-hero mb-4">
-    <h1 class="tc-tools-hero-title mb-1">Visão Geral</h1>
-    <div class="tc-tools-hero-subtitle">Centro de comando do TokenCafe.</div>
-  </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-lg-8">
-      <div class="card bg-dark-elevated border-secondary h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
-            <div>
-              <div class="text-white-50 small">Carteira conectada</div>
-              <div id="tcDashWalletAddress" class="fw-bold text-white">Não Conectado</div>
-              <div class="text-white-50 small mt-2">Saldo e histórico: em breve</div>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-              <a href="index.php?page=wallet" class="btn btn-sm tc-action-btn"><i class="bi bi-wallet2 me-1"></i>Abrir Carteira</a>
-              <a href="index.php?page=rpc" class="btn btn-sm btn-outline-secondary"><i class="bi bi-diagram-3 me-1"></i>RPC Manager</a>
-              <a href="index.php?page=contrato" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-code me-1"></i>Contratos</a>
-            </div>
-          </div>
+  
 
-          <div class="row g-3 mt-2">
-            <div class="col-12 col-md-4">
-              <div class="text-white-50 small">Módulos ativos</div>
-              <div class="fw-bold text-success"><?= (int) count($activeTiles) ?></div>
-            </div>
-            <div class="col-12 col-md-4">
-              <div class="text-white-50 small">Pendentes</div>
-              <div class="fw-bold text-warning"><?= (int) count($upcomingTiles) ?></div>
-            </div>
-            <div class="col-12 col-md-4">
-              <div class="text-white-50 small">Ambiente</div>
-              <div class="fw-bold text-white">App</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-      <div class="card bg-dark-elevated border-secondary h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <div class="fw-bold text-white">Atalhos</div>
-            <span class="badge bg-secondary">Acesso rápido</span>
-          </div>
-          <div class="d-flex flex-wrap gap-2">
-            <a href="index.php?page=link" class="btn btn-sm tc-action-btn"><i class="bi bi-link-45deg me-1"></i>Links</a>
-            <?php if ($isChief) { ?>
-              <a href="index.php?page=logs" class="btn btn-sm tc-action-btn"><i class="bi bi-journal-text me-1"></i>Relatórios</a>
-            <?php } ?>
-            <a href="suporte.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-headset me-1"></i>Suporte</a>
-          </div>
-          <div class="text-white-50 small mt-3">
-            Use o menu lateral para navegar entre módulos mantendo o dashboard.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    
 
   <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
     <div>
