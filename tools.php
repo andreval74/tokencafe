@@ -9,6 +9,6 @@ render_page(__DIR__ . "/modules/site/tools.php", [
   "moduleHeaderIcon" => "bi-tools",
   "moduleHeaderIconAlt" => "Tools",
   "bodyClass" => "bg-page-black",
-  "showSidebar" => false,
-  "showHeader" => false
+  "showSidebar" => true,
+  "showHeader" => true
 ]);

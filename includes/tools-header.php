@@ -11,12 +11,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
 <nav class="navbar navbar-expand-lg navbar-dark bg-page-black">
   <div class="container">
     <div class="tc-tools-header navbar-brand d-flex align-items-center">
-            <!-- Brand TokenCafe -->
-      
-  <a href="index.php?page=tools" class="d-flex align-items-center text-decoration-none">
-        <!-- Logo fixa do TokenCafe -->
-        <img id="tools-header-logo" src="assets/imgs/tkncafe-semfundo.png" alt="TokenCafe" class="logo-small me-3" />
-      </a>
+      <!-- Brand TokenCafe -->
       <div>
         <h3 class="mb-0 text-white">
           <!-- Ícone dinâmico por página -->
@@ -24,7 +19,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         </h3>
         <p class="text-white-50 mb-0 small" id="tools-header-subtitle">Hub Central de Ferramentas Web3</p>
       </div>
-    </div> 
+    </div>
 
     <!-- Status da Carteira (padrão minimalista) -->
     <div class="d-flex flex-column align-items-end text-end">

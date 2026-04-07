@@ -7,4 +7,3 @@ render_page(__DIR__ . "/modules/site/termos-e-servicos.php", [
   "bodyClass" => "bg-page-black",
   "showSidebar" => false
 ]);
-

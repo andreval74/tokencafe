@@ -27,22 +27,43 @@ if (in_array($page, ["admin", "logs-resumo", "meu-dashboard"], true)) $page = "l
 $resolved = tokencafe_resolve_page($page);
 
 if ($resolved && is_file($resolved)) {
-  $options = [
-    "bodyClass" => "bg-page-black",
-    "showSidebar" => false,
-  ];
+  $resolvedNorm = strtolower(str_replace("\\", "/", (string) $resolved));
+  $isSiteView = str_contains($resolvedNorm, "/modules/site/") || str_ends_with($resolvedNorm, "modules/site/home.php") || str_ends_with($resolvedNorm, "modules/site/home-basica.php");
+  $isAppShell = $page === "tools" || !$isSiteView;
 
-  if ($page === "tools") {
-    $options["headerVariant"] = "module";
-    $options["showHeader"] = false;
+  if ($isAppShell) {
+    $guess = function_exists("__tokencafe_guess_title") ? __tokencafe_guess_title($resolved) : null;
+    $options = [
+      "bodyClass" => "bg-page-black",
+      "showSidebar" => true,
+      "headerVariant" => "module",
+      "moduleHeaderTitle" => is_array($guess) && isset($guess["title"]) ? (string) $guess["title"] : "TokenCafe",
+      "moduleHeaderSubtitle" => is_array($guess) && isset($guess["subtitle"]) ? (string) $guess["subtitle"] : "Dashboard",
+      "moduleHeaderIcon" => is_array($guess) && isset($guess["icon"]) ? (string) $guess["icon"] : "bi-grid",
+      "moduleHeaderIconAlt" => is_array($guess) && isset($guess["iconAlt"]) ? (string) $guess["iconAlt"] : "TokenCafe",
+    ];
+
+    if ($page === "tools") {
+      $options["moduleHeaderTitle"] = "TokenCafe Tools";
+      $options["moduleHeaderSubtitle"] = "Hub Central de Ferramentas Web3";
+      $options["moduleHeaderIcon"] = "bi-tools";
+      $options["moduleHeaderIconAlt"] = "Tools";
+    }
+
+    render_page($resolved, $options);
+  } else {
+    render_page($resolved, [
+      "bodyClass" => "bg-page-black",
+      "showSidebar" => false,
+      "headerVariant" => "default",
+    ]);
   }
-
-  render_page($resolved, $options);
 } else {
   render_page(__DIR__ . "/modules/site/not-migrated.php", [
     "pageTitle" => "Módulo não migrado - TokenCafe",
     "bodyClass" => "bg-page-black",
     "showSidebar" => false,
+    "headerVariant" => "default",
     "missingModule" => $page,
   ]);
 }

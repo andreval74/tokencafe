@@ -189,28 +189,132 @@ $tiles = [
     "desc" => "Referência de padrões de UI e CSS",
   ],
 ];
+
+$walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
+$isChief = function_exists("tokencafe_is_chief_admin") ? tokencafe_is_chief_admin($walletCookie) : false;
+if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
+
+if (!$isChief) {
+  $tiles = array_values(array_filter($tiles, fn ($t) => (string)($t["title"] ?? "") !== "Relatórios de Contratos"));
+}
+
+$activeTiles = array_values(array_filter($tiles, fn ($t) => isset($t["status"]) && (string) $t["status"] === "finished"));
+$upcomingTiles = array_values(array_filter($tiles, fn ($t) => isset($t["disabled"]) && (bool) $t["disabled"]));
 ?>
 
-<div data-component="tools-header.php" data-icon="bi-tools" data-icon-alt="TokenCafe" data-title="TokenCafe Tools"
-  data-subtitle="Hub Central de Ferramentas Web3"></div>
-
-<div class="container py-4 bg-page-black min-vh-100">
+<div class="container-fluid py-4">
   <div class="tc-tools-hero mb-4">
-    <h1 class="tc-tools-hero-title mb-1">O que você deseja realizar?</h1>
-    <div class="tc-tools-hero-subtitle">Selecione um módulo abaixo para continuar.</div>
+    <h1 class="tc-tools-hero-title mb-1">Visão Geral</h1>
+    <div class="tc-tools-hero-subtitle">Centro de comando do TokenCafe.</div>
   </div>
-  <div class="row">
-    <div class="col-12">
-      <div class="tool-tiles">
-        <?php
-        foreach ($tiles as $tile) {
-          tc_tools_render_tile($tile);
-        }
-        ?>
-      </div>
 
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="card bg-dark-elevated border-secondary h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+            <div>
+              <div class="text-white-50 small">Carteira conectada</div>
+              <div id="tcDashWalletAddress" class="fw-bold text-white">Não Conectado</div>
+              <div class="text-white-50 small mt-2">Saldo e histórico: em breve</div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <a href="index.php?page=wallet" class="btn btn-sm tc-action-btn"><i class="bi bi-wallet2 me-1"></i>Abrir Carteira</a>
+              <a href="index.php?page=rpc" class="btn btn-sm btn-outline-secondary"><i class="bi bi-diagram-3 me-1"></i>RPC Manager</a>
+              <a href="index.php?page=contrato" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-code me-1"></i>Contratos</a>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-12 col-md-4">
+              <div class="text-white-50 small">Módulos ativos</div>
+              <div class="fw-bold text-success"><?= (int) count($activeTiles) ?></div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="text-white-50 small">Pendentes</div>
+              <div class="fw-bold text-warning"><?= (int) count($upcomingTiles) ?></div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="text-white-50 small">Ambiente</div>
+              <div class="fw-bold text-white">App</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card bg-dark-elevated border-secondary h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="fw-bold text-white">Atalhos</div>
+            <span class="badge bg-secondary">Acesso rápido</span>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="index.php?page=link" class="btn btn-sm tc-action-btn"><i class="bi bi-link-45deg me-1"></i>Links</a>
+            <?php if ($isChief) { ?>
+              <a href="index.php?page=logs" class="btn btn-sm tc-action-btn"><i class="bi bi-journal-text me-1"></i>Relatórios</a>
+            <?php } ?>
+            <a href="suporte.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-headset me-1"></i>Suporte</a>
+          </div>
+          <div class="text-white-50 small mt-3">
+            Use o menu lateral para navegar entre módulos mantendo o dashboard.
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
+    <div>
+      <div class="fw-bold text-white">Módulos</div>
+      <div class="text-white-50 small">Gerencie acessos por categoria</div>
+    </div>
+    <ul class="nav nav-pills" id="toolsTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="toolsActiveTab" data-bs-toggle="tab" data-bs-target="#toolsActivePane" type="button" role="tab" aria-controls="toolsActivePane" aria-selected="true">
+          Ativos <span class="badge bg-success ms-1"><?= (int) count($activeTiles) ?></span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="toolsSoonTab" data-bs-toggle="tab" data-bs-target="#toolsSoonPane" type="button" role="tab" aria-controls="toolsSoonPane" aria-selected="false">
+          Em breve <span class="badge bg-warning text-dark ms-1"><?= (int) count($upcomingTiles) ?></span>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="toolsActivePane" role="tabpanel" aria-labelledby="toolsActiveTab" tabindex="0">
+      <div class="tool-tiles mb-4">
+        <?php foreach ($activeTiles as $tile) { tc_tools_render_tile($tile); } ?>
+      </div>
+    </div>
+    <div class="tab-pane fade" id="toolsSoonPane" role="tabpanel" aria-labelledby="toolsSoonTab" tabindex="0">
+      <div class="tool-tiles">
+        <?php foreach ($upcomingTiles as $tile) { tc_tools_render_tile($tile); } ?>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    try {
+      const el = document.getElementById("tcDashWalletAddress");
+      const addr = (window.ethereum && window.ethereum.selectedAddress) ? window.ethereum.selectedAddress : (localStorage.getItem("tokencafe_wallet_address") || "");
+      if (el) el.textContent = addr ? addr : "Não Conectado";
+      document.addEventListener("wallet:connected", (e) => {
+        try {
+          const a = e?.detail?.account || "";
+          if (el) el.textContent = a ? a : "Não Conectado";
+        } catch (_) {}
+      });
+      document.addEventListener("wallet:disconnected", () => {
+        try {
+          if (el) el.textContent = "Não Conectado";
+        } catch (_) {}
+      });
+    } catch (_) {}
+  </script>
 </div>
 
 

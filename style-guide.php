@@ -7,4 +7,3 @@ render_page(__DIR__ . "/modules/site/style-guide.php", [
   "bodyClass" => "bg-page-black",
   "showSidebar" => false
 ]);
-

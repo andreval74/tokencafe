@@ -1,5 +1,5 @@
 <?php if (isset($enqueue_script_src)) $enqueue_script_src("assets/js/suporte.js"); ?>
-<div class="TokenCafe-content">
+<div class="TokenCafe-content" style="padding-top: 92px;">
   <!-- ==================== CABEÇALHO / SUPORTE ==================== -->
   <section class="tc-hero-section">
     <div class="container">
