@@ -8,6 +8,14 @@ const runBtn = document.getElementById("runVerify");
 const spinner = document.getElementById("verifySpinner");
 const btnText = document.getElementById("verifyBtnText");
 
+function openContractDetailsCard() {
+  try {
+    const csContainer = document.querySelector('[data-component="shared/components/contract-search.php"]');
+    const card = csContainer?.querySelector?.("#selected-contract-info") || document.getElementById("selected-contract-info");
+    if (card) card.classList.remove("d-none");
+  } catch (_) {}
+}
+
 (function () {
   try {
     const origFetch = window.fetch;
@@ -78,6 +86,7 @@ const btnText = document.getElementById("verifyBtnText");
   document.addEventListener("contract:found", (e) => {
     const contract = e.detail.contract;
     if (contract) {
+      openContractDetailsCard();
       const generateSection = document.getElementById("generate-section");
       const walletWarning = document.getElementById("walletWarning");
       const runVerifyBtn = document.getElementById("runVerify");

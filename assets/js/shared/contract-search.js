@@ -562,10 +562,6 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
     if (!container || !chainId || !address) return;
   
     const card = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
-    // Only hide initially if we are NOT in autoShowCard mode, or we can hide and then show later.
-    // Resetting is safer to ensure clean state.
-    if (card) card.classList.add("d-none");
-
     const infoBtn = container.querySelector("#csInfoBtn");
     if (infoBtn) {
         infoBtn.disabled = false;
@@ -574,7 +570,7 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
 
     // Check for auto-show based on container attribute or options
     const isViewOnly = container.getAttribute("data-cs-view-only") === "true";
-    const shouldAutoShow = options.autoShowCard || isViewOnly;
+    const shouldAutoShow = options.autoShowCard || isViewOnly || container.getAttribute("data-cs-auto-open") === "true";
 
     if (shouldAutoShow && card) {
          card.classList.remove("d-none");
@@ -582,6 +578,8 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
          if (isViewOnly && infoBtn) {
              infoBtn.classList.add("d-none");
          }
+    } else {
+      if (card) card.classList.add("d-none");
     }
 
     const topExp = container.querySelector("#csExplorerBtn") || document.getElementById("csExplorerBtn");
@@ -994,7 +992,14 @@ async function performContractSearch(container, chainId, address) {
 
     // Update UI
     // Reuse the shared updater!
-    await updateContractDetailsView(container, chainIdRaw, addrRaw);
+    await updateContractDetailsView(container, chainIdRaw, addrRaw, null, { autoShowCard: container.getAttribute("data-cs-auto-open") === "true" });
+    
+    try {
+      if (container.getAttribute("data-cs-auto-open") === "true") {
+        const card2 = container.querySelector("#selected-contract-info") || document.getElementById("selected-contract-info");
+        if (card2) card2.classList.remove("d-none");
+      }
+    } catch (_) {}
     
     // Status Logic
     const infoBtn = container.querySelector("#csInfoBtn");

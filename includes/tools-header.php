@@ -34,12 +34,18 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         <button id="language-toggle-btn" class="btn btn-sm btn-transparent-info me-3" type="button" title="Mudar Idioma">
           <i class="bi bi-globe" id="language-icon"></i>
         </button>
-        <!-- Botão Home -->
-        <a href="index.php?page=tools" class="badge bg-secondary text-white text-decoration-none me-2 badge-action"
-          title="Ir para Tools">
-          <i class="bi bi-house-door-fill me-1"></i>
-          Home
-        </a>
+        <?php
+          $p = isset($_GET["page"]) ? strtolower((string) $_GET["page"]) : "";
+          $p = preg_replace('/[^a-z0-9_-]+/', "", $p);
+          $script = strtolower(basename((string)($_SERVER["SCRIPT_NAME"] ?? "")));
+          $showHomeBtn = ($p === "tools") || ($p === "" && $script === "tools.php");
+        ?>
+        <?php if ($showHomeBtn) { ?>
+          <a href="index.php?page=tools" class="badge bg-secondary text-white text-decoration-none me-2 badge-action" title="Ir para Tools">
+            <i class="bi bi-house-door-fill me-1"></i>
+            Home
+          </a>
+        <?php } ?>
 
         <button id="connect-metamask-btn" class="badge bg-success me-2 badge-action" type="button" title="Conectar carteira">
           <i class="bi bi-wallet2 me-1"></i>

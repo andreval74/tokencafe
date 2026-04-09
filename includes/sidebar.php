@@ -59,21 +59,21 @@ $openSettings = false;
       </button>
       <div class="collapse <?= $openModules ? "show" : "" ?>" id="sidebarModules">
         <div class="list-group list-group-flush ms-3">
-          <a href="index.php?page=rpc" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "rpc" ? "active text-white" : "" ?>">
-            <i class="bi bi-diagram-3 me-2"></i>
-            RPC Manager
-          </a>
           <a href="index.php?page=wallet" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "wallet" ? "active text-white" : "" ?>">
             <i class="bi bi-wallet2 me-2"></i>
             Carteira
           </a>
-          <a href="index.php?page=link" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "link" ? "active text-white" : "" ?>">
-            <i class="bi bi-link-45deg me-2"></i>
-            Link Generator
+          <a href="index.php?page=rpc" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "rpc" ? "active text-white" : "" ?>">
+            <i class="bi bi-diagram-3 me-2"></i>
+            RPC Manager
           </a>
           <a href="index.php?page=contrato" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "contrato" ? "active text-white" : "" ?>">
             <i class="bi bi-file-earmark-code me-2"></i>
             Contratos
+          </a>
+          <a href="index.php?page=verifica" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "verifica" ? "active text-white" : "" ?>">
+            <i class="bi bi-check2-circle me-2"></i>
+            Verificação
           </a>
           <?php if ($isChief) { ?>
             <a href="index.php?page=logs" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "logs" ? "active text-white" : "" ?>">
@@ -81,6 +81,10 @@ $openSettings = false;
               Relatórios
             </a>
           <?php } ?>
+          <a href="index.php?page=link" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "link" ? "active text-white" : "" ?>">
+            <i class="bi bi-link-45deg me-2"></i>
+            Link Generator
+          </a>
         </div>
       </div>
 

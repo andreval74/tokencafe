@@ -83,6 +83,27 @@ function setupImportRecipe() {
   }
 }
 
+function stripToolsOverviewAboveModules() {
+  try {
+    const tabs = document.getElementById("toolsTabs");
+    if (!tabs) return;
+    const headerRow = tabs.closest(".d-flex") || tabs.closest("div");
+    if (!headerRow) return;
+    const parent = headerRow.parentElement;
+    if (!parent) return;
+
+    const toRemove = [];
+    for (let el = headerRow.previousElementSibling; el; el = el.previousElementSibling) {
+      toRemove.push(el);
+    }
+    toRemove.forEach((el) => {
+      try {
+        el.remove();
+      } catch (_) {}
+    });
+  } catch (_) {}
+}
+
 // --- Access Control System ---
 const accessControl = {
   
@@ -92,37 +113,91 @@ const accessControl = {
   },
 
   apply(walletAddress) {
-    const tiles = document.querySelectorAll('.tool-tile');
+    const tiles = document.querySelectorAll(".tool-tile");
     const isAdmin = isWalletAdmin(walletAddress);
     
     console.log(`Access Control: Applying rules for ${walletAddress || 'Guest'} (Admin: ${isAdmin})`);
 
-    tiles.forEach(tile => {
-      const isFinished = tile.getAttribute('data-status') === 'finished';
-      
-      if (isAdmin) {
-        // Admin sees everything
-        tile.classList.remove('d-none');
-        if (!isFinished) {
-           tile.classList.add("tc-tool-tile--admin-preview");
-        } else {
-           tile.classList.remove("tc-tool-tile--admin-preview");
+    tiles.forEach((tile) => {
+      tile.classList.remove("d-none");
+
+      const status = String(tile.getAttribute("data-status") || "");
+      const isFinished = status === "finished";
+      const isAdminOnly = tile.getAttribute("data-admin-only") === "true";
+
+      const badgeEl = tile.querySelector(".tool-tile-status");
+      const linkEl = tile.querySelector("a.tool-link") || tile.querySelector("a");
+      const iconEl = linkEl ? linkEl.querySelector("i") : null;
+
+      const originalBadgeText = tile.getAttribute("data-badge-text") || (badgeEl ? badgeEl.textContent : "");
+      const originalBadgeClass = tile.getAttribute("data-badge-class") || "";
+      const originalHref = tile.getAttribute("data-href") || (linkEl ? linkEl.getAttribute("href") : "");
+      const originalLinkLabel = tile.getAttribute("data-link-label") || (linkEl ? linkEl.textContent : "");
+      const originalLinkAria = tile.getAttribute("data-link-aria-label") || (linkEl ? linkEl.getAttribute("aria-label") : "");
+      const originalLinkIconClass = tile.getAttribute("data-link-icon-class") || (iconEl ? iconEl.className : "");
+      const originalLinkClass = tile.getAttribute("data-link-class") || (linkEl ? linkEl.className : "");
+
+      const locked = isAdminOnly && !isAdmin;
+
+      if (locked) {
+        tile.classList.add("disabled-tile");
+        tile.setAttribute("aria-disabled", "true");
+
+        if (badgeEl) {
+          badgeEl.textContent = isFinished ? "Finalizado • ADM" : "Em Breve • ADM";
+          badgeEl.className = "tool-tile-status badge bg-secondary";
+        }
+
+        if (linkEl) {
+          linkEl.className = "tool-link btn btn-sm btn-outline-secondary rounded-3 w-100 disabled";
+          linkEl.setAttribute("href", "#");
+          linkEl.setAttribute("tabindex", "-1");
+          linkEl.setAttribute("aria-disabled", "true");
+          linkEl.setAttribute("aria-label", "Somente ADM");
+          linkEl.textContent = "Somente ADM";
+          if (iconEl) {
+            iconEl.className = "bi bi-lock-fill me-1";
+            linkEl.prepend(iconEl);
+          }
         }
       } else {
-        // Regular user sees only finished items
-        if (isFinished) {
-          tile.classList.remove('d-none');
-          tile.classList.remove("tc-tool-tile--admin-preview");
+        if (isAdminOnly) {
+          tile.removeAttribute("aria-disabled");
+          tile.classList.remove("disabled-tile");
+          if (badgeEl) {
+            badgeEl.textContent = originalBadgeText;
+            badgeEl.className = `tool-tile-status badge ${originalBadgeClass}`.trim();
+          }
+          if (linkEl) {
+            linkEl.className = originalLinkClass;
+            if (originalHref) linkEl.setAttribute("href", originalHref);
+            if (originalLinkAria) linkEl.setAttribute("aria-label", originalLinkAria);
+            linkEl.removeAttribute("tabindex");
+            linkEl.removeAttribute("aria-disabled");
+            linkEl.textContent = originalLinkLabel;
+            if (iconEl && originalLinkIconClass) {
+              iconEl.className = originalLinkIconClass;
+              linkEl.prepend(iconEl);
+            }
+          }
         } else {
-          tile.classList.add('d-none');
+          if (badgeEl) {
+            badgeEl.textContent = originalBadgeText;
+            if (originalBadgeClass) badgeEl.className = `tool-tile-status badge ${originalBadgeClass}`.trim();
+          }
         }
       }
+
+      if (isAdmin && !isFinished) tile.classList.add("tc-tool-tile--admin-preview");
+      else tile.classList.remove("tc-tool-tile--admin-preview");
     });
   }
 };
 
 const initWhenReady = async () => {
   initSeo();
+  stripToolsOverviewAboveModules();
+  setTimeout(stripToolsOverviewAboveModules, 200);
   setupToolLinks();
   enableTooltips();
   setupImportRecipe();

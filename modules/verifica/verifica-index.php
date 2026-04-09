@@ -22,7 +22,7 @@
 
         <!-- ===== SEÇÃO 2: DADOS DO CONTRATO ===== -->
         <div id="token-section" class="mb-4 d-none">
-          <div data-component="shared/components/contract-search.php"></div>
+          <div data-component="shared/components/contract-search.php" data-cs-auto-open="true"></div>
 
           <input id="f_chainId" type="hidden" />
 

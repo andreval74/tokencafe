@@ -22,10 +22,19 @@ function tc_tools_render_tile(array $tile): void
   $linkClass = (string) ($tile["linkClass"] ?? ($disabled ? "tool-link btn btn-sm btn-outline-secondary rounded-3 w-100 disabled" : "tool-link btn btn-sm tc-action-btn w-100"));
 
   $tileClass = "tool-tile" . ($disabled ? " disabled-tile" : "");
+  $adminOnly = (bool) ($tile["adminOnly"] ?? false);
 
   $attrs = [
     "class" => $tileClass,
     "aria-label" => $ariaLabel,
+    "data-status" => $status,
+    "data-badge-text" => $badgeText,
+    "data-badge-class" => $badgeClass,
+    "data-href" => $href,
+    "data-link-label" => $linkLabel,
+    "data-link-aria-label" => $linkAriaLabel,
+    "data-link-icon-class" => $linkIconClass,
+    "data-link-class" => $linkClass,
   ];
 
   if ($id) {
@@ -36,15 +45,13 @@ function tc_tools_render_tile(array $tile): void
     $attrs["aria-disabled"] = "true";
   }
 
-  if ($status === "finished") {
-    $attrs["data-status"] = "finished";
-  }
+  if ($adminOnly) $attrs["data-admin-only"] = "true";
 
   $attrStr = "";
   foreach ($attrs as $key => $value) {
     $attrStr .= " " . htmlspecialchars((string) $key, ENT_QUOTES, "UTF-8") . '="' . htmlspecialchars((string) $value, ENT_QUOTES, "UTF-8") . '"';
   }
-  ?>
+?>
 
   <div<?= $attrStr ?>>
     <span class="tool-tile-status badge <?= htmlspecialchars($badgeClass, ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($badgeText, ENT_QUOTES, "UTF-8") ?></span>
@@ -64,7 +71,7 @@ function tc_tools_render_tile(array $tile): void
         </a>
       <?php } ?>
     </div>
-  </div>
+    </div>
 
   <?php
 }
@@ -72,13 +79,13 @@ function tc_tools_render_tile(array $tile): void
 $tiles = [
   [
     "status" => "finished",
-    "ariaLabel" => "Gerenciador de Carteira",
+    "ariaLabel" => "Carteira",
     "iconClass" => "bi bi-wallet2",
-    "title" => "Gerenciador de Carteira",
-    "desc" => "Visualize as informações da sua carteira conectada.",
+    "title" => "Carteira",
+    "desc" => "Informações da sua carteira conectada",
     "href" => "index.php?page=wallet",
     "linkLabel" => "Abrir Módulo",
-    "linkAriaLabel" => "Abrir Wallet Manager",
+    "linkAriaLabel" => "Abrir Carteira",
   ],
   [
     "status" => "finished",
@@ -92,6 +99,37 @@ $tiles = [
   ],
   [
     "status" => "finished",
+    "ariaLabel" => "Contratos",
+    "iconClass" => "bi bi-file-earmark-code",
+    "title" => "Contratos",
+    "desc" => "Crie, implante e valide contratos",
+    "href" => "index.php?page=contrato",
+    "linkLabel" => "Abrir Módulo",
+    "linkAriaLabel" => "Abrir Contratos",
+  ],
+  [
+    "status" => "finished",
+    "ariaLabel" => "Verificação",
+    "iconClass" => "bi bi-check2-circle",
+    "title" => "Verificação",
+    "desc" => "Verifique e publique o contrato no explorer",
+    "href" => "index.php?page=verifica",
+    "linkLabel" => "Abrir Módulo",
+    "linkAriaLabel" => "Abrir Verificação",
+  ],
+  [
+    "status" => "finished",
+    "ariaLabel" => "Relatórios",
+    "iconClass" => "bi bi-journal-text",
+    "title" => "Relatórios",
+    "desc" => "Relatórios técnicos de acesso",
+    "href" => "index.php?page=logs",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Logs do Sistema",
+    "adminOnly" => true,
+  ],
+  [
+    "status" => "finished",
     "ariaLabel" => "Link Generator",
     "iconClass" => "bi bi-link-45deg",
     "title" => "Link Generator",
@@ -102,29 +140,9 @@ $tiles = [
   ],
   [
     "status" => "finished",
-    "ariaLabel" => "Gerador de Contratos",
-    "iconClass" => "bi bi-file-earmark-code",
-    "title" => "Gerador de Contratos",
-    "desc" => "Crie, implante e valide contratos",
-    "href" => "index.php?page=contrato",
-    "linkLabel" => "Modo Básico",
-    "linkAriaLabel" => "Abrir Contracts Builder",
-  ],
-  [
-    "status" => "finished",
-    "ariaLabel" => "Logs de Contratos",
-    "iconClass" => "bi bi-journal-text",
-    "title" => "Relatórios de Contratos",
-    "desc" => "KPIs, projeções, top páginas e dados do dia.",
-    "href" => "index.php?page=logs",
-    "linkLabel" => "Abrir",
-    "linkAriaLabel" => "Abrir Logs do Sistema",
-  ],
-  [
-    "status" => "finished",
-    "ariaLabel" => "Suporte Técnico",
+    "ariaLabel" => "Suporte",
     "iconClass" => "bi bi-headset",
-    "title" => "Suporte Técnico",
+    "title" => "Suporte",
     "desc" => "Envie um e-mail para obter ajuda.",
     "href" => "suporte.php",
     "linkLabel" => "Suporte Via Email",
@@ -194,40 +212,57 @@ $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOK
 $isChief = function_exists("tokencafe_is_chief_admin") ? tokencafe_is_chief_admin($walletCookie) : false;
 if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
 
-if (!$isChief) {
-  $tiles = array_values(array_filter($tiles, fn ($t) => (string)($t["title"] ?? "") !== "Relatórios de Contratos"));
-}
+$tiles = array_map(function ($t) use ($isChief) {
+  $adminOnly = isset($t["adminOnly"]) && (bool) $t["adminOnly"];
+  if ($adminOnly && !$isChief) {
+    $t["disabled"] = true;
+    $status = (string) ($t["status"] ?? "finished");
+    $t["badgeText"] = ($status === "finished" ? "Finalizado • ADM" : "Em Breve • ADM");
+    $t["badgeClass"] = "bg-secondary";
+    $t["linkLabel"] = "Somente ADM";
+    $t["linkIconClass"] = "bi bi-lock-fill";
+  }
+  return $t;
+}, $tiles);
 
-$activeTiles = array_values(array_filter($tiles, fn ($t) => isset($t["status"]) && (string) $t["status"] === "finished"));
-$upcomingTiles = array_values(array_filter($tiles, fn ($t) => isset($t["disabled"]) && (bool) $t["disabled"]));
-?>
+$allTiles = array_values($tiles);
+$getStatus = fn ($t) => (string)($t["status"] ?? (((bool)($t["disabled"] ?? false)) ? "soon" : "finished"));
+$activeTiles = array_values(array_filter($tiles, fn ($t) => $getStatus($t) === "finished"));
+$upcomingTiles = array_values(array_filter($tiles, fn ($t) => $getStatus($t) === "soon"));
+  ?>
 
-
-  
-
-    
-
+<div class="container-fluid px-3 px-lg-4 py-4">
   <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
     <div>
       <div class="fw-bold text-white">Módulos</div>
       <div class="text-white-50 small">Gerencie acessos por categoria</div>
     </div>
-    <ul class="nav nav-pills" id="toolsTabs" role="tablist">
+    <ul class="nav nav-pills tc-tools-tabs" id="toolsTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="toolsActiveTab" data-bs-toggle="tab" data-bs-target="#toolsActivePane" type="button" role="tab" aria-controls="toolsActivePane" aria-selected="true">
-          Ativos <span class="badge bg-success ms-1"><?= (int) count($activeTiles) ?></span>
+        <button class="nav-link tc-tools-tab active" id="toolsAllTab" data-bs-toggle="tab" data-bs-target="#toolsAllPane" type="button" role="tab" aria-controls="toolsAllPane" aria-selected="true">
+          Todos <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($allTiles) ?></span>
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="toolsSoonTab" data-bs-toggle="tab" data-bs-target="#toolsSoonPane" type="button" role="tab" aria-controls="toolsSoonPane" aria-selected="false">
-          Em breve <span class="badge bg-warning text-dark ms-1"><?= (int) count($upcomingTiles) ?></span>
+        <button class="nav-link tc-tools-tab" id="toolsActiveTab" data-bs-toggle="tab" data-bs-target="#toolsActivePane" type="button" role="tab" aria-controls="toolsActivePane" aria-selected="false">
+          Ativos <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($activeTiles) ?></span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link tc-tools-tab" id="toolsSoonTab" data-bs-toggle="tab" data-bs-target="#toolsSoonPane" type="button" role="tab" aria-controls="toolsSoonPane" aria-selected="false">
+          Em breve <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($upcomingTiles) ?></span>
         </button>
       </li>
     </ul>
   </div>
 
   <div class="tab-content">
-    <div class="tab-pane fade show active" id="toolsActivePane" role="tabpanel" aria-labelledby="toolsActiveTab" tabindex="0">
+    <div class="tab-pane fade show active" id="toolsAllPane" role="tabpanel" aria-labelledby="toolsAllTab" tabindex="0">
+      <div class="tool-tiles mb-4">
+        <?php foreach ($allTiles as $tile) { tc_tools_render_tile($tile); } ?>
+      </div>
+    </div>
+    <div class="tab-pane fade" id="toolsActivePane" role="tabpanel" aria-labelledby="toolsActiveTab" tabindex="0">
       <div class="tool-tiles mb-4">
         <?php foreach ($activeTiles as $tile) { tc_tools_render_tile($tile); } ?>
       </div>
@@ -258,7 +293,5 @@ $upcomingTiles = array_values(array_filter($tiles, fn ($t) => isset($t["disabled
     } catch (_) {}
   </script>
 </div>
-
-
 
 <div data-component="modules/modals/auth-modal.php"></div>

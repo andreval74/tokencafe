@@ -2361,6 +2361,56 @@ Classes reutilizáveis para efeitos neon padronizados
   filter: brightness(0.95);
 }
 
+.tc-tools-tabs {
+  gap: 0.5rem;
+}
+
+.tc-tools-tabs .nav-link.tc-tools-tab {
+  background-color: var(--tokencafe-gray-700) !important;
+  color: var(--tokencafe-white) !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  opacity: 0.9;
+  border: 1px solid var(--tokencafe-white-10) !important;
+  border-radius: 999px !important;
+  padding: 0.35rem 0.85rem !important;
+}
+
+.tc-tools-tabs .nav-link.tc-tools-tab:hover {
+  background-color: var(--tokencafe-primary) !important;
+  color: var(--tokencafe-white) !important;
+  opacity: 1;
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 8px var(--tokencafe-shadow-black-30);
+}
+
+.tc-tools-tabs .nav-link.tc-tools-tab.active,
+.tc-tools-tabs .nav-link.tc-tools-tab:active {
+  background-color: var(--tokencafe-primary) !important;
+  border-color: var(--tokencafe-primary) !important;
+  color: var(--tokencafe-white) !important;
+  opacity: 1;
+}
+
+.tc-tools-tabs .nav-link.tc-tools-tab:focus-visible {
+  box-shadow: var(--tokencafe-ring-primary-25);
+}
+
+.tc-tools-tabs .tc-tools-tab-badge {
+  background-color: var(--tokencafe-primary-25) !important;
+  border: 1px solid var(--tokencafe-primary-40) !important;
+  color: var(--tokencafe-white) !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+
+.tc-tools-tabs .nav-link.tc-tools-tab.active .tc-tools-tab-badge {
+  background-color: var(--tokencafe-white-15) !important;
+  border-color: var(--tokencafe-white-20) !important;
+  color: var(--tokencafe-white) !important;
+}
+
 .tool-tile.disabled-tile {
   opacity: 0.5;
   filter: grayscale(100%);
