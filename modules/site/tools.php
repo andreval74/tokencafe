@@ -99,6 +99,16 @@ $tiles = [
   ],
   [
     "status" => "finished",
+    "ariaLabel" => "Gerador de Links",
+    "iconClass" => "bi bi-link-45deg",
+    "title" => "Gerador de Links",
+    "desc" => "Links para adicionar tokens",
+    "href" => "index.php?page=link",
+    "linkLabel" => "Abrir Módulo",
+    "linkAriaLabel" => "Abrir Gerador de Links",
+  ],
+  [
+    "status" => "finished",
     "ariaLabel" => "Contratos",
     "iconClass" => "bi bi-file-earmark-code",
     "title" => "Contratos",
@@ -127,16 +137,6 @@ $tiles = [
     "linkLabel" => "Abrir",
     "linkAriaLabel" => "Abrir Logs do Sistema",
     "adminOnly" => true,
-  ],
-  [
-    "status" => "finished",
-    "ariaLabel" => "Link Generator",
-    "iconClass" => "bi bi-link-45deg",
-    "title" => "Link Generator",
-    "desc" => "Links para adicionar tokens",
-    "href" => "index.php?page=link",
-    "linkLabel" => "Abrir Módulo",
-    "linkAriaLabel" => "Abrir Link Generator",
   ],
   [
     "status" => "finished",
@@ -209,24 +209,22 @@ $tiles = [
 ];
 
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
-$isChief = function_exists("tokencafe_is_chief_admin") ? tokencafe_is_chief_admin($walletCookie) : false;
-if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
+$isAdmin = function_exists("tokencafe_is_admin_wallet") ? tokencafe_is_admin_wallet($walletCookie) : false;
+if (
+  !$isAdmin
+  && trim($walletCookie) === ""
+  && function_exists("tokencafe_is_admin_bypass_active")
+  && tokencafe_is_admin_bypass_active()
+) $isAdmin = true;
 
-$tiles = array_map(function ($t) use ($isChief) {
-  $adminOnly = isset($t["adminOnly"]) && (bool) $t["adminOnly"];
-  if ($adminOnly && !$isChief) {
-    $t["disabled"] = true;
-    $status = (string) ($t["status"] ?? "finished");
-    $t["badgeText"] = ($status === "finished" ? "Finalizado • ADM" : "Em Breve • ADM");
-    $t["badgeClass"] = "bg-secondary";
-    $t["linkLabel"] = "Somente ADM";
-    $t["linkIconClass"] = "bi bi-lock-fill";
-  }
-  return $t;
-}, $tiles);
+$getStatus = fn ($t) => (string)($t["status"] ?? (((bool)($t["disabled"] ?? false)) ? "soon" : "finished"));
+
+if (!$isAdmin) {
+  // Usuário comum: exibe somente módulos ativos (sem "Em breve" e sem tiles de administração).
+  $tiles = array_values(array_filter($tiles, fn ($t) => $getStatus($t) === "finished" && !(bool) ($t["adminOnly"] ?? false)));
+}
 
 $allTiles = array_values($tiles);
-$getStatus = fn ($t) => (string)($t["status"] ?? (((bool)($t["disabled"] ?? false)) ? "soon" : "finished"));
 $activeTiles = array_values(array_filter($tiles, fn ($t) => $getStatus($t) === "finished"));
 $upcomingTiles = array_values(array_filter($tiles, fn ($t) => $getStatus($t) === "soon"));
   ?>
@@ -238,40 +236,48 @@ $upcomingTiles = array_values(array_filter($tiles, fn ($t) => $getStatus($t) ===
       <div class="text-white-50 small">Gerencie acessos por categoria</div>
     </div>
     <ul class="nav nav-pills tc-tools-tabs" id="toolsTabs" role="tablist">
+      <?php if ($isAdmin) { ?>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link tc-tools-tab active" id="toolsAllTab" data-bs-toggle="tab" data-bs-target="#toolsAllPane" type="button" role="tab" aria-controls="toolsAllPane" aria-selected="true">
+            Todos <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($allTiles) ?></span>
+          </button>
+        </li>
+      <?php } ?>
       <li class="nav-item" role="presentation">
-        <button class="nav-link tc-tools-tab active" id="toolsAllTab" data-bs-toggle="tab" data-bs-target="#toolsAllPane" type="button" role="tab" aria-controls="toolsAllPane" aria-selected="true">
-          Todos <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($allTiles) ?></span>
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link tc-tools-tab" id="toolsActiveTab" data-bs-toggle="tab" data-bs-target="#toolsActivePane" type="button" role="tab" aria-controls="toolsActivePane" aria-selected="false">
+        <button class="nav-link tc-tools-tab <?= $isAdmin ? "" : "active" ?>" id="toolsActiveTab" data-bs-toggle="tab" data-bs-target="#toolsActivePane" type="button" role="tab" aria-controls="toolsActivePane" aria-selected="<?= $isAdmin ? "false" : "true" ?>">
           Ativos <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($activeTiles) ?></span>
         </button>
       </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link tc-tools-tab" id="toolsSoonTab" data-bs-toggle="tab" data-bs-target="#toolsSoonPane" type="button" role="tab" aria-controls="toolsSoonPane" aria-selected="false">
-          Em breve <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($upcomingTiles) ?></span>
-        </button>
-      </li>
+      <?php if ($isAdmin) { ?>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link tc-tools-tab" id="toolsSoonTab" data-bs-toggle="tab" data-bs-target="#toolsSoonPane" type="button" role="tab" aria-controls="toolsSoonPane" aria-selected="false">
+            Em breve <span class="badge tc-tools-tab-badge ms-1"><?= (int) count($upcomingTiles) ?></span>
+          </button>
+        </li>
+      <?php } ?>
     </ul>
   </div>
 
   <div class="tab-content">
-    <div class="tab-pane fade show active" id="toolsAllPane" role="tabpanel" aria-labelledby="toolsAllTab" tabindex="0">
-      <div class="tool-tiles mb-4">
-        <?php foreach ($allTiles as $tile) { tc_tools_render_tile($tile); } ?>
+    <?php if ($isAdmin) { ?>
+      <div class="tab-pane fade show active" id="toolsAllPane" role="tabpanel" aria-labelledby="toolsAllTab" tabindex="0">
+        <div class="tool-tiles mb-4">
+          <?php foreach ($allTiles as $tile) { tc_tools_render_tile($tile); } ?>
+        </div>
       </div>
-    </div>
-    <div class="tab-pane fade" id="toolsActivePane" role="tabpanel" aria-labelledby="toolsActiveTab" tabindex="0">
+    <?php } ?>
+    <div class="tab-pane fade <?= $isAdmin ? "" : "show active" ?>" id="toolsActivePane" role="tabpanel" aria-labelledby="toolsActiveTab" tabindex="0">
       <div class="tool-tiles mb-4">
         <?php foreach ($activeTiles as $tile) { tc_tools_render_tile($tile); } ?>
       </div>
     </div>
-    <div class="tab-pane fade" id="toolsSoonPane" role="tabpanel" aria-labelledby="toolsSoonTab" tabindex="0">
-      <div class="tool-tiles">
-        <?php foreach ($upcomingTiles as $tile) { tc_tools_render_tile($tile); } ?>
+    <?php if ($isAdmin) { ?>
+      <div class="tab-pane fade" id="toolsSoonPane" role="tabpanel" aria-labelledby="toolsSoonTab" tabindex="0">
+        <div class="tool-tiles">
+          <?php foreach ($upcomingTiles as $tile) { tc_tools_render_tile($tile); } ?>
+        </div>
       </div>
-    </div>
+    <?php } ?>
   </div>
 
   <script>

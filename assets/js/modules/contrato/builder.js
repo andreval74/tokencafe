@@ -1637,11 +1637,11 @@ export async function deployContract() {
         const bJson = document.querySelector("#btnDownloadJson");
         const bAbi = document.querySelector("#btnDownloadAbi");
         const bDep = document.querySelector("#btnDownloadDeployedBytecode");
-        if (filesSection) filesSection.classList.remove("d-none");
-        if (bSol) bSol.disabled = false;
-        if (bJson) bJson.disabled = false;
-        if (bAbi) bAbi.disabled = false;
-        if (bDep) bDep.disabled = !state?.deployed?.deployedBytecode;
+        if (filesSection && checkIsAdmin()) filesSection.classList.remove("d-none");
+        if (bSol) bSol.disabled = !checkIsAdmin();
+        if (bJson) bJson.disabled = !checkIsAdmin();
+        if (bAbi) bAbi.disabled = !checkIsAdmin();
+        if (bDep) bDep.disabled = !checkIsAdmin() || !state?.deployed?.deployedBytecode;
       } catch (_) {}
       try {
         updateDeployLinks(explorerUrl, txUrl);
@@ -2440,7 +2440,7 @@ function updateVerificationBadges({ bscUrl, _bscOk, _bscStatus, sourUrl, _sourOk
       state.deployed.verified = true;
       // Exibir botões de download após verificação
       const filesSection = document.getElementById("files-section");
-      if (filesSection) filesSection.classList.remove("d-none");
+      if (filesSection && checkIsAdmin()) filesSection.classList.remove("d-none");
       updateSummaryItem("Status", "Verificado");
     }
 

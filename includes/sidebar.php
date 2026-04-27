@@ -7,7 +7,12 @@ if ($currentPage === "" && $script === "tools.php") $currentPage = "tools";
 
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
 $isChief = function_exists("tokencafe_is_chief_admin") ? tokencafe_is_chief_admin($walletCookie) : false;
-if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
+if (
+  !$isChief
+  && trim($walletCookie) === ""
+  && function_exists("tokencafe_is_admin_bypass_active")
+  && tokencafe_is_admin_bypass_active()
+) $isChief = true;
 
 $toolsPages = ["wallet", "rpc", "link", "contrato", "verifica", "logs"];
 $isToolsSection = in_array($currentPage, $toolsPages, true);

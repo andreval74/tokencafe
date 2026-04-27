@@ -1,5 +1,11 @@
 <!-- Download de Arquivos -->
-<div class="col-12 mb-4 mt-4" id="files-section">
+<?php
+$walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
+$isAdmin = function_exists("tokencafe_is_admin_wallet") ? tokencafe_is_admin_wallet($walletCookie) : false;
+if (!$isAdmin && trim($walletCookie) === "" && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isAdmin = true;
+$filesSectionClass = $isAdmin ? "" : " d-none";
+?>
+<div class="col-12 mb-4 mt-4<?= $filesSectionClass ?>" id="files-section">
   <div data-component="shared/components/section-title.php" data-st-icon="bi-file-arrow-down"
     data-st-title="Visualizar Arquivos" data-st-subtitle="Arquivos gerados durante o deploy"></div>
   <div class="border rounded p-3 bg-dark-elevated">

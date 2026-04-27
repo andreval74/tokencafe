@@ -447,7 +447,7 @@ function render_page(string $viewPath, array $options = []): void
 
   $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
   $isAdmin = tokencafe_is_admin_wallet($walletCookie);
-  if (!$isAdmin && tokencafe_is_admin_bypass_active()) $isAdmin = true;
+  if (!$isAdmin && trim($walletCookie) === "" && tokencafe_is_admin_bypass_active()) $isAdmin = true;
 
   try {
     $key = isset($_GET["admin_key"]) ? (string) $_GET["admin_key"] : "";

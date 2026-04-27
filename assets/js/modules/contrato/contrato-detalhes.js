@@ -2,7 +2,6 @@
 import { updateContractDetailsView, initContainer, updateVerificationBadge } from "../../shared/contract-search.js";
 import { getExplorerContractUrl } from "./explorer-utils.js";
 import { ShareManager } from "./share-manager.js";
-import { NetworkManager } from "../../shared/network-manager.js";
 import { checkIsAdmin } from "./builder.js";
 
 class ContractDetailsManager {
@@ -450,11 +449,7 @@ class ContractDetailsManager {
         this.resolveCompilationForDownloads();
         const { compilation, form } = this.state;
         
-        // Restrição global: downloads só para Admin
-        const chainId = form.network?.chainId;
-        const nm = new NetworkManager();
         const isAdmin = checkIsAdmin();
-        const isTestnet = nm.isTestNetwork(chainId);
         
         const container = document.getElementById("files-section");
         if (!container) return;
@@ -475,29 +470,12 @@ class ContractDetailsManager {
         };
 
         if (!isAdmin) {
-            console.log("Downloads bloqueados: carteira não admin");
-            container.classList.remove("d-none");
-
-            lockButtons(isTestnet
-                ? "Acesso restrito: conecte a carteira Admin para liberar downloads nesta testnet."
-                : "Acesso restrito: conecte a carteira Admin para liberar downloads deste contrato.");
-
-            let warn = document.getElementById("tcFilesTestnetLock");
-            if (!warn) {
-               warn = document.createElement("div");
-               warn.id = "tcFilesTestnetLock";
-               warn.className = "mt-2 small text-warning";
-               container.appendChild(warn);
-            }
-            warn.textContent = isTestnet
-                ? "Conecte a carteira Admin para liberar downloads nesta testnet."
-                : "Conecte a carteira Admin para liberar downloads deste contrato.";
-            return;
-        } else {
-            container.classList.remove("d-none");
+            container.classList.add("d-none");
             const warn = document.getElementById("tcFilesTestnetLock");
             if (warn) warn.remove();
+            return;
         }
+        container.classList.remove("d-none");
 
         const hasAnyFile =
             !!compilation?.sourceCode ||
@@ -587,52 +565,9 @@ class ContractDetailsManager {
     applyShareAccessControl() {
         const section = document.getElementById("share-section");
         if (!section) return;
-
-        const isAdmin = checkIsAdmin();
         section.classList.remove("d-none");
-
-        const ids = [
-            "copyAddressBtn",
-            "viewAddressBtn",
-            "btnShareWhatsAppSmall",
-            "btnShareTelegramSmall",
-            "btnShareEmailSmall",
-            "btnAddNetworkSmall",
-            "btnAddToMetaMaskSmall"
-        ];
-
-        ids.forEach((id) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.disabled = !isAdmin;
-            if (!isAdmin) {
-                el.classList.add("disabled");
-                el.setAttribute("aria-disabled", "true");
-                el.onclick = (e) => {
-                    try { e?.preventDefault?.(); } catch (_) {}
-                    window.showFormError?.("Acesso restrito: conecte a carteira Admin para liberar a seção de link/compartilhamento.");
-                };
-            } else {
-                el.classList.remove("disabled");
-                el.removeAttribute("aria-disabled");
-            }
-        });
-
-        const input = document.getElementById("generatedLink");
-        if (input) input.disabled = !isAdmin;
-
-        let warn = document.getElementById("tcShareAdminLock");
-        if (!isAdmin) {
-            if (!warn) {
-                warn = document.createElement("div");
-                warn.id = "tcShareAdminLock";
-                warn.className = "mt-2 small text-warning";
-                section.appendChild(warn);
-            }
-            warn.textContent = "Conecte a carteira Admin para liberar a seção de link/compartilhamento.";
-        } else if (warn) {
-            warn.remove();
-        }
+        const warn = document.getElementById("tcShareAdminLock");
+        if (warn) warn.remove();
     }
 
     showFileModal(filename, content, type = "text/plain") {

@@ -238,6 +238,9 @@ const initToolsHeader = () => {
             const addr = btn.getAttribute("data-account");
             if (!addr) return;
             try {
+              localStorage.setItem("tokencafe_wallet_address", String(addr));
+            } catch (_) {}
+            try {
               const ok = await window.walletConnector?.setAccount?.(addr);
               if (!ok) await setConnectedState(addr);
             } catch (_) {
@@ -248,37 +251,48 @@ const initToolsHeader = () => {
       };
 
       // Initial check strategy:
-      // PRIORITIZE window.ethereum (Real State) over localStorage (Memory)
+      // Use localStorage as the "app-selected wallet" as long as it exists inside eth_accounts.
+      // This prevents the UI from "jumping back" to the first authorized account after refresh.
       const checkInitialStatus = async () => {
-        let realAddr = null;
-        
-        // 1. Try to get address from provider
-        if (window.ethereum) {
-            if (window.ethereum.selectedAddress) {
-                realAddr = window.ethereum.selectedAddress;
-            } else {
-                try {
-                   // Async check for accounts
-                   const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                   if (accounts && accounts.length > 0) {
-                       realAddr = accounts[0];
-                   }
-                } catch(e) {
-                   console.warn("Header: Failed to check eth_accounts", e);
-                }
-            }
+        let providerAccounts = [];
+        let preferred = "";
+        try {
+          preferred = String(localStorage.getItem("tokencafe_wallet_address") || "");
+        } catch (_) {}
+
+        const norm = (v) => {
+          try {
+            return String(v || "").toLowerCase();
+          } catch (_) {
+            return "";
+          }
+        };
+
+        if (window.ethereum && typeof window.ethereum.request === "function") {
+          try {
+            const acc = await window.ethereum.request({ method: "eth_accounts" });
+            providerAccounts = Array.isArray(acc) ? acc.filter(Boolean) : [];
+          } catch (_) {}
         }
 
-        // 2. Sync logic: If provider has address, use it. If not, consider disconnected.
-        // User explicitly requested to NOT use memory if disconnected.
-        
-        if (realAddr) {
-             localStorage.setItem("tokencafe_wallet_address", realAddr);
-             await setConnectedState(realAddr);
+        const preferredNorm = norm(preferred);
+        const providerSelectedNorm = norm(window.ethereum?.selectedAddress || "");
+        const hasProvider = providerAccounts.length > 0;
+        const picked =
+          (preferredNorm ? providerAccounts.find((a) => norm(a) === preferredNorm) : null) ||
+          (providerSelectedNorm ? providerAccounts.find((a) => norm(a) === providerSelectedNorm) : null) ||
+          (hasProvider ? providerAccounts[0] : null);
+
+        if (picked) {
+          try {
+            localStorage.setItem("tokencafe_wallet_address", String(picked));
+          } catch (_) {}
+          await setConnectedState(picked);
         } else {
-             // If provider says disconnected, force disconnect in UI even if localStorage has data
-             localStorage.removeItem("tokencafe_wallet_address");
-             await setConnectedState(null);
+          try {
+            localStorage.removeItem("tokencafe_wallet_address");
+          } catch (_) {}
+          await setConnectedState(null);
         }
       };
 
@@ -339,10 +353,27 @@ const initToolsHeader = () => {
 
       // Listen for TokenCafe system events
       document.addEventListener("wallet:connected", (e) => {
+        try {
+          const a = e?.detail?.account ? String(e.detail.account) : "";
+          if (a) localStorage.setItem("tokencafe_wallet_address", a);
+        } catch (_) {}
         setConnectedState(e.detail.account);
       });
       document.addEventListener("wallet:accountChanged", (e) => {
-        setConnectedState(e.detail.account);
+        const next = e?.detail?.account || null;
+        setConnectedState(next);
+        try {
+          const url = new URL(window.location.href);
+          const isTools = url.pathname.endsWith("/tools.php") || (url.pathname.endsWith("/index.php") && url.searchParams.get("page") === "tools");
+          if (!isTools) return;
+          const key = "tokencafe_tools_last_wallet_reload";
+          const nextKey = String(next || "").toLowerCase();
+          const prevKey = sessionStorage.getItem(key) || "";
+          if (nextKey && prevKey !== nextKey) {
+            sessionStorage.setItem(key, nextKey);
+            window.location.reload();
+          }
+        } catch (_) {}
       });
       document.addEventListener("wallet:chainChanged", (e) => {
         const acc = e?.detail?.account || window.ethereum?.selectedAddress || null;
@@ -355,11 +386,24 @@ const initToolsHeader = () => {
       // Listen for Direct MetaMask events (Fail-safe)
       if (window.ethereum) {
         window.ethereum.on('accountsChanged', (accounts) => {
-          if (accounts.length > 0) {
-            setConnectedState(accounts[0]);
-          } else {
-            setConnectedState(null);
-          }
+          const next = (accounts && accounts.length > 0) ? accounts[0] : null;
+          try {
+            if (next) localStorage.setItem("tokencafe_wallet_address", String(next));
+            else localStorage.removeItem("tokencafe_wallet_address");
+          } catch (_) {}
+          setConnectedState(next);
+          try {
+            const url = new URL(window.location.href);
+            const isTools = url.pathname.endsWith("/tools.php") || (url.pathname.endsWith("/index.php") && url.searchParams.get("page") === "tools");
+            if (!isTools) return;
+            const key = "tokencafe_tools_last_wallet_reload";
+            const nextKey = String(next || "").toLowerCase();
+            const prevKey = sessionStorage.getItem(key) || "";
+            if (nextKey && prevKey !== nextKey) {
+              sessionStorage.setItem(key, nextKey);
+              window.location.reload();
+            }
+          } catch (_) {}
         });
         window.ethereum.on("chainChanged", () => {
           setConnectedState(window.ethereum?.selectedAddress || null);
