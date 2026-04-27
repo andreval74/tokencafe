@@ -683,18 +683,25 @@ document.addEventListener("DOMContentLoaded", async () => {
           } catch (_) {}
         }
         
-        const btnSearch = document.getElementById(ids.btnTokenSearch);
-        if (btnSearch) {
-          btnSearch.disabled = true;
-          btnSearch.innerHTML = '<i class="bi bi-check-circle"></i>';
-        }
+        // Importante: não sobrescrever o comportamento do componente contract-search.
+        // Ele gerencia o estado do botão (Buscar/Limpar) internamente via data-mode="clear".
       } else {
         const ts = document.getElementById("token-section");
         if (ts) ts.classList.remove("d-none");
-        showDiagnosis("VERIFY_NETWORK_OR_ADDRESS", {
-          badge: "Não foi possível ler dados ERC-20 do contrato.",
-          onClear: () => clearAll(),
-        });
+        const isContract = !isWalletLike(p?.isContract) && p?.isContract != null;
+        if (isContract) {
+          showDiagnosis("WARNING", {
+            badge: "Este endereço não parece ser um token ERC-20 nesta rede.",
+            subtitle: "Confira se você colou o contrato do token (ERC-20) e se a rede selecionada está correta.",
+            causes: ["Você colou um contrato que não é token ERC-20.", "Você colou um endereço de carteira (EOA).", "Token existe, mas está em outra rede."],
+            onClear: () => clearAll(),
+          });
+        } else {
+          showDiagnosis("VERIFY_NETWORK_OR_ADDRESS", {
+            badge: "Não foi possível ler dados ERC-20 do contrato.",
+            onClear: () => clearAll(),
+          });
+        }
       }
     } catch (e) {
         console.error("[link-index] Erro ao processar dados do contrato:", e);

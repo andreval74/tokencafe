@@ -1,21 +1,5 @@
 <?php if (isset($enqueue_script_src)) $enqueue_script_src("assets/js/suporte.js"); ?>
-<div class="TokenCafe-content" style="padding-top: 92px;">
-  <!-- ==================== CABEÇALHO / SUPORTE ==================== -->
-  <section class="tc-hero-section">
-    <div class="container">
-      <div class="row justify-content-center text-center">
-        <div class="col-lg-10">
-          <h1 class="display-4 fw-bold mb-2 text-white">
-            Central de <span class="gradient-text">Suporte</span>
-          </h1>
-          <p class="lead text-light mb-3">
-            Preencha o formulário e a gente retorna o mais rápido possível.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
+<div class="TokenCafe-content" >
   <!-- ==================== FORMULÁRIO ==================== -->
   <div class="container py-4 bg-page-black min-vh-100">
     <div class="row g-4">

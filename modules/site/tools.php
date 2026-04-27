@@ -144,7 +144,7 @@ $tiles = [
     "iconClass" => "bi bi-headset",
     "title" => "Suporte",
     "desc" => "Envie um e-mail para obter ajuda.",
-    "href" => "suporte.php",
+    "href" => "index.php?page=suporte",
     "linkLabel" => "Suporte Via Email",
     "linkAriaLabel" => "Abrir Suporte Técnico",
     "linkIconClass" => "bi bi-email",

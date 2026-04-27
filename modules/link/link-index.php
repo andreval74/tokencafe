@@ -92,6 +92,5 @@
 
     </div>
   </div>
-  </div>
 
   <?php if (isset($enqueue_script_module)) { $enqueue_script_module("assets/js/modules/link/link-index.js"); } ?>

@@ -40,7 +40,7 @@ $moduleHeaderIconAlt = isset($moduleHeaderIconAlt) && is_string($moduleHeaderIco
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav mx-auto gap-lg-1">
             <li class="nav-item">
-              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="suporte.php">
+              <a class="nav-link text-white-50 fw-medium neon-link-hover" href="index.php?page=suporte">
                 <i class="bi bi-headset me-1"></i>
                 Suporte
               </a>

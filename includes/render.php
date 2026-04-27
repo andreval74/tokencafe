@@ -365,6 +365,10 @@ function __tokencafe_guess_module_header(string $viewPath): array
     "admin" => "Logs do Sistema",
     "widget" => "Widget",
     "social" => "Impacto Social",
+    "suporte" => "Suporte",
+    "privacidade" => "Privacidade",
+    "termos e servicos" => "Termos e Serviços",
+    "style guide" => "Documentação",
   ];
   if (isset($known[$titleLower])) $title = $known[$titleLower];
 
@@ -410,6 +414,10 @@ function tokencafe_resolve_page(string $page): ?string
     "profile" => __DIR__ . "/../modules/profile/user-profile.php",
     "widget" => __DIR__ . "/../modules/widget/widget-index.php",
     "social" => __DIR__ . "/../modules/site/social.php",
+    "suporte" => __DIR__ . "/../modules/site/suporte.php",
+    "privacidade" => __DIR__ . "/../modules/site/privacidade.php",
+    "termos-e-servicos" => __DIR__ . "/../modules/site/termos-e-servicos.php",
+    "documentacao" => __DIR__ . "/../modules/site/style-guide.php",
   ];
 
   return $map[$page] ?? null;

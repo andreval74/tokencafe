@@ -199,14 +199,17 @@ async function connectWallet() {
  */
 async function loadExternalRpcs() {
   // Preferir carregar do arquivo local; backend apenas se habilitado
+  let localEntries = [];
   try {
     const resLocal = await fetch("/shared/data/rpcs.json");
     if (resLocal.ok) {
       const dataLocal = await resLocal.json();
       if (Array.isArray(dataLocal)) {
+        localEntries = dataLocal;
         window.externalRpcs = dataLocal;
         console.log(`🔗 RPCs externas carregadas do arquivo local: ${dataLocal.length}`);
       } else if (dataLocal && Array.isArray(dataLocal.rpcs)) {
+        localEntries = dataLocal.rpcs;
         window.externalRpcs = dataLocal.rpcs;
         console.log(`🔗 RPCs externas carregadas do arquivo local (obj): ${dataLocal.rpcs.length}`);
       } else {
@@ -219,6 +222,56 @@ async function loadExternalRpcs() {
     console.warn("Falha ao carregar RPCs externas do arquivo local:", e);
     window.externalRpcs = [];
   }
+
+  const getCachedChainlist = () => {
+    try {
+      const raw = localStorage.getItem("tokencafe_chainlist_rpcs_cache");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const ts = Number(parsed?.ts || 0);
+      const data = parsed?.data;
+      if (!ts || !Array.isArray(data) || data.length === 0) return null;
+      const twelveHours = 12 * 60 * 60 * 1000;
+      if (Date.now() - ts > twelveHours) return null;
+      return data;
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const saveCachedChainlist = (data) => {
+    try {
+      if (!Array.isArray(data) || data.length === 0) return;
+      localStorage.setItem("tokencafe_chainlist_rpcs_cache", JSON.stringify({ ts: Date.now(), data }));
+    } catch (_) {}
+  };
+
+  const fetchWithTimeout = async (url, timeoutMs) => {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      return res;
+    } finally {
+      clearTimeout(t);
+    }
+  };
+
+  try {
+    const cached = getCachedChainlist();
+    if (cached) {
+      window.externalRpcs = Array.isArray(localEntries) && localEntries.length ? cached.concat(localEntries) : cached;
+    } else {
+      const resChainlist = await fetchWithTimeout("https://chainlist.org/rpcs.json", 3500);
+      if (resChainlist && resChainlist.ok) {
+        const data = await resChainlist.json();
+        if (Array.isArray(data) && data.length > 0) {
+          window.externalRpcs = Array.isArray(localEntries) && localEntries.length ? data.concat(localEntries) : data;
+          saveCachedChainlist(data);
+        }
+      }
+    }
+  } catch (_) {}
 
   // Se backend estiver habilitado, tentar atualizar e substituir pelos dados do backend
   try {
@@ -237,6 +290,10 @@ async function loadExternalRpcs() {
   } catch (e2) {
     console.warn("Backend RPCs desabilitado ou indisponível:", e2);
   }
+
+  try {
+    document.dispatchEvent(new CustomEvent("rpcs:externalUpdated", { bubbles: true }));
+  } catch (_) {}
 }
 
 /**
@@ -771,6 +828,42 @@ function addKnownRpc(chainId, rpcUrl) {
   }
 }
 
+function shuffleArray(arr) {
+  const a = Array.isArray(arr) ? arr.slice() : [];
+  try {
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      for (let i = a.length - 1; i > 0; i -= 1) {
+        const buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        const j = buf[0] % (i + 1);
+        const tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+      }
+      return a;
+    }
+  } catch (_) {}
+  for (let i = a.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a;
+}
+
+function isSelectableRpcUrl(url) {
+  try {
+    if (!isValidUrl(url)) return false;
+    const s = String(url);
+    if (s.includes("${")) return false;
+    if (/api[_-]?key/i.test(s)) return false;
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 /**
  * Renderizar lista de RPCs disponíveis para a rede selecionada
  */
@@ -800,11 +893,24 @@ async function renderRpcOptions(network) {
     if (r && typeof r === "object") return r.url || r.rpc || r.endpoint || "";
     return "";
   };
-  const allRpcs = Array.from(new Set([...nativeRpcs.map(toUrl).filter(isValidUrl), ...externalRpcs.map(toUrl).filter(isValidUrl)]));
+  const allRpcs = Array.from(new Set([...nativeRpcs.map(toUrl).filter(isSelectableRpcUrl), ...externalRpcs.map(toUrl).filter(isSelectableRpcUrl)]));
   const known = new Set(getKnownRpcs(network.chainId).map((r) => r.trim()));
   const available = allRpcs.filter((url) => url && !known.has(url.trim()));
+  const minCount = 10;
+  const pool = available.length >= minCount ? available : allRpcs;
+  const chosen = shuffleArray(pool).slice(0, minCount);
+  if (!chosen.length) {
+    listEl.innerHTML = `
+      <div class="text-muted text-center py-3">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        Nenhum RPC disponível para esta rede
+      </div>
+    `;
+    updateAddButtonState(network);
+    return;
+  }
   // Exibir automaticamente ao selecionar a rede
-  listEl.innerHTML = available
+  listEl.innerHTML = chosen
     .map(
       (url, idx) => `
                         <div class="list-group-item d-flex align-items-center justify-content-between gap-2" data-rpc-url="${url}">
@@ -822,7 +928,7 @@ async function renderRpcOptions(network) {
     .join("");
 
   // Eventos: testar ao clicar "Testar" e ao selecionar o radio
-  available.forEach((url, idx) => {
+  chosen.forEach((url, idx) => {
     const btnEl = document.getElementById(`rpcTest-${idx}`);
     const radioEl = listEl.querySelector(`#rpc-options-list input[name="rpcChoice"][value="${url}"]`) || listEl.querySelector(`input[name="rpcChoice"][value="${url}"]`);
 

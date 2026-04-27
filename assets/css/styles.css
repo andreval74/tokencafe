@@ -1692,6 +1692,14 @@ Classes reutilizáveis para efeitos neon padronizados
   z-index: 1040;
 }
 
+.tokencafe-sidebar .tc-sidebar-active {
+  color: var(--tokencafe-primary) !important;
+}
+
+.tokencafe-sidebar .tc-sidebar-active:hover {
+  color: var(--tokencafe-primary) !important;
+}
+
 .tokencafe-sidebar-backdrop {
   position: fixed;
   inset: 0;

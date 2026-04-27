@@ -61,7 +61,7 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
                 </a>
               </li>
               <li class="mb-2">
-                <a href="suporte.php" class="text-white-50 neon-link-small-hover text-xs">
+                <a href="index.php?page=suporte" class="text-white-50 neon-link-small-hover text-xs">
                   <i class="bi bi-headset me-1"></i>
                   Suporte
                 </a>
@@ -102,10 +102,10 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
                 </a>
               </li>
               <li class="mb-2">
-                <span class="text-white-50 text-xs">
+                <a href="index.php?page=documentacao" class="text-white-50 neon-link-small-hover text-xs">
                   <i class="bi bi-book me-1"></i>
                   Documentação
-                </span>
+                </a>
               </li>
               <li class="mb-2">
                 <span class="text-white-50 text-xs">
@@ -121,7 +121,7 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
               <li class="mb-2">
                 <span class="text-white-50 text-xs">
                   <i class="bi bi-shield me-1"></i>
-                  <a href="privacidade.php" class="text-white-50 neon-link-small-hover text-xs">
+                  <a href="index.php?page=privacidade" class="text-white-50 neon-link-small-hover text-xs">
                     Privacidade
                   </a>
                 </span>
@@ -129,7 +129,7 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
               <li class="mb-2">
                 <span class="text-white-50 text-xs">
                   <i class="bi bi-file-earmark-text me-1"></i>
-                  <a href="termos-e-servicos.php" class="text-white-50 neon-link-small-hover text-xs">
+                  <a href="index.php?page=termos-e-servicos" class="text-white-50 neon-link-small-hover text-xs">
                     Termos de Serviço
                   </a>
                 </span>

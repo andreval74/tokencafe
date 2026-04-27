@@ -234,9 +234,9 @@ Combina funcionalidades do TokenCafe e Widget
               Sua carteira permanece sob seu controle
             </small>
             <div class="d-flex justify-content-center gap-3">
-              <a href="/privacidade.php" class="text-muted small text-decoration-none">Privacidade</a>
-              <a href="/termos-e-servicos.php" class="text-muted small text-decoration-none">Termos</a>
-              <a href="suporte.php" class="text-muted small text-decoration-none">Suporte</a>
+              <a href="index.php?page=privacidade" class="text-muted small text-decoration-none">Privacidade</a>
+              <a href="index.php?page=termos-e-servicos" class="text-muted small text-decoration-none">Termos</a>
+              <a href="index.php?page=suporte" class="text-muted small text-decoration-none">Suporte</a>
             </div>
           </div>
         </div>

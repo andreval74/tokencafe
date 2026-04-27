@@ -43,7 +43,7 @@
         <h2>05. PROPRIEDADE INTELECTUAL E LICENÇA</h2>
         <p>Todo conteúdo do Site pertence à TokenCafe. Ao enviar conteúdo, você concede licença mundial, não exclusiva e royalty-free para hospedagem e operação dos Serviços. Você é o único titular dos tokens gerados.</p>
         <h2>06. PRIVACIDADE E DADOS</h2>
-        <p>Devido à arquitetura Web3, coletamos apenas endereço público da carteira, IP e dados técnicos mínimos. Não armazenamos contratos, não fazemos KYC e não custodiamos ativos. Consulte nossa <a href="privacidade.php">Política de Privacidade</a>.</p>
+        <p>Devido à arquitetura Web3, coletamos apenas endereço público da carteira, IP e dados técnicos mínimos. Não armazenamos contratos, não fazemos KYC e não custodiamos ativos. Consulte nossa <a href="index.php?page=privacidade">Política de Privacidade</a>.</p>
         <h2>07. GARANTIAS E LIMITAÇÃO DE RESPONSABILIDADE</h2>
         <p>Os Serviços são fornecidos “NO ESTADO EM QUE SE ENCONTRAM” (AS IS). Não oferecemos qualquer garantia de precisão, ausência de erros, segurança ou adequação a qualquer propósito.</p>
         <p>A TokenCafe NÃO será responsável por:</p>

@@ -41,8 +41,10 @@ export function completePayload(payload) {
 
 async function verifyWithExplorerV2(payload) {
     const chainId = payload.chainId;
-    // Use default key if none provided (common public key)
-    const apiKey = getVerifyApiKey() || "I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5"; 
+    const apiKey = getVerifyApiKey();
+    if (!apiKey) {
+        return { status: "0", message: "Missing API key", result: "" };
+    }
     
     // Construct params
     const params = new URLSearchParams();
@@ -171,20 +173,19 @@ async function checkExplorerDirectly(chainId, address) {
 
     // Adiciona parâmetros V2 apenas se estivermos usando o endpoint Unified do Etherscan
     if (baseUrl.includes("etherscan.io/v2/")) {
+        const key = getVerifyApiKey();
+        if (!key) {
+            return { success: false, verified: false, error: true, message: "API key não configurada para consulta no explorer." };
+        }
         url += `&chainid=${chainId}`;
-        // Usa chave conhecida válida se disponível, caso contrário tenta sem ou com a padrão
-        const key = getVerifyApiKey() || "I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5"; 
         url += `&apikey=${key}`;
     } else {
         // Endpoints específicos (BscScan, PolygonScan, etc)
         const key = getVerifyApiKey();
-        // Se for BSC, podemos tentar usar a chave conhecida se o usuário não forneceu uma
-        if (!key && (String(chainId) === "56" || String(chainId) === "97")) {
-             // Chave de fallback para BSC
-             url += `&apikey=I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5`;
-        } else if (key) {
-             url += `&apikey=${key}`;
+        if (!key) {
+            return { success: false, verified: false, error: true, message: "API key não configurada para consulta no explorer." };
         }
+        url += `&apikey=${key}`;
     }
 
     try {

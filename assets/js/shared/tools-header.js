@@ -144,6 +144,18 @@ const initToolsHeader = () => {
           return;
         }
 
+        try {
+          const st = window.walletConnector?.getStatus?.();
+          const stAcc = st?.account ? String(st.account).toLowerCase() : "";
+          const nextAcc = String(currentAddress).toLowerCase();
+          if (window.walletConnector?.setAccount && stAcc && stAcc !== nextAcc) {
+            await window.walletConnector.setAccount(currentAddress);
+          }
+          if (window.walletConnector?.setAccount && !stAcc) {
+            await window.walletConnector.setAccount(currentAddress);
+          }
+        } catch (_) {}
+
         walletChipAddress.textContent = formatShort(currentAddress);
         try {
           walletChipBtn.setAttribute("title", currentAddress);

@@ -85,6 +85,13 @@ function initWalletManager() {
             if (accounts && accounts.length > 0) {
                 // Se já tem contas conectadas no provider, força atualização
                 if (wc) {
+                    try {
+                        if (typeof wc.setAccount === "function") {
+                            await wc.setAccount(accounts[0]);
+                        } else {
+                            wc.currentAccount = accounts[0];
+                        }
+                    } catch (_) {}
                     // Força atualização do estado interno do conector
                     await wc.updateNetworkInfo();
                     await wc.updateBalance();
@@ -317,20 +324,26 @@ async function updateUI(data) {
 
   // Balance
   const wc = getWalletConnector();
-  // let symbol = net?.nativeCurrency?.symbol || "ETH"; // Não precisamos concatenar símbolo no input de saldo
+  const symbol = net?.nativeCurrency?.symbol || "ETH";
 
-  if (data.balance) {
-    setValue("balance", data.balance);
-  } else if (wc) {
-    setValue("balance", "Carregando...");
-    try {
-      if (!wc.balance || wc.balance === "0") {
-          await wc.updateBalance();
-      }
-      setValue("balance", wc.balance);
-    } catch (e) {
-      setValue("balance", "0.0000");
+  setValue("balance", "Carregando...");
+  try {
+    if (wc && typeof wc.setAccount === "function") {
+      const st = wc.getStatus?.() || {};
+      const stAcc = st?.account ? String(st.account).toLowerCase() : "";
+      const nextAcc = String(data.account).toLowerCase();
+      if (!stAcc || stAcc !== nextAcc) await wc.setAccount(data.account);
     }
+  } catch (_) {}
+  try {
+    if (wc && typeof wc.updateBalance === "function") await wc.updateBalance();
+  } catch (_) {}
+  try {
+    const st = wc?.getStatus?.() || {};
+    const raw = st?.balance ?? wc?.balance ?? data.balance ?? "0.0000";
+    setValue("balance", `${raw} ${symbol}`);
+  } catch (_) {
+    setValue("balance", `0.0000 ${symbol}`);
   }
 }
 

@@ -892,7 +892,10 @@ async function performContractSearch(container, chainId, address) {
     let isC = isC_raw;
     if (isC === null) {
        // Fallback logic
-       if ((sn && sn.symbol) || (info && info.decimals != null)) isC = true;
+       // Evita falso positivo de "contrato" quando um RPC retorna 0x0 para decimais em endereços EOA.
+       // Para assumir "contrato" no fallback, exigimos metadata (symbol/nome) ou decimais > 0.
+       const dec = info && typeof info.decimals === "number" ? info.decimals : null;
+       if ((sn && (sn.symbol || sn.name)) || (Number.isFinite(dec) && dec > 0)) isC = true;
        else isC = false;
     }
 
@@ -907,11 +910,16 @@ async function performContractSearch(container, chainId, address) {
       contractNativeBalance: info.nativeBalance
     };
 
-    if (!extra.isContract && (extra.tokenSymbol || extra.tokenDecimals != null)) {
-        extra.isContract = true;
+    // Caso raro: o RPC pode falhar no eth_getCode, mas ainda conseguimos ler metadata do token.
+    // Evita marcar EOA como contrato quando decimais retornam 0 por inconsistência do RPC.
+    const hasValidDecimals = Number.isFinite(extra.tokenDecimals) && extra.tokenDecimals > 0;
+    if (!extra.isContract && (extra.tokenSymbol || extra.tokenName || hasValidDecimals)) {
+      extra.isContract = true;
     }
 
-    const hasData = !!(extra.tokenName || extra.tokenSymbol || extra.tokenDecimals != null || extra.tokenSupply);
+    // Critério de "ERC-20 detectado" precisa ser forte para evitar falso positivo
+    // (ex.: totalSupply=0 em contratos não-ERC20 ou respostas inconsistentes do RPC).
+    const hasData = !!(extra.tokenName || extra.tokenSymbol || hasValidDecimals);
     if (strict && !hasData) {
       const allowWallet = isAllowWalletEnabled(container);
       const contractDetermined = isC_raw !== null;
@@ -970,8 +978,10 @@ async function performContractSearch(container, chainId, address) {
       }
     }
 
+    const merged = { ...payload, ...extra };
+
     // Dispatch event
-    const evt = new CustomEvent("contract:found", { detail: { contract: { ...payload, ...extra } }, bubbles: true });
+    const evt = new CustomEvent("contract:found", { detail: { contract: merged }, bubbles: true });
     try { container.dispatchEvent(evt); } catch (_) {}
 
     try {
@@ -992,7 +1002,13 @@ async function performContractSearch(container, chainId, address) {
 
     // Update UI
     // Reuse the shared updater!
-    await updateContractDetailsView(container, chainIdRaw, addrRaw, null, { autoShowCard: container.getAttribute("data-cs-auto-open") === "true" });
+    // Para carteiras (EOA) evitamos chamadas que dependem de explorer/contrato (verificação e par de trading).
+    await updateContractDetailsView(container, chainIdRaw, addrRaw, merged, {
+      autoShowCard: container.getAttribute("data-cs-auto-open") === "true",
+      skipVerification: merged?.isContract === false,
+      skipTradingPair: merged?.isContract === false,
+      skipBalances: merged?.isContract === false,
+    });
     
     try {
       if (container.getAttribute("data-cs-auto-open") === "true") {

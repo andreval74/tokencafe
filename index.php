@@ -29,7 +29,8 @@ $resolved = tokencafe_resolve_page($page);
 if ($resolved && is_file($resolved)) {
   $resolvedNorm = strtolower(str_replace("\\", "/", (string) $resolved));
   $isSiteView = str_contains($resolvedNorm, "/modules/site/") || str_ends_with($resolvedNorm, "modules/site/home.php") || str_ends_with($resolvedNorm, "modules/site/home-basica.php");
-  $isAppShell = $page === "tools" || !$isSiteView;
+  $isInShell = in_array($page, ["tools", "suporte", "privacidade", "termos-e-servicos", "documentacao"], true);
+  $isAppShell = $isInShell || !$isSiteView;
 
   if ($isAppShell) {
     $guess = function_exists("__tokencafe_guess_title") ? __tokencafe_guess_title($resolved) : null;
