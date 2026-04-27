@@ -8,6 +8,73 @@ const runWhenDomReady = (fn) => {
   } catch (_) {}
 };
 
+// Helpers compartilhados do Tools Header (usados em qualquer módulo/página que inclua este header).
+const formatShort = (address) => {
+  try {
+    const s = String(address || "");
+    if (s.length <= 12) return s;
+    return `${s.slice(0, 6)}…${s.slice(-4)}`;
+  } catch (_) {
+    return String(address || "");
+  }
+};
+
+// Retorna as contas autorizadas no provider atual (sem abrir popup).
+const getAccounts = async () => {
+  try {
+    const accounts = await (window.ethereum?.request?.({ method: "eth_accounts" }) || Promise.resolve([]));
+    return Array.isArray(accounts) ? accounts.filter(Boolean) : [];
+  } catch (_) {
+    return [];
+  }
+};
+
+// Símbolo nativo da rede atual (ex: ETH, BNB).
+const getSymbol = () => {
+  try {
+    const st = window.walletConnector?.getStatus?.();
+    const fromStatus = st?.network?.nativeCurrency?.symbol || st?.network?.nativeCurrencySymbol || null;
+    if (fromStatus) return String(fromStatus);
+    const chainIdHex = st?.chainId || window.ethereum?.chainId || null;
+    const chainIdDec = chainIdHex ? parseInt(String(chainIdHex), 16) : null;
+    const net = chainIdDec && window.networkManager?.getNetworkById ? window.networkManager.getNetworkById(chainIdDec) : null;
+    return String(net?.nativeCurrency?.symbol || net?.symbol || "ETH");
+  } catch (_) {
+    return "ETH";
+  }
+};
+
+// Saldo nativo de uma conta na rede atual.
+const fetchBalance = async (account) => {
+  if (!account) return null;
+  let weiHex = null;
+  try {
+    if (window.ethereum && typeof window.ethereum.request === "function") {
+      weiHex = await window.ethereum.request({
+        method: "eth_getBalance",
+        params: [account, "latest"],
+      });
+    }
+  } catch (_) {}
+  if (!weiHex) {
+    try {
+      const st = window.walletConnector?.getStatus?.();
+      const b = st?.balance;
+      if (b !== undefined && b !== null && String(b) !== "") return String(b);
+    } catch (_) {}
+    return null;
+  }
+  try {
+    if (typeof ethers !== "undefined" && (ethers?.utils?.formatEther || ethers?.formatEther)) {
+      const ethVal = ethers?.utils?.formatEther ? ethers.utils.formatEther(weiHex) : ethers.formatEther(weiHex);
+      const n = parseFloat(ethVal);
+      if (!Number.isFinite(n)) return null;
+      return n.toFixed(4);
+    }
+  } catch (_) {}
+  return null;
+};
+
 // Componente Tools Header: preenche ícone/título/subtítulo e integra carteira
 const initToolsHeader = () => {
   try {
@@ -39,60 +106,133 @@ const initToolsHeader = () => {
 
       const btnConnect = el.querySelector("#connect-metamask-btn") || el.querySelector("#btn-connect");
       const btnLogout = el.querySelector("#btn-logout");
-      const walletDisplay = el.querySelector("#connected-wallet-display");
+      const walletChipBtn = el.querySelector("#wallet-chip-btn");
+      const walletChipAddress = el.querySelector("#wallet-chip-address");
+      const walletChipBalance = el.querySelector("#wallet-chip-balance");
+      const walletChipCaret = el.querySelector("#wallet-chip-caret");
+      const walletChipMenu = el.querySelector("#wallet-chip-menu");
       const btnCopy = el.querySelector("#btn-copy-wallet");
       const sidebarToggleBtn = el.querySelector("#sidebar-toggle-btn");
 
-      // Logic to update new UI elements (Button Color + Wallet Display below)
-      const updateHeaderUI = (address) => {
-        if (address) {
-          // Connected
-          if (btnConnect) {
-            btnConnect.classList.add("d-none");
-            btnConnect.hidden = true;
-          }
-          if (btnLogout) {
-            btnLogout.classList.remove("d-none");
-            btnLogout.hidden = false;
-          }
-          if (walletDisplay) {
-            walletDisplay.textContent = address;
-            walletDisplay.classList.remove("text-muted");
-            walletDisplay.classList.add("text-success");
-          }
-          if (btnCopy) {
-            btnCopy.classList.remove("d-none");
-            // Set click handler
-            btnCopy.onclick = (e) => {
-              e.preventDefault();
-              navigator.clipboard.writeText(address).then(() => {
-                 const icon = btnCopy.querySelector("i");
-                 if(icon) {
-                     icon.className = "bi bi-check-lg";
-                     setTimeout(() => icon.className = "bi bi-clipboard", 1500);
-                 }
-              }).catch(err => console.error("Falha ao copiar", err));
-            };
-          }
-        } else {
-          // Disconnected
-          if (btnConnect) {
-            btnConnect.classList.remove("d-none");
-            btnConnect.hidden = false;
-          }
-          if (btnLogout) {
-            btnLogout.classList.add("d-none");
-            btnLogout.hidden = true;
-          }
-          if (walletDisplay) {
-            walletDisplay.textContent = "Não Conectado";
-            walletDisplay.classList.remove("text-success");
-            walletDisplay.classList.add("text-muted");
-          }
-          if (btnCopy) {
-            btnCopy.classList.add("d-none");
-          }
+      let currentAddress = null;
+
+      // Atualiza estado visual do header e mantém o endereço atual para ações (copiar/trocar).
+      // Regra visual:
+      // - 1 conta: mostra o "chip" com endereço + saldo (sem dropdown).
+      // - 2+ contas: o "chip" vira dropdown com a lista de contas e saldos.
+      const setConnectedState = async (address) => {
+        currentAddress = address ? String(address) : null;
+        const connected = !!currentAddress;
+
+        if (btnConnect) {
+          btnConnect.classList.toggle("d-none", connected);
+          btnConnect.hidden = connected;
         }
+        if (btnLogout) {
+          btnLogout.classList.toggle("d-none", !connected);
+          btnLogout.hidden = !connected;
+        }
+        
+        if (btnCopy) btnCopy.classList.toggle("d-none", !connected);
+
+        if (!walletChipBtn || !walletChipAddress || !walletChipBalance) return;
+        walletChipBtn.classList.toggle("d-none", !connected);
+        if (!connected) {
+          walletChipAddress.textContent = "";
+          walletChipBalance.textContent = "";
+          if (walletChipMenu) walletChipMenu.innerHTML = "";
+          return;
+        }
+
+        walletChipAddress.textContent = formatShort(currentAddress);
+        try {
+          walletChipBtn.setAttribute("title", currentAddress);
+        } catch (_) {}
+
+        walletChipBalance.textContent = "…";
+        try {
+          await window.walletConnector?.updateNetworkInfo?.();
+          await window.walletConnector?.updateBalance?.();
+        } catch (_) {}
+        const symbol = getSymbol();
+        const bal = await fetchBalance(currentAddress);
+        walletChipBalance.textContent = `${bal === null ? "—" : bal} ${symbol}`;
+
+        await renderWalletMenu(currentAddress);
+
+        if (btnCopy) {
+          btnCopy.onclick = (e) => {
+            try {
+              e.preventDefault();
+            } catch (_) {}
+            try {
+              if (!currentAddress) return;
+              navigator.clipboard.writeText(currentAddress).then(() => {
+                const icon = btnCopy.querySelector("i");
+                if (icon) {
+                  icon.className = "bi bi-check-lg";
+                  setTimeout(() => (icon.className = "bi bi-clipboard"), 1500);
+                }
+              }).catch(() => {});
+            } catch (_) {}
+          };
+        }
+      };
+
+      // Renderiza o dropdown com as contas autorizadas + saldo na rede atual.
+      // A seleção aqui muda a "conta ativa do app" (via walletConnector.setAccount quando disponível).
+      const renderWalletMenu = async (selected) => {
+        if (!walletChipBtn || !walletChipMenu) return;
+        const accounts = await getAccounts();
+        const multi = accounts.length > 1;
+
+        walletChipMenu.innerHTML = "";
+        if (walletChipCaret) walletChipCaret.classList.toggle("d-none", !multi);
+
+        if (!multi) {
+          try {
+            walletChipBtn.removeAttribute("data-bs-toggle");
+          } catch (_) {}
+          return;
+        }
+
+        try {
+          walletChipBtn.setAttribute("data-bs-toggle", "dropdown");
+          walletChipBtn.setAttribute("aria-expanded", "false");
+        } catch (_) {}
+
+        const symbol = getSymbol();
+        const balances = await Promise.all(accounts.map((a) => fetchBalance(a)));
+        const current = selected ? String(selected).toLowerCase() : "";
+
+        walletChipMenu.innerHTML = accounts
+          .map((a, idx) => {
+            const isActive = current && String(a).toLowerCase() === current;
+            const b = balances[idx];
+            const bTxt = b === null ? "—" : b;
+            return `
+              <li>
+                <button type="button" class="dropdown-item text-light ${isActive ? "active" : ""}" data-account="${a}">
+                  <span class="fw-semibold">${formatShort(a)}</span>
+                  <span class="ms-2 text-white-50">${bTxt} ${symbol}</span>
+                </button>
+              </li>
+            `;
+          })
+          .join("");
+
+        walletChipMenu.querySelectorAll("button[data-account]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const addr = btn.getAttribute("data-account");
+            if (!addr) return;
+            try {
+              const ok = await window.walletConnector?.setAccount?.(addr);
+              if (!ok) await setConnectedState(addr);
+            } catch (_) {
+              await setConnectedState(addr);
+            }
+          });
+        });
       };
 
       // Initial check strategy:
@@ -122,11 +262,11 @@ const initToolsHeader = () => {
         
         if (realAddr) {
              localStorage.setItem("tokencafe_wallet_address", realAddr);
-             updateHeaderUI(realAddr);
+             await setConnectedState(realAddr);
         } else {
              // If provider says disconnected, force disconnect in UI even if localStorage has data
              localStorage.removeItem("tokencafe_wallet_address");
-             updateHeaderUI(null);
+             await setConnectedState(null);
         }
       };
 
@@ -187,20 +327,30 @@ const initToolsHeader = () => {
 
       // Listen for TokenCafe system events
       document.addEventListener("wallet:connected", (e) => {
-        updateHeaderUI(e.detail.account);
+        setConnectedState(e.detail.account);
+      });
+      document.addEventListener("wallet:accountChanged", (e) => {
+        setConnectedState(e.detail.account);
+      });
+      document.addEventListener("wallet:chainChanged", (e) => {
+        const acc = e?.detail?.account || window.ethereum?.selectedAddress || null;
+        setConnectedState(acc);
       });
       document.addEventListener("wallet:disconnected", () => {
-        updateHeaderUI(null);
+        setConnectedState(null);
       });
 
       // Listen for Direct MetaMask events (Fail-safe)
       if (window.ethereum) {
         window.ethereum.on('accountsChanged', (accounts) => {
           if (accounts.length > 0) {
-            updateHeaderUI(accounts[0]);
+            setConnectedState(accounts[0]);
           } else {
-            updateHeaderUI(null);
+            setConnectedState(null);
           }
+        });
+        window.ethereum.on("chainChanged", () => {
+          setConnectedState(window.ethereum?.selectedAddress || null);
         });
       }
 

@@ -14,7 +14,7 @@ export class FeeManager {
      * @param {Object} signer - Signer do ethers.js
      * @param {Object} network - Objeto de rede { chainId, name }
      * @param {BigNumber} estimatedGasLimit - Limite de gas estimado
-     * @returns {Promise<boolean>} true se confirmado e pago, false se cancelado
+     * @returns {Promise<{ok: boolean, signer?: Object, billingAddress?: string | null}>}
      */
     async confirmAndPay(signer, network, estimatedGasLimit) {
         // 1. Verificar se é Testnet
@@ -23,7 +23,11 @@ export class FeeManager {
         // Se a config diz para não cobrar em testnet, retornamos true direto (apenas se não quiser simular)
         // Mas a config diz CHARGE_ON_TESTNET (default true para teste de fluxo)
         if (isTestnet && !PAYMENT_CONFIG.CHARGE_ON_TESTNET) {
-            return true;
+            let addr = null;
+            try {
+                addr = await signer.getAddress();
+            } catch (_) {}
+            return { ok: true, signer, billingAddress: addr };
         }
 
         // 2. Obter dados financeiros
@@ -55,6 +59,79 @@ export class FeeManager {
         const totalCostCrypto = serviceFeeCrypto + gasCostCrypto;
         const isBalanceEnough = balanceCrypto >= totalCostCrypto;
 
+        let billingAddress = null;
+        try {
+            billingAddress = await signer.getAddress();
+        } catch (_) {}
+
+        let billingAddressOverride = null;
+
+        let activeSigner = signer;
+        let latestCalc = {
+            symbol: nativeSymbol,
+            serviceFeeUSD,
+            serviceFeeCrypto,
+            gasCostUSD,
+            gasCostCrypto,
+            totalCostCrypto,
+            balanceCrypto,
+            isBalanceEnough,
+            isTestnet,
+            billingAddress,
+        };
+
+        const setBillingAddressOverride = async (addrOrNull) => {
+            const normalized = addrOrNull ? String(addrOrNull) : null;
+            billingAddressOverride = normalized;
+            await recalc();
+            return latestCalc;
+        };
+
+        const recalc = async () => {
+            try {
+                if (window.ethereum && ethers?.providers?.Web3Provider) {
+                    const providerNow = new ethers.providers.Web3Provider(window.ethereum);
+                    if (billingAddressOverride) activeSigner = providerNow.getSigner(billingAddressOverride);
+                    else activeSigner = providerNow.getSigner();
+                }
+            } catch (_) {}
+
+            const nativePrice2 = await PriceService.getNativeCoinPrice(network.chainId);
+            const safePrice2 = nativePrice2 > 0 ? nativePrice2 : 2000;
+
+            const serviceFeeUSD2 = PAYMENT_CONFIG.SERVICE_FEE_USD;
+            const serviceFeeCrypto2 = serviceFeeUSD2 / safePrice2;
+
+            const gasPrice2 = await activeSigner.getGasPrice();
+            const gasCostWei2 = estimatedGasLimit.mul(gasPrice2);
+            const gasCostCrypto2 = parseFloat(ethers.utils.formatEther(gasCostWei2));
+            const gasCostUSD2 = gasCostCrypto2 * safePrice2;
+
+            const balanceWei2 = await activeSigner.getBalance();
+            const balanceCrypto2 = parseFloat(ethers.utils.formatEther(balanceWei2));
+            const totalCostCrypto2 = serviceFeeCrypto2 + gasCostCrypto2;
+            const isBalanceEnough2 = balanceCrypto2 >= totalCostCrypto2;
+
+            let billingAddress2 = null;
+            try {
+                billingAddress2 = await activeSigner.getAddress();
+            } catch (_) {}
+
+            latestCalc = {
+                symbol: nativeSymbol,
+                serviceFeeUSD: serviceFeeUSD2,
+                serviceFeeCrypto: serviceFeeCrypto2,
+                gasCostUSD: gasCostUSD2,
+                gasCostCrypto: gasCostCrypto2,
+                totalCostCrypto: totalCostCrypto2,
+                balanceCrypto: balanceCrypto2,
+                isBalanceEnough: isBalanceEnough2,
+                isTestnet,
+                billingAddress: billingAddress2,
+            };
+            return latestCalc;
+        };
+
         // 3. Renderizar Modal
         return new Promise((resolve) => {
             this.showModal({
@@ -67,32 +144,40 @@ export class FeeManager {
                 balanceCrypto,
                 isBalanceEnough,
                 isTestnet,
+                billingAddress,
+                recalc,
+                setBillingAddressOverride,
                 onConfirm: async () => {
                     // Lógica de Pagamento ("Duas Cobranças")
                     try {
-                        if (!isBalanceEnough) {
+                        await recalc();
+                        if (!latestCalc.isBalanceEnough) {
                             showDiagnosis("INSUFFICIENT_FUNDS", {
-                                badge: `Saldo atual: ${balanceCrypto.toFixed(4)} ${nativeSymbol}`,
+                                badge: `Saldo atual: ${latestCalc.balanceCrypto.toFixed(4)} ${nativeSymbol}`,
                                 causes: ["Saldo insuficiente para pagar taxa e gás.", "Adicione saldo na rede selecionada e tente novamente."],
                             });
-                            resolve(false);
+                            resolve({ ok: false });
                             return;
                         }
                         // 1ª Cobrança: Taxa de Serviço (Transferência)
-                        if (serviceFeeCrypto > 0) {
-                            await this.processServiceFeePayment(signer, serviceFeeCrypto, nativeSymbol);
+                        if (latestCalc.serviceFeeCrypto > 0) {
+                            await this.processServiceFeePayment(activeSigner, latestCalc.serviceFeeCrypto, nativeSymbol);
                         }
-                        resolve(true); // Prosseguir para o deploy (2ª cobrança/gas)
+                        let addrNow = null;
+                        try {
+                            addrNow = await activeSigner.getAddress();
+                        } catch (_) {}
+                        resolve({ ok: true, signer: activeSigner, billingAddress: addrNow });
                     } catch (e) {
                         const d = diagnoseEvmError(e, { nativeSymbol });
                         showDiagnosis(d.code, {
                             badge: d.badge,
                             causes: d.causes,
                         });
-                        resolve(false);
+                        resolve({ ok: false });
                     }
                 },
-                onCancel: () => resolve(false)
+                onCancel: () => resolve({ ok: false })
             });
         });
     }
@@ -132,6 +217,8 @@ export class FeeManager {
         if (oldModal) oldModal.remove();
 
         // Template HTML
+        const addr = data.billingAddress ? String(data.billingAddress) : "";
+        const shortAddr = addr && addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : (addr || "—");
         const modalHtml = `
         <div class="modal fade" id="deployFeeModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-dialog-centered">
@@ -173,33 +260,31 @@ export class FeeManager {
                         <hr class="border-secondary">
 
                         <!-- Resumo Financeiro -->
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Seu saldo:</span>
-                            <span class="fw-bold">${data.balanceCrypto.toFixed(4)} ${data.symbol}</span>
+                        <div class="text-muted small mb-1">Carteira de cobrança</div>
+                        <div class="mb-3" id="feeBillingSelectWrap" style="display:none;">
+                            <select class="form-select bg-dark text-light border-secondary" id="feeBillingSelect" aria-label="Selecionar carteira de cobrança"></select>
+                            <div class="form-text text-muted small">Escolha a carteira que vai pagar a taxa e o gás (se você autorizou múltiplas contas no MetaMask).</div>
                         </div>
                         
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-info">Taxa de serviço:</span>
-                            <span class="text-end">
-                                <div>${data.serviceFeeCrypto.toFixed(6)} ${data.symbol}</div>
-                                <small class="text-muted">($${data.serviceFeeUSD.toFixed(2)})</small>
-                            </span>
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-info">Taxa de serviço:</div>
+                                <div class="text-info text-end" style="min-width: 90px;">($<span id="feeServiceFeeUsdValue">${data.serviceFeeUSD.toFixed(2)}</span>)</div>
+                                <div class="text-info text-end fw-semibold" style="min-width: 140px;"><span id="feeServiceFeeValue">${data.serviceFeeCrypto.toFixed(6)}</span>${data.symbol}</div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-1">
+                                <div class="text-warning">Gás estimado:</div>
+                                <div class="text-warning text-end" style="min-width: 90px;">($<span id="feeGasUsdValue">${data.gasCostUSD.toFixed(2)}</span>)</div>
+                                <div class="text-warning text-end fw-semibold" style="min-width: 140px;"><span id="feeGasValue">${data.gasCostCrypto.toFixed(6)}</span>${data.symbol}</div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top border-secondary">
+                                <div class="text-muted text-uppercase fw-bold">Total estimado:</div>
+                                <div style="min-width: 90px;"></div>
+                                <div class="text-muted text-end fw-bold" style="min-width: 140px;"><span id="feeTotalValue">${data.totalCostCrypto.toFixed(11)}</span></div>
+                            </div>
                         </div>
 
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-warning">Gás estimado:</span>
-                            <span class="text-end">
-                                <div>${data.gasCostCrypto.toFixed(6)} ${data.symbol}</div>
-                                <small class="text-muted">($${data.gasCostUSD.toFixed(2)})</small>
-                            </span>
-                        </div>
-
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Total estimado:</span>
-                            <span class="fw-bold">${data.totalCostCrypto.toFixed(6)} ${data.symbol}</span>
-                        </div>
-
-                        ${!data.isBalanceEnough ? `<div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><strong>Saldo insuficiente:</strong> adicione saldo na rede selecionada para continuar.</div>` : ''}
+                        <div id="feeInsufficientAlert" class="alert alert-danger py-2 small" style="${!data.isBalanceEnough ? "" : "display:none;"}"><i class="bi bi-exclamation-triangle me-1"></i><strong>Saldo insuficiente:</strong> adicione saldo na rede selecionada para continuar.</div>
                         
                         <!-- Aviso Testnet -->
                         ${data.isTestnet ? '<div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><strong>Modo Testnet:</strong> A cobrança será realizada na moeda de teste da rede. Certifique-se de ter saldo na carteira.<br>A verificação de contrato é exclusiva para redes oficiais.</div>' : ''}
@@ -229,15 +314,106 @@ export class FeeManager {
         const btnCancel = document.getElementById("btnCancelDeployFee");
         const checkTerms = document.getElementById("checkTerms");
         const checkNonEU = document.getElementById("checkNonEU");
+        const elBillingSelectWrap = document.getElementById("feeBillingSelectWrap");
+        const elBillingSelect = document.getElementById("feeBillingSelect");
+        const elService = document.getElementById("feeServiceFeeValue");
+        const elServiceUsd = document.getElementById("feeServiceFeeUsdValue");
+        const elGas = document.getElementById("feeGasValue");
+        const elGasUsd = document.getElementById("feeGasUsdValue");
+        const elTotal = document.getElementById("feeTotalValue");
+        const elAlert = document.getElementById("feeInsufficientAlert");
         let didConfirm = false;
+        let live = { ...data };
+        let pendingAccountsChangedRecalc = false;
+
+        const getAccounts = async () => {
+            try {
+                if (window.ethereum && typeof window.ethereum.request === "function") {
+                    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+                    if (Array.isArray(accounts)) return accounts.filter(Boolean);
+                }
+            } catch (_) {}
+            return [];
+        };
+
+        const renderBillingSelect = async () => {
+            if (!elBillingSelectWrap || !elBillingSelect) return;
+            const accounts = await getAccounts();
+            if (!accounts || accounts.length < 1) {
+                elBillingSelectWrap.style.display = "none";
+                return;
+            }
+            elBillingSelectWrap.style.display = "";
+            elBillingSelect.disabled = accounts.length <= 1;
+            const current = live.billingAddress ? String(live.billingAddress).toLowerCase() : "";
+            elBillingSelect.innerHTML = accounts
+                .map((a) => {
+                    const s = a && a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+                    const sel = current && a.toLowerCase() === current ? "selected" : "";
+                    return `<option value="${a}" ${sel}>${s} — … ${live.symbol}</option>`;
+                })
+                .join("");
+
+            try {
+                if (!window.ethereum || !ethers?.providers?.Web3Provider) return;
+                const providerNow = new ethers.providers.Web3Provider(window.ethereum);
+                const balances = await Promise.all(
+                    accounts.map(async (a) => {
+                        try {
+                            const bWei = await providerNow.getBalance(a);
+                            const b = parseFloat(ethers.utils.formatEther(bWei));
+                            return Number.isFinite(b) ? b : null;
+                        } catch (_) {
+                            return null;
+                        }
+                    })
+                );
+                const html = accounts
+                    .map((a, i) => {
+                        const s = a && a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+                        const sel = current && a.toLowerCase() === current ? "selected" : "";
+                        const b = balances[i];
+                        const bTxt = b === null ? "—" : b.toFixed(4);
+                        return `<option value="${a}" ${sel}>${s} — ${bTxt} ${live.symbol}</option>`;
+                    })
+                    .join("");
+                elBillingSelect.innerHTML = html;
+            } catch (_) {}
+        };
 
         // Validação dos checkboxes
         const validate = () => {
-            btnConfirm.disabled = !(checkTerms.checked && checkNonEU.checked && data.isBalanceEnough);
+            btnConfirm.disabled = !(checkTerms.checked && checkNonEU.checked && live.isBalanceEnough);
+        };
+
+        const applyLive = () => {
+            try {
+                if (elService) elService.textContent = Number(live.serviceFeeCrypto).toFixed(6);
+                if (elServiceUsd) elServiceUsd.textContent = Number(live.serviceFeeUSD).toFixed(2);
+                if (elGas) elGas.textContent = Number(live.gasCostCrypto).toFixed(6);
+                if (elGasUsd) elGasUsd.textContent = Number(live.gasCostUSD).toFixed(2);
+                if (elTotal) elTotal.textContent = Number(live.totalCostCrypto).toFixed(11);
+                if (elAlert) elAlert.style.display = live.isBalanceEnough ? "none" : "";
+            } catch (_) {}
+            validate();
         };
 
         checkTerms.addEventListener("change", validate);
         checkNonEU.addEventListener("change", validate);
+
+        if (elBillingSelect) {
+            elBillingSelect.addEventListener("change", async () => {
+                const selected = elBillingSelect.value;
+                try {
+                    if (typeof live.setBillingAddressOverride === "function") {
+                        const updated = await live.setBillingAddressOverride(selected);
+                        live = { ...live, ...updated };
+                        applyLive();
+                        await renderBillingSelect();
+                    }
+                } catch (_) {}
+            });
+        }
 
         if (btnCancel) {
             btnCancel.addEventListener("click", () => {
@@ -279,5 +455,36 @@ export class FeeManager {
         });
 
         bsModal.show();
+        applyLive();
+        renderBillingSelect();
+
+        try {
+            if (window.ethereum && typeof window.ethereum.on === "function") {
+                const onAccountsChanged = async () => {
+                    if (pendingAccountsChangedRecalc) return;
+                    pendingAccountsChangedRecalc = true;
+                    try {
+                        if (typeof live.setBillingAddressOverride === "function") {
+                            const updated = await live.setBillingAddressOverride(null);
+                            live = { ...live, ...updated };
+                        } else if (typeof live.recalc === "function") {
+                            const updated = await live.recalc();
+                            live = { ...live, ...updated };
+                        }
+                        applyLive();
+                        await renderBillingSelect();
+                    } catch (_) {}
+                    pendingAccountsChangedRecalc = false;
+                };
+                window.ethereum.on("accountsChanged", onAccountsChanged);
+                modalEl.addEventListener("hidden.bs.modal", () => {
+                    try {
+                        if (typeof window.ethereum.removeListener === "function") {
+                            window.ethereum.removeListener("accountsChanged", onAccountsChanged);
+                        }
+                    } catch (_) {}
+                });
+            }
+        } catch (_) {}
     }
 }

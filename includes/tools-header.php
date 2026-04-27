@@ -67,13 +67,20 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         <!-- (Removido) Badge de carteira verde antigo, agora usamos display abaixo -->
         <span id="wallet-address" class="d-none"></span>
       </div>
-      <div class="d-flex justify-content-end align-items-center mt-2">
-        <div id="connected-wallet-display" class="small text-muted">
-          Não Conectado
+      <div class="d-flex flex-column align-items-end mt-2">
+        <div class="d-flex justify-content-end align-items-center">
+          <div class="dropdown">
+            <button id="wallet-chip-btn" class="btn btn-sm btn-outline-success d-none" type="button" aria-label="Carteira conectada">
+              <span id="wallet-chip-address"></span>
+              <span class="ms-2 text-white-50" id="wallet-chip-balance"></span>
+              <i class="bi bi-chevron-down ms-2" id="wallet-chip-caret"></i>
+            </button>
+            <ul id="wallet-chip-menu" class="dropdown-menu dropdown-menu-end bg-page-black border-secondary"></ul>
+          </div>
+          <button id="btn-copy-wallet" class="btn btn-sm btn-link p-0 text-success ms-2 d-none text-no-decoration" title="Copiar endereço">
+            <i class="bi bi-clipboard"></i>
+          </button>
         </div>
-        <button id="btn-copy-wallet" class="btn btn-sm btn-link p-0 text-success ms-2 d-none text-no-decoration" title="Copiar endereço">
-          <i class="bi bi-clipboard"></i>
-        </button>
       </div>
       <small id="device-note" class="mt-1"></small>
     </div>

@@ -44,6 +44,8 @@ export class WalletConnector {
     // Debug mode
     this.debug = false;
 
+    this._pendingDisconnectTimer = null;
+
     // Selo de sessão: só marcamos conectado após ação explícita nesta aba
     try {
       this.sessionAuthorized = sessionStorage.getItem("tokencafe_wallet_session_authorized") === "true";
@@ -223,6 +225,13 @@ export class WalletConnector {
   async disconnect() {
     try {
       this.log("🔌 Desconectando carteira...");
+
+      try {
+        if (this._pendingDisconnectTimer) {
+          clearTimeout(this._pendingDisconnectTimer);
+          this._pendingDisconnectTimer = null;
+        }
+      } catch (_) {}
 
       // Limpar estado
       this.isConnected = false;
@@ -430,31 +439,83 @@ export class WalletConnector {
 
     // Listener para mudança de contas
     const accountsHandler = (accounts) => {
-      if (accounts.length === 0) {
-        this.disconnect();
-      } else if (accounts[0] !== this.currentAccount) {
-        this.currentAccount = accounts[0];
-        try {
-          const v = encodeURIComponent(String(this.currentAccount || ""));
-          document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
-        } catch (_) {}
-        this.updateBalance();
-        this.emitEvent("wallet:accountChanged", {
-          account: this.currentAccount,
-        });
-        this.log(`👤 Conta alterada: ${this.currentAccount}`);
-      }
+      try {
+        if (this._pendingDisconnectTimer) {
+          clearTimeout(this._pendingDisconnectTimer);
+          this._pendingDisconnectTimer = null;
+        }
+
+        const list = Array.isArray(accounts) ? accounts : [];
+        if (list.length === 0) {
+          this._pendingDisconnectTimer = setTimeout(async () => {
+            this._pendingDisconnectTimer = null;
+            try {
+              const accs = await window.ethereum.request({ method: "eth_accounts" });
+              const accList = Array.isArray(accs) ? accs : [];
+              if (accList.length === 0) {
+                await this.disconnect();
+                return;
+              }
+              const next = accList[0];
+              if (next && next !== this.currentAccount) {
+                this.currentAccount = next;
+              }
+              this.isConnected = true;
+              try {
+                const v = encodeURIComponent(String(this.currentAccount || ""));
+                document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
+              } catch (_) {}
+              await this.updateNetworkInfo();
+              await this.updateBalance();
+              this.emitEvent("wallet:connected", {
+                account: this.currentAccount,
+                wallet: this.connectedWallet,
+                chainId: this.currentChainId,
+                network: this.currentNetwork,
+              });
+            } catch (_) {}
+          }, 600);
+          return;
+        }
+
+        const nextAccount = list[0];
+        if (nextAccount && nextAccount !== this.currentAccount) {
+          this.currentAccount = nextAccount;
+          try {
+            const v = encodeURIComponent(String(this.currentAccount || ""));
+            document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
+          } catch (_) {}
+          this.isConnected = true;
+          this.updateBalance();
+          this.emitEvent("wallet:accountChanged", { account: this.currentAccount });
+          this.emitEvent("wallet:connected", {
+            account: this.currentAccount,
+            wallet: this.connectedWallet,
+            chainId: this.currentChainId,
+            network: this.currentNetwork,
+          });
+          this.log(`👤 Conta alterada: ${this.currentAccount}`);
+        }
+      } catch (_) {}
     };
 
     // Listener para mudança de rede
-    const chainHandler = (chainId) => {
-      this.currentChainId = chainId;
-      this.updateNetworkInfo();
-      this.emitEvent("wallet:chainChanged", { chainId });
-      this.log(`🔄 Rede alterada: ${chainId}`);
+    const chainHandler = async (chainId) => {
       try {
-        const cid = encodeURIComponent(String(chainId || ""));
-        document.cookie = `tokencafe_chain_id=${cid}; Path=/; SameSite=Lax`;
+        this.currentChainId = chainId;
+        await this.updateNetworkInfo();
+        await this.updateBalance();
+        this.emitEvent("wallet:chainChanged", {
+          chainId,
+          account: this.currentAccount,
+          network: this.currentNetwork,
+          balance: this.balance,
+        });
+        this.log(`🔄 Rede alterada: ${chainId}`);
+        try {
+          const cid = encodeURIComponent(String(chainId || ""));
+          document.cookie = `tokencafe_chain_id=${cid}; Path=/; SameSite=Lax`;
+        } catch (_) {}
       } catch (_) {}
     };
 
@@ -631,6 +692,38 @@ export class WalletConnector {
       availableWallets: this.availableWallets,
       sessionAuthorized: !!this.sessionAuthorized,
     };
+  }
+
+  async setAccount(account) {
+    try {
+      const next = account ? String(account) : "";
+      if (!next) return false;
+      if (!window.ethereum || typeof window.ethereum.request !== "function") return false;
+
+      const accounts = await window.ethereum.request({ method: "eth_accounts" });
+      const list = Array.isArray(accounts) ? accounts : [];
+      const found = list.find((a) => String(a).toLowerCase() === next.toLowerCase());
+      if (!found) return false;
+
+      this.currentAccount = found;
+      this.isConnected = true;
+      try {
+        const v = encodeURIComponent(String(this.currentAccount || ""));
+        document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
+      } catch (_) {}
+      await this.updateNetworkInfo();
+      await this.updateBalance();
+      this.emitEvent("wallet:accountChanged", { account: this.currentAccount });
+      this.emitEvent("wallet:connected", {
+        account: this.currentAccount,
+        wallet: this.connectedWallet,
+        chainId: this.currentChainId,
+        network: this.currentNetwork,
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /**

@@ -9,7 +9,87 @@ class ContractDetailsManager {
     constructor() {
         this.state = null;
         this.verifPoll = null;
+        this._walletListenersAttached = false;
         this.init();
+    }
+
+    attachWalletListeners() {
+        try {
+            if (this._walletListenersAttached) return;
+            this._walletListenersAttached = true;
+
+            const rerun = async () => {
+                try {
+                    if (this.state) this.setupDownloads();
+                } catch (_) {}
+                try {
+                    this.applyShareAccessControl();
+                } catch (_) {}
+            };
+
+            document.addEventListener("wallet:connected", rerun);
+            document.addEventListener("wallet:disconnected", rerun);
+
+            try {
+                if (window.ethereum && typeof window.ethereum.on === "function") {
+                    window.ethereum.on("accountsChanged", () => rerun());
+                    window.ethereum.on("chainChanged", () => setTimeout(rerun, 300));
+                }
+            } catch (_) {}
+        } catch (_) {}
+    }
+
+    resolveCompilationForDownloads() {
+        try {
+            const currentAddr = String(this.state?.deployed?.address || this.state?.deployed?.contractAddress || "").toLowerCase();
+            const currentCid = Number(this.state?.form?.network?.chainId || this.state?.wallet?.chainId || 0);
+            if (!currentAddr || !currentCid) return;
+
+            if (this.state?.compilation?.sourceCode || this.state?.compilation?.input || this.state?.compilation?.abi || this.state?.compilation?.bytecode) {
+                return;
+            }
+
+            // 1) Prefer artefatos completos da sessão de deploy
+            try {
+                const raw = sessionStorage.getItem("lastDeployedContract");
+                const st = raw ? JSON.parse(raw) : null;
+                const sAddr = String(st?.deployed?.address || st?.deployed?.contractAddress || "").toLowerCase();
+                const sCid = Number(st?.form?.network?.chainId || st?.wallet?.chainId || 0);
+                if (st && sAddr === currentAddr && sCid === currentCid && st?.compilation) {
+                    this.state.compilation = { ...(this.state.compilation || {}), ...st.compilation };
+                    return;
+                }
+            } catch (_) {}
+
+            // 2) Fallback parcial: payload de verificação salvo (fonte do contrato)
+            try {
+                const raw = localStorage.getItem("tokencafe_contract_verify_payload");
+                const p = raw ? JSON.parse(raw) : null;
+                const pAddr = String(p?.contractAddress || "").toLowerCase();
+                const pCid = Number(p?.chainId || 0);
+                const src = String(p?.sourceCode || "").trim();
+                if (p && pAddr === currentAddr && pCid === currentCid && src) {
+                    const contractName = String(p?.contractName || "Contract").trim() || "Contract";
+                    const inputObj = {
+                        language: "Solidity",
+                        sources: { [`${contractName}.sol`]: { content: src } },
+                        settings: {
+                            optimizer: {
+                                enabled: p?.optimizationUsed === 0 || p?.optimizationUsed === "0" ? false : true,
+                                runs: Number.isFinite(Number(p?.runs)) ? Number(p.runs) : 200
+                            },
+                            evmVersion: p?.evmVersion || p?.evmversion || "default"
+                        }
+                    };
+                    this.state.compilation = {
+                        ...(this.state.compilation || {}),
+                        contractName,
+                        sourceCode: src,
+                        input: JSON.stringify(inputObj)
+                    };
+                }
+            } catch (_) {}
+        } catch (_) {}
     }
 
     writeContractContext(address, chainId, pageName = "contrato-detalhes") {
@@ -146,9 +226,9 @@ class ContractDetailsManager {
                 console.error("Erro ao inicializar ShareManager:", err);
             }
             
-            // Hide Downloads (no source)
-            const filesSection = document.getElementById("files-section");
-            if (filesSection) filesSection.classList.add("d-none");
+            this.setupDownloads();
+            this.applyShareAccessControl();
+            this.attachWalletListeners();
             
             // Hide Status Alert
             const alertBox = document.getElementById("status-alert");
@@ -206,6 +286,8 @@ class ContractDetailsManager {
             }
 
             this.setupDownloads();
+            this.applyShareAccessControl();
+            this.attachWalletListeners();
             this.setupContractView();
             try {
                 const addr = this.state?.deployed?.address || "";
@@ -365,26 +447,79 @@ class ContractDetailsManager {
     }
 
     setupDownloads() {
+        this.resolveCompilationForDownloads();
         const { compilation, form } = this.state;
         
-        // Restrição de Rede de Teste (exceto Admin)
+        // Restrição global: downloads só para Admin
         const chainId = form.network?.chainId;
         const nm = new NetworkManager();
         const isAdmin = checkIsAdmin();
         const isTestnet = nm.isTestNetwork(chainId);
         
         const container = document.getElementById("files-section");
+        if (!container) return;
         
-        if (isTestnet && !isAdmin) {
-            console.log("Downloads bloqueados: Testnet e não admin");
-            if (container) {
-                 container.classList.add("d-none"); // Oculta completamente
+        const lockButtons = (message) => {
+            const ids = ["btnDownloadSol", "btnDownloadJson", "btnDownloadAbi", "btnDownloadDeployedBytecode"];
+            ids.forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.disabled = true;
+                el.classList.add("disabled");
+                el.setAttribute("aria-disabled", "true");
+                el.onclick = (e) => {
+                    try { e?.preventDefault?.(); } catch (_) {}
+                    window.showFormError?.(message);
+                };
+            });
+        };
+
+        if (!isAdmin) {
+            console.log("Downloads bloqueados: carteira não admin");
+            container.classList.remove("d-none");
+
+            lockButtons(isTestnet
+                ? "Acesso restrito: conecte a carteira Admin para liberar downloads nesta testnet."
+                : "Acesso restrito: conecte a carteira Admin para liberar downloads deste contrato.");
+
+            let warn = document.getElementById("tcFilesTestnetLock");
+            if (!warn) {
+               warn = document.createElement("div");
+               warn.id = "tcFilesTestnetLock";
+               warn.className = "mt-2 small text-warning";
+               container.appendChild(warn);
             }
+            warn.textContent = isTestnet
+                ? "Conecte a carteira Admin para liberar downloads nesta testnet."
+                : "Conecte a carteira Admin para liberar downloads deste contrato.";
             return;
         } else {
-            if (container) {
-                 container.classList.remove("d-none"); // Garante que fica visível para Admin
+            container.classList.remove("d-none");
+            const warn = document.getElementById("tcFilesTestnetLock");
+            if (warn) warn.remove();
+        }
+
+        const hasAnyFile =
+            !!compilation?.sourceCode ||
+            !!compilation?.input ||
+            !!compilation?.abi ||
+            !!compilation?.bytecode;
+
+        if (!hasAnyFile) {
+            lockButtons("Arquivos disponíveis apenas quando o contrato é criado pelo TokenCafe (sessão de deploy).");
+
+            let warn = document.getElementById("tcFilesUnavailable");
+            if (!warn) {
+                warn = document.createElement("div");
+                warn.id = "tcFilesUnavailable";
+                warn.className = "mt-2 small text-muted";
+                container.appendChild(warn);
             }
+            warn.textContent = "Arquivos disponíveis apenas quando o contrato é criado pelo TokenCafe (sessão de deploy).";
+            return;
+        } else {
+            const warn = document.getElementById("tcFilesUnavailable");
+            if (warn) warn.remove();
         }
 
         const contractName = compilation?.contractName || "Contract";
@@ -396,6 +531,8 @@ class ContractDetailsManager {
                 this.showFileModal(`${contractName}.sol`, compilation.sourceCode);
             };
             btnSol.disabled = false;
+            btnSol.classList.remove("disabled");
+            btnSol.removeAttribute("aria-disabled");
         } else if (btnSol) {
             btnSol.disabled = true;
         }
@@ -413,6 +550,8 @@ class ContractDetailsManager {
                 }
             };
             btnJson.disabled = false;
+            btnJson.classList.remove("disabled");
+            btnJson.removeAttribute("aria-disabled");
         } else if (btnJson) {
             btnJson.disabled = true;
         }
@@ -425,6 +564,8 @@ class ContractDetailsManager {
                 this.showFileModal(`${contractName}_ABI.json`, content, "application/json");
             };
             btnAbi.disabled = false;
+            btnAbi.classList.remove("disabled");
+            btnAbi.removeAttribute("aria-disabled");
         } else if (btnAbi) {
             btnAbi.disabled = true;
         }
@@ -436,8 +577,61 @@ class ContractDetailsManager {
                 this.showFileModal(`${contractName}_Bytecode.txt`, compilation.bytecode);
             };
             btnByte.disabled = false;
+            btnByte.classList.remove("disabled");
+            btnByte.removeAttribute("aria-disabled");
         } else if (btnByte) {
             btnByte.disabled = true;
+        }
+    }
+
+    applyShareAccessControl() {
+        const section = document.getElementById("share-section");
+        if (!section) return;
+
+        const isAdmin = checkIsAdmin();
+        section.classList.remove("d-none");
+
+        const ids = [
+            "copyAddressBtn",
+            "viewAddressBtn",
+            "btnShareWhatsAppSmall",
+            "btnShareTelegramSmall",
+            "btnShareEmailSmall",
+            "btnAddNetworkSmall",
+            "btnAddToMetaMaskSmall"
+        ];
+
+        ids.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.disabled = !isAdmin;
+            if (!isAdmin) {
+                el.classList.add("disabled");
+                el.setAttribute("aria-disabled", "true");
+                el.onclick = (e) => {
+                    try { e?.preventDefault?.(); } catch (_) {}
+                    window.showFormError?.("Acesso restrito: conecte a carteira Admin para liberar a seção de link/compartilhamento.");
+                };
+            } else {
+                el.classList.remove("disabled");
+                el.removeAttribute("aria-disabled");
+            }
+        });
+
+        const input = document.getElementById("generatedLink");
+        if (input) input.disabled = !isAdmin;
+
+        let warn = document.getElementById("tcShareAdminLock");
+        if (!isAdmin) {
+            if (!warn) {
+                warn = document.createElement("div");
+                warn.id = "tcShareAdminLock";
+                warn.className = "mt-2 small text-warning";
+                section.appendChild(warn);
+            }
+            warn.textContent = "Conecte a carteira Admin para liberar a seção de link/compartilhamento.";
+        } else if (warn) {
+            warn.remove();
         }
     }
 

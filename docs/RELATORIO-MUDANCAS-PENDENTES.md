@@ -31,6 +31,20 @@ Registrar de forma simples o que estava sendo alterado após o commit “correç
   - Adicionou `POST /api/explorer-getsourcecode` (consulta de status por endereço via backend).
   - Ajustou prioridade do erro (retornar `result` do explorer quando disponível).
 
+### Separação: Visual/UX vs Lógica (para reaplicar com segurança)
+#### Visual/UX (melhora experiência sem mudar regra de negócio)
+- Exibir estados mais claros no badge de verificação (ex.: “Chave API”, “Aguardando”, “Verificar”) e melhorar títulos/ícones do status.
+- Evitar “loop” visual repetitivo quando o erro é terminal (API key/plano) para não poluir o console e não confundir o usuário.
+- Em testnet, quando não admin, não “sumir” com a seção de downloads: manter visível e apenas desabilitar botões, mostrando mensagem objetiva do motivo.
+- Reavaliar UI automaticamente quando a carteira conecta/troca conta/rede (para não depender de reload manual).
+
+#### Lógica/Infra (muda comportamento/integrações e deve ser reintroduzido por etapas)
+- Reativar `VERIFICATION_MODULE_ENABLED` e religar rotas/botões de verificação no builder.
+- Disparar verificação real pela seta (montagem de payload + chamada `runVerifyDirect`).
+- Alterar fluxo de status para preferir backend antes de chamar Explorer direto.
+- Adicionar no backend o endpoint `POST /api/explorer-getsourcecode` e ajustar prioridades de erro.
+- Exigir/propagar API key válida para verificação/consulta no Explorer V2 (principalmente chainId 97).
+
 ### Por que “verificação funcionava” e passou a falhar
 O problema não ficou apenas em “testnet vs admin”. Houve dois gargalos externos:
 1) O backend em produção usado pela UI (`https://tokencafe.onrender.com`) responde `/health`, mas não expõe `POST /api/explorer-getsourcecode` (retornava 404). Sem isso, o frontend cai no Explorer direto.
@@ -59,4 +73,3 @@ Cole este prompt quando for retomar:
 3) Proponha um plano de commits mínimos (1–3 commits) para reintroduzir a verificação com testes entre etapas.
 4) Se houver risco alto, recomende manter ‘correções de menu’ e reintroduzir as mudanças em passos menores.
 Responda em português (Brasil) e seja objetivo.”
-

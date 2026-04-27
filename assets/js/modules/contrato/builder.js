@@ -19,9 +19,11 @@ export function checkIsAdmin() {
     // 2. Verificação via walletConnector global (útil quando importado em outras páginas como contrato-detalhes)
     if (window.walletConnector && typeof window.walletConnector.getStatus === "function") {
         const status = window.walletConnector.getStatus();
-        if (status && status.account && isWalletAdmin(status.account)) {
+        const connected = !!status?.isConnected && !!status?.sessionAuthorized && !!status?.account;
+        if (connected && isWalletAdmin(status.account)) {
             return true;
         }
+        return false;
     }
     
     // 3. Verificação via cookie PHP
@@ -1852,7 +1854,7 @@ export async function deployContract() {
     const bytecode = typeof state.compilation.bytecode === "string" && !state.compilation.bytecode.startsWith("0x")
       ? "0x" + state.compilation.bytecode
       : state.compilation.bytecode;
-    const signer = state.wallet.signer;
+    let signer = state.wallet.signer;
 
     log("Preparando contrato para deploy com MetaMask...");
     startOpStatus("Deploy via MetaMask");
@@ -1869,7 +1871,7 @@ export async function deployContract() {
         try {
              const txRequest = {
                 data: bytecode,
-                from: state.wallet.address
+                from: await signer.getAddress()
              };
              // Estimar gas manualmente
              let gasLimit;
@@ -1883,11 +1885,19 @@ export async function deployContract() {
 
              // --- INÍCIO GESTÃO DE TAXA ---
              const feeMgr = new FeeManager();
-             const feeOk = await feeMgr.confirmAndPay(signer, state.form.network, gasLimit);
+             const feeResult = await feeMgr.confirmAndPay(signer, state.form.network, gasLimit);
+             const feeOk = !!(feeResult && (feeResult.ok ?? feeResult === true));
              if (!feeOk) {
                  log("Deploy cancelado pelo usuário ou falha no pagamento da taxa.");
                  stopOpStatus("Cancelado");
                  return false;
+             }
+             if (feeResult && feeResult.signer) {
+                 signer = feeResult.signer;
+                 try {
+                     state.wallet.signer = signer;
+                     state.wallet.address = await signer.getAddress();
+                 } catch (_) {}
              }
              // --- FIM GESTÃO DE TAXA ---
              
@@ -1911,12 +1921,12 @@ export async function deployContract() {
         }
     } else {
         // Fluxo padrão para outros contratos (com argumentos)
-        const factory = new ethers.ContractFactory(abi, bytecode, signer);
         const args = getConstructorArgs();
+        const factoryForEstimate = new ethers.ContractFactory(abi, bytecode, signer);
 
         // Tentar estimar gas para o deploy; usar fallback se falhar
         try {
-          const deployTx = factory.getDeployTransaction(...args);
+          const deployTx = factoryForEstimate.getDeployTransaction(...args);
           const estimated = await signer.estimateGas(deployTx);
           // pequeno buffer (+20%) para evitar underestimation
           const buff = estimated.mul ? estimated.mul(120).div(100) : estimated * 1.2;
@@ -1930,15 +1940,24 @@ export async function deployContract() {
         // --- INÍCIO GESTÃO DE TAXA ---
         const feeMgr = new FeeManager();
         const gasLimitBN = ethers.BigNumber.from(overrides.gasLimit.toString());
-        const feeOk = await feeMgr.confirmAndPay(signer, state.form.network, gasLimitBN);
+        const feeResult = await feeMgr.confirmAndPay(signer, state.form.network, gasLimitBN);
+        const feeOk = !!(feeResult && (feeResult.ok ?? feeResult === true));
         if (!feeOk) {
             log("Deploy cancelado pelo usuário ou falha no pagamento da taxa.");
             stopOpStatus("Cancelado");
             return false;
         }
+        if (feeResult && feeResult.signer) {
+            signer = feeResult.signer;
+            try {
+                state.wallet.signer = signer;
+                state.wallet.address = await signer.getAddress();
+            } catch (_) {}
+        }
         // --- FIM GESTÃO DE TAXA ---
 
         log("Enviando transação de deploy pelo MetaMask...");
+        const factory = new ethers.ContractFactory(abi, bytecode, signer);
         contract = await factory.deploy(...args, overrides);
         tx = contract.deployTransaction;
     }
