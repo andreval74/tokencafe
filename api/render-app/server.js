@@ -5,6 +5,7 @@ import solc from "solc";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { getAddress } from "ethers";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -82,27 +83,517 @@ app.options("/api/log-recipe", (req, res) => res.sendStatus(204));
 // Generate-token: builds ERC-20 minimal source and compiles
 app.post("/api/generate-token", (req, res) => {
   try {
-    const { name, symbol, totalSupply, decimals } = req.body || {};
-    if (!name || !symbol) return res.status(400).json({ error: "Missing name or symbol" });
-    const d = Number.isFinite(decimals) ? parseInt(decimals, 10) : 18;
-    if (!Number.isFinite(d) || d < 0 || d > 18) return res.status(400).json({ error: "Invalid decimals" });
-    const tsStr = String(totalSupply ?? "0");
+    const body = req.body || {};
+    const type = String(body.type || "erc20-minimal");
+    const sale = body.sale || {};
+    const advanced = body.advanced || body.advancedParams || null;
+
+    const isTokenSaleSeparado = type === "tokensale-separado";
+    const name = isTokenSaleSeparado ? "TokenSale" : body.name;
+    const symbol = isTokenSaleSeparado ? "SALE" : body.symbol;
+
+    if (!isTokenSaleSeparado && (!name || !symbol)) {
+      return res.status(400).json({ success: false, error: "Missing name or symbol" });
+    }
+
+    const d = Number.isFinite(body.decimals) ? parseInt(body.decimals, 10) : 18;
+    if (!Number.isFinite(d) || d < 0 || d > 18) {
+      return res.status(400).json({ success: false, error: "Invalid decimals" });
+    }
+
+    const tsStr = String(body.totalSupply ?? "0");
     const tsSan = tsStr.replace(/[^0-9]/g, "");
-    const ts = parseInt(tsSan || "0", 10);
-    if (!Number.isFinite(ts) || ts < 0) return res.status(400).json({ error: "Invalid totalSupply" });
+    const ts = tsSan || "0";
+    if (!isTokenSaleSeparado && (!/^\d+$/.test(ts) || BigInt(ts) <= 0n)) {
+      return res.status(400).json({ success: false, error: "Invalid totalSupply" });
+    }
 
-    const contractName = sanitizeContractName(name);
-    const src = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.26;\n\ncontract ${contractName} {\n    string public name = "${String(name)}";\n    string public symbol = "${String(symbol)}";\n    uint8 public decimals = ${d};\n    uint256 public totalSupply;\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    constructor() {\n        totalSupply = ${ts} * 10**decimals;\n        balanceOf[msg.sender] = totalSupply;\n        emit Transfer(address(0), msg.sender, totalSupply);\n    }\n\n    function transfer(address to, uint256 value) public returns (bool) {\n        require(balanceOf[msg.sender] >= value, "Insufficient balance");\n        balanceOf[msg.sender] -= value;\n        balanceOf[to] += value;\n        emit Transfer(msg.sender, to, value);\n        return true;\n    }\n\n    function approve(address spender, uint256 value) public returns (bool) {\n        allowance[msg.sender][spender] = value;\n        emit Approval(msg.sender, spender, value);\n        return true;\n    }\n\n    function transferFrom(address from, address to, uint256 value) public returns (bool) {\n        require(balanceOf[from] >= value, "Insufficient balance");\n        require(allowance[from][msg.sender] >= value, "Allowance exceeded");\n        balanceOf[from] -= value;\n        balanceOf[to] += value;\n        allowance[from][msg.sender] -= value;\n        emit Transfer(from, to, value);\n        return true;\n    }\n}`;
+    const addrOrZero = (a) => {
+      try {
+        return getAddress(String(a || ""));
+      } catch {
+        return "0x0000000000000000000000000000000000000000";
+      }
+    };
 
-    const { abi, bytecode, deployedBytecode, metadata } = compileSolidity(src, contractName);
+    const contractId = sanitizeContractName(name);
+
+    const getERC20Minimal = () => `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+contract ${contractId} {
+    string public name = "${String(name)}";
+    string public symbol = "${String(symbol)}";
+    uint8 public decimals = ${d};
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor() {
+        totalSupply = ${ts} * 10**decimals;
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+
+    function transfer(address to, uint256 value) public returns (bool) {
+        require(balanceOf[msg.sender] >= value, "Saldo insuficiente");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
+
+    function approve(address spender, uint256 value) public returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) public returns (bool) {
+        require(balanceOf[from] >= value, "Saldo insuficiente");
+        require(allowance[from][msg.sender] >= value, "Allowance insuficiente");
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        allowance[from][msg.sender] -= value;
+        emit Transfer(from, to, value);
+        return true;
+    }
+}`;
+
+    const getERC20Controls = () => `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+abstract contract Ownable {
+    address private _owner;
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    constructor() {
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), msg.sender);
+    }
+
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
+    modifier onlyOwner() {
+        require(owner() == msg.sender, "Ownable: caller is not the owner");
+        _;
+    }
+
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+}
+
+abstract contract Pausable is Ownable {
+    bool private _paused;
+    event Paused(address account);
+    event Unpaused(address account);
+
+    constructor() {
+        _paused = false;
+    }
+
+    function paused() public view returns (bool) {
+        return _paused;
+    }
+
+    modifier whenNotPaused() {
+        require(!_paused, "Pausable: paused");
+        _;
+    }
+
+    function pause() public onlyOwner {
+        _paused = true;
+        emit Paused(msg.sender);
+    }
+
+    function unpause() public onlyOwner {
+        _paused = false;
+        emit Unpaused(msg.sender);
+    }
+}
+
+contract ${contractId} is Ownable, Pausable {
+    string public name = "${String(name)}";
+    string public symbol = "${String(symbol)}";
+    uint8 public decimals = ${d};
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor() {
+        totalSupply = ${ts} * 10**decimals;
+        balanceOf[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
+    }
+
+    function transfer(address to, uint256 value) public whenNotPaused returns (bool) {
+        require(balanceOf[msg.sender] >= value, "Saldo insuficiente");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
+
+    function approve(address spender, uint256 value) public whenNotPaused returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) public whenNotPaused returns (bool) {
+        require(balanceOf[from] >= value, "Saldo insuficiente");
+        require(allowance[from][msg.sender] >= value, "Allowance insuficiente");
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        allowance[from][msg.sender] -= value;
+        emit Transfer(from, to, value);
+        return true;
+    }
+
+    function burn(uint256 value) public onlyOwner {
+        require(balanceOf[msg.sender] >= value, "Saldo insuficiente para queimar");
+        balanceOf[msg.sender] -= value;
+        totalSupply -= value;
+        emit Transfer(msg.sender, address(0), value);
+    }
+}`;
+
+    const getERC20DirectSale = () => `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+abstract contract Ownable {
+    address private _owner;
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    constructor() { _owner = msg.sender; emit OwnershipTransferred(address(0), msg.sender); }
+    function owner() public view returns (address) { return _owner; }
+    modifier onlyOwner() { require(owner() == msg.sender, "Not owner"); _; }
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Zero address");
+        _owner = newOwner;
+    }
+}
+
+contract ${contractId} is Ownable {
+    string public name = "${String(name)}";
+    string public symbol = "${String(symbol)}";
+    uint8 public decimals = ${d};
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    bool public saleActive = true;
+    uint256 public priceWei;
+    uint256 public minPurchaseWei;
+    uint256 public maxPurchaseWei;
+    uint256 public capPerWallet;
+    address payable public payoutWallet;
+
+    mapping(address => uint256) public purchasedAmount;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event TokensPurchased(address indexed buyer, uint256 amount, uint256 cost);
+
+    constructor(
+        uint256 _priceWei,
+        uint256 _minWei,
+        uint256 _maxWei,
+        uint256 _capUnits,
+        address payable _payout
+    ) {
+        totalSupply = ${ts} * 10**decimals;
+        balanceOf[address(this)] = totalSupply;
+        emit Transfer(address(0), address(this), totalSupply);
+
+        priceWei = _priceWei;
+        minPurchaseWei = _minWei;
+        maxPurchaseWei = _maxWei;
+        capPerWallet = _capUnits * 10**decimals;
+        payoutWallet = _payout;
+    }
+
+    function transfer(address to, uint256 value) public returns (bool) {
+        _transfer(msg.sender, to, value);
+        return true;
+    }
+
+    function approve(address spender, uint256 value) public returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) public returns (bool) {
+        require(allowance[from][msg.sender] >= value, "Allowance exceeded");
+        allowance[from][msg.sender] -= value;
+        _transfer(from, to, value);
+        return true;
+    }
+
+    function _transfer(address from, address to, uint256 value) internal {
+        require(balanceOf[from] >= value, "Insufficient balance");
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        emit Transfer(from, to, value);
+    }
+
+    function buy() public payable {
+        require(saleActive, "Sale inactive");
+        require(msg.value >= minPurchaseWei, "Below min purchase");
+        require(msg.value <= maxPurchaseWei, "Above max purchase");
+        require(priceWei > 0, "Price not set");
+
+        uint256 tokensToBuy = (msg.value * (10**decimals)) / priceWei;
+        require(balanceOf[address(this)] >= tokensToBuy, "Sold out");
+
+        if (capPerWallet > 0) {
+            require(purchasedAmount[msg.sender] + tokensToBuy <= capPerWallet, "Wallet cap exceeded");
+        }
+
+        purchasedAmount[msg.sender] += tokensToBuy;
+        _transfer(address(this), msg.sender, tokensToBuy);
+
+        (bool sent, ) = payoutWallet.call{value: msg.value}("");
+        require(sent, "Failed to send BNB");
+
+        emit TokensPurchased(msg.sender, tokensToBuy, msg.value);
+    }
+
+    function setSaleState(bool _active) external onlyOwner {
+        saleActive = _active;
+    }
+
+    function withdrawTokens(uint256 amount) external onlyOwner {
+        _transfer(address(this), msg.sender, amount);
+    }
+
+    function updatePrice(uint256 _newPrice) external onlyOwner {
+        priceWei = _newPrice;
+    }
+
+    receive() external payable {
+        buy();
+    }
+}`;
+
+    const getTokenSaleSeparado = () => `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+    function decimals() external view returns (uint8);
+}
+
+contract TokenSale {
+    address public owner;
+    IERC20 public token;
+    address payable public wallet;
+
+    uint256 public priceWei;
+    uint256 public minPurchaseWei;
+    uint256 public maxPurchaseWei;
+
+    bool public saleActive = true;
+
+    event Purchased(address indexed buyer, uint256 amount, uint256 cost);
+
+    modifier onlyOwner() { require(msg.sender == owner, "Not owner"); _; }
+
+    constructor(
+        address _token,
+        address payable _wallet,
+        uint256 _priceWei,
+        uint256 _minWei,
+        uint256 _maxWei
+    ) {
+        owner = msg.sender;
+        token = IERC20(_token);
+        wallet = _wallet;
+        priceWei = _priceWei;
+        minPurchaseWei = _minWei;
+        maxPurchaseWei = _maxWei;
+    }
+
+    function buy() public payable {
+        require(saleActive, "Sale closed");
+        require(msg.value >= minPurchaseWei, "Below min");
+        require(msg.value <= maxPurchaseWei, "Above max");
+
+        uint256 dec = token.decimals();
+        uint256 amount = (msg.value * (10**dec)) / priceWei;
+
+        require(token.balanceOf(address(this)) >= amount, "Insufficient tokens in sale");
+
+        token.transfer(msg.sender, amount);
+
+        (bool s, ) = wallet.call{value: msg.value}("");
+        require(s, "Transfer failed");
+
+        emit Purchased(msg.sender, amount, msg.value);
+    }
+
+    function setSaleActive(bool _s) external onlyOwner {
+        saleActive = _s;
+    }
+
+    function withdrawRemaining() external onlyOwner {
+        token.transfer(owner, token.balanceOf(address(this)));
+    }
+
+    receive() external payable {
+        buy();
+    }
+}`;
+
+    const getERC20AdvancedFallback = () => {
+      const liquidityTax = Number(advanced?.taxes?.liquidity?.enabled ? advanced?.taxes?.liquidity?.buy || 0 : 0) || 0;
+      const marketingTax = Number(advanced?.taxes?.wallet?.enabled ? advanced?.taxes?.wallet?.buy || 0 : 0) || 0;
+      const marketingWallet = addrOrZero(advanced?.taxes?.wallet?.address);
+      return `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+}
+
+contract ${contractId} is Context, IERC20 {
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    uint256 private _totalSupply;
+    string private _name;
+    string private _symbol;
+    uint8 private _decimals;
+
+    address public owner;
+
+    uint256 public liquidityTax = ${liquidityTax};
+    uint256 public marketingTax = ${marketingTax};
+    address public marketingWallet = ${marketingWallet === "0x0000000000000000000000000000000000000000" ? "address(0)" : marketingWallet};
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    constructor() {
+        _name = "${String(name)}";
+        _symbol = "${String(symbol)}";
+        _decimals = ${d};
+        _totalSupply = ${ts} * 10**_decimals;
+        owner = _msgSender();
+
+        _balances[_msgSender()] = _totalSupply;
+        emit Transfer(address(0), _msgSender(), _totalSupply);
+        emit OwnershipTransferred(address(0), _msgSender());
+    }
+
+    function name() public view returns (string memory) { return _name; }
+    function symbol() public view returns (string memory) { return _symbol; }
+    function decimals() public view returns (uint8) { return _decimals; }
+    function totalSupply() public view override returns (uint256) { return _totalSupply; }
+    function balanceOf(address account) public view override returns (uint256) { return _balances[account]; }
+
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        _transfer(_msgSender(), recipient, amount);
+        return true;
+    }
+
+    function allowance(address ow, address spender) public view override returns (uint256) {
+        return _allowances[ow][spender];
+    }
+
+    function approve(address spender, uint256 amount) public override returns (bool) {
+        _approve(_msgSender(), spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+        _transfer(sender, recipient, amount);
+        uint256 currentAllowance = _allowances[sender][_msgSender()];
+        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+        unchecked { _approve(sender, _msgSender(), currentAllowance - amount); }
+        return true;
+    }
+
+    function _approve(address ow, address spender, uint256 amount) internal virtual {
+        require(ow != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+        _allowances[ow][spender] = amount;
+        emit Approval(ow, spender, amount);
+    }
+
+    function _transfer(address sender, address recipient, uint256 amount) internal virtual {
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        uint256 senderBalance = _balances[sender];
+        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+
+        uint256 taxAmount = 0;
+        if (sender != owner && recipient != owner) {
+            uint256 totalTax = liquidityTax + marketingTax;
+            if (totalTax > 0) {
+                taxAmount = (amount * totalTax) / 100;
+                if (taxAmount > 0) {
+                    _balances[address(this)] += taxAmount;
+                    emit Transfer(sender, address(this), taxAmount);
+                }
+            }
+        }
+
+        uint256 receiveAmount = amount - taxAmount;
+        unchecked { _balances[sender] = senderBalance - amount; }
+        _balances[recipient] += receiveAmount;
+        emit Transfer(sender, recipient, receiveAmount);
+    }
+}`;
+    };
+
+    const getContractSource = () => {
+      if (type === "erc20-controls") return { source: getERC20Controls(), contractName: contractId };
+      if (type === "erc20-directsale") return { source: getERC20DirectSale(), contractName: contractId };
+      if (type === "tokensale-separado") return { source: getTokenSaleSeparado(), contractName: "TokenSale" };
+      if (type === "erc20-advanced") return { source: getERC20AdvancedFallback(), contractName: contractId };
+      return { source: getERC20Minimal(), contractName: contractId };
+    };
+
+    const { source, contractName } = getContractSource();
+
+    const { abi, bytecode, deployedBytecode, metadata } = compileSolidity(source, contractName);
     return res.json({
       success: true,
-      token: { name, symbol, decimals: d, totalSupply: ts, contractName },
-      sourceCode: src,
+      token: { name, symbol, decimals: d, totalSupply: ts, contractName, type },
+      sourceCode: source,
       compilation: { abi, bytecode, deployedBytecode, metadata },
     });
   } catch (err) {
-    return res.status(500).json({ error: err?.message || String(err) });
+    return res.status(500).json({ success: false, error: err?.message || String(err) });
   }
 });
 

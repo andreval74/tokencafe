@@ -68,7 +68,7 @@
 
                   <!-- Card: Gerenciável -->
                   <div class="col-12">
-                    <div class="card bg-dark border-secondary contract-card cursor-pointer disabled-option"
+                    <div class="card bg-dark border-secondary contract-card cursor-pointer"
                       data-value="erc20-controls">
                       <div class="check-indicator"><i class="bi bi-check-circle-fill text-success fs-3"></i></div>
                       <div class="card-body p-3">
@@ -98,7 +98,7 @@
 
                   <!-- Card: Avançado -->
                   <div class="col-12">
-                    <div class="card bg-dark border-secondary contract-card cursor-pointer disabled-option"
+                    <div class="card bg-dark border-secondary contract-card cursor-pointer"
                       data-value="erc20-advanced">
                       <div class="check-indicator"><i class="bi bi-check-circle-fill text-success fs-3"></i></div>
                       <div class="card-body p-3">
@@ -128,7 +128,7 @@
 
                   <!-- Card: Venda (ICO) -->
                   <div class="col-12">
-                    <div class="card bg-dark border-secondary contract-card cursor-pointer disabled-option"
+                    <div class="card bg-dark border-secondary contract-card cursor-pointer"
                       data-value="erc20-directsale">
                       <div class="check-indicator"><i class="bi bi-check-circle-fill text-success fs-3"></i></div>
                       <div class="card-body p-3">
@@ -158,7 +158,7 @@
 
                   <!-- Card: TokenSale Separado -->
                   <div class="col-12">
-                    <div class="card bg-dark border-secondary contract-card cursor-pointer disabled-option"
+                    <div class="card bg-dark border-secondary contract-card cursor-pointer"
                       data-value="tokensale-separado">
                       <div class="check-indicator"><i class="bi bi-check-circle-fill text-success fs-3"></i></div>
                       <div class="card-body p-3">

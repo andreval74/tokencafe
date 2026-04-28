@@ -771,7 +771,7 @@ export async function ensureServersOnline() {
   
   const tryConnect = async (url, label) => {
       // Pass explicit false for showOnCheck, and url as overrideBaseUrl
-      const ok = await checkApiConnectivity(false, url);
+      const ok = await checkApiConnectivity(url);
       if (ok) {
           return true;
       }
@@ -785,23 +785,10 @@ export async function ensureServersOnline() {
     return true;
   }
 
-  // 2. Tentar Localhost
-  const local = "http://localhost:3000";
-  if (base !== local) {
-    log("Aviso: Conectividade com API principal falhou. Tentando servidor local...");
-    if (await tryConnect(local, "Localhost (Dev)")) {
-      setApiBase(local);
-      await checkApiEndpoints(local);
-      log("Conectado ao servidor local (localhost:3000).");
-      return true;
-    }
-  }
-  
-  // 3. Tentar Produção (Hybrid)
   const prod1 = "https://tokencafe.onrender.com";
   if (base !== prod1) {
-    log("Aviso: Conectividade com API local falhou. Tentando servidor de produção (Hybrid)...");
-    if (await tryConnect(prod1, "Produção (Hybrid)")) {
+    log("Aviso: Conectividade com API configurada falhou. Tentando tokencafe.onrender.com...");
+    if (await tryConnect(prod1, "Produção")) {
       setApiBase(prod1);
       await checkApiEndpoints(prod1);
       log(`Conectado ao servidor de produção (${prod1}).`);
@@ -809,27 +796,9 @@ export async function ensureServersOnline() {
     }
   }
 
-  // 4. Tentar Produção (Legacy)
-  const prod2 = "https://tokencafe-api.onrender.com";
-  if (base !== prod2) {
-    log("Aviso: Conectividade com API Hybrid falhou. Tentando servidor de produção (Legacy)...");
-    if (await tryConnect(prod2, "Produção (Legacy)")) {
-      setApiBase(prod2);
-      await checkApiEndpoints(prod2);
-      log(`Conectado ao servidor de produção (${prod2}).`);
-      return true;
-    }
-  }
-
-  log("Erro: nenhum servidor de API está acessível. Forçando fallback para Produção (Hybrid).");
-  // showConnectionDiagnosis(attempts); // REMOVIDO: Não mostrar erro se vamos tentar o fallback silencioso
-
-  // FALLBACK FORÇADO: Permite que o sistema continue tentando usar a produção
-  // Isso resolve casos onde o health check falha (timeout/cors) mas a API pode estar funcional ou acordando
-  const fallback = "https://tokencafe.onrender.com";
-  setApiBase(fallback);
-  log(`Fallback ativado: assumindo ${fallback} como base.`);
-  return true; 
+  log("Erro: API indisponível. Forçando uso de tokencafe.onrender.com e continuando.");
+  setApiBase(prod1);
+  return true;
 }
 
 async function fetchWithDiagnostics(url, options = {}) {
@@ -1194,6 +1163,94 @@ export async function compileContract() {
       initialHolder: state.form.initialHolder || undefined,
       advanced: state.form.advanced || undefined
     };
+
+    if (payload.type === "erc20-advanced") {
+      const adv = state.form.advanced || {};
+      const src = generateTokenSourceV2(name, symbol, decimals, totalSupply, adv);
+      log(`Compilando contrato (erc20-advanced) via /api/compile-only com código gerado localmente...`);
+      log(`Endpoint: ${base}/api/compile-only`);
+      const resp2 = await fetchWithDiagnostics(`${base}/api/compile-only`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          sourceCode: src.sourceCode,
+          contractName: src.contractName,
+          optimization: true,
+        }),
+        timeoutMs: 20000,
+      });
+      if (!resp2.ok) {
+        const txt = await resp2.text().catch(() => "");
+        throw new Error(`API retornou ${resp2.status}: ${txt || "sem corpo"}`);
+      }
+      const data2 = await resp2.json().catch(async (e) => {
+        const txt = await resp2.text().catch(() => "");
+        throw new Error(`Falha ao parsear JSON: ${e?.message || e}. Corpo: ${txt?.slice(0, 200) || "vazio"}`);
+      });
+      if (!data2?.success) throw new Error(data2?.error || "Falha na compilação (success=false)");
+
+      const { compilation } = data2;
+      state.compilation = {
+        abi: compilation?.abi,
+        bytecode: compilation?.bytecode,
+        metadata: compilation?.metadata,
+        deployedBytecode: compilation?.deployedBytecode,
+        sourceCode: src.sourceCode,
+        contractName: src.contractName,
+      };
+
+      try {
+        let evmVersion = "default";
+        try {
+          const meta = typeof compilation?.metadata === "string" ? JSON.parse(compilation.metadata) : compilation.metadata;
+          if (meta?.settings?.evmVersion) evmVersion = meta.settings.evmVersion;
+        } catch (_) {}
+
+        const filename = `${state.compilation.contractName}.sol`;
+        const stdInput = {
+          language: "Solidity",
+          sources: {
+            [filename]: {
+              content: state.compilation.sourceCode,
+            },
+          },
+          settings: {
+            optimizer: {
+              enabled: true,
+              runs: 200,
+            },
+            evmVersion: evmVersion,
+            outputSelection: {
+              "*": {
+                "*": ["*"],
+              },
+            },
+          },
+        };
+        state.compilation.input = JSON.stringify(stdInput);
+      } catch (_) {}
+
+      log(`Compilação concluída com sucesso. ABI e bytecode prontos (${state.compilation.contractName}).`);
+      log("Verificando integridade... (Aguarde 2s)");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      log("Contrato validado e pronto para deploy.");
+
+      {
+        const d = getDeployButton();
+        if (d) d.disabled = false;
+      }
+      updateCompilationUI(state.compilation.contractName, true);
+
+      try {
+        const c = document.getElementById("btnCompile");
+        if (c) c.disabled = true;
+      } catch (_) {}
+
+      return true;
+    }
 
     log(`Compilando contrato via API: ${name} (${symbol}), supply ${totalSupply}, decimais ${decimals}, tipo ${payload.type}...`);
     log(`Endpoint: ${base}/api/generate-token`);

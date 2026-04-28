@@ -6,6 +6,7 @@ import {
     connectWallet,
     CONTRACT_GROUPS,
     updateVanityVisibility,
+    updateContractInfo,
     validateForm,
     deployContract,
     compileContract,
