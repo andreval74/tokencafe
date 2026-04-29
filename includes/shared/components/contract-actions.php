@@ -1,10 +1,15 @@
 <!-- Download de Arquivos -->
 <?php
+$adminConfigPath = __DIR__ . "/../../admin-config.php";
+if (is_file($adminConfigPath)) require_once $adminConfigPath;
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
 $isAdmin = function_exists("tokencafe_is_admin_wallet") ? tokencafe_is_admin_wallet($walletCookie) : false;
 if (!$isAdmin && trim($walletCookie) === "" && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isAdmin = true;
 $filesSectionClass = $isAdmin ? "" : " d-none";
 ?>
+<script>
+  window.TOKENCAFE_IS_ADMIN = <?= $isAdmin ? "true" : "false" ?>;
+</script>
 <div class="col-12 mb-4 mt-4<?= $filesSectionClass ?>" id="files-section">
   <div data-component="shared/components/section-title.php" data-st-icon="bi-file-arrow-down"
     data-st-title="Visualizar Arquivos" data-st-subtitle="Arquivos gerados durante o deploy"></div>
@@ -39,49 +44,5 @@ $filesSectionClass = $isAdmin ? "" : " d-none";
       <i class="bi bi-info-circle me-1"></i>
       Salve estes arquivos. Eles são importantes para futuras verificações ou interações.
     </small>
-  </div>
-</div>
-
-<!-- Compartilhamento Section -->
-<div id="share-section" class="mb-3">
-  <div data-component="shared/components/section-title.php" data-st-icon="bi bi-link-45deg me-2"
-    data-st-title="Compartilhamento" data-st-subtitle="Seu link está pronto para ser compartilhado"></div>
-
-  <div class="card bg-dark border-secondary shadow-lg">
-    <div class="card-body">
-      <div class="input-group mb-3">
-        <span class="input-group-text bg-dark border-secondary text-secondary">
-          <i class="bi bi-globe"></i>
-        </span>
-        <input type="text" id="generatedLink" class="form-control bg-dark text-light border-secondary" readonly
-          placeholder="https://...">
-
-        <button class="btn btn-outline-secondary" id="copyAddressBtn" type="button" title="Copiar Endereço">
-          <i class="bi bi-clipboard"></i>
-        </button>
-
-        <button class="btn btn-outline-light" type="button" id="viewAddressBtn" title="Visualizar na Rede">
-          <i class="bi bi-box-arrow-up-right"></i>
-        </button>
-      </div>
-
-      <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
-        <button id="btnShareWhatsAppSmall" class="btn btn-outline-success flex-fill">
-          <i class="bi bi-whatsapp me-2"></i>WhatsApp
-        </button>
-        <button id="btnShareTelegramSmall" class="btn btn-outline-info flex-fill">
-          <i class="bi bi-telegram me-2"></i>Telegram
-        </button>
-        <button id="btnShareEmailSmall" class="btn btn-outline-secondary flex-fill">
-          <i class="bi bi-envelope me-2"></i>Email
-        </button>
-        <button id="btnAddNetworkSmall" class="btn btn-outline-primary flex-fill">
-          <i class="bi bi-hdd-network me-2"></i>Adicionar Carteira
-        </button>
-        <button id="btnAddToMetaMaskSmall" class="btn btn-outline-warning flex-fill">
-          <i class="bi bi-wallet2 me-2"></i>Adicionar Token
-        </button>
-      </div>
-    </div>
   </div>
 </div>

@@ -14,7 +14,7 @@ if (
   && tokencafe_is_admin_bypass_active()
 ) $isChief = true;
 
-$toolsPages = ["wallet", "rpc", "link", "contrato", "verifica", "logs"];
+$toolsPages = ["wallet", "rpc", "contrato", "verifica", "logs"];
 $isToolsSection = in_array($currentPage, $toolsPages, true);
 $legalPages = ["privacidade", "termos-e-servicos", "documentacao"];
 $isLegalSection = in_array($currentPage, $legalPages, true) || in_array($script, ["privacidade.php", "termos-e-servicos.php"], true);
@@ -80,10 +80,6 @@ $openSettings = false;
             <i class="bi bi-diagram-3 me-2"></i>
             RPC
           </a>
-          <a href="index.php?page=link" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "link" ? "tc-sidebar-active" : "" ?>">
-            <i class="bi bi-link-45deg me-2"></i>
-            Link Gerador
-          </a>
           <a href="index.php?page=contrato" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "contrato" ? "tc-sidebar-active" : "" ?>">
             <i class="bi bi-file-earmark-code me-2"></i>
             Contratos
@@ -92,12 +88,6 @@ $openSettings = false;
             <i class="bi bi-check2-circle me-2"></i>
             Verificação
           </a>
-          <?php if ($isChief) { ?>
-            <a href="index.php?page=logs" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "logs" ? "tc-sidebar-active" : "" ?>">
-              <i class="bi bi-journal-text me-2"></i>
-              Relatórios
-            </a>
-          <?php } ?>
         </div>
       </div>
 

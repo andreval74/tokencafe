@@ -110,6 +110,7 @@ export class WalletConnector {
   async connect(walletType = "metamask") {
     try {
       this.log(`🔌 Tentando conectar ${walletType}...`);
+      this.emitEvent("wallet:connecting", { wallet: walletType });
 
       // Verificar se carteira está disponível
       if (!this.isWalletAvailable(walletType)) {
@@ -761,10 +762,12 @@ export class WalletConnector {
 
       // Atualiza texto/visibilidade do endereço
       if (addressEl) {
-        addressEl.textContent = connected ? this.formatAddress(account) : "";
+        addressEl.textContent = connected ? this.formatAddress(account) : "Não conectado";
+        addressEl.classList.remove("tc-status-ok", "tc-status-warn", "tc-status-bad");
+        addressEl.classList.add(connected ? "tc-status-ok" : "tc-status-bad");
       }
       if (statusWrapperEl) {
-        statusWrapperEl.classList.toggle("d-none", !connected);
+        statusWrapperEl.classList.remove("d-none");
       }
 
       // Botão conectar: badge → esconder quando conectado; btn → atualizar estilo/texto
@@ -774,13 +777,13 @@ export class WalletConnector {
         } else {
           if (connected) {
             connectBtnEl.disabled = true;
-            connectBtnEl.classList.remove("btn-outline-warning");
+            connectBtnEl.classList.remove("btn-outline-warning", "btn-outline-danger");
             connectBtnEl.classList.add("btn-outline-success");
             connectBtnEl.innerHTML = '<i class="bi bi-check-circle me-1"></i>Conectado';
           } else {
             connectBtnEl.disabled = false;
-            connectBtnEl.classList.remove("btn-outline-success");
-            connectBtnEl.classList.add("btn-outline-warning");
+            connectBtnEl.classList.remove("btn-outline-success", "btn-outline-warning");
+            connectBtnEl.classList.add("btn-outline-danger");
             connectBtnEl.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Conectar';
           }
         }
@@ -839,6 +842,22 @@ export class WalletConnector {
     document.addEventListener("wallet:connected", (ev) => applyState(ev.detail));
     document.addEventListener("wallet:disconnected", () => applyState({ account: null }));
     document.addEventListener("wallet:accountChanged", (ev) => applyState(ev.detail));
+    document.addEventListener("wallet:connecting", () => {
+      try {
+        if (addressEl) {
+          addressEl.textContent = "Conectando...";
+          addressEl.classList.remove("tc-status-ok", "tc-status-bad");
+          addressEl.classList.add("tc-status-warn");
+        }
+        if (statusWrapperEl) statusWrapperEl.classList.remove("d-none");
+        if (connectBtnEl && !isBadgeStyle) {
+          connectBtnEl.disabled = true;
+          connectBtnEl.classList.remove("btn-outline-success", "btn-outline-danger");
+          connectBtnEl.classList.add("btn-outline-warning");
+          connectBtnEl.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Conectando...';
+        }
+      } catch (_) {}
+    });
   }
 
   /**

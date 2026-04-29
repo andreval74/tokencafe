@@ -40,8 +40,20 @@
                 <div class="input-group">
                   <input type="text" id="walletAddressField" class="form-control" placeholder="Aguardando conexão..."
                     readonly />
-                  <button class="btn btn-outline-secondary" type="button" id="btnCopyWallet" title="Copiar Endereço">
+                  <button type="button" class="tc-icon-btn tc-action-copy" id="btnCopyWallet" title="Copiar Endereço">
                     <i class="bi bi-clipboard"></i>
+                  </button>
+                  <button type="button" class="tc-icon-btn tc-action-explorer" id="btnViewWalletExplorer" title="Ver no Explorer">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                  </button>
+                  <button type="button" class="tc-icon-btn tc-action-whatsapp" id="btnWalletShareWhatsApp" title="Compartilhar no WhatsApp">
+                    <i class="bi bi-whatsapp"></i>
+                  </button>
+                  <button type="button" class="tc-icon-btn tc-action-telegram" id="btnWalletShareTelegram" title="Compartilhar no Telegram">
+                    <i class="bi bi-telegram"></i>
+                  </button>
+                  <button type="button" class="tc-icon-btn tc-action-email" id="btnWalletShareEmail" title="Compartilhar por Email">
+                    <i class="bi bi-envelope"></i>
                   </button>
                 </div>
               </div>

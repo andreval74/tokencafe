@@ -40,10 +40,29 @@
             <span>Endereço:</span>
             <a id="cs_viewAddress" href="#" target="_blank" rel="noopener"
               class="text-tokencafe text-decoration-none text-break"></a>
-            <button class="btn btn-sm btn-link text-white p-0"
-              data-cs-copy-address
-              title="Copiar endereço">
+            <button type="button" class="tc-icon-btn tc-action-copy"
+              data-cs-copy-address title="Copiar endereço">
               <i class="bi bi-clipboard"></i>
+            </button>
+            <button type="button" class="tc-icon-btn tc-action-explorer"
+              data-cs-open-explorer title="Ver no Explorer">
+              <i class="bi bi-box-arrow-up-right"></i>
+            </button>
+            <button type="button" class="tc-icon-btn tc-action-whatsapp"
+              data-cs-share-whatsapp title="Compartilhar no WhatsApp">
+              <i class="bi bi-whatsapp"></i>
+            </button>
+            <button type="button" class="tc-icon-btn tc-action-telegram"
+              data-cs-share-telegram title="Compartilhar no Telegram">
+              <i class="bi bi-telegram"></i>
+            </button>
+            <button type="button" class="tc-icon-btn tc-action-email"
+              data-cs-share-email title="Compartilhar por Email">
+              <i class="bi bi-envelope"></i>
+            </button>
+            <button type="button" class="tc-icon-btn tc-action-wallet"
+              data-cs-add-token title="Adicionar Token">
+              <i class="bi bi-wallet2"></i>
             </button>
           </div>
         </div>

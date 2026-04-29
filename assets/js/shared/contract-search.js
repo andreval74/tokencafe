@@ -4,6 +4,7 @@ import { getFallbackExplorer, getFallbackRpc } from "./network-fallback.js";
 import { findLiquidityPair } from "./dex-utils.js";
 import { isWalletAdmin, getConnectedWalletAddress } from "./admin-security.js";
 import { showDiagnosis, getDefaultAddressCauses } from "../ai/diagnostics.js";
+import { addTokenToMetaMask } from "./metamask-utils.js";
 
 // =============================================================================
 // SHARED CONSTANTS & STATE
@@ -49,6 +50,112 @@ function sanitizeRpcUrl(u) {
   } catch (_) {
     return "";
   }
+}
+
+function resolveIsAdminSync() {
+  try {
+    if (window.TOKENCAFE_IS_ADMIN === true) return true;
+  } catch (_) {}
+  try {
+    const match = document.cookie.match(new RegExp("(^| )tokencafe_wallet_address=([^;]+)"));
+    if (match && match[2] && isWalletAdmin(match[2])) return true;
+  } catch (_) {}
+  try {
+    const ls = window.localStorage?.getItem?.("tokencafe_wallet_address") || "";
+    if (ls && isWalletAdmin(ls)) return true;
+  } catch (_) {}
+  return false;
+}
+
+function buildDetailsShareLink(address, chainId) {
+  try {
+    const u = new URL("index.php?page=contrato-detalhes", document.baseURI);
+    if (address) u.searchParams.set("address", String(address));
+    if (chainId) u.searchParams.set("chainId", String(chainId));
+    return u.toString();
+  } catch (_) {
+    return "";
+  }
+}
+
+function applyQuickActions(container) {
+  try {
+    const st = container?.__tcQuickActionsState || null;
+    if (!st?.address || !st?.chainId) return;
+
+    const address = st.address;
+    const chainId = st.chainId;
+    const explorerUrl = String(st.explorerUrl || "").trim();
+    const shareTarget = explorerUrl || buildDetailsShareLink(address, chainId);
+    const isAdmin = resolveIsAdminSync();
+
+    const btnX = container.querySelector("[data-cs-open-explorer]");
+    const btnW = container.querySelector("[data-cs-share-whatsapp]");
+    const btnT = container.querySelector("[data-cs-share-telegram]");
+    const btnE = container.querySelector("[data-cs-share-email]");
+    const btnAdd = container.querySelector("[data-cs-add-token]");
+
+    const lock = (el, message) => {
+      if (!el) return;
+      el.disabled = true;
+      el.classList.add("disabled");
+      el.setAttribute("aria-disabled", "true");
+      el.onclick = (e) => {
+        try { e?.preventDefault?.(); } catch (_) {}
+        window.showFormError?.(message);
+      };
+    };
+
+    const unlock = (el, onClick) => {
+      if (!el) return;
+      el.disabled = false;
+      el.classList.remove("disabled");
+      el.removeAttribute("aria-disabled");
+      el.onclick = onClick;
+    };
+
+    if (explorerUrl) {
+      unlock(btnX, (e) => {
+        try { e?.preventDefault?.(); } catch (_) {}
+        window.open(explorerUrl, "_blank");
+      });
+    } else {
+      lock(btnX, "Explorer indisponível para esta rede.");
+    }
+
+    unlock(btnW, (e) => {
+      try { e?.preventDefault?.(); } catch (_) {}
+      if (!shareTarget) return;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareTarget)}`, "_blank");
+    });
+    unlock(btnT, (e) => {
+      try { e?.preventDefault?.(); } catch (_) {}
+      if (!shareTarget) return;
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(shareTarget)}&text=${encodeURIComponent("Confira este endereço:")}`, "_blank");
+    });
+    unlock(btnE, (e) => {
+      try { e?.preventDefault?.(); } catch (_) {}
+      if (!shareTarget) return;
+      window.open(`mailto:?subject=${encodeURIComponent("Endereço")}&body=${encodeURIComponent(shareTarget)}`, "_self");
+    });
+    if (!isAdmin) {
+      lock(btnAdd, "Adicionar token disponível apenas para administradores.");
+      return;
+    }
+
+    unlock(btnAdd, async (e) => {
+        try { e?.preventDefault?.(); } catch (_) {}
+        const res = await addTokenToMetaMask({
+          address,
+          symbol: st.symbol || "TKN",
+          decimals: Number.isFinite(Number(st.decimals)) ? Number(st.decimals) : 18,
+          image: "",
+        });
+        if (!res?.success) {
+          window.showFormError?.(res?.error || "Falha ao adicionar token.");
+        }
+      });
+  } catch (_) {}
 }
 
 async function fetchJsonWithTimeout(rpc, body, timeoutMs) {
@@ -403,26 +510,29 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
     // Feedback visual imediato: Spinner
     let loadingSpinner = null;
 
-    // Admin check assíncrono (melhor esforço)
+    let isAdmin = false;
     try {
-        if (window.ethereum && window.ethereum.selectedAddress) {
-            isWalletAdmin(window.ethereum.selectedAddress);
+        if (window.TOKENCAFE_IS_ADMIN === true) {
+            isAdmin = true;
+        } else if (window.ethereum && window.ethereum.selectedAddress) {
+            isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
         } else {
             const addr = await getConnectedWalletAddress();
-            if (addr) isWalletAdmin(addr);
+            if (addr) isAdmin = isWalletAdmin(addr);
         }
     } catch (_) {}
 
     if (vStatus) {
-        // Se já tiver badge, mantemos até atualizar, mas adicionamos spinner se for forceRefresh ou primeira vez
-        const existingBadge = vStatus.querySelector(".badge-verif-status");
-        if (!existingBadge || forceRefresh) {
-             if (!vStatus.querySelector(".verif-spinner")) {
-                 loadingSpinner = document.createElement("span");
-                 loadingSpinner.className = "spinner-border spinner-border-sm text-secondary ms-2 verif-spinner";
-                 loadingSpinner.setAttribute("role", "status");
-                 vStatus.appendChild(loadingSpinner);
-             }
+        vStatus.querySelectorAll(".badge-verif-status").forEach((el) => el.remove());
+        const span = document.createElement("span");
+        span.className = "badge-verif-status badge ms-2 tc-status-warn";
+        span.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Verificando';
+        vStatus.appendChild(span);
+        if (!vStatus.querySelector(".verif-spinner")) {
+            loadingSpinner = document.createElement("span");
+            loadingSpinner.className = "spinner-border spinner-border-sm text-secondary ms-2 verif-spinner";
+            loadingSpinner.setAttribute("role", "status");
+            vStatus.appendChild(loadingSpinner);
         }
     }
 
@@ -481,7 +591,7 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
         let canRetry = false;
         
         if (js?.verified) {
-                span.className = "badge-verif-status badge ms-2 bg-success-subtle text-success border border-success";
+                span.className = "badge-verif-status badge ms-2 tc-status-ok";
                 let content = '<i class="bi bi-shield-check me-1"></i>Verificado';
                 if (js.verifiedAt) {
                     content += ` <span class="ms-1 small opacity-75">(${js.verifiedAt})</span>`;
@@ -503,36 +613,19 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
                     }
                 } catch (_) {}
             } else if (js?.error) {
-                // Em caso de erro na API (timeout, offline, erro genérico), 
-                // mostramos um status neutro "Verificar" em vez de um erro alarmante.
-                // O usuário pode tentar novamente manualmente.
-                span.className = "badge-verif-status badge ms-2 bg-secondary-subtle text-secondary border border-secondary";
-                
-                let icon = "bi-shield-check";
-                let text = "Verificar";
-                let title = js.message || "Status pendente. Clique para verificar.";
-
-                if (js.message && (js.message.toLowerCase().includes("timeout") || js.message.toLowerCase().includes("limit"))) {
-                     icon = "bi-hourglass-split";
-                     text = "Aguardando";
-                     title = "O serviço de exploração demorou a responder.";
-                }
-                
-                // Log real error for debugging
-                console.warn("[contract-search] Verification Status Error (shown as Check):", js.message);
-
-                span.innerHTML = `<i class="bi ${icon} me-1"></i>${text}`;
-                span.title = title;
+                span.className = "badge-verif-status badge ms-2 tc-status-warn";
+                span.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Verificando';
+                span.title = js.message || "Não foi possível consultar o explorer agora.";
                 canRetry = true;
             } else {
-            span.className = "badge-verif-status badge ms-2 bg-danger-subtle text-danger border border-danger";
-            span.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
-            canRetry = true;
-        }
+                span.className = "badge-verif-status badge ms-2 tc-status-bad";
+                span.innerHTML = '<i class="bi bi-shield-x me-1"></i>Não verificado';
+                canRetry = true;
+            }
         
         vStatus.appendChild(span);
 
-        if (canRetry) {
+        if (canRetry && isAdmin) {
              const retryBtn = document.createElement("button");
              retryBtn.className = "btn btn-link btn-retry-verif p-0 ms-2 text-decoration-none text-secondary";
              retryBtn.style.verticalAlign = "middle";
@@ -638,6 +731,20 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
         if (base) vAddr.href = `${String(base).replace(/\/$/, "")}/address/${address}`;
         else vAddr.removeAttribute("href");
       }
+
+      try {
+        container.__tcQuickActionsState = {
+          address: String(address || "").trim(),
+          chainId: String(chainId || "").trim(),
+          name: sn?.name || "",
+          symbol: sn?.symbol || "",
+          decimals: info?.decimals,
+          explorerUrl: (() => {
+            try { return String(vAddr?.href || "").trim(); } catch (_) { return ""; }
+          })(),
+        };
+        applyQuickActions(container);
+      } catch (_) {}
   
       if (vCid) {
         const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
@@ -1128,6 +1235,25 @@ function initContainer(container) {
       if (vWalletStatus) vWalletStatus.innerHTML = "-";
       if (topExp) { topExp.href = "#"; topExp.classList.add("disabled"); }
 
+      try { container.__tcQuickActionsState = null; } catch (_) {}
+      try {
+        const qs = [
+          "[data-cs-open-explorer]",
+          "[data-cs-share-whatsapp]",
+          "[data-cs-share-telegram]",
+          "[data-cs-share-email]",
+          "[data-cs-add-token]",
+        ];
+        qs.forEach((sel) => {
+          const el = container.querySelector(sel);
+          if (!el) return;
+          el.disabled = true;
+          el.classList.add("disabled");
+          el.setAttribute("aria-disabled", "true");
+          el.onclick = null;
+        });
+      } catch (_) {}
+
       const evt = new CustomEvent("contract:clear", { detail: { silent }, bubbles: true });
       try { container.dispatchEvent(evt); } catch (_) {}
     } catch (e) {}
@@ -1206,7 +1332,12 @@ function initContainer(container) {
   if (copyInputBtn) {
     copyInputBtn.addEventListener("click", () => {
         const val = container.querySelector("#f_address")?.value;
-        if (val && window.copyToClipboard) window.copyToClipboard(val);
+        if (!val) return;
+        if (window.copyToClipboard) {
+          window.copyToClipboard(val);
+          return;
+        }
+        navigator.clipboard?.writeText?.(val).catch(() => {});
     });
   }
 
@@ -1214,9 +1345,31 @@ function initContainer(container) {
   if (copyAddressBtn) {
     copyAddressBtn.addEventListener("click", () => {
         const val = container.querySelector("#cs_viewAddress")?.textContent;
-        if (val && window.copyToClipboard) window.copyToClipboard(val);
+        if (!val) return;
+        if (window.copyToClipboard) {
+          window.copyToClipboard(val);
+          return;
+        }
+        navigator.clipboard?.writeText?.(val).catch(() => {});
     });
   }
+
+  try {
+    if (container.__tcQuickActionsListenersAttached !== true) {
+      container.__tcQuickActionsListenersAttached = true;
+      const rerun = () => {
+        try { applyQuickActions(container); } catch (_) {}
+      };
+      document.addEventListener("wallet:connected", rerun);
+      document.addEventListener("wallet:disconnected", rerun);
+      try {
+        if (window.ethereum && typeof window.ethereum.on === "function") {
+          window.ethereum.on("accountsChanged", rerun);
+          window.ethereum.on("chainChanged", () => setTimeout(rerun, 300));
+        }
+      } catch (_) {}
+    }
+  } catch (_) {}
 
   const infoBtn = container.querySelector("#csInfoBtn");
   if (infoBtn) {

@@ -249,7 +249,7 @@ class PageManager {
     if (!this.connectBtn) return;
 
     this.connectBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Conectar Carteira';
-    this.connectBtn.className = "btn btn-outline-primary btn-lg";
+    this.connectBtn.className = "btn btn-outline-danger btn-lg";
     this.connectBtn.onclick = () => this.connectWallet();
     this.connectBtn.disabled = false;
   }
@@ -258,7 +258,7 @@ class PageManager {
     if (!this.connectBtn) return;
 
     this.connectBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Conectando...';
-    this.connectBtn.className = "btn btn-outline-primary btn-lg";
+    this.connectBtn.className = "btn btn-outline-warning btn-lg";
     this.connectBtn.disabled = true;
   }
 

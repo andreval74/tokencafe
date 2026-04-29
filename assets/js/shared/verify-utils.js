@@ -222,6 +222,9 @@ async function checkExplorerDirectly(chainId, address) {
                      success: true,
                      verified: true,
                      verifiedAt: new Date().toISOString().split('T')[0],
+                     contractName: res.ContractName,
+                     sourceCode: res.SourceCode,
+                     abi: res.ABI,
                      compilerVersion: res.CompilerVersion,
                      explorer: {
                          optimizationUsed: res.OptimizationUsed,

@@ -42,14 +42,20 @@
                   <div class="d-flex align-items-baseline gap-2">
                     <span>Endereço:</span>
                     <span id="walletAddress" class="text-tokencafe text-break font-monospace"></span>
-                    <button id="copyAddressBtn" class="btn btn-sm btn-link text-white p-0" title="Copiar">
+                    <button id="copyAddressBtn" type="button" class="tc-icon-btn tc-action-copy" title="Copiar">
                       <i class="bi bi-clipboard"></i>
                     </button>
-                    <button id="viewAddressBtn" class="btn btn-sm btn-link text-white p-0" title="Ver no Explorer">
+                    <button id="viewAddressBtn" type="button" class="tc-icon-btn tc-action-explorer" title="Ver no Explorer">
                       <i class="bi bi-box-arrow-up-right"></i>
                     </button>
-                    <button id="shareAddressBtn" class="btn btn-sm btn-link text-white p-0" title="Compartilhar">
-                      <i class="bi bi-share"></i>
+                    <button id="walletShareWhatsAppBtn" type="button" class="tc-icon-btn tc-action-whatsapp" title="Compartilhar no WhatsApp">
+                      <i class="bi bi-whatsapp"></i>
+                    </button>
+                    <button id="walletShareTelegramBtn" type="button" class="tc-icon-btn tc-action-telegram" title="Compartilhar no Telegram">
+                      <i class="bi bi-telegram"></i>
+                    </button>
+                    <button id="walletShareEmailBtn" type="button" class="tc-icon-btn tc-action-email" title="Compartilhar por Email">
+                      <i class="bi bi-envelope"></i>
                     </button>
                   </div>
                 </div>
@@ -95,7 +101,7 @@
                 <div class="col-6">
                   <div class="d-flex align-items-baseline gap-2">
                     <span>Status:</span>
-                    <span id="walletStatusLabel" class="text-success small"><i class="bi bi-circle-fill me-1"></i>Conectado</span>
+                    <span id="walletStatusLabel" class="tc-status-bad small"><i class="bi bi-circle-fill me-1"></i>Não conectado</span>
                   </div>
                 </div>
 

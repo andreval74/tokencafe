@@ -15,8 +15,7 @@ import {
 import { walletConnector } from "../../shared/wallet-connector.js";
 // import { compileContract } from "./builder.js"; // Import merged above
 import { getExplorerContractUrl, getExplorerTxUrl } from "./explorer-utils.js";
-import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
-import { getFallbackChainName, getFallbackExplorer, getFallbackRpc } from "../../shared/network-fallback.js";
+import { getFallbackExplorer } from "../../shared/network-fallback.js";
 import { updateContractDetailsView } from "../../shared/contract-search.js";
 
 /**
@@ -65,7 +64,7 @@ class AdvancedTokenPageManager {
                 const statusEl = csContainer.querySelector("#cs_viewStatus");
                 if (statusEl) {
                     statusEl.innerHTML = '<i class="bi bi-patch-check-fill me-1"></i>Verificado';
-                    statusEl.className = "status-text text-success fw-bold";
+                    statusEl.className = "status-text tc-status-ok fw-bold";
                 }
             }
             
@@ -95,9 +94,6 @@ class AdvancedTokenPageManager {
 
         // Configura ação de deploy
         this.bindDeploy();
-
-        // Configura botões de compartilhamento
-        this.bindShareButtons();
 
         // Configura conexão com carteira e auto-preenchimento
         this.bindWallet();
@@ -408,19 +404,12 @@ class AdvancedTokenPageManager {
         const sections = [
             "erc20-details",
             "contract-search-container",
-            "share-section",
             "files-section"
         ];
         sections.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.remove("d-none");
         });
-
-        // Populate Share Link
-        const generatedLinkInput = document.getElementById("generatedLink");
-        if (generatedLinkInput) {
-             generatedLinkInput.value = this.getShareLink();
-        }
 
         // 2. Prepare Data
         const form = state.form?.token || {};
@@ -496,15 +485,15 @@ class AdvancedTokenPageManager {
              if (state.deployed.verified) {
                  if (statusEl) {
                      statusEl.innerHTML = '<i class="bi bi-patch-check-fill me-1"></i>Verificado';
-                     statusEl.className = "status-text text-success fw-bold";
+                     statusEl.className = "status-text tc-status-ok fw-bold";
                  }
                  // Hide verify button in top box if verified
                  const verifyBtn = document.getElementById("erc20VerifyLaunch");
                  if (verifyBtn) verifyBtn.closest(".mt-3")?.classList.add("d-none");
              } else {
                  if (statusEl) {
-                     statusEl.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Sucesso (Deploy)';
-                     statusEl.className = "status-text text-primary fw-bold";
+                     statusEl.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Verificando';
+                     statusEl.className = "status-text tc-status-warn fw-bold";
                  }
              }
 
@@ -597,201 +586,6 @@ class AdvancedTokenPageManager {
             });
             // Initial update
             updateVanityVisibility();
-        }
-    }
-
-    /**
-     * Gera o link de compartilhamento do token.
-     * @returns {string} URL de compartilhamento
-     */
-    getShareLink() {
-        // Se o input já tiver valor, usa ele (preserva edições manuais se houver)
-        const gl = document.getElementById("generatedLink");
-        if (gl && gl.value) return gl.value;
-
-        const addr = state?.deployed?.address;
-        const chain = state?.form?.network?.chainId || state?.wallet?.chainId;
-        
-        if (addr && chain) {
-            const params = new URLSearchParams({
-                address: addr,
-                chainId: String(chain),
-                name: state?.form?.token?.name || "",
-                symbol: state?.form?.token?.symbol || "",
-                decimals: state?.form?.token?.decimals || "18",
-                image: "",
-                rpc: state?.form?.network?.rpc?.[0] || "",
-                explorer: state?.form?.network?.explorers?.[0]?.url || ""
-            });
-            const u = new URL("index.php?page=link-token", document.baseURI);
-            params.forEach((v, k) => u.searchParams.append(k, v));
-            return u.toString();
-        }
-        return window.location.href;
-    }
-
-    /**
-     * Configura botões de compartilhamento e adição de rede/token.
-     */
-    bindShareButtons() {
-        // Copiar Link
-        const copyBtn = document.getElementById("copyAddressBtn");
-        if (copyBtn) {
-            copyBtn.addEventListener("click", () => {
-                const link = this.getShareLink();
-                if (!link) return;
-                
-                navigator.clipboard.writeText(link).then(() => {
-                    const icon = copyBtn.querySelector("i");
-                    if (icon) {
-                        const old = icon.className;
-                        icon.className = "bi bi-check2 text-success";
-                        setTimeout(() => icon.className = old, 1500);
-                    }
-                }).catch(() => {});
-            });
-        }
-
-        // Visualizar Link
-        const viewBtn = document.getElementById("viewAddressBtn");
-        if (viewBtn) {
-            viewBtn.addEventListener("click", () => {
-                window.open(this.getShareLink(), "_blank");
-            });
-        }
-
-        // WhatsApp
-        const waBtn = document.getElementById("btnShareWhatsAppSmall");
-        if (waBtn) {
-            waBtn.addEventListener("click", () => {
-                const link = this.getShareLink();
-                const text = encodeURIComponent(`Confira meu novo token criado no TokenCafe! 🚀\n\n${link}`);
-                window.open(`https://wa.me/?text=${text}`, "_blank");
-            });
-        }
-        
-        // Telegram
-        const tgBtn = document.getElementById("btnShareTelegramSmall");
-        if (tgBtn) {
-            tgBtn.addEventListener("click", () => {
-                const link = this.getShareLink();
-                const text = encodeURIComponent(`Confira meu novo token criado no TokenCafe! 🚀`);
-                window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${text}`, "_blank");
-            });
-        }
-
-        // Email
-        const emailBtn = document.getElementById("btnShareEmailSmall");
-        if (emailBtn) {
-            emailBtn.addEventListener("click", () => {
-                const link = this.getShareLink();
-                const subject = encodeURIComponent("Novo Token Criado");
-                const body = encodeURIComponent(`Confira este token: ${link}`);
-                window.open(`mailto:?subject=${subject}&body=${body}`, "_self");
-            });
-        }
-
-        // Adicionar Rede
-        const addNetBtn = document.getElementById("btnAddNetworkSmall");
-        if (addNetBtn) {
-            addNetBtn.onclick = async () => {
-                try {
-                    const net = state.form?.network;
-                    if (!net || !net.chainId) {
-                        window.showFormError?.("Nenhuma rede definida.");
-                        return;
-                    }
-                    if (!window.ethereum) {
-                        window.showFormError?.("Carteira não detectada (MetaMask).");
-                        return;
-                    }
-                    const targetHex = "0x" + Number(net.chainId).toString(16);
-                    try {
-                        const currentHex = await window.ethereum.request({ method: "eth_chainId" }).catch(() => null);
-                        if (!currentHex || String(parseInt(currentHex, 16)) !== String(net.chainId)) {
-                            try {
-                                await window.ethereum.request({
-                                    method: "wallet_switchEthereumChain",
-                                    params: [{ chainId: targetHex }],
-                                });
-                            } catch (switchErr) {
-                                // Erro 4902: Chain not added
-                                const code = switchErr && switchErr.code;
-                                const msg = String((switchErr && switchErr.message) || "");
-                                if (code === 4902 || /unrecognized|unknown/i.test(msg)) {
-                                    let rpcUrls = Array.isArray(net.rpc) && net.rpc.length ? net.rpc : [];
-                                    if (!rpcUrls.length) {
-                                        const fbRpc = getFallbackRpc(net.chainId);
-                                        if (fbRpc) rpcUrls = [fbRpc];
-                                    }
-                                    
-                                    let explorerUrl = net.explorers && net.explorers[0] && net.explorers[0].url ? net.explorers[0].url : "";
-                                    if (!explorerUrl) {
-                                        const fbExp = getFallbackExplorer(net.chainId);
-                                        if (fbExp) explorerUrl = fbExp;
-                                    }
-
-                                    const addParams = {
-                                        chainId: targetHex,
-                                        chainName: net.name || `Chain ${net.chainId}`,
-                                        nativeCurrency: {
-                                            name: net.nativeCurrency && net.nativeCurrency.name ? net.nativeCurrency.name : "Unknown",
-                                            symbol: net.nativeCurrency && net.nativeCurrency.symbol ? net.nativeCurrency.symbol : "TKN",
-                                            decimals: net.nativeCurrency && Number.isFinite(net.nativeCurrency.decimals) ? net.nativeCurrency.decimals : 18,
-                                        },
-                                        rpcUrls,
-                                        blockExplorerUrls: explorerUrl ? [explorerUrl] : [],
-                                    };
-                                    await window.ethereum.request({
-                                        method: "wallet_addEthereumChain",
-                                        params: [addParams],
-                                    });
-                                } else {
-                                    throw switchErr;
-                                }
-                            }
-                        }
-                        window.showFormSuccess?.("Rede adicionada/trocada com sucesso!");
-                    } catch (e) {
-                        console.error(e);
-                        window.showFormError?.("Erro ao adicionar rede: " + (e.message || e));
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
-            };
-        }
-
-        // Adicionar Token
-        const addTokenBtn = document.getElementById("btnAddToMetaMaskSmall");
-        if (addTokenBtn) {
-            addTokenBtn.onclick = async () => {
-                const address = state?.deployed?.address;
-                const symbol = state?.form?.token?.symbol || "TKN";
-                const decimals = state?.form?.token?.decimals || 18;
-                
-                if (!address) {
-                    window.showFormError?.("Contrato não implantado ainda.");
-                    return;
-                }
-                
-                if (addTokenBtn.disabled) return;
-                addTokenBtn.disabled = true;
-                
-                try {
-                    const res = await addTokenToMetaMask({ address, symbol, decimals });
-                    if (!res.success) {
-                        window.showFormError?.("Erro ao adicionar token: " + res.error);
-                    } else {
-                        window.showFormSuccess?.("Solicitação enviada para a carteira!");
-                    }
-                } catch (e) {
-                    console.error(e);
-                    window.showFormError?.("Erro ao processar: " + e.message);
-                } finally {
-                    setTimeout(() => addTokenBtn.disabled = false, 2000);
-                }
-            };
         }
     }
 
@@ -937,6 +731,50 @@ class AdvancedTokenPageManager {
                 }
             });
         }
+
+        const getWalletExplorerAddressUrl = () => {
+            try {
+                const addr = String(document.getElementById("walletAddressField")?.value || "").trim();
+                if (!addr) return "";
+                const cid = state?.form?.network?.chainId || walletConnector?.getStatus?.()?.chainId || null;
+                const base = (state?.form?.network?.explorers?.[0]?.url || (cid ? getFallbackExplorer(cid) : "") || "").trim();
+                if (!base) return "";
+                return `${String(base).replace(/\/$/, "")}/address/${addr}`;
+            } catch (_) {
+                return "";
+            }
+        };
+
+        const bindIconBtn = (id, handler) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const next = el.cloneNode(true);
+            el.parentNode.replaceChild(next, el);
+            next.addEventListener("click", handler);
+        };
+
+        bindIconBtn("btnViewWalletExplorer", () => {
+            const link = getWalletExplorerAddressUrl();
+            if (link) window.open(link, "_blank");
+        });
+
+        bindIconBtn("btnWalletShareWhatsApp", () => {
+            const link = getWalletExplorerAddressUrl() || String(document.getElementById("walletAddressField")?.value || "").trim();
+            if (!link) return;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(link)}`, "_blank");
+        });
+
+        bindIconBtn("btnWalletShareTelegram", () => {
+            const link = getWalletExplorerAddressUrl() || String(document.getElementById("walletAddressField")?.value || "").trim();
+            if (!link) return;
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Confira esta carteira:")}`, "_blank");
+        });
+
+        bindIconBtn("btnWalletShareEmail", () => {
+            const link = getWalletExplorerAddressUrl() || String(document.getElementById("walletAddressField")?.value || "").trim();
+            if (!link) return;
+            window.open(`mailto:?subject=${encodeURIComponent("Carteira")}&body=${encodeURIComponent(link)}`, "_self");
+        });
 
         // Escuta eventos padronizados do sistema de carteira
         document.addEventListener("wallet:connected", (e) => updateDisplay(e.detail));

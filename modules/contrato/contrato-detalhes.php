@@ -21,7 +21,7 @@
           <div data-component="shared/components/contract-search.php"></div>
         </div>
 
-        <!-- Download de Arquivos e Compartilhamento (Via Componente) -->
+        <!-- Download de Arquivos (Via Componente) -->
         <div data-component="shared/components/contract-actions.php"></div>
 
 

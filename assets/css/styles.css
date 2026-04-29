@@ -2189,12 +2189,117 @@ Classes reutilizáveis para efeitos neon padronizados
   border-radius: 12px;
 }
 
+.tool-tile-slot {
+  margin-top: 4px;
+}
+
+.tc-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--tc-pill-accent, var(--tokencafe-white-10));
+  background: var(--tc-pill-bg, var(--tokencafe-bg-quaternary));
+  color: var(--tokencafe-white);
+  opacity: 0.95;
+  width: 100%;
+  min-width: 0;
+}
+
+.tc-status-pill[data-role="modules"] { --tc-pill-accent: var(--tokencafe-primary); --tc-pill-bg: var(--tokencafe-primary-10); }
+.tc-status-pill[data-role="system"] { --tc-pill-accent: var(--tokencafe-success); --tc-pill-bg: var(--tokencafe-success-10); }
+.tc-status-pill[data-role="api"] { --tc-pill-accent: var(--tokencafe-info); --tc-pill-bg: var(--tokencafe-info-10); }
+.tc-status-pill[data-role="wallet"] { --tc-pill-accent: var(--tokencafe-warning); --tc-pill-bg: var(--tokencafe-warning-10); }
+.tc-status-pill[data-role="maint"] { --tc-pill-accent: var(--tokencafe-danger); --tc-pill-bg: var(--tokencafe-danger-10); }
+
+.tc-status-pill__icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tc-pill-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--tc-pill-accent, rgba(255, 255, 255, 0.10));
+  color: var(--tc-pill-accent, rgba(255, 255, 255, 0.88));
+  flex: 0 0 auto;
+}
+
+.tc-status-pill__icon i {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.tc-status-pill__label {
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  flex: 1 1 auto;
+}
+
+.tc-status-pill__value {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  flex: 0 0 auto;
+}
+
+.tc-pill-ok {
+  box-shadow: inset 0 0 0 1px var(--tokencafe-success-10);
+}
+
+.tc-pill-warn {
+  box-shadow: inset 0 0 0 1px var(--tokencafe-warning-10);
+}
+
+.tc-pill-bad {
+  box-shadow: inset 0 0 0 1px var(--tokencafe-danger-10);
+}
+
+.tc-status-pill__value { color: var(--tc-pill-accent, rgba(255, 255, 255, 0.88)); }
+.tc-pill-ok .tc-status-pill__value { color: var(--tokencafe-success-light); }
+.tc-pill-warn .tc-status-pill__value { color: var(--tokencafe-primary-light); }
+.tc-pill-bad .tc-status-pill__value { color: var(--tokencafe-danger-light); }
+
+.tc-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tc-system-health-host .tc-status-row {
+  justify-content: stretch;
+}
+
+.tc-status-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.tc-status-refresh {
+  flex: 0 0 auto;
+}
+
 .tool-tile-status {
   position: absolute;
   top: 10px;
   right: 10px;
-  padding: 2px 8px;
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
 }
 
 @media (max-width: 575.98px) {
@@ -2625,3 +2730,46 @@ Classes reutilizáveis para efeitos neon padronizados
 @media (max-width: 991.98px) {
   :root { --tc-navbar-offset: 72px; }
 }
+
+.tc-icon-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: opacity 150ms ease;
+}
+
+.tc-icon-btn:hover {
+  background: transparent;
+}
+
+.tc-icon-btn:focus,
+.tc-icon-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.tc-icon-btn:disabled,
+.tc-icon-btn.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.tc-icon-btn i {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.tc-action-copy { color: inherit; }
+.tc-action-explorer { color: inherit; }
+.tc-action-whatsapp { color: #25d366; }
+.tc-action-telegram { color: #0088cc; }
+.tc-action-email { color: #dc3545; }
+.tc-action-wallet { color: #ffc107; }
+
+.tc-status-ok { color: #198754; }
+.tc-status-warn { color: #ffc107; }
+.tc-status-bad { color: #dc3545; }

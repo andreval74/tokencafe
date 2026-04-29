@@ -107,6 +107,8 @@ class BaseSystem {
       await this.loadComponents();
       this.dlog("loadComponents:done");
 
+      await this.bindAdminDependentComponents();
+
       // Safety Timeout: Garantir que o loading desapareça mesmo se houver falhas
       setTimeout(() => {
           if (window.hideLoading) window.hideLoading();
@@ -858,6 +860,34 @@ class BaseSystem {
         document.addEventListener("wallet:disconnected", refresh);
         document.addEventListener("network:switchResult", refresh);
       } catch (_) {}
+    } catch (_) {}
+  }
+
+  async bindAdminDependentComponents() {
+    try {
+      const reloadContractActions = async () => {
+        try {
+          const baseSystem = window.__tokencafe_base_system;
+          if (!baseSystem || typeof baseSystem.loadComponent !== "function") return;
+          const nodes = Array.from(document.querySelectorAll('[data-component="shared/components/contract-actions.php"]'));
+          if (!nodes.length) return;
+          for (const el of nodes) {
+            try {
+              await baseSystem.loadComponent(el);
+            } catch (_) {}
+          }
+          try {
+            document.dispatchEvent(
+              new CustomEvent("tokencafe:adminStateUpdated", {
+                detail: { isAdmin: window.TOKENCAFE_IS_ADMIN === true },
+              }),
+            );
+          } catch (_) {}
+        } catch (_) {}
+      };
+
+      document.addEventListener("wallet:connected", reloadContractActions);
+      document.addEventListener("wallet:accountChanged", reloadContractActions);
     } catch (_) {}
   }
 

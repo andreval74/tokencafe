@@ -1,8 +1,8 @@
 
 import { updateContractDetailsView, initContainer, updateVerificationBadge } from "../../shared/contract-search.js";
 import { getExplorerContractUrl } from "./explorer-utils.js";
-import { ShareManager } from "./share-manager.js";
 import { checkIsAdmin } from "./builder.js";
+import { getVerificationStatus } from "../../shared/verify-utils.js";
 
 class ContractDetailsManager {
     constructor() {
@@ -207,24 +207,6 @@ class ContractDetailsManager {
             this.setupContractView();
             this.startVerificationPolling(chainId, address);
             
-            // Share Section
-            const shareConfig = {
-                address: address,
-                chainId: chainId,
-                name: "", // Will be updated by view?
-                symbol: "",
-                decimals: "18",
-                rpc: "",
-                explorer: getExplorerContractUrl(address, chainId)
-            };
-            
-            try {
-                const shareManager = new ShareManager(shareConfig);
-                shareManager.setupUI();
-            } catch (err) {
-                console.error("Erro ao inicializar ShareManager:", err);
-            }
-            
             this.setupDownloads();
             this.applyShareAccessControl();
             this.attachWalletListeners();
@@ -257,39 +239,16 @@ class ContractDetailsManager {
                 alertBox.className = "alert alert-success border-success bg-dark-elevated text-success mb-4";
                 alertBox.innerHTML = `
                     <h4 class="alert-heading"><i class="bi bi-check-circle-fill me-2"></i>Contrato Criado com Sucesso!</h4>
-                    <p class="mb-0">Seu contrato foi implantado na blockchain. Abaixo estão os detalhes, opções de compartilhamento e arquivos para download.</p>
+                    <p class="mb-0">Seu contrato foi implantado na blockchain. Abaixo estão os detalhes e arquivos para download.</p>
                 `;
                 alertBox.classList.remove("d-none");
             }
 
             const { deployed, form } = this.state;
 
-            // Share Section
-            const shareConfig = {
-                address: deployed?.address,
-                chainId: form.network?.chainId,
-                name: form.token.name,
-                symbol: form.token.symbol,
-                decimals: form.token.decimals,
-                rpc: form.network?.rpc?.[0],
-                explorer: form.network?.explorers?.[0]?.url
-            };
-            
-            console.log("[initFromState] Initializing ShareManager with:", shareConfig);
-
-            try {
-                const shareManager = new ShareManager(shareConfig);
-                shareManager.setupUI();
-            } catch (err) {
-                 console.error("Erro ao inicializar ShareManager:", err);
-            }
-
             this.setupDownloads();
-            this.applyShareAccessControl();
             this.attachWalletListeners();
             this.setupContractView();
-            try {
-                const addr = this.state?.deployed?.address || "";
                 const cid = this.state?.form?.network?.chainId || "";
                 if (addr && cid) this.startVerificationPolling(cid, addr);
             } catch (_) {}
@@ -310,8 +269,7 @@ class ContractDetailsManager {
             let attempts = 0;
             const check = () => {
                 attempts++;
-                // Check for a key element from contract-actions.html
-                const el = document.getElementById("generatedLink");
+                const el = document.getElementById("files-section") || document.getElementById("btnDownloadSol");
                 if (el) {
                     console.log("Contract Actions component found after attempts:", attempts);
                     resolve();
@@ -342,7 +300,6 @@ class ContractDetailsManager {
             alertBox.classList.remove("d-none");
         }
         document.getElementById("files-section")?.classList.add("d-none");
-        document.getElementById("share-section")?.classList.add("d-none");
         // Manter busca visível para não deixar a página totalmente vazia
         document.getElementById("contract-search-container")?.classList.remove("d-none");
     }
@@ -415,7 +372,14 @@ class ContractDetailsManager {
 
         // Manually populate fields NOT handled by updateContractDetailsView
         const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-        setText("cs_viewStatus", "Novo (Deploy)");
+        setText("cs_viewStatus", "Verificando");
+        try {
+            const st = document.getElementById("cs_viewStatus");
+            if (st) {
+                st.classList.remove("tc-status-ok", "tc-status-bad");
+                st.classList.add("tc-status-warn");
+            }
+        } catch (_) {}
 
         // Hide the search bar input group
         const searchInputGroup = document.querySelector("#contract-search-container .input-group");
@@ -439,7 +403,7 @@ class ContractDetailsManager {
                 };
             }
 
-            await updateContractDetailsView(container, chainId, address, preloaded, { autoShowCard: true });
+            await updateContractDetailsView(componentEl, chainId, address, preloaded, { autoShowCard: true });
         } catch (e) {
             console.error("Erro ao atualizar view detalhada:", e);
         }
@@ -477,6 +441,9 @@ class ContractDetailsManager {
         }
         container.classList.remove("d-none");
 
+        const currentAddr = String(this.state?.deployed?.address || this.state?.deployed?.contractAddress || "").trim();
+        const currentCid = String(form?.network?.chainId || this.state?.wallet?.chainId || "").trim();
+
         const hasAnyFile =
             !!compilation?.sourceCode ||
             !!compilation?.input ||
@@ -484,6 +451,43 @@ class ContractDetailsManager {
             !!compilation?.bytecode;
 
         if (!hasAnyFile) {
+            try {
+                if (!this._fetchingExplorerFiles && currentAddr && currentCid) {
+                    this._fetchingExplorerFiles = true;
+                    lockButtons("Carregando arquivos do explorer...");
+
+                    let warn = document.getElementById("tcFilesUnavailable");
+                    if (!warn) {
+                        warn = document.createElement("div");
+                        warn.id = "tcFilesUnavailable";
+                        warn.className = "mt-2 small text-muted";
+                        container.appendChild(warn);
+                    }
+                    warn.textContent = "Carregando código-fonte/ABI do explorer...";
+
+                    getVerificationStatus(currentCid, currentAddr, true)
+                        .then((js) => {
+                            if (js?.verified && (js?.sourceCode || js?.abi)) {
+                                const next = { ...(this.state.compilation || {}) };
+                                if (js?.contractName && !next.contractName) next.contractName = js.contractName;
+                                if (js?.sourceCode && !next.sourceCode) next.sourceCode = js.sourceCode;
+                                if (js?.abi && !next.abi) {
+                                    try {
+                                        next.abi = typeof js.abi === "string" ? JSON.parse(js.abi) : js.abi;
+                                    } catch (_) {}
+                                }
+                                this.state.compilation = next;
+                            }
+                        })
+                        .catch(() => {})
+                        .finally(() => {
+                            this._fetchingExplorerFiles = false;
+                            try { this.setupDownloads(); } catch (_) {}
+                        });
+                    return;
+                }
+            } catch (_) {}
+
             lockButtons("Arquivos disponíveis apenas quando o contrato é criado pelo TokenCafe (sessão de deploy).");
 
             let warn = document.getElementById("tcFilesUnavailable");
@@ -560,14 +564,6 @@ class ContractDetailsManager {
         } else if (btnByte) {
             btnByte.disabled = true;
         }
-    }
-
-    applyShareAccessControl() {
-        const section = document.getElementById("share-section");
-        if (!section) return;
-        section.classList.remove("d-none");
-        const warn = document.getElementById("tcShareAdminLock");
-        if (warn) warn.remove();
     }
 
     showFileModal(filename, content, type = "text/plain") {

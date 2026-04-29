@@ -34,15 +34,30 @@ function initWalletManager() {
     }
   });
 
-  document.getElementById("shareAddressBtn")?.addEventListener("click", () => {
+  const getWalletExplorerAddressUrl = () => {
+    const url = getTextValue("explorerUrlDisplay");
     const addr = getTextValue("walletAddress");
-    if (addr && addr !== "-" && navigator.share) {
-      navigator.share({ title: "Minha Carteira", text: addr }).catch(() => {});
-    } else if (addr && addr !== "-") {
-      if (window.copyToClipboard) {
-        window.copyToClipboard(addr);
-      }
-    }
+    if (!url || !addr || url === "-" || addr === "-") return "";
+    const baseUrl = url.endsWith("/") ? url.slice(0, -1) : url;
+    return `${baseUrl}/address/${addr}`;
+  };
+
+  document.getElementById("walletShareWhatsAppBtn")?.addEventListener("click", () => {
+    const link = getWalletExplorerAddressUrl() || getTextValue("walletAddress");
+    if (!link || link === "-") return;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(link)}`, "_blank");
+  });
+
+  document.getElementById("walletShareTelegramBtn")?.addEventListener("click", () => {
+    const link = getWalletExplorerAddressUrl() || getTextValue("walletAddress");
+    if (!link || link === "-") return;
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Confira esta carteira:")}`, "_blank");
+  });
+
+  document.getElementById("walletShareEmailBtn")?.addEventListener("click", () => {
+    const link = getWalletExplorerAddressUrl() || getTextValue("walletAddress");
+    if (!link || link === "-") return;
+    window.open(`mailto:?subject=${encodeURIComponent("Carteira")}&body=${encodeURIComponent(link)}`, "_self");
   });
 
   // Limpar Dados Button (agora Home)
@@ -217,8 +232,8 @@ async function openAddressView(addressRaw, chainId, explorerOverride) {
   if (section) section.classList.remove("d-none");
   const statusEl = document.getElementById("walletStatusLabel");
   if (statusEl) {
-    statusEl.classList.remove("text-success");
-    statusEl.classList.add("text-info");
+    statusEl.classList.remove("tc-status-ok", "tc-status-bad");
+    statusEl.classList.add("tc-status-warn");
     statusEl.innerHTML = '<i class="bi bi-eye me-1"></i>Visualização pública';
   }
 
@@ -262,8 +277,8 @@ async function updateUI(data) {
   setValue("walletAddress", data.account);
   const statusEl = document.getElementById("walletStatusLabel");
   if (statusEl) {
-    statusEl.classList.remove("text-info");
-    statusEl.classList.add("text-success");
+    statusEl.classList.remove("tc-status-warn", "tc-status-bad");
+    statusEl.classList.add("tc-status-ok");
     statusEl.innerHTML = '<i class="bi bi-circle-fill me-1"></i>Conectado';
   }
   
@@ -353,6 +368,13 @@ function clearUI() {
 
   const section = document.getElementById("wallet-info-section");
   if (section) section.classList.add("d-none");
+
+  const statusEl = document.getElementById("walletStatusLabel");
+  if (statusEl) {
+    statusEl.classList.remove("tc-status-ok", "tc-status-warn");
+    statusEl.classList.add("tc-status-bad");
+    statusEl.innerHTML = '<i class="bi bi-circle-fill me-1"></i>Não conectado';
+  }
 
   setValue("walletAddress", "");
   setValue("chainId", "");

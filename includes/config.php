@@ -22,7 +22,7 @@ if (!defined("BASE_URL")) {
 }
 
 if (!defined("ASSET_VERSION")) {
-  define("ASSET_VERSION", "9.9");
+  define("ASSET_VERSION", "9.10");
 }
 
 if (!defined("TOKENCAFE_MAINTENANCE_MODE")) {

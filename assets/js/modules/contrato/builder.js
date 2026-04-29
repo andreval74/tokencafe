@@ -11,6 +11,10 @@ const $ = (sel) => document.querySelector(sel);
  * @returns {boolean}
  */
 export function checkIsAdmin() {
+    try {
+        if (window.TOKENCAFE_IS_ADMIN === true) return true;
+    } catch (_) {}
+
     // 1. Verificação de carteira (se conectada) via state global do módulo
     if (typeof state !== "undefined" && state.wallet && state.wallet.address) {
         if (isWalletAdmin(state.wallet.address)) return true;
@@ -23,7 +27,6 @@ export function checkIsAdmin() {
         if (connected && isWalletAdmin(status.account)) {
             return true;
         }
-        return false;
     }
     
     // 3. Verificação via cookie PHP
@@ -31,6 +34,12 @@ export function checkIsAdmin() {
         const match = document.cookie.match(new RegExp('(^| )tokencafe_wallet_address=([^;]+)'));
         if (match && match[2] && isWalletAdmin(match[2])) return true;
     } catch (e) {}
+
+    // 4. Verificação via localStorage (fallback)
+    try {
+        const ls = window.localStorage?.getItem?.("tokencafe_wallet_address") || "";
+        if (ls && isWalletAdmin(ls)) return true;
+    } catch (_) {}
     
     return false;
 }
@@ -2245,12 +2254,10 @@ export async function deployContract() {
     const autoEnabled = true;
     if (autoEnabled) {
       const payload = buildVerifyPayloadFromState();
-      // Validar restrição de Testnet
-      const chainId = payload?.chainId;
-      if (nm.isTestNetwork(chainId) && !checkIsAdmin()) {
-          log("Verificação automática bloqueada em Testnet.");
+      if (!checkIsAdmin()) {
+        log("Verificação automática bloqueada (Restrito a Administradores).");
       } else if (payload) {
-          await runVerifyDirect(payload);
+        await runVerifyDirect(payload);
       }
     } else {
       log("Verificação automática desabilitada.");
@@ -2912,31 +2919,8 @@ async function bindUI() {
       try {
         const oc = document.getElementById("openVerificaContainer");
         const ob = document.getElementById("openVerificaModuleBtn");
-        const lc = document.getElementById("openAddTokenLinkContainer");
-        const lb = document.getElementById("openAddTokenLinkBtn");
         if (oc) oc.classList.remove("d-none");
         if (ob) ob.classList.remove("disabled");
-        try {
-          const addr = state?.deployed?.address || "";
-          const cid = state?.form?.network?.chainId || state?.wallet?.chainId || null;
-          const nm = state?.form?.token?.name || "";
-          const sym = state?.form?.token?.symbol || "TKN";
-          const dec = Number.isFinite(state?.form?.token?.decimals) ? state.form.token.decimals : 18;
-          const fullContractUrl = cid ? getExplorerContractUrl(addr, cid) : "";
-          const expBase = fullContractUrl ? String(fullContractUrl).replace(/\/address\/.*$/, "") : "";
-          const img = getDefaultImageUrl();
-          let rpcParam = "";
-          const net = state?.form?.network || {};
-          if (Array.isArray(net?.rpc) && net.rpc.length) rpcParam = net.rpc[0];
-          else if (typeof net?.rpc === "string" && net.rpc) rpcParam = net.rpc;
-          else if (cid) rpcParam = getFallbackRpcByChainId(cid);
-          const qs = addr && cid ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}` : "";
-          if (lc) lc.classList.remove("d-none");
-          if (lb) {
-            lb.classList.toggle("disabled", !qs);
-            lb.href = `../link/link-token.php${qs}`;
-          }
-        } catch (_) {}
       } catch (_) {}
       try {
         const sp = document.getElementById("deploySpinner");
@@ -2980,31 +2964,8 @@ async function bindUI() {
         try {
           const oc = document.getElementById("openVerificaContainer");
           const ob = document.getElementById("openVerificaModuleBtn");
-          const lc = document.getElementById("openAddTokenLinkContainer");
-          const lb = document.getElementById("openAddTokenLinkBtn");
           if (oc) oc.classList.remove("d-none");
           if (ob) ob.classList.remove("disabled");
-          try {
-            const addr = state?.deployed?.address || "";
-            const cid = state?.form?.network?.chainId || state?.wallet?.chainId || null;
-            const nm = state?.form?.token?.name || "";
-            const sym = state?.form?.token?.symbol || "TKN";
-            const dec = Number.isFinite(state?.form?.token?.decimals) ? state.form.token.decimals : 18;
-            const fullContractUrl = cid ? getExplorerContractUrl(addr, cid) : "";
-            const expBase = fullContractUrl ? String(fullContractUrl).replace(/\/address\/.*$/, "") : "";
-            const img = getDefaultImageUrl();
-            let rpcParam = "";
-            const net = state?.form?.network || {};
-            if (Array.isArray(net?.rpc) && net.rpc.length) rpcParam = net.rpc[0];
-            else if (typeof net?.rpc === "string" && net.rpc) rpcParam = net.rpc;
-            else if (cid) rpcParam = getFallbackRpcByChainId(cid);
-            const qs = addr && cid ? `?address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}&name=${encodeURIComponent(nm)}&symbol=${encodeURIComponent(sym)}&decimals=${encodeURIComponent(String(dec))}&explorer=${encodeURIComponent(expBase)}&image=${encodeURIComponent(img)}${rpcParam ? `&rpc=${encodeURIComponent(rpcParam)}` : ""}` : "";
-            if (lc) lc.classList.remove("d-none");
-            if (lb) {
-              lb.classList.toggle("disabled", !qs);
-              lb.href = `../link/link-token.php${qs}`;
-            }
-          } catch (_) {}
         } catch (_) {}
         try {
           const sp = document.getElementById("buildSpinner");
@@ -3077,10 +3038,6 @@ async function bindUI() {
 
   if (btnAddMM) btnAddMM.addEventListener("click", addTokenHandler);
   
-  // Fix: Adicionar listener para botão pequeno (mobile/card)
-  const btnAddMMSmall = document.getElementById("btnAddToMetaMaskSmall");
-  if (btnAddMMSmall) btnAddMMSmall.addEventListener("click", addTokenHandler);
-
   // Fix: Adicionar listeners para botões de Rede (Add Network/Switch)
   const switchNetworkHandler = async () => {
     try {
@@ -3106,101 +3063,6 @@ async function bindUI() {
 
   const btnAddNet = document.getElementById("btnAddNetwork");
   if (btnAddNet) btnAddNet.addEventListener("click", switchNetworkHandler);
-
-  const btnAddNetSmall = document.getElementById("btnAddNetworkSmall");
-  if (btnAddNetSmall) btnAddNetSmall.addEventListener("click", switchNetworkHandler);
-
-  // Compartilhamento (Copy, View, Social)
-  const getShareLink = () => {
-      const gl = document.getElementById("generatedLink");
-      if (gl && gl.value) return gl.value;
-      const addr = state?.deployed?.address;
-      const chain = state?.form?.network?.chainId || state?.wallet?.chainId;
-      if (addr && chain) {
-         const url = new URL(window.location.href);
-         url.searchParams.set("contract", addr);
-         url.searchParams.set("chain", chain);
-         return url.toString();
-      }
-      return window.location.href;
-  };
-
-  const copyBtn = document.getElementById("copyAddressBtn");
-  if (copyBtn) {
-      copyBtn.addEventListener("click", () => {
-          const link = getShareLink();
-          if (navigator.clipboard) {
-              navigator.clipboard.writeText(link).then(() => log("Link copiado!"));
-          } else {
-              const inp = document.getElementById("generatedLink");
-              if (inp) {
-                  inp.select();
-                  document.execCommand("copy");
-                  log("Link copiado!");
-              }
-          }
-      });
-  }
-
-  const viewBtn = document.getElementById("viewAddressBtn");
-  if (viewBtn) {
-      viewBtn.addEventListener("click", () => {
-          const link = getShareLink();
-          if (link) window.open(link, "_blank");
-      });
-  }
-
-  const waBtn = document.getElementById("btnShareWhatsAppSmall");
-  if (waBtn) {
-      waBtn.addEventListener("click", () => {
-          const link = getShareLink();
-          const text = encodeURIComponent(`Confira meu novo token criado no TokenCafe! 🚀\n\n${link}`);
-          window.open(`https://wa.me/?text=${text}`, "_blank");
-      });
-  }
-
-  const tgBtn = document.getElementById("btnShareTelegramSmall");
-  if (tgBtn) {
-      tgBtn.addEventListener("click", () => {
-          const link = getShareLink();
-          const text = encodeURIComponent("Confira meu novo token criado no TokenCafe! 🚀");
-          const url = encodeURIComponent(link);
-          window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank");
-      });
-  }
-
-  const mailBtn = document.getElementById("btnShareEmailSmall");
-  if (mailBtn) {
-      mailBtn.addEventListener("click", () => {
-          const link = getShareLink();
-          const subject = encodeURIComponent("Novo Token Criado");
-          const body = encodeURIComponent(`Olá,\n\nConfira meu novo token criado no TokenCafe:\n\n${link}`);
-          window.location.href = `mailto:?subject=${subject}&body=${body}`;
-      });
-  }
-
-  const btnShare = document.getElementById("btnShareDeploy");
-  if (btnShare)
-    btnShare.addEventListener("click", async () => {
-      try {
-        const addr = state?.deployed?.address || "";
-        const cid = state?.form?.network?.chainId || state?.wallet?.chainId || null;
-        if (!addr || !cid) return;
-        const url = getExplorerContractUrl(addr, cid) || window.location.href;
-        const title = `Contrato ERC-20 (${state?.form?.token?.symbol || "TKN"})`;
-        const text = `Endereço: ${addr}\nRede: ${state?.form?.network?.name || cid}`;
-        const shareData = { title, text, url };
-        if (navigator.share) {
-          await navigator.share(shareData);
-          log("Link compartilhado com sucesso");
-        } else {
-          await navigator.clipboard?.writeText?.(url);
-          log("Web Share indisponível; link copiado para a área de transferência");
-        }
-      } catch (e) {
-        log(`Falha ao compartilhar: ${e?.message || e}`);
-      }
-    });
 
   // Integrar com componente de busca de rede (network-search)
   const nsElement = document.querySelector('[data-component*="network-search.php"]');
@@ -3508,6 +3370,14 @@ async function bindUI() {
       if (vLink) {
         vLink.addEventListener("click", async (e) => {
           try {
+            if (!checkIsAdmin()) {
+              e.preventDefault();
+              showDiagnosis("PRECONDITION", {
+                badge: "Verificação disponível apenas para administradores.",
+                causes: ["Conecte a carteira administradora.", "Se você já é ADM, atualize a página após conectar a carteira."],
+              });
+              return;
+            }
             const addr = state.deployed?.address;
             const chainId = state.form?.network?.chainId;
             const src = state.compilation?.sourceCode;
@@ -4287,13 +4157,9 @@ async function runVerifyDirect(p) {
 export async function verifyCurrentContract() {
   const payload = buildVerifyPayloadFromState();
   if (payload) {
-      // Validar restrição de Testnet
-      const chainId = payload.chainId;
-      // Usar instância nm (NetworkManager) criada no escopo do módulo
-      if (nm.isTestNetwork(chainId) && !checkIsAdmin()) {
-          const msg = "Certificação bloqueada em redes de teste (Restrito a Administradores).";
+      if (!checkIsAdmin()) {
+          const msg = "Certificação bloqueada (Restrito a Administradores).";
           log(msg);
-          // alert(msg); // Removido conforme solicitação
           return { success: false, error: msg, skipped: true };
       }
 

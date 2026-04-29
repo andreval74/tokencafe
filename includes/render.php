@@ -399,8 +399,8 @@ function tokencafe_resolve_page(string $page): ?string
     "admin" => __DIR__ . "/../modules/logs/logs-index.php",
     "wallet" => __DIR__ . "/../modules/wallet/wallet-index.php",
     "rpc" => __DIR__ . "/../modules/rpc/rpc-index.php",
-    "link" => __DIR__ . "/../modules/link/link-index.php",
-    "link-token" => __DIR__ . "/../modules/link/link-token.php",
+    "link" => __DIR__ . "/../modules/site/tools.php",
+    "link-token" => __DIR__ . "/../modules/site/tools.php",
     "contrato" => __DIR__ . "/../modules/contrato/contrato-index.php",
     "contrato-avancado" => __DIR__ . "/../modules/contrato/contrato-avancado.php",
     "contrato-detalhes" => __DIR__ . "/../modules/contrato/contrato-detalhes.php",
@@ -462,6 +462,27 @@ function render_page(string $viewPath, array $options = []): void
         "samesite" => "Lax",
       ]);
       $isAdmin = true;
+    }
+  } catch (Throwable $e) {}
+
+  try {
+    $requestedPage = isset($_GET["page"]) ? strtolower(trim((string) $_GET["page"])) : "";
+    $requestedPage = preg_replace('/[^a-z0-9_-]+/', "", $requestedPage);
+    $adminPreviewPages = [
+      "analytics",
+      "widget",
+      "templates",
+      "settings",
+      "tokens",
+      "token-add",
+      "token-manager",
+      "documentacao",
+    ];
+    if ($requestedPage !== "" && in_array($requestedPage, $adminPreviewPages, true) && !$isAdmin) {
+      $fallback = $projectRoot . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "site" . DIRECTORY_SEPARATOR . "tools.php";
+      if (is_file($fallback)) {
+        $viewPathReal = $fallback;
+      }
     }
   } catch (Throwable $e) {}
 
