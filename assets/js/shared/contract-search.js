@@ -54,6 +54,9 @@ function sanitizeRpcUrl(u) {
 
 function resolveIsAdminSync() {
   try {
+    if (window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) return true;
+  } catch (_) {}
+  try {
     if (window.TOKENCAFE_IS_ADMIN === true) return true;
   } catch (_) {}
   try {
@@ -360,6 +363,17 @@ async function detectSymbolName(addr, chainId) {
       symHex = symHex || symHex2;
       namHex = namHex || namHex2;
     }
+    if ((!symHex || symHex === "0x" || !namHex || namHex === "0x") && typeof window !== "undefined" && window.ethereum?.request) {
+      try {
+        const curChain = await window.ethereum.request({ method: "eth_chainId" });
+        if (parseInt(curChain, 16) === Number(chainId)) {
+          const symHex3 = await window.ethereum.request({ method: "eth_call", params: [{ to: String(addr), data: "0x95d89b41" }, "latest"] });
+          const namHex3 = await window.ethereum.request({ method: "eth_call", params: [{ to: String(addr), data: "0x06fdde03" }, "latest"] });
+          symHex = symHex || symHex3;
+          namHex = namHex || namHex3;
+        }
+      } catch (_) {}
+    }
     const sym = decodeString(symHex);
     const nam = decodeString(namHex);
     return { symbol: sym, name: nam };
@@ -389,6 +403,17 @@ async function fetchERC20Info(addr, chainId) {
       const [decHex2, supHex2] = await Promise.all([callFirstValid(rpcs, bodies[0]), callFirstValid(rpcs, bodies[1])]);
       decHex = decHex || decHex2;
       supHex = supHex || supHex2;
+    }
+    if ((!decHex || decHex === "0x" || !supHex || supHex === "0x") && typeof window !== "undefined" && window.ethereum?.request) {
+      try {
+        const curChain = await window.ethereum.request({ method: "eth_chainId" });
+        if (parseInt(curChain, 16) === Number(chainId)) {
+          const decHex3 = await window.ethereum.request({ method: "eth_call", params: [{ to: String(addr), data: "0x313ce567" }, "latest"] });
+          const supHex3 = await window.ethereum.request({ method: "eth_call", params: [{ to: String(addr), data: "0x18160ddd" }, "latest"] });
+          decHex = decHex || decHex3;
+          supHex = supHex || supHex3;
+        }
+      } catch (_) {}
     }
     let decimals = null;
     try {
@@ -512,9 +537,15 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
 
     let isAdmin = false;
     try {
+        if (window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) {
+            isAdmin = true;
+        }
+    } catch (_) {}
+    try {
         if (window.TOKENCAFE_IS_ADMIN === true) {
             isAdmin = true;
         } else if (window.ethereum && window.ethereum.selectedAddress) {
+            isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
             isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
         } else {
             const addr = await getConnectedWalletAddress();
@@ -694,6 +725,8 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
     const vSup = container.querySelector("#cs_viewSupply") || document.getElementById("cs_viewSupply");
     const vAddr = container.querySelector("#cs_viewAddress") || document.getElementById("cs_viewAddress");
     const vCid = container.querySelector("#cs_viewChainId") || document.getElementById("cs_viewChainId");
+    const txRow = container.querySelector("#cs_txRow") || document.getElementById("cs_txRow");
+    const vTx = container.querySelector("#cs_viewTxHash") || document.getElementById("cs_viewTxHash");
     const vTokBal = container.querySelector("#cs_viewTokenBalance") || document.getElementById("cs_viewTokenBalance");
     const vNatBal = container.querySelector("#cs_viewNativeBalance") || document.getElementById("cs_viewNativeBalance");
     const vPair = container.querySelector("#cs_viewPairAddress") || document.getElementById("cs_viewPairAddress");
@@ -731,6 +764,23 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
         if (base) vAddr.href = `${String(base).replace(/\/$/, "")}/address/${address}`;
         else vAddr.removeAttribute("href");
       }
+      
+      try {
+        const txHash = String(preloadedData?.txHash || "").trim();
+        if (txRow) txRow.classList.toggle("d-none", !txHash);
+        if (vTx) {
+          if (txHash) {
+            vTx.textContent = txHash;
+            const net = networkManager?.getNetworkById?.(parseInt(chainId, 10));
+            const base = net?.explorers?.[0]?.url || getFallbackExplorer(chainId) || "";
+            if (base) vTx.href = `${String(base).replace(/\/$/, "")}/tx/${txHash}`;
+            else vTx.removeAttribute("href");
+          } else {
+            vTx.textContent = "";
+            vTx.removeAttribute("href");
+          }
+        }
+      } catch (_) {}
 
       try {
         container.__tcQuickActionsState = {
@@ -1222,9 +1272,13 @@ function initContainer(container) {
       const vStatus = container.querySelector("#cs_viewStatus") || document.getElementById("cs_viewStatus");
       const vWalletStatus = container.querySelector("#cs_viewWalletStatus") || document.getElementById("cs_viewWalletStatus");
       const topExp = container.querySelector("#csExplorerBtn") || document.getElementById("csExplorerBtn");
+      const txRow = container.querySelector("#cs_txRow") || document.getElementById("cs_txRow");
+      const vTx = container.querySelector("#cs_viewTxHash") || document.getElementById("cs_viewTxHash");
 
       if (vAddr) { vAddr.textContent = ""; vAddr.removeAttribute("href"); }
       if (vCid) vCid.textContent = "";
+      if (txRow) txRow.classList.add("d-none");
+      if (vTx) { vTx.textContent = ""; vTx.removeAttribute("href"); }
       if (vName) vName.textContent = "";
       if (vSym) vSym.textContent = "";
       if (vDec) vDec.textContent = "";

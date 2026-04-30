@@ -37,6 +37,46 @@ class TokenPageManager {
     this.init();
   }
 
+  getIsBusy() {
+    try {
+      return sessionStorage.getItem("tokencafe_contract_busy") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  setBusy(isBusy) {
+    const busy = !!isBusy;
+    try {
+      sessionStorage.setItem("tokencafe_contract_busy", busy ? "1" : "0");
+    } catch (_) {}
+
+    const btnCreate = document.getElementById("btnCreateToken") || document.getElementById("btnDeploy");
+    const btnClear = document.getElementById("btnClearAll");
+    const homeLink = document.querySelector('#actions-section a[href*="page=tools"]');
+
+    const setAnchorDisabled = (a, disabled) => {
+      if (!a) return;
+      if (disabled) {
+        if (!a.dataset.tcHref) a.dataset.tcHref = a.getAttribute("href") || "";
+        a.classList.add("disabled");
+        a.setAttribute("aria-disabled", "true");
+        a.setAttribute("tabindex", "-1");
+        a.removeAttribute("href");
+      } else {
+        a.classList.remove("disabled");
+        a.removeAttribute("aria-disabled");
+        a.removeAttribute("tabindex");
+        const href = a.dataset.tcHref || "";
+        if (href) a.setAttribute("href", href);
+      }
+    };
+
+    if (btnCreate) btnCreate.disabled = busy;
+    if (btnClear) btnClear.disabled = busy;
+    setAnchorDisabled(homeLink, busy);
+  }
+
   init() {
     console.log("TokenPageManager initialized (Single Page Mode)");
     
@@ -144,6 +184,7 @@ class TokenPageManager {
         console.log("Attaching click listener to btnCreateToken");
         btnCreate.addEventListener("click", (e) => {
             if (e) e.preventDefault();
+            if (this.getIsBusy()) return;
             console.log("Create Token Button Clicked");
             this.deploy();
         });
@@ -151,10 +192,36 @@ class TokenPageManager {
         console.error("btnCreateToken not found in DOM during init");
     }
 
+    try {
+      this.setBusy(this.getIsBusy());
+    } catch (_) {}
+
     // Listen for Reset Button
     const btnReset = document.getElementById("btnResetForm");
     if (btnReset) {
         btnReset.addEventListener("click", () => this.resetForm());
+    }
+
+    const btnClear = document.getElementById("btnClearAll");
+    if (btnClear) {
+        btnClear.addEventListener("click", (e) => {
+            if (this.getIsBusy()) {
+                if (e) e.preventDefault();
+                return;
+            }
+        });
+    }
+
+    const homeLink = document.querySelector('#actions-section a[href*="page=tools"]');
+    if (homeLink) {
+        homeLink.addEventListener("click", (e) => {
+            if (this.getIsBusy()) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        });
     }
 
     // btnReloadApiStatus handled by ApiStatusComponent
@@ -284,6 +351,7 @@ class TokenPageManager {
 
      // 4. Start Process
      if (deployContainer) deployContainer.classList.remove("d-none");
+     this.setBusy(true);
      if (btn) {
          btn.disabled = true;
          btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processando...`;
@@ -494,6 +562,7 @@ class TokenPageManager {
          if (statusText) statusText.className = "fw-bold text-danger";
          if (deployContainer) deployContainer.className = "mt-4 alert alert-danger bg-dark border-danger text-danger";
      } finally {
+         this.setBusy(false);
          if (btn) {
              btn.disabled = false;
              btn.innerHTML = `<i class="bi bi-check-lg me-2"></i> Criar Contrato`;
@@ -504,6 +573,7 @@ class TokenPageManager {
   showSuccessScreen() {
      const deployContainer = document.getElementById("deployStatusContainer");
      if (deployContainer) deployContainer.classList.add("d-none");
+     this.setBusy(false);
      
      try {
          // Save state to sessionStorage for the details page

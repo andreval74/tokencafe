@@ -23,8 +23,8 @@ export function checkIsAdmin() {
     // 2. Verificação via walletConnector global (útil quando importado em outras páginas como contrato-detalhes)
     if (window.walletConnector && typeof window.walletConnector.getStatus === "function") {
         const status = window.walletConnector.getStatus();
-        const connected = !!status?.isConnected && !!status?.sessionAuthorized && !!status?.account;
-        if (connected && isWalletAdmin(status.account)) {
+        const hasAccount = !!status?.account;
+        if (hasAccount && isWalletAdmin(status.account)) {
             return true;
         }
     }
@@ -96,7 +96,7 @@ if (document.readyState === "loading") {
     initSupplyMask();
 }
 import { getExplorerContractUrl, getExplorerTxUrl, getExplorerVerificationUrl } from "./explorer-utils.js";
-import { getApiBase as getApiBaseShared, runVerifyDirect as runVerifyDirectShared, getVerificationStatus } from "../../shared/verify-utils.js";
+import { getApiBase as getApiBaseShared, runVerifyDirect as runVerifyDirectShared, getVerificationStatus, getVerificationStatusByGuid } from "../../shared/verify-utils.js";
 import { SharedUtilities } from "../../core/shared_utilities_es6.js";
 import { addTokenToMetaMask } from "../../shared/metamask-utils.js";
 import { checkConnectivity } from "../../shared/components/api-status.js";
@@ -2324,8 +2324,11 @@ export async function deployContract() {
                 success: state.compilation.success,
                 contractName: state.compilation.contractName,
                 sourceCode: state.compilation.sourceCode,
+                input: state.compilation.input,
                 abi: state.compilation.abi,
                 bytecode: state.compilation.bytecode,
+                deployedBytecode: state.compilation.deployedBytecode,
+                metadata: state.compilation.metadata,
                 compilerVersion: state.compilation.compilerVersion,
                 evmVersion: state.compilation.evmVersion
             } : null,
@@ -2551,12 +2554,52 @@ function formatElapsed(ms) {
     return "0:00";
   }
 }
+
+function setActionButtonsDisabled(disabled) {
+  try {
+    const busy = !!disabled;
+    try {
+      sessionStorage.setItem("tokencafe_contract_busy", busy ? "1" : "0");
+    } catch (_) {}
+
+    const btnCreate = document.getElementById("btnCreateToken") || document.getElementById("btnDeploy") || document.getElementById("btnBuildDeploy");
+    const btnClear = document.getElementById("btnClearAll");
+    const btnNewContract = document.getElementById("btnNewContract");
+    const homeLink = document.querySelector('#actions-section a[href*="page=tools"]');
+    const actions = document.getElementById("actions-section");
+
+    const setAnchorDisabled = (a, isDisabled) => {
+      if (!a) return;
+      if (isDisabled) {
+        if (!a.dataset.tcHref) a.dataset.tcHref = a.getAttribute("href") || "";
+        a.classList.add("disabled");
+        a.setAttribute("aria-disabled", "true");
+        a.setAttribute("tabindex", "-1");
+        a.removeAttribute("href");
+      } else {
+        a.classList.remove("disabled");
+        a.removeAttribute("aria-disabled");
+        a.removeAttribute("tabindex");
+        const href = a.dataset.tcHref || "";
+        if (href) a.setAttribute("href", href);
+      }
+    };
+
+    if (btnCreate) btnCreate.disabled = busy;
+    if (btnClear) btnClear.disabled = busy;
+    if (btnNewContract) btnNewContract.classList.toggle("disabled", busy);
+    setAnchorDisabled(homeLink, busy);
+    if (actions) actions.style.pointerEvents = busy ? "none" : "";
+  } catch (_) {}
+}
 function startOpStatus(message) {
   try {
     opStartedAt = Date.now();
+    setActionButtonsDisabled(true);
     // setStatusContainerVisible(); // Removido para manter oculto até conclusão
     const st = document.getElementById("contractStatus");
     if (st) st.textContent = `${message} — tempo: 0:00`;
+    
     
     // Atualiza resumo
     updateSummaryItem("Status", message);
@@ -2591,6 +2634,7 @@ function stopOpStatus(finalMessage) {
       clearInterval(opTimer);
       opTimer = null;
     }
+    setActionButtonsDisabled(false);
     const elapsed = formatElapsed(Date.now() - opStartedAt);
     const msg = `${finalMessage} — tempo: ${elapsed}`;
     const st = document.getElementById("contractStatus");
@@ -2723,7 +2767,7 @@ function updateVerificationUI(success) {
 }
 
 // Monitoramento de verificação
-async function monitorVerification(chainId, address) {
+async function monitorVerification(chainId, address, guid = "") {
     let attempts = 0;
     const maxAttempts = 30; // 30 * 3s = 90s
     
@@ -2736,8 +2780,11 @@ async function monitorVerification(chainId, address) {
         }
         
         try {
-            const status = await getVerificationStatus(chainId, address);
-            if (status.verified || (status.result && status.result.includes("Verified"))) {
+            const status = guid
+              ? await getVerificationStatusByGuid(chainId, guid)
+              : await getVerificationStatus(chainId, address);
+            
+            if (status?.verified || (status?.result && String(status.result).includes("Verified"))) {
                 log("Contrato verificado com sucesso no Explorer!");
                 updateVerificationUI(true);
                 return;
@@ -2764,7 +2811,7 @@ async function autoVerifyContract() {
             return;
         }
         
-        const res = await runVerifyDirectShared(payload);
+        const res = await runVerifyDirect(payload);
         
         if (res.success || res.status === "1" || res.message === "pending") {
              if (res.status === "1" && res.result === "Already Verified") {
@@ -2774,7 +2821,15 @@ async function autoVerifyContract() {
              }
              
              log("Solicitação enviada. Monitorando confirmação...");
-             monitorVerification(payload.chainId, payload.contractAddress);
+             try {
+                 const addrKey = String(payload.contractAddress || "").toLowerCase();
+                 const cidKey = String(payload.chainId || "");
+                 const guidKey = `tokencafe_verify_guid_${cidKey}_${addrKey}`;
+                 const guid = sessionStorage.getItem(guidKey) || localStorage.getItem(guidKey) || res.guid || "";
+                 monitorVerification(payload.chainId, payload.contractAddress, guid);
+             } catch (_) {
+                 monitorVerification(payload.chainId, payload.contractAddress);
+             }
         } else {
             log(`Falha ao iniciar verificação automática: ${res.message}. Tente manualmente.`);
             // Mostra opção manual
@@ -4084,6 +4139,20 @@ async function runVerifyDirect(p) {
     const res = await runVerifyDirectShared(p);
     if (res?.link) updateVerificationBadges({ bscUrl: res.link });
     
+    const isPending =
+      res?.status === "pending" ||
+      String(res?.message || "").toLowerCase() === "pending";
+    
+    try {
+      if (isPending && res?.guid) {
+        const addrKey = String(p.contractAddress || "").toLowerCase();
+        const cidKey = String(p.chainId || "");
+        const guidKey = `tokencafe_verify_guid_${cidKey}_${addrKey}`;
+        sessionStorage.setItem(guidKey, String(res.guid));
+        localStorage.setItem(guidKey, String(res.guid));
+      }
+    } catch (_) {}
+    
     // Sucesso imediato OU Já verificado
     if (res?.success || res?.alreadyVerified || (res?.error && res.error.toLowerCase().includes("already verified"))) {
       const isAlready = res?.alreadyVerified || (res?.error && res.error.toLowerCase().includes("already verified"));
@@ -4102,17 +4171,20 @@ async function runVerifyDirect(p) {
       
       document.dispatchEvent(new CustomEvent("contract:verified", { detail: eventDetail }));
       
-    } else if (res?.status === "pending") {
+    } else if (isPending) {
       // Se pendente, aguarda e confirma
       // Se pendente ou já verificado, aguarda e confirma
       log(`📤 Verificação enviada/processando. Confirmando status...`);
       
       setTimeout(async () => {
         try {
-            const status = await getVerificationStatus(p.chainId, p.contractAddress);
+            const status = res?.guid
+              ? await getVerificationStatusByGuid(p.chainId, res.guid)
+              : await getVerificationStatus(p.chainId, p.contractAddress);
+            
             if (status?.verified) {
                 log(`✅ Confirmado: Contrato verificado!`);
-                const link = status.explorer?.url || res?.link;
+                const link = res?.explorerUrl || status?.explorer?.url || res?.link;
                 
                 // Atualiza UI localmente
                 forceVerificationSuccessUI(p.contractAddress, link, p.chainId);

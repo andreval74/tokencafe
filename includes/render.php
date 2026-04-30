@@ -563,8 +563,9 @@ function render_page(string $viewPath, array $options = []): void
     $enqueueScript('<script src="' . htmlspecialchars($srcForTag, ENT_QUOTES, "UTF-8") . '"' . $attrStr . "></script>", $src);
   };
 
-  $enqueueModule = function (string $src) use ($enqueueScript) {
-    $enqueueScript('<script type="module" src="' . htmlspecialchars($src, ENT_QUOTES, "UTF-8") . '"></script>', $src);
+  $enqueueModule = function (string $src) use ($enqueueScript, $versionedSrc) {
+    $srcForTag = $versionedSrc($src);
+    $enqueueScript('<script type="module" src="' . htmlspecialchars($srcForTag, ENT_QUOTES, "UTF-8") . '"></script>', $src);
   };
 
   $GLOBALS["enqueue_script_src"] = $enqueueScriptSrc;

@@ -73,6 +73,14 @@
             <span id="cs_viewChainId" class="text-tokencafe"></span>
           </div>
         </div>
+
+        <div class="col-12 d-none" id="cs_txRow">
+          <div class="d-flex align-items-baseline gap-2">
+            <span>Tx Hash:</span>
+            <a id="cs_viewTxHash" href="#" target="_blank" rel="noopener"
+              class="text-tokencafe text-decoration-none text-break"></a>
+          </div>
+        </div>
         <div class="col-6">
           <div class="d-flex align-items-baseline gap-2">
             <span>Nome:</span>
@@ -142,4 +150,10 @@
       </div>
     </div>
   </div>
-<script type="module" src="assets/js/shared/contract-search.js"></script>
+<?php
+  $tc_contract_search_js = __DIR__ . "/../../../assets/js/shared/contract-search.js";
+  $tc_contract_search_v = @filemtime($tc_contract_search_js);
+  if (!$tc_contract_search_v && defined("ASSET_VERSION")) $tc_contract_search_v = ASSET_VERSION;
+  if (!$tc_contract_search_v) $tc_contract_search_v = "1";
+?>
+<script type="module" src="assets/js/shared/contract-search.js?v=<?= urlencode((string) $tc_contract_search_v) ?>"></script>

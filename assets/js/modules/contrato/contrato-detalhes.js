@@ -12,6 +12,19 @@ class ContractDetailsManager {
         this.init();
     }
 
+    applyShareAccessControl() {
+        try {
+            const barriersDisabled = window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true;
+            const isAdmin =
+                barriersDisabled ||
+                (typeof checkIsAdmin === "function" && checkIsAdmin()) ||
+                window.TOKENCAFE_IS_ADMIN === true;
+            
+            const files = document.getElementById("files-section");
+            if (files) files.classList.toggle("d-none", !isAdmin);
+        } catch (_) {}
+    }
+
     attachWalletListeners() {
         try {
             if (this._walletListenersAttached) return;
@@ -91,6 +104,42 @@ class ContractDetailsManager {
         } catch (_) {}
     }
 
+    async fetchDeployedBytecode(chainId, address) {
+        try {
+            const cid = Number(chainId);
+            const addr = String(address || "").trim();
+            if (!cid || !/^0x[a-fA-F0-9]{40}$/.test(addr)) return "";
+
+            try {
+                if (window.ethereum?.request) {
+                    const cur = await window.ethereum.request({ method: "eth_chainId" });
+                    if (parseInt(cur, 16) === cid) {
+                        const code = await window.ethereum.request({ method: "eth_getCode", params: [addr, "latest"] });
+                        return typeof code === "string" ? code : "";
+                    }
+                }
+            } catch (_) {}
+
+            const candidates = [];
+            if (cid === 97) candidates.push("https://bsc-testnet.publicnode.com", "https://endpoints.omniatech.io/v1/bsc-testnet/public");
+            if (cid === 56) candidates.push("https://bsc-dataseed.binance.org", "https://rpc.ankr.com/bsc");
+
+            for (const rpc of candidates) {
+                try {
+                    const resp = await fetch(rpc, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getCode", params: [addr, "latest"] })
+                    });
+                    const js = await resp.json().catch(() => null);
+                    const code = js?.result ? String(js.result) : "";
+                    if (code && code !== "0x") return code;
+                } catch (_) {}
+            }
+        } catch (_) {}
+        return "";
+    }
+
     writeContractContext(address, chainId, pageName = "contrato-detalhes") {
         try {
             const addr = String(address || "").trim();
@@ -123,7 +172,7 @@ class ContractDetailsManager {
             const addr = String(address || "").trim();
             if (!cid || !addr) return;
             let attempts = 0;
-            const maxAttempts = 12;
+            const maxAttempts = 24;
             const poll = async () => {
                 attempts++;
                 if (attempts > maxAttempts) {
@@ -134,12 +183,16 @@ class ContractDetailsManager {
                 try {
                     const js = await updateVerificationBadge(document, cid, addr, true);
                     if (js?.verified) {
+                        try {
+                            this.setupDownloads();
+                        } catch (_) {}
                         try { clearInterval(this.verifPoll); } catch (_) {}
                         this.verifPoll = null;
                     }
                 } catch (_) {}
             };
-            this.verifPoll = setInterval(poll, 10000);
+            const intervalMs = 3000;
+            this.verifPoll = setInterval(poll, intervalMs);
             poll();
         } catch (_) {}
     }
@@ -153,6 +206,22 @@ class ContractDetailsManager {
         const urlChainId = urlParams.get('chainId');
 
         if (urlAddress && urlChainId) {
+             try {
+                 const stored = sessionStorage.getItem("lastDeployedContract");
+                 const st = stored ? JSON.parse(stored) : null;
+                 const sAddr = String(st?.deployed?.address || st?.deployed?.contractAddress || "").toLowerCase();
+                 const sCid = String(st?.form?.network?.chainId || st?.wallet?.chainId || "").trim();
+                 const uAddr = String(urlAddress || "").toLowerCase();
+                 const uCid = String(urlChainId || "").trim();
+                 if (st && sAddr && uAddr && sAddr === uAddr && sCid && uCid && sCid === uCid) {
+                     this.state = st;
+                     if (this.state.deployed && !this.state.deployed.address && this.state.deployed.contractAddress) {
+                         this.state.deployed.address = this.state.deployed.contractAddress;
+                     }
+                     this.initFromState();
+                     return;
+                 }
+             } catch (_) {}
              this.initFromUrl(urlAddress, urlChainId);
              return;
         }
@@ -244,11 +313,13 @@ class ContractDetailsManager {
                 alertBox.classList.remove("d-none");
             }
 
-            const { deployed, form } = this.state;
-
             this.setupDownloads();
+            this.applyShareAccessControl();
             this.attachWalletListeners();
             this.setupContractView();
+            
+            try {
+                const addr = this.state?.deployed?.address || this.state?.deployed?.contractAddress || "";
                 const cid = this.state?.form?.network?.chainId || "";
                 if (addr && cid) this.startVerificationPolling(cid, addr);
             } catch (_) {}
@@ -293,7 +364,7 @@ class ContractDetailsManager {
                     <i class="bi bi-info-circle me-3 fs-4 text-muted"></i>
                     <div>
                         <h5 class="mb-1">Nenhum contrato recém-criado</h5>
-                        <p class="mb-0 small text-muted">Nenhum dado de deploy recente encontrado. <a href="contrato-index.php" class="alert-link">Criar novo contrato</a>.</p>
+                        <p class="mb-0 small text-muted">Nenhum dado de deploy recente encontrado. <a href="index.php?page=contrato" class="alert-link">Criar novo contrato</a>.</p>
                     </div>
                 </div>
             `;
@@ -370,17 +441,6 @@ class ContractDetailsManager {
 
         if (!address) return;
 
-        // Manually populate fields NOT handled by updateContractDetailsView
-        const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-        setText("cs_viewStatus", "Verificando");
-        try {
-            const st = document.getElementById("cs_viewStatus");
-            if (st) {
-                st.classList.remove("tc-status-ok", "tc-status-bad");
-                st.classList.add("tc-status-warn");
-            }
-        } catch (_) {}
-
         // Hide the search bar input group
         const searchInputGroup = document.querySelector("#contract-search-container .input-group");
         if (searchInputGroup) searchInputGroup.classList.add("d-none");
@@ -399,7 +459,12 @@ class ContractDetailsManager {
                     tokenName: form.token.name,
                     tokenSymbol: form.token.symbol,
                     tokenDecimals: form.token.decimals,
-                    tokenSupply: form.token.initialSupply
+                    tokenSupply: form.token.initialSupply,
+                    txHash: deployed?.transactionHash || deployed?.txHash || ""
+                };
+            } else {
+                preloaded = {
+                    txHash: deployed?.transactionHash || deployed?.txHash || ""
                 };
             }
 
@@ -412,8 +477,6 @@ class ContractDetailsManager {
     setupDownloads() {
         this.resolveCompilationForDownloads();
         const { compilation, form } = this.state;
-        
-        const isAdmin = checkIsAdmin();
         
         const container = document.getElementById("files-section");
         if (!container) return;
@@ -433,12 +496,6 @@ class ContractDetailsManager {
             });
         };
 
-        if (!isAdmin) {
-            container.classList.add("d-none");
-            const warn = document.getElementById("tcFilesTestnetLock");
-            if (warn) warn.remove();
-            return;
-        }
         container.classList.remove("d-none");
 
         const currentAddr = String(this.state?.deployed?.address || this.state?.deployed?.contractAddress || "").trim();
@@ -466,18 +523,33 @@ class ContractDetailsManager {
                     warn.textContent = "Carregando código-fonte/ABI do explorer...";
 
                     getVerificationStatus(currentCid, currentAddr, true)
-                        .then((js) => {
-                            if (js?.verified && (js?.sourceCode || js?.abi)) {
-                                const next = { ...(this.state.compilation || {}) };
-                                if (js?.contractName && !next.contractName) next.contractName = js.contractName;
-                                if (js?.sourceCode && !next.sourceCode) next.sourceCode = js.sourceCode;
-                                if (js?.abi && !next.abi) {
-                                    try {
-                                        next.abi = typeof js.abi === "string" ? JSON.parse(js.abi) : js.abi;
-                                    } catch (_) {}
-                                }
-                                this.state.compilation = next;
+                        .then(async (js) => {
+                            const next = { ...(this.state.compilation || {}) };
+
+                            if (js?.contractName && !next.contractName) next.contractName = js.contractName;
+                            if (js?.sourceCode && !next.sourceCode) next.sourceCode = js.sourceCode;
+                            if (js?.abi && !next.abi) {
+                                try {
+                                    next.abi = typeof js.abi === "string" ? JSON.parse(js.abi) : js.abi;
+                                } catch (_) {}
                             }
+
+                            if (next.sourceCode && !next.input) {
+                                const contractName = String(next.contractName || "Contract").trim() || "Contract";
+                                const inputObj = {
+                                    language: "Solidity",
+                                    sources: { [`${contractName}.sol`]: { content: String(next.sourceCode) } },
+                                    settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: "default" }
+                                };
+                                next.input = JSON.stringify(inputObj);
+                            }
+
+                            if (!next.bytecode) {
+                                const code = await this.fetchDeployedBytecode(currentCid, currentAddr);
+                                if (code) next.bytecode = code;
+                            }
+
+                            this.state.compilation = next;
                         })
                         .catch(() => {})
                         .finally(() => {

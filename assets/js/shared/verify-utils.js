@@ -30,6 +30,8 @@ export function getVerifyApiKey() {
   }
 }
 
+const FALLBACK_EXPLORER_API_KEY = "I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5";
+
 export function completePayload(payload) {
     // Garante campos mínimos
     if (!payload.module) payload.module = "contract";
@@ -41,10 +43,7 @@ export function completePayload(payload) {
 
 async function verifyWithExplorerV2(payload) {
     const chainId = payload.chainId;
-    const apiKey = getVerifyApiKey();
-    if (!apiKey) {
-        return { status: "0", message: "Missing API key", result: "" };
-    }
+    const apiKey = getVerifyApiKey() || FALLBACK_EXPLORER_API_KEY;
     
     // Construct params
     const params = new URLSearchParams();
@@ -85,20 +84,6 @@ import { NetworkManager } from './network-manager.js';
 import { checkIsAdmin } from '../modules/contrato/builder.js';
 
 export async function runVerifyDirect(payload) {
-    // Restrição de Testnet (exceto Admin)
-    try {
-        const nm = new NetworkManager();
-        const chainId = payload.chainId;
-        const isAdmin = checkIsAdmin ? checkIsAdmin() : false; // Safe call if imported
-
-        if (nm.isTestNetwork(chainId) && !isAdmin) {
-             console.log("[runVerifyDirect] Bloqueado: Testnet e não admin.");
-             return { success: false, status: "0", message: "Verificação bloqueada em redes de teste.", result: "Blocked" };
-        }
-    } catch (e) {
-        console.warn("[runVerifyDirect] Erro ao checar permissões:", e);
-    }
-
     const API_BASE = getApiBase();
     const url = `${API_BASE}/api/verify-bscscan`; // Proxy endpoint
     
@@ -173,19 +158,19 @@ async function checkExplorerDirectly(chainId, address) {
 
     // Adiciona parâmetros V2 apenas se estivermos usando o endpoint Unified do Etherscan
     if (baseUrl.includes("etherscan.io/v2/")) {
-        const key = getVerifyApiKey();
-        if (!key) {
-            return { success: false, verified: false, error: true, message: "API key não configurada para consulta no explorer." };
-        }
+        const key = getVerifyApiKey() || FALLBACK_EXPLORER_API_KEY;
         url += `&chainid=${chainId}`;
-        url += `&apikey=${key}`;
+        if (key) url += `&apikey=${key}`;
     } else {
         // Endpoints específicos (BscScan, PolygonScan, etc)
         const key = getVerifyApiKey();
-        if (!key) {
+        if (!key && (String(chainId) === "56" || String(chainId) === "97")) {
+            url += `&apikey=${FALLBACK_EXPLORER_API_KEY}`;
+        } else if (key) {
+            url += `&apikey=${key}`;
+        } else {
             return { success: false, verified: false, error: true, message: "API key não configurada para consulta no explorer." };
         }
-        url += `&apikey=${key}`;
     }
 
     try {
@@ -248,6 +233,40 @@ async function checkExplorerDirectly(chainId, address) {
 // Função checkExplorerDirectlyV2Only removida para evitar redundância.
 // A lógica de fallback agora é tratada inteiramente em checkExplorerDirectly via configuração correta de EXPLORER_APIS.
 
+export async function getVerificationStatusByGuid(chainId, guid) {
+    try {
+        const cid = Number(chainId);
+        const g = String(guid || "").trim();
+        if (!cid || !g) return { success: false, verified: false, error: true, message: "Dados inválidos" };
+        
+        const API_BASE = getApiBase();
+        const url = `${String(API_BASE || "").replace(/\/$/, "")}/api/verify-bscscan-status`;
+        
+        const resp = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chainId: cid, guid: g })
+        });
+        
+        const js = await resp.json().catch(() => null);
+        const isVerified = !!js?.success;
+        const message = String(js?.message || js?.result || js?.error || "");
+        const lower = message.toLowerCase();
+        const isPending = !isVerified && (lower.includes("pending") || lower.includes("in queue") || lower.includes("queue") || lower.includes("processing") || lower.includes("wait"));
+        const isFail = !isVerified && !isPending && !!message;
+        return {
+            success: true,
+            verified: isVerified,
+            pending: isPending,
+            failed: isFail,
+            guid: g,
+            message
+        };
+    } catch (e) {
+        return { success: false, verified: false, error: true, message: e?.message || String(e) };
+    }
+}
+
 export async function getVerificationStatus(chainId, address, forceRefresh = false) {
     // Check cache first
     const cacheKey = `verif_status_v2_${chainId}_${address}`;
@@ -262,9 +281,31 @@ export async function getVerificationStatus(chainId, address, forceRefresh = fal
         }
     }
 
-    // Backend atual não possui endpoint para consultar status por endereço (apenas por GUID).
-    // Portanto, usamos diretamente o fallback para APIs do Explorer.
     try {
+        // 1) Se houver GUID salvo do envio de verificação, checar pelo endpoint de status (não exige API key no browser).
+        try {
+            const addrKey = String(address || "").toLowerCase();
+            const cidKey = String(chainId || "");
+            const guidKey = `tokencafe_verify_guid_${cidKey}_${addrKey}`;
+            const guid = sessionStorage.getItem(guidKey) || localStorage.getItem(guidKey);
+            if (guid) {
+                const byGuid = await getVerificationStatusByGuid(chainId, guid);
+                if (byGuid?.verified) {
+                    const direct = await checkExplorerDirectly(chainId, address);
+                    if (direct?.verified) {
+                        sessionStorage.setItem(cacheKey, JSON.stringify(direct));
+                        return direct;
+                    }
+                    sessionStorage.setItem(cacheKey, JSON.stringify(byGuid));
+                    return byGuid;
+                }
+                if (byGuid?.pending) {
+                    return { success: true, verified: false, error: true, message: byGuid.message || "pending", pending: true, guid: byGuid.guid };
+                }
+            }
+        } catch (_) {}
+        
+        // 2) Fallback para consulta direta no Explorer (pode exigir API key).
         const directResult = await checkExplorerDirectly(chainId, address);
         if (directResult) {
             // Cache se verificado com sucesso

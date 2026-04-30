@@ -218,7 +218,7 @@
   background-color: var(--tokencafe-white) !important;
   background: var(--tokencafe-white) !important;
   border-color: var(--tokencafe-border-light) !important;
-  box-shadow: var(--tokencafe-shadow-card-sm) !important;
+  box-shadow: none !important;
 }
 
 
@@ -342,12 +342,13 @@ div[style*="gradient"] {
   border: 1px solid var(--tokencafe-primary-10) !important;
   color: var(--bs-body-color) !important;
   border-radius: 12px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  box-shadow: none !important;
+  transition: border-color 0.3s ease;
 }
 
 .card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 40px var(--tokencafe-primary-20) !important;
+  transform: none;
+  box-shadow: none !important;
   border-color: var(--tokencafe-primary-30) !important;
 }
 
@@ -374,7 +375,7 @@ div[style*="gradient"] {
 .contract-card.selected {
   border: 2px solid var(--tokencafe-primary) !important;
   background-color: var(--tokencafe-primary-10) !important;
-  box-shadow: 0 0 15px var(--tokencafe-primary-20);
+  box-shadow: none !important;
 }
 
 .contract-card.disabled-option {
@@ -585,7 +586,7 @@ div[style*="gradient"] {
 .tc-card {
   border-radius: 14px;
   padding: 18px;
-  box-shadow: var(--tokencafe-shadow-card-soft);
+  box-shadow: none;
 }
 .tc-card-header {
   display: flex;
@@ -1478,9 +1479,9 @@ body {
 }
 
 .feature-card:hover {
-  transform: translateY(-10px);
+  transform: none;
   border-color: rgba(248, 93, 35, 0.4);
-  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.2);
+  box-shadow: none;
 }
 
 .feature-icon {
@@ -1497,9 +1498,9 @@ body {
 }
 
 .tool-card:hover {
-  transform: translateY(-5px);
+  transform: none;
   border-color: rgba(248, 93, 35, 0.3);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
 }
 
 .stat-card {

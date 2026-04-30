@@ -22,6 +22,9 @@
   <meta name="robots" content="<?= htmlspecialchars($pageRobots, ENT_QUOTES, "UTF-8") ?>" />
   <link rel="canonical" href="<?= htmlspecialchars($pageCanonical, ENT_QUOTES, "UTF-8") ?>" />
   <base href="<?php echo htmlspecialchars(defined('BASE_URL') ? BASE_URL : '/', ENT_QUOTES, 'UTF-8'); ?>">
+  <script>
+    window.TOKENCAFE_DISABLE_ADMIN_BARRIERS = true;
+  </script>
   <?php if (isset($_GET["debugBase"])) { ?>
     <script>
       (function () {
