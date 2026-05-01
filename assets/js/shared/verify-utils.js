@@ -31,6 +31,83 @@ export function getVerifyApiKey() {
 }
 
 const FALLBACK_EXPLORER_API_KEY = "I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5";
+const VERIFICATION_CACHE_TTL_MS = 15000;
+
+async function checkPrivateVerification(chainId, address) {
+    try {
+        const API_BASE = String(getApiBase() || "").replace(/\/$/, "");
+        const cid = Number(chainId);
+        const addr = String(address || "").trim();
+        if (!cid || !/^0x[0-9a-fA-F]{40}$/.test(addr)) return null;
+
+        let payload = null;
+        try {
+            const raw = sessionStorage.getItem("lastDeployedContract");
+            const st = raw ? JSON.parse(raw) : null;
+            const sAddr = String(st?.deployed?.address || st?.deployed?.contractAddress || "").trim();
+            const sCid = Number(st?.form?.network?.chainId || st?.wallet?.chainId || 0);
+            if (st && sAddr && sCid && sAddr.toLowerCase() === addr.toLowerCase() && sCid === cid) {
+                const dep = String(st?.compilation?.deployedBytecode || st?.compilation?.deployedbytecode || "").trim();
+                const src = String(st?.compilation?.sourceCode || st?.compilation?.sourcecode || "").trim();
+                const cn = String(st?.compilation?.contractName || st?.compilation?.contractname || "").trim();
+                if (dep) payload = { chainId: cid, contractAddress: addr, deployedBytecode: dep };
+                else if (src && cn) payload = { chainId: cid, contractAddress: addr, sourceCode: src, contractName: cn };
+            }
+        } catch (_) {}
+
+        if (!payload) {
+            try {
+                const raw = localStorage.getItem("tokencafe_contract_verify_payload");
+                const p = raw ? JSON.parse(raw) : null;
+                const pAddr = String(p?.contractAddress || "").trim();
+                const pCid = Number(p?.chainId || 0);
+                const src = String(p?.sourceCode || "").trim();
+                const cn = String(p?.contractName || "").trim();
+                if (p && pAddr && pCid && pAddr.toLowerCase() === addr.toLowerCase() && pCid === cid) {
+                    if (src && cn) payload = { chainId: cid, contractAddress: addr, sourceCode: src, contractName: cn };
+                }
+            } catch (_) {}
+        }
+
+        if (!payload) return null;
+        const resp = await fetch(`${API_BASE}/api/verify-private`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            credentials: "omit"
+        });
+        if (!resp.ok) return null;
+        const js = await resp.json().catch(() => null);
+        const match = !!(js?.match ?? js?.success);
+        return {
+            success: true,
+            verified: match,
+            error: false,
+            message: match ? "Verificação privada por bytecode: ok" : "Verificação privada por bytecode: pendente",
+            private: { match }
+        };
+    } catch (_) {
+        return null;
+    }
+}
+
+async function checkExplorerViaBackend(chainId, address) {
+    try {
+        const API_BASE = String(getApiBase() || "").replace(/\/$/, "");
+        const cid = Number(chainId);
+        const addr = String(address || "").trim();
+        if (!cid || !/^0x[0-9a-fA-F]{40}$/.test(addr)) return null;
+
+        const url = `${API_BASE}/api/explorer-getsourcecode?chainId=${encodeURIComponent(String(cid))}&address=${encodeURIComponent(addr)}`;
+        const resp = await fetch(url, { method: "GET", credentials: "omit" });
+        if (!resp.ok) return null;
+        const js = await resp.json().catch(() => null);
+        if (!js || js.success !== true) return null;
+        return js;
+    } catch (_) {
+        return null;
+    }
+}
 
 export function completePayload(payload) {
     // Garante campos mínimos
@@ -153,9 +230,35 @@ async function checkExplorerDirectly(chainId, address) {
 
     let url = `${baseUrl}?module=contract&action=getsourcecode&address=${address}`;
 
+    const fetchJson = async (u) => {
+        try {
+            const resp = await fetch(u, { credentials: 'omit' });
+            if (!resp.ok) {
+                console.warn(`[verify-utils] Fallback fetch failed with status: ${resp.status}`);
+                return { ok: false, data: null, error: `HTTP ${resp.status}` };
+            }
+            const data = await resp.json();
+            return { ok: true, data, error: null };
+        } catch (e) {
+            console.warn("[verify-utils] Falha no fallback:", e);
+            return { ok: false, data: null, error: e?.message || String(e) };
+        }
+    };
+
+    const normalizeAddr = (a) => String(a || "").trim();
+    const addrNorm = normalizeAddr(address);
+
     // Adiciona parâmetros V2 apenas se estivermos usando o endpoint Unified do Etherscan
     if (baseUrl.includes("etherscan.io/v2/")) {
-        const key = getVerifyApiKey() || FALLBACK_EXPLORER_API_KEY;
+        const key = getVerifyApiKey() || "";
+        if (!key) {
+            return {
+                success: true,
+                verified: false,
+                error: false,
+                message: "Consulta no explorer requer API key (não configurada).",
+            };
+        }
         url += `&chainid=${chainId}`;
         if (key) url += `&apikey=${key}`;
     } else {
@@ -172,20 +275,14 @@ async function checkExplorerDirectly(chainId, address) {
 
     try {
         console.log(`[verify-utils] Tentando fallback Explorer (${baseUrl.includes("v2") ? "V2" : "V1"}): ${url.replace(/apikey=[^&]*/, "apikey=HIDDEN")}`);
-        
-        const resp = await fetch(url, { credentials: 'omit' });
-        
-        if (!resp.ok) {
-            console.warn(`[verify-utils] Fallback fetch failed with status: ${resp.status}`);
-            return { success: false, verified: false, error: true, message: `HTTP ${resp.status}` };
-        }
-        
-        const data = await resp.json();
+
+        let { ok, data } = await fetchJson(url);
+        if (!ok) return { success: false, verified: false, error: true, message: "Falha ao consultar o explorer." };
 
         if (data && data.status === "0" && typeof data.result === "string") {
             const msg = data.result;
             if (msg.toLowerCase().includes("invalid api key") || msg.toLowerCase().includes("missing") || msg.toLowerCase().includes("apikey")) {
-                return { success: false, verified: false, error: true, message: msg };
+                return { success: true, verified: false, error: false, message: msg };
             }
         }
         
@@ -266,14 +363,18 @@ export async function getVerificationStatusByGuid(chainId, guid) {
 
 export async function getVerificationStatus(chainId, address, forceRefresh = false) {
     // Check cache first
-    const cacheKey = `verif_status_v2_${chainId}_${address}`;
+    const addrKey = String(address || "").trim().toLowerCase();
+    const cacheKey = `verif_status_v2_${chainId}_${addrKey}`;
     if (forceRefresh) {
         sessionStorage.removeItem(cacheKey);
     } else {
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
             try {
-                return JSON.parse(cached);
+                const obj = JSON.parse(cached);
+                const ts = Number(obj?._ts || 0);
+                if (!ts) return obj;
+                if (Date.now() - ts < VERIFICATION_CACHE_TTL_MS) return obj;
             } catch (_) {}
         }
     }
@@ -301,19 +402,51 @@ export async function getVerificationStatus(chainId, address, forceRefresh = fal
                 }
             }
         } catch (_) {}
+
+        // 2) Verificação privada (sem explorer / sem API key) quando houver artefatos da sessão
+        const priv = await checkPrivateVerification(chainId, address);
+        if (priv) {
+            const normalized = { ...priv, _ts: Date.now() };
+            sessionStorage.setItem(cacheKey, JSON.stringify(normalized));
+            if (normalized.verified) return normalized;
+        }
         
-        // 2) Fallback para consulta direta no Explorer (pode exigir API key).
+        // 3) Preferir proxy no backend para consulta de verificação (evita exigência de API key no browser).
+        const viaBackend = await checkExplorerViaBackend(chainId, address);
+        if (viaBackend && typeof viaBackend.verified !== "undefined") {
+            const normalized = {
+                ...viaBackend,
+                success: true,
+                verified: !!viaBackend.verified,
+                _ts: Date.now()
+            };
+            sessionStorage.setItem(cacheKey, JSON.stringify(normalized));
+            return normalized;
+        }
+        
+        // 4) Fallback final: consulta direta no Explorer (pode exigir API key). Se falhar por API key, não marcar como "error" para não ficar girando infinito.
         const directResult = await checkExplorerDirectly(chainId, address);
         if (directResult) {
-            // Cache se verificado com sucesso
-            if (directResult.verified) {
-                 sessionStorage.setItem(cacheKey, JSON.stringify(directResult));
-            }
-            return directResult;
+            const msg = String(directResult?.message || "");
+            const lower = msg.toLowerCase();
+            const apiKeyProblem = lower.includes("invalid api key") || lower.includes("missing") || lower.includes("apikey");
+            const normalized = {
+                ...directResult,
+                success: true,
+                verified: !!directResult.verified,
+                error: apiKeyProblem ? false : !!directResult.error,
+                _ts: Date.now()
+            };
+            sessionStorage.setItem(cacheKey, JSON.stringify(normalized));
+            return normalized;
         }
-        return { success: false, verified: false, error: true, message: "Não foi possível consultar o explorer agora." };
+        const fallback = { success: true, verified: false, error: false, message: "Não foi possível consultar o explorer agora.", _ts: Date.now() };
+        sessionStorage.setItem(cacheKey, JSON.stringify(fallback));
+        return fallback;
     } catch (e) {
         console.warn("[verify-utils] getVerificationStatus error:", e);
-        return { success: false, error: true, message: e.message || String(e) };
+        const fallback = { success: true, verified: false, error: false, message: e.message || String(e), _ts: Date.now() };
+        try { sessionStorage.setItem(cacheKey, JSON.stringify(fallback)); } catch (_) {}
+        return fallback;
     }
 }

@@ -25,12 +25,26 @@ app.use(express.json({ limit: "1mb" }));
 app.use(morgan("tiny"));
 
 // Helper: sanitize contract name
+const SOLIDITY_RESERVED_IDENTIFIERS = new Set([
+  "abstract","after","alias","apply","auto","case","catch","copyof","default","define","final",
+  "immutable","implements","in","inline","let","macro","match","mutable","null","of","override",
+  "partial","promise","reference","relocatable","sealed","sizeof","static","supports","switch","try",
+  "typedef","typeof","unchecked","contract","interface","library","function","address","uint","int",
+  "bool","string","byte","bytes","mapping","struct","enum","event","modifier","constructor","fallback",
+  "receive","public","external","internal","private","view","pure","payable","storage","memory",
+  "calldata","virtual","break","continue","do","else","for","if","return","while","revert","assert",
+  "require","throw","new","delete","this","super","emit","using","import","from","as","is","var",
+  "const","class","extends","debugger","export","void","yield","true","false","instanceof","await","async"
+]);
+
 function sanitizeContractName(rawName) {
   try {
     const base = String(rawName || "").trim();
-    let cleaned = base.replace(/[^A-Za-z0-9_]/g, "");
+    const noMarks = base.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+    let cleaned = noMarks.replace(/[^A-Za-z0-9_]/g, "");
     if (!cleaned) cleaned = "Token";
     if (!/^[A-Za-z_]/.test(cleaned)) cleaned = `_${cleaned}`;
+    if (SOLIDITY_RESERVED_IDENTIFIERS.has(cleaned.toLowerCase())) cleaned = `Token_${cleaned}`;
     if (cleaned.length > 64) cleaned = cleaned.slice(0, 64);
     return cleaned;
   } catch {
@@ -97,7 +111,7 @@ app.post("/api/generate-token", (req, res) => {
     }
 
     const d = Number.isFinite(body.decimals) ? parseInt(body.decimals, 10) : 18;
-    if (!Number.isFinite(d) || d < 0 || d > 18) {
+    if (!Number.isFinite(d) || d < 0 || d > 77) {
       return res.status(400).json({ success: false, error: "Invalid decimals" });
     }
 
@@ -106,6 +120,15 @@ app.post("/api/generate-token", (req, res) => {
     const ts = tsSan || "0";
     if (!isTokenSaleSeparado && (!/^\d+$/.test(ts) || BigInt(ts) <= 0n)) {
       return res.status(400).json({ success: false, error: "Invalid totalSupply" });
+    }
+    if (!isTokenSaleSeparado) {
+      try {
+        const MAX_UINT256 = (1n << 256n) - 1n;
+        const scaled = BigInt(ts) * (10n ** BigInt(d));
+        if (scaled > MAX_UINT256) return res.status(400).json({ success: false, error: "totalSupply too large for uint256 after scaling by 10^decimals" });
+      } catch {
+        return res.status(400).json({ success: false, error: "Invalid totalSupply" });
+      }
     }
 
     const addrOrZero = (a) => {
@@ -118,12 +141,33 @@ app.post("/api/generate-token", (req, res) => {
 
     const contractId = sanitizeContractName(name);
 
+    const escapeSolidityString = (str) => {
+      const s = String(str ?? "");
+      return s
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\r/g, "\\r")
+        .replace(/\n/g, "\\n")
+        .replace(/\t/g, "\\t")
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+    };
+
+    const solidityStringLiteral = (str) => {
+      const raw = String(str ?? "");
+      const escaped = escapeSolidityString(raw);
+      const needsUnicode = /[^\x00-\x7F]/.test(raw);
+      return `${needsUnicode ? "unicode" : ""}"${escaped}"`;
+    };
+
+    const nameLit = solidityStringLiteral(name);
+    const symbolLit = solidityStringLiteral(symbol);
+
     const getERC20Minimal = () => `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 contract ${contractId} {
-    string public name = "${String(name)}";
-    string public symbol = "${String(symbol)}";
+    string public name = ${nameLit};
+    string public symbol = ${symbolLit};
     uint8 public decimals = ${d};
     uint256 public totalSupply;
 
@@ -222,8 +266,8 @@ abstract contract Pausable is Ownable {
 }
 
 contract ${contractId} is Ownable, Pausable {
-    string public name = "${String(name)}";
-    string public symbol = "${String(symbol)}";
+    string public name = ${nameLit};
+    string public symbol = ${symbolLit};
     uint8 public decimals = ${d};
     uint256 public totalSupply;
 
@@ -287,8 +331,8 @@ abstract contract Ownable {
 }
 
 contract ${contractId} is Ownable {
-    string public name = "${String(name)}";
-    string public symbol = "${String(symbol)}";
+    string public name = ${nameLit};
+    string public symbol = ${symbolLit};
     uint8 public decimals = ${d};
     uint256 public totalSupply;
 
@@ -502,8 +546,8 @@ contract ${contractId} is Context, IERC20 {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     constructor() {
-        _name = "${String(name)}";
-        _symbol = "${String(symbol)}";
+        _name = ${nameLit};
+        _symbol = ${symbolLit};
         _decimals = ${d};
         _totalSupply = ${ts} * 10**_decimals;
         owner = _msgSender();
@@ -644,10 +688,20 @@ function getExplorerApiKeyFromEnv() {
 
 function getExplorerApiBase(chainId) {
   const cid = Number(chainId);
-  // Use Etherscan V2 Unified for BSC to avoid deprecated V1 endpoints
-  if (cid === 97 || cid === 56 || cid === 1 || cid === 5 || cid === 11155111 || cid === 137 || cid === 80001 || cid === 8453 || cid === 84532) {
-      return "https://api.etherscan.io/v2/api";
-  }
+  // Prefer chain-native V2 explorer APIs (keys are not interchangeable across explorers).
+  // BSC:
+  if (cid === 56) return "https://api.bscscan.com/v2/api";
+  if (cid === 97) return "https://api-testnet.bscscan.com/v2/api";
+  // Ethereum:
+  if (cid === 1) return "https://api.etherscan.io/v2/api";
+  if (cid === 11155111) return "https://api.etherscan.io/v2/api";
+  // Polygon:
+  if (cid === 137) return "https://api.polygonscan.com/v2/api";
+  if (cid === 80001) return "https://api-testnet.polygonscan.com/v2/api";
+  // Base:
+  if (cid === 8453) return "https://api.basescan.org/v2/api";
+  if (cid === 84532) return "https://api-sepolia.basescan.org/v2/api";
+  // Fallback
   return "https://api.etherscan.io/v2/api";
 }
 
@@ -684,9 +738,7 @@ app.post("/api/verify-bscscan-status", async (req, res) => {
     }
     const apiBase = getExplorerApiBase(chainId);
     let fetchUrl = apiBase;
-    if (apiBase.includes("etherscan.io/v2/")) {
-        fetchUrl += `?chainid=${chainId}`;
-    }
+    if (apiBase.includes("/v2/api")) fetchUrl += `?chainid=${chainId}`;
 
     const params = new URLSearchParams();
     params.append("module", "contract");
@@ -709,6 +761,55 @@ app.post("/api/verify-bscscan-status", async (req, res) => {
   }
 });
 
+app.get("/api/explorer-getsourcecode", async (req, res) => {
+  try {
+    const chainId = Number(req.query?.chainId || 0);
+    const address = String(req.query?.address || "").trim();
+    if (!chainId || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+      return res.status(400).json({ success: false, error: "Dados inválidos" });
+    }
+
+    const apiBase = getExplorerApiBase(chainId);
+    const base = apiBase.includes("/v2/api") ? `${apiBase}?chainid=${chainId}` : apiBase;
+
+    const qs = new URLSearchParams();
+    qs.append("module", "contract");
+    qs.append("action", "getsourcecode");
+    qs.append("address", address);
+    const finalKey = String(req.query?.apiKey || getExplorerApiKeyFromEnv() || "");
+    if (finalKey) qs.append("apikey", finalKey);
+
+    const url = `${base}${base.includes("?") ? "&" : "?"}${qs.toString()}`;
+    const resp = await fetch(url, { method: "GET" });
+    const json = await resp.json().catch(() => null);
+    const status = String(json?.status || "0");
+    const arr = Array.isArray(json?.result) ? json.result : [];
+    const first = arr[0] || {};
+    const src = String(first?.SourceCode || "");
+    const verified = !!src && src.length > 0;
+
+    return res.json({
+      success: true,
+      verified,
+      contractName: first?.ContractName || "",
+      sourceCode: src || "",
+      abi: first?.ABI || "",
+      compilerVersion: first?.CompilerVersion || "",
+      explorer: {
+        optimizationUsed: first?.OptimizationUsed,
+        runs: first?.Runs,
+        compilerVersion: first?.CompilerVersion,
+        licenseType: first?.LicenseType,
+        evmVersion: first?.EVMVersion,
+        proxy: first?.Proxy,
+      },
+      raw: status === "1" ? undefined : json,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err?.message || String(err) });
+  }
+});
+
 app.post("/api/verify-bscscan", async (req, res) => {
   try {
     const { chainId, contractAddress, contractName, contractNameFQN, sourceCode, compilerVersion, optimizationUsed, runs, codeformat, constructorArguments, apiKey, metadata } = req.body || {};
@@ -718,9 +819,7 @@ app.post("/api/verify-bscscan", async (req, res) => {
     const explorerUrl = getExplorerVerificationUrl(chainId, String(contractAddress));
     const apiBase = getExplorerApiBase(chainId);
     let fetchUrl = apiBase;
-    if (apiBase.includes("etherscan.io/v2/")) {
-        fetchUrl += `?chainid=${chainId}`;
-    }
+    if (apiBase.includes("/v2/api")) fetchUrl += `?chainid=${chainId}`;
 
     const finalKey = apiKey || getExplorerApiKeyFromEnv() || "I33WZ4CVTPWDG3VEJWN36TQ9USU9QUBVX5";
     if (!finalKey) {

@@ -1286,11 +1286,12 @@ body {
 }
 
 .modal-backdrop.show {
-  opacity: 0.85 !important;
+  opacity: 0.65 !important;
 }
 
 .modal-content {
-  background-color: rgba(10, 10, 10, 0.98) !important;
+  background-color: var(--tokencafe-bg-tertiary) !important;
+  backdrop-filter: var(--tokencafe-glass-blur);
 }
 
 .main-container {

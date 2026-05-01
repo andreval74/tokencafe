@@ -8,6 +8,9 @@ class ContractDetailsManager {
         this.state = null;
         this.verifPoll = null;
         this._walletListenersAttached = false;
+        this._actionsObserver = null;
+        this._globalFileClickBound = false;
+        this._lastPreview = null;
         this.init();
     }
 
@@ -176,6 +179,8 @@ class ContractDetailsManager {
 
     init() {
         console.log("ContractDetailsManager initialized");
+        this.observeActionsComponent();
+        this.bindGlobalFileActions();
 
         // 1. Check URL Params first (View Mode)
         const urlParams = new URLSearchParams(window.location.search);
@@ -321,7 +326,7 @@ class ContractDetailsManager {
                 if (el) {
                     console.log("Contract Actions component found after attempts:", attempts);
                     resolve();
-                } else if (attempts > 50) { // 5 seconds
+                } else if (attempts > 200) { // 20 seconds
                     console.warn("Timeout waiting for contract-actions component");
                     resolve(); // Resolve anyway to avoid blocking
                 } else {
@@ -330,6 +335,135 @@ class ContractDetailsManager {
             };
             check();
         });
+    }
+
+    observeActionsComponent() {
+        try {
+            if (this._actionsObserver) return;
+            const tryBind = () => {
+                const el = document.getElementById("files-section") || document.getElementById("btnDownloadSol");
+                if (!el) return false;
+                try { if (this.state) this.setupDownloads(); } catch (_) {}
+                return true;
+            };
+            if (tryBind()) return;
+            this._actionsObserver = new MutationObserver(() => {
+                tryBind();
+            });
+            this._actionsObserver.observe(document.body, { childList: true, subtree: true });
+        } catch (_) {}
+    }
+
+    bindGlobalFileActions() {
+        try {
+            if (this._globalFileClickBound) return;
+            this._globalFileClickBound = true;
+
+            const findBtn = (ev, id) => {
+                try {
+                    const t = ev?.target;
+                    if (!t) return null;
+                    if (t.id === id) return t;
+                    return t.closest ? t.closest(`#${id}`) : null;
+                } catch (_) {
+                    return null;
+                }
+            };
+
+            const warn = (msg) => {
+                try {
+                    if (typeof window.showFormError === "function") return window.showFormError(msg);
+                } catch (_) {}
+                try {
+                    if (window.notify) return window.notify(msg, "warning");
+                } catch (_) {}
+                try { alert(msg); } catch (_) {}
+            };
+
+            document.addEventListener("click", (ev) => {
+                const ids = ["btnDownloadSol", "btnDownloadJson", "btnDownloadAbi", "btnDownloadDeployedBytecode"];
+                const hit = ids.find((id) => findBtn(ev, id));
+                if (!hit) return;
+                try { ev.preventDefault?.(); } catch (_) {}
+
+                try { this.resolveCompilationForDownloads(); } catch (_) {}
+
+                const comp = this.state?.compilation || null;
+                if (!comp) return warn("Arquivos indisponíveis: nenhum artefato de compilação encontrado.");
+
+                const contractName = String(comp.contractName || "Contract").trim() || "Contract";
+                const pick = (kind) => {
+                    if (kind === "btnDownloadSol") {
+                        const src = String(comp.sourceCode || "").trim();
+                        if (!src) return null;
+                        return { filename: `${contractName}.sol`, content: src, type: "text/plain" };
+                    }
+                    if (kind === "btnDownloadJson") {
+                        const raw = String(comp.input || "").trim();
+                        if (raw) {
+                            const MAX_PRETTY = 200_000;
+                            if (raw.length > MAX_PRETTY) {
+                                return { filename: `${contractName}_Input.json`, content: raw, type: "application/json" };
+                            }
+                            try {
+                                const pretty = JSON.stringify(JSON.parse(raw), null, 2);
+                                return { filename: `${contractName}_StandardInput.json`, content: pretty, type: "application/json" };
+                            } catch (_) {
+                                return { filename: `${contractName}_Input.json`, content: raw, type: "application/json" };
+                            }
+                        }
+                        const src = String(comp.sourceCode || "").trim();
+                        if (!src) return null;
+                        const inputObj = {
+                            language: "Solidity",
+                            sources: { [`${contractName}.sol`]: { content: src } },
+                            settings: { optimizer: { enabled: true, runs: 200 } }
+                        };
+                        return { filename: `${contractName}_StandardInput.json`, content: JSON.stringify(inputObj, null, 2), type: "application/json" };
+                    }
+                    if (kind === "btnDownloadAbi") {
+                        const abi = comp.abi;
+                        if (!abi) return null;
+                        return { filename: `${contractName}_ABI.json`, content: JSON.stringify(abi, null, 2), type: "application/json" };
+                    }
+                    if (kind === "btnDownloadDeployedBytecode") {
+                        const bc = String(comp.bytecode || "").trim();
+                        if (!bc) return null;
+                        return { filename: `${contractName}_Bytecode.txt`, content: bc, type: "text/plain" };
+                    }
+                    return null;
+                };
+
+                const file = pick(hit);
+                if (!file) return warn("Arquivos indisponíveis: compile/deploy pelo TokenCafe nesta sessão para gerar os artefatos.");
+                this._lastPreview = file;
+                try {
+                    this.showFileModal(file.filename, file.content, file.type);
+                } catch (e) {
+                    warn("Falha ao abrir visualização. Tentando download direto...");
+                    try { this.downloadFile(file.filename, file.content, file.type); } catch (_) {}
+                }
+            }, true);
+
+            document.addEventListener("click", async (ev) => {
+                const btn = findBtn(ev, "btnModalCopy") || findBtn(ev, "btnCopyFile");
+                if (!btn) return;
+                const content = String(this._lastPreview?.content || "");
+                if (!content) return;
+                try {
+                    await navigator.clipboard.writeText(content);
+                    try { window.notify && window.notify("Copiado!", "success"); } catch (_) {}
+                } catch (_) {}
+            }, true);
+
+            document.addEventListener("click", (ev) => {
+                const btn = findBtn(ev, "btnModalDownload") || findBtn(ev, "btnSaveFile");
+                if (!btn) return;
+                const f = this._lastPreview;
+                if (!f?.filename) return;
+                try { this.downloadFile(f.filename, f.content || "", f.type || "text/plain"); } catch (_) {}
+            }, true);
+        } catch (_) {}
     }
 
     showEmptyState() {
@@ -614,9 +748,12 @@ class ContractDetailsManager {
             return;
         }
 
-        // Set Content
+        const fullContent = String(content ?? "");
+        this._lastPreview = { filename: String(filename || "arquivo"), content: fullContent, type: String(type || "text/plain") };
+
+        // Set Content (evitar travar a UI com conteúdo gigante)
         titleEl.textContent = `Visualizar: ${filename}`;
-        contentEl.value = content;
+        contentEl.value = "Carregando...";
 
         // Clone buttons to remove old listeners
         const newBtnCopy = btnCopy.cloneNode(true);
@@ -627,7 +764,9 @@ class ContractDetailsManager {
 
         // Copy Handler
         newBtnCopy.onclick = () => {
-            navigator.clipboard.writeText(content).then(() => {
+            const v = String(fullContent || "");
+            if (!v) return;
+            navigator.clipboard.writeText(v).then(() => {
                 const originalHtml = newBtnCopy.innerHTML;
                 newBtnCopy.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copiado!';
                 newBtnCopy.classList.remove("btn-outline-light");
@@ -645,7 +784,7 @@ class ContractDetailsManager {
 
         // Download Handler
         newBtnDownload.onclick = () => {
-            this.downloadFile(filename, content, type);
+            this.downloadFile(filename, fullContent, type);
         };
 
         // Show Modal
@@ -653,10 +792,38 @@ class ContractDetailsManager {
             // Assume bootstrap is available globally
             const bsModal = new bootstrap.Modal(modalEl);
             bsModal.show();
+            try {
+                if (!modalEl.dataset.tcCleanupBound) {
+                    modalEl.dataset.tcCleanupBound = "1";
+                    const cleanup = () => {
+                        try {
+                            const anyOpen = document.querySelector(".modal.show");
+                            if (anyOpen) return;
+                            document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+                            document.body.classList.remove("modal-open");
+                            document.body.style.overflow = "";
+                            document.body.style.paddingRight = "";
+                        } catch (_) {}
+                    };
+                    modalEl.addEventListener("hidden.bs.modal", cleanup);
+                }
+            } catch (_) {}
+            const PREVIEW_LIMIT = 250_000;
+            setTimeout(() => {
+                try {
+                    if (fullContent.length > PREVIEW_LIMIT) {
+                        contentEl.value =
+                            fullContent.slice(0, PREVIEW_LIMIT) +
+                            "\n\n---\nPreview truncado por ser muito grande.\nUse Download para obter o arquivo completo.\n";
+                    } else {
+                        contentEl.value = fullContent;
+                    }
+                } catch (_) {}
+            }, 0);
         } catch(e) {
             console.error("Bootstrap modal error:", e);
             // Fallback to download
-            this.downloadFile(filename, content, type);
+            this.downloadFile(filename, fullContent, type);
         }
     }
 

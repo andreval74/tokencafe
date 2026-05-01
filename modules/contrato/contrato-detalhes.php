@@ -49,13 +49,13 @@
   <!-- Modal de Visualização de Arquivos -->
   <div class="modal fade" id="fileViewerModal" tabindex="-1" aria-labelledby="fileViewerModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content bg-dark border-secondary text-light">
+      <div class="modal-content bg-dark-elevated border-secondary text-light">
         <div class="modal-header border-secondary">
           <h5 class="modal-title" id="fileViewerModalLabel">Visualizar Arquivo</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <textarea id="fileViewerContent" class="form-control bg-black text-success border-secondary font-monospace"
+          <textarea id="fileViewerContent" class="form-control bg-dark text-light border-secondary font-monospace"
             rows="15" readonly></textarea>
         </div>
         <div class="modal-footer border-secondary">

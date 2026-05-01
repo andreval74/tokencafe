@@ -113,6 +113,12 @@ const RESERVED_KEYWORDS = [
   "const", "class", "extends", "debugger", "export", "void", "yield", "true", "false", "instanceof", "await", "async"
 ];
 
+const MAX_TOKEN_NAME_LENGTH = 128;
+const MIN_TOKEN_SYMBOL_LENGTH = 2;
+const MAX_TOKEN_SYMBOL_LENGTH = 11;
+const MAX_DECIMALS_SAFE = 77;
+const MAX_UINT256 = (1n << 256n) - 1n;
+
 // Estado simples do módulo
 export const state = {
   wallet: {
@@ -436,19 +442,32 @@ export function validateForm() {
   } else {
     // Validações de criação de token
     if (!state.form.token.name) errors.push("Nome do token é obrigatório.");
-    if (state.form.token.name && RESERVED_KEYWORDS.includes(state.form.token.name.toLowerCase())) {
-      errors.push(`O nome "${state.form.token.name}" é reservado (Solidity/JS keyword). Escolha outro.`);
-    }
     if (!state.form.token.symbol) errors.push("Símbolo do token é obrigatório.");
-    if (!/^[A-Z0-9]{3,8}$/.test(state.form.token.symbol)) {
-      errors.push("Símbolo deve conter 3–8 caracteres A–Z e 0–9 (sem especiais).");
+    if (!/^[A-Z0-9]{2,11}$/.test(state.form.token.symbol)) {
+      errors.push(`Símbolo deve conter ${MIN_TOKEN_SYMBOL_LENGTH}–${MAX_TOKEN_SYMBOL_LENGTH} caracteres A–Z e 0–9 (sem especiais).`);
     }
-    if (state.form.token.decimals < 0 || state.form.token.decimals > 18) {
-      errors.push("Decimais devem estar entre 0 e 18.");
+    if (state.form.token.decimals < 0 || state.form.token.decimals > MAX_DECIMALS_SAFE) {
+      errors.push(`Decimais devem estar entre 0 e ${MAX_DECIMALS_SAFE}.`);
     }
     // Validação de supply como string/BigInt
     if (!/^\d+$/.test(state.form.token.initialSupply)) {
       errors.push("Supply inicial deve conter apenas números.");
+    } else {
+      try {
+        const supply = BigInt(state.form.token.initialSupply || "0");
+        if (supply <= 0n) errors.push("Supply inicial deve ser maior que 0.");
+        const dec = BigInt(Math.max(0, Number(state.form.token.decimals || 0)));
+        const scale = 10n ** dec;
+        if (supply * scale > MAX_UINT256) {
+          errors.push("Supply inicial é grande demais para uint256 quando aplicado o fator 10^decimais.");
+          try {
+            const el = getEl("initialSupply");
+            setFieldInvalid(el, "Supply grande demais (estoura uint256 ao aplicar 10^decimais).");
+          } catch (_) {}
+        }
+      } catch (_) {
+        errors.push("Supply inicial inválido.");
+      }
     }
   }
 
@@ -511,6 +530,52 @@ function ensureInvalidFeedback(el) {
   return fb;
 }
 
+function ensureFieldHint(el) {
+  if (!el) return null;
+  const parent = el.parentElement;
+  if (!parent) return null;
+  const kids = Array.from(parent.children || []);
+  const existing = kids.find((n) => n?.classList?.contains("tc-field-hint"));
+  if (existing) return existing;
+  const hint = document.createElement("div");
+  hint.className = "form-text text-warning tc-field-hint";
+  parent.appendChild(hint);
+  return hint;
+}
+
+function setFieldHint(el, message) {
+  const hint = ensureFieldHint(el);
+  if (hint) hint.textContent = String(message || "");
+}
+
+function clearFieldHint(el) {
+  const parent = el?.parentElement;
+  const hint = parent ? Array.from(parent.children || []).find((n) => n?.classList?.contains("tc-field-hint")) : null;
+  if (hint) hint.textContent = "";
+}
+
+function hasControlChars(s) {
+  return /[\u0000-\u001F\u007F]/u.test(String(s || ""));
+}
+
+function hasNonAscii(s) {
+  return /[^\x00-\x7F]/u.test(String(s || ""));
+}
+
+function sanitizeTokenNameInput(raw) {
+  const base = String(raw ?? "");
+  let cleaned = base;
+  try {
+    cleaned = cleaned.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  } catch (_) {}
+  cleaned = cleaned
+    .replace(/[^A-Za-z0-9 ._\-]/g, "")
+    .replace(/\s+/g, " ")
+    .trimStart();
+  if (cleaned.length > MAX_TOKEN_NAME_LENGTH) cleaned = cleaned.slice(0, MAX_TOKEN_NAME_LENGTH);
+  return cleaned;
+}
+
 function setFieldInvalid(el, message) {
   if (!el) return false;
   el.classList.add("is-invalid");
@@ -529,32 +594,48 @@ function clearFieldInvalid(el) {
 
 export function validateTokenNameInline() {
   const el = getEl("tokenName");
-  const v = String(el?.value || "").trim();
+  const before = String(el?.value || "");
+  const sanitized = sanitizeTokenNameInput(before);
+  if (el && sanitized !== before) el.value = sanitized;
+  const v = String(sanitized || "").trim();
+  clearFieldHint(el);
   if (!v) return setFieldInvalid(el, "Informe o nome do token.");
-  if (RESERVED_KEYWORDS.includes(v.toLowerCase())) return setFieldInvalid(el, "Nome inválido (palavra reservada).");
+  if (v.length > MAX_TOKEN_NAME_LENGTH) return setFieldInvalid(el, `Nome deve ter no máximo ${MAX_TOKEN_NAME_LENGTH} caracteres.`);
+  if (hasControlChars(v)) return setFieldInvalid(el, "Remova caracteres de controle (ex.: quebras de linha).");
+  if (hasNonAscii(before)) {
+    setFieldHint(el, "Caracteres inválidos (acentos/emojis) não são aceitos e foram removidos. Use apenas A–Z, 0–9, espaço, ponto, hífen e underscore.");
+  } else if (sanitized !== before) {
+    setFieldHint(el, "Alguns caracteres não são aceitos e foram removidos. Use apenas A–Z, 0–9, espaço, ponto, hífen e underscore.");
+  }
   return clearFieldInvalid(el);
 }
 
 export function validateTokenSymbolInline() {
   const el = getEl("tokenSymbol");
   let v = String(el?.value || "");
-  // Sanitizar para maiúsculas A–Z e dígitos 0–9, no máx 8 chars
+  // Sanitizar para maiúsculas A–Z e dígitos 0–9, no máx 11 chars
   const sanitized = v
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 8);
-  if (sanitized !== v) el.value = sanitized;
+    .slice(0, MAX_TOKEN_SYMBOL_LENGTH);
+  clearFieldHint(el);
+  if (sanitized !== v) {
+    el.value = sanitized;
+    setFieldHint(el, "Caracteres inválidos foram removidos. Use apenas A–Z e 0–9.");
+  }
   v = sanitized;
   if (!v) return setFieldInvalid(el, "Informe o símbolo do token.");
-  if (!/^[A-Z0-9]{3,8}$/.test(v)) return setFieldInvalid(el, "Símbolo deve ter 3–8 caracteres A–Z e 0–9 (sem especiais).");
+  if (!new RegExp(`^[A-Z0-9]{${MIN_TOKEN_SYMBOL_LENGTH},${MAX_TOKEN_SYMBOL_LENGTH}}$`).test(v)) {
+    return setFieldInvalid(el, `Símbolo deve ter ${MIN_TOKEN_SYMBOL_LENGTH}–${MAX_TOKEN_SYMBOL_LENGTH} caracteres A–Z e 0–9 (sem especiais).`);
+  }
   return clearFieldInvalid(el);
 }
 
 export function validateTokenDecimalsInline() {
   const el = getEl("tokenDecimals");
   const val = parseInt(el?.value || "18", 10);
-  if (!Number.isFinite(val) || val < 0 || val > 18) {
-    return setFieldInvalid(el, "Decimais devem estar entre 0 e 18.");
+  if (!Number.isFinite(val) || val < 0 || val > MAX_DECIMALS_SAFE) {
+    return setFieldInvalid(el, `Decimais devem estar entre 0 e ${MAX_DECIMALS_SAFE}.`);
   }
   return clearFieldInvalid(el);
 }
@@ -562,11 +643,12 @@ export function validateTokenDecimalsInline() {
 export function validateInitialSupplyInline() {
   const el = getEl("initialSupply");
   const raw = String(el?.value || "").trim();
-  // Limpar formatação (milhar ponto, decimal virgula)
-  let clean = raw.replace(/\./g, "").replace(/,/g, ".");
-  
-  if (!raw || !/^\d+(\.\d*)?$/.test(clean)) {
-    return setFieldInvalid(el, "Supply inicial deve conter apenas números válidos.");
+  const clean = raw.replace(/\./g, "");
+  if (raw.includes(",")) {
+    return setFieldInvalid(el, "Supply inicial não aceita casas decimais. Use um número inteiro.");
+  }
+  if (!raw || !/^\d+$/.test(clean)) {
+    return setFieldInvalid(el, "Supply inicial deve conter apenas números.");
   }
   return clearFieldInvalid(el);
 }
@@ -2307,6 +2389,21 @@ export async function deployContract() {
         log("Redirecionando para detalhes do contrato...");
         
         // Criar um objeto de estado seguro (sem referências circulares como provider/signer e BigInt como string)
+        let derivedCompilerVersion = state.compilation?.compilerVersion || null;
+        let derivedEvmVersion = state.compilation?.evmVersion || null;
+        let derivedOptimizationUsed = null;
+        let derivedRuns = null;
+        try {
+            if (state.compilation?.metadata) {
+                const meta = typeof state.compilation.metadata === "string" ? JSON.parse(state.compilation.metadata) : state.compilation.metadata;
+                if (meta?.compiler?.version) derivedCompilerVersion = "v" + String(meta.compiler.version);
+                if (meta?.settings?.evmVersion) derivedEvmVersion = String(meta.settings.evmVersion);
+                if (meta?.settings?.optimizer) {
+                    derivedOptimizationUsed = meta.settings.optimizer.enabled ? 1 : 0;
+                    derivedRuns = meta.settings.optimizer.runs || 200;
+                }
+            }
+        } catch (_) {}
         const safeState = {
             form: state.form ? {
                 ...state.form,
@@ -2328,9 +2425,10 @@ export async function deployContract() {
                 abi: state.compilation.abi,
                 bytecode: state.compilation.bytecode,
                 deployedBytecode: state.compilation.deployedBytecode,
-                metadata: state.compilation.metadata,
-                compilerVersion: state.compilation.compilerVersion,
-                evmVersion: state.compilation.evmVersion
+                compilerVersion: derivedCompilerVersion || state.compilation.compilerVersion,
+                evmVersion: derivedEvmVersion || state.compilation.evmVersion,
+                optimizationUsed: derivedOptimizationUsed,
+                runs: derivedRuns
             } : null,
             deployed: state.deployed ? {
                 address: state.deployed.address,
@@ -2348,9 +2446,23 @@ export async function deployContract() {
             erc20: state.erc20
         };
 
-        sessionStorage.setItem("lastDeployedContract", JSON.stringify(safeState));
+        try {
+            sessionStorage.setItem("lastDeployedContract", JSON.stringify(safeState));
+        } catch (_) {}
+        try {
+            const verifyPayload = buildVerifyPayloadFromState();
+            if (verifyPayload) localStorage.setItem("tokencafe_contract_verify_payload", JSON.stringify(verifyPayload));
+        } catch (_) {}
         // Pequeno delay para garantir que logs sejam vistos ou processos finalizados
         setTimeout(() => {
+             try {
+                 const addr = state.deployed?.address || "";
+                 const cid = state.form?.network?.chainId || state.wallet?.chainId || "";
+                 if (addr && cid) {
+                     window.location.href = `index.php?page=contrato-detalhes&address=${encodeURIComponent(addr)}&chainId=${encodeURIComponent(String(cid))}`;
+                     return;
+                 }
+             } catch (_) {}
              window.location.href = "index.php?page=contrato-detalhes";
         }, 1500);
     } catch (e) {

@@ -243,8 +243,17 @@ app.post("/api/generate-token", async (req, res) => {
           return res.status(400).json({ success: false, error: "totalSupply deve ser um número inteiro positivo" });
         }
         dec = parseInt(decimals, 10);
-        if (!Number.isFinite(dec) || dec < 0 || dec > 18) {
-          return res.status(400).json({ success: false, error: "decimals deve estar entre 0 e 18" });
+        if (!Number.isFinite(dec) || dec < 0 || dec > 77) {
+          return res.status(400).json({ success: false, error: "decimals deve estar entre 0 e 77" });
+        }
+        try {
+          const MAX_UINT256 = (1n << 256n) - 1n;
+          const scaled = BigInt(validSupply) * (10n ** BigInt(dec));
+          if (scaled > MAX_UINT256) {
+            return res.status(400).json({ success: false, error: "totalSupply grande demais para uint256 quando aplicado 10^decimals" });
+          }
+        } catch (_) {
+          return res.status(400).json({ success: false, error: "totalSupply inválido" });
         }
         sym = String(symbol).trim();
         if (!sym || sym.length > 32) {

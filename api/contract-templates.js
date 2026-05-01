@@ -1,12 +1,53 @@
 
 // Utilitários simples para geração de templates
+const SOLIDITY_RESERVED_IDENTIFIERS = new Set([
+  "abstract","after","alias","apply","auto","case","catch","copyof","default","define","final",
+  "immutable","implements","in","inline","let","macro","match","mutable","null","of","override",
+  "partial","promise","reference","relocatable","sealed","sizeof","static","supports","switch","try",
+  "typedef","typeof","unchecked","contract","interface","library","function","address","uint","int",
+  "bool","string","byte","bytes","mapping","struct","enum","event","modifier","constructor","fallback",
+  "receive","public","external","internal","private","view","pure","payable","storage","memory",
+  "calldata","virtual","break","continue","do","else","for","if","return","while","revert","assert",
+  "require","throw","new","delete","this","super","emit","using","import","from","as","is","var",
+  "const","class","extends","debugger","export","void","yield","true","false","instanceof","await","async"
+]);
+
 function sanitize(str) {
-  return String(str || "").replace(/[^a-zA-Z0-9_]/g, "");
+  try {
+    const base = String(str || "").trim();
+    const noMarks = base.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+    let cleaned = noMarks.replace(/[^A-Za-z0-9_]/g, "");
+    if (!cleaned) cleaned = "Token";
+    if (!/^[A-Za-z_]/.test(cleaned)) cleaned = `Token_${cleaned}`;
+    if (SOLIDITY_RESERVED_IDENTIFIERS.has(cleaned.toLowerCase())) cleaned = `Token_${cleaned}`;
+    if (cleaned.length > 64) cleaned = cleaned.slice(0, 64);
+    return cleaned;
+  } catch {
+    return "Token";
+  }
+}
+
+function escapeSolidityString(str) {
+  const s = String(str ?? "");
+  return s
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\r/g, "\\r")
+    .replace(/\n/g, "\\n")
+    .replace(/\t/g, "\\t")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+}
+
+function solidityStringLiteral(str) {
+  const raw = String(str ?? "");
+  const escaped = escapeSolidityString(raw);
+  const needsUnicode = /[^\x00-\x7F]/.test(raw);
+  return `${needsUnicode ? "unicode" : ""}"${escaped}"`;
 }
 
 function getSafeDecimals(d) {
   const val = parseInt(d, 10);
-  if (!Number.isFinite(val) || val < 0 || val > 18) return 18;
+  if (!Number.isFinite(val) || val < 0 || val > 77) return 18;
   return val;
 }
 
@@ -28,6 +69,8 @@ function getERC20Minimal(name, symbol, decimals, totalSupply) {
   const safeSymbol = sanitize(symbol); // Simples, sem espaços
   const safeDec = getSafeDecimals(decimals);
   const safeSupply = getSafeSupply(totalSupply);
+  const nameLit = solidityStringLiteral(name);
+  const symbolLit = solidityStringLiteral(symbol);
   
   return `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
@@ -37,8 +80,8 @@ pragma solidity ^0.8.19;
  * @dev Implementação ERC20 Minimalista gerada pelo TokenCafe
  */
 contract ${safeName} {
-    string public name = "${name}";
-    string public symbol = "${symbol}";
+    string public name = ${nameLit};
+    string public symbol = ${symbolLit};
     uint8 public decimals = ${safeDec};
     uint256 public totalSupply;
     
@@ -89,6 +132,8 @@ function getERC20Controls(name, symbol, decimals, totalSupply) {
     const safeSymbol = sanitize(symbol);
     const safeDec = getSafeDecimals(decimals);
     const safeSupply = getSafeSupply(totalSupply);
+    const nameLit = solidityStringLiteral(name);
+    const symbolLit = solidityStringLiteral(symbol);
 
     return `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
@@ -163,8 +208,8 @@ abstract contract Pausable is Ownable {
  * @dev ERC20 com Controles (Ownable + Pausable)
  */
 contract ${safeName} is Ownable, Pausable {
-    string public name = "${name}";
-    string public symbol = "${symbol}";
+    string public name = ${nameLit};
+    string public symbol = ${symbolLit};
     uint8 public decimals = ${safeDec};
     uint256 public totalSupply;
 
@@ -222,6 +267,8 @@ function getERC20DirectSale(name, symbol, decimals, totalSupply, saleParams) {
     const safeSymbol = sanitize(symbol);
     const safeDec = getSafeDecimals(decimals);
     const safeSupply = getSafeSupply(totalSupply);
+    const nameLit = solidityStringLiteral(name);
+    const symbolLit = solidityStringLiteral(symbol);
 
     // Params da venda
     // Recebemos strings decimais do frontend, convertemos para wei no contrato via constructor ou hardcoded?
@@ -249,8 +296,8 @@ abstract contract Ownable {
 }
 
 contract ${safeName} is Ownable {
-    string public name = "${name}";
-    string public symbol = "${symbol}";
+    string public name = ${nameLit};
+    string public symbol = ${symbolLit};
     uint8 public decimals = ${safeDec};
     uint256 public totalSupply;
 
