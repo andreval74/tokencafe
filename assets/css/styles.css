@@ -1285,6 +1285,14 @@ body {
   overflow-x: hidden;
 }
 
+.modal-backdrop.show {
+  opacity: 0.85 !important;
+}
+
+.modal-content {
+  background-color: rgba(10, 10, 10, 0.98) !important;
+}
+
 .main-container {
   min-height: 100vh;
   position: relative;

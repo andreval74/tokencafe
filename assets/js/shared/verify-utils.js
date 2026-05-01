@@ -80,9 +80,6 @@ async function verifyWithExplorerV2(payload) {
     }
 }
 
-import { NetworkManager } from './network-manager.js';
-import { checkIsAdmin } from '../modules/contrato/builder.js';
-
 export async function runVerifyDirect(payload) {
     const API_BASE = getApiBase();
     const url = `${API_BASE}/api/verify-bscscan`; // Proxy endpoint

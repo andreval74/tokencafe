@@ -2565,8 +2565,7 @@ function setActionButtonsDisabled(disabled) {
     const btnCreate = document.getElementById("btnCreateToken") || document.getElementById("btnDeploy") || document.getElementById("btnBuildDeploy");
     const btnClear = document.getElementById("btnClearAll");
     const btnNewContract = document.getElementById("btnNewContract");
-    const homeLink = document.querySelector('#actions-section a[href*="page=tools"]');
-    const actions = document.getElementById("actions-section");
+    const homeLink = document.getElementById("btnHome") || document.querySelector('#actions-section a[href*="page=tools"]');
 
     const setAnchorDisabled = (a, isDisabled) => {
       if (!a) return;
@@ -2587,9 +2586,8 @@ function setActionButtonsDisabled(disabled) {
 
     if (btnCreate) btnCreate.disabled = busy;
     if (btnClear) btnClear.disabled = busy;
-    if (btnNewContract) btnNewContract.classList.toggle("disabled", busy);
+    setAnchorDisabled(btnNewContract, busy);
     setAnchorDisabled(homeLink, busy);
-    if (actions) actions.style.pointerEvents = busy ? "none" : "";
   } catch (_) {}
 }
 function startOpStatus(message) {
@@ -2948,6 +2946,9 @@ async function bindUI() {
     });
   if (btnDeploy)
     btnDeploy.addEventListener("click", async () => {
+      try {
+        setActionButtonsDisabled(true);
+      } catch (_) {}
       try {
         const sp = document.getElementById("deploySpinner");
         const tx = document.getElementById("deployBtnText");

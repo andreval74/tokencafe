@@ -53,7 +53,7 @@ class TokenPageManager {
 
     const btnCreate = document.getElementById("btnCreateToken") || document.getElementById("btnDeploy");
     const btnClear = document.getElementById("btnClearAll");
-    const homeLink = document.querySelector('#actions-section a[href*="page=tools"]');
+    const homeLink = document.getElementById("btnHome") || document.querySelector('#actions-section a[href*="page=tools"]');
 
     const setAnchorDisabled = (a, disabled) => {
       if (!a) return;
@@ -413,6 +413,13 @@ class TokenPageManager {
              const chainId = state.form?.network?.chainId;
              // Redes locais geralmente não verificam
              const isLocal = chainId == 1337 || chainId == 31337; 
+             
+             try {
+                 const safeState = getSerializableState();
+                 if (safeState) {
+                     sessionStorage.setItem("lastDeployedContract", JSON.stringify(safeState));
+                 }
+             } catch (_) {}
 
              try {
                  const addr = state.deployed?.address ? String(state.deployed.address) : "";

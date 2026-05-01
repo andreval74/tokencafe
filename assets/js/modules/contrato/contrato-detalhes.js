@@ -1,8 +1,7 @@
 
 import { updateContractDetailsView, initContainer, updateVerificationBadge } from "../../shared/contract-search.js";
-import { getExplorerContractUrl } from "./explorer-utils.js";
-import { checkIsAdmin } from "./builder.js";
 import { getVerificationStatus } from "../../shared/verify-utils.js";
+import { isWalletAdmin } from "../../shared/admin-security.js";
 
 class ContractDetailsManager {
     constructor() {
@@ -12,13 +11,27 @@ class ContractDetailsManager {
         this.init();
     }
 
+    resolveIsAdminSync() {
+        try {
+            if (window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) return true;
+        } catch (_) {}
+        try {
+            if (window.TOKENCAFE_IS_ADMIN === true) return true;
+        } catch (_) {}
+        try {
+            const match = document.cookie.match(new RegExp("(^| )tokencafe_wallet_address=([^;]+)"));
+            if (match && match[2] && isWalletAdmin(match[2])) return true;
+        } catch (_) {}
+        try {
+            const ls = window.localStorage?.getItem?.("tokencafe_wallet_address") || "";
+            if (ls && isWalletAdmin(ls)) return true;
+        } catch (_) {}
+        return false;
+    }
+
     applyShareAccessControl() {
         try {
-            const barriersDisabled = window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true;
-            const isAdmin =
-                barriersDisabled ||
-                (typeof checkIsAdmin === "function" && checkIsAdmin()) ||
-                window.TOKENCAFE_IS_ADMIN === true;
+            const isAdmin = this.resolveIsAdminSync();
             
             const files = document.getElementById("files-section");
             if (files) files.classList.toggle("d-none", !isAdmin);
@@ -102,42 +115,6 @@ class ContractDetailsManager {
                 }
             } catch (_) {}
         } catch (_) {}
-    }
-
-    async fetchDeployedBytecode(chainId, address) {
-        try {
-            const cid = Number(chainId);
-            const addr = String(address || "").trim();
-            if (!cid || !/^0x[a-fA-F0-9]{40}$/.test(addr)) return "";
-
-            try {
-                if (window.ethereum?.request) {
-                    const cur = await window.ethereum.request({ method: "eth_chainId" });
-                    if (parseInt(cur, 16) === cid) {
-                        const code = await window.ethereum.request({ method: "eth_getCode", params: [addr, "latest"] });
-                        return typeof code === "string" ? code : "";
-                    }
-                }
-            } catch (_) {}
-
-            const candidates = [];
-            if (cid === 97) candidates.push("https://bsc-testnet.publicnode.com", "https://endpoints.omniatech.io/v1/bsc-testnet/public");
-            if (cid === 56) candidates.push("https://bsc-dataseed.binance.org", "https://rpc.ankr.com/bsc");
-
-            for (const rpc of candidates) {
-                try {
-                    const resp = await fetch(rpc, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getCode", params: [addr, "latest"] })
-                    });
-                    const js = await resp.json().catch(() => null);
-                    const code = js?.result ? String(js.result) : "";
-                    if (code && code !== "0x") return code;
-                } catch (_) {}
-            }
-        } catch (_) {}
-        return "";
     }
 
     writeContractContext(address, chainId, pageName = "contrato-detalhes") {
@@ -491,7 +468,8 @@ class ContractDetailsManager {
                 el.setAttribute("aria-disabled", "true");
                 el.onclick = (e) => {
                     try { e?.preventDefault?.(); } catch (_) {}
-                    window.showFormError?.(message);
+                    if (typeof window.showFormError === "function") window.showFormError(message);
+                    else alert(message);
                 };
             });
         };
@@ -523,33 +501,18 @@ class ContractDetailsManager {
                     warn.textContent = "Carregando código-fonte/ABI do explorer...";
 
                     getVerificationStatus(currentCid, currentAddr, true)
-                        .then(async (js) => {
-                            const next = { ...(this.state.compilation || {}) };
-
-                            if (js?.contractName && !next.contractName) next.contractName = js.contractName;
-                            if (js?.sourceCode && !next.sourceCode) next.sourceCode = js.sourceCode;
-                            if (js?.abi && !next.abi) {
-                                try {
-                                    next.abi = typeof js.abi === "string" ? JSON.parse(js.abi) : js.abi;
-                                } catch (_) {}
+                        .then((js) => {
+                            if (js?.verified && (js?.sourceCode || js?.abi)) {
+                                const next = { ...(this.state.compilation || {}) };
+                                if (js?.contractName && !next.contractName) next.contractName = js.contractName;
+                                if (js?.sourceCode && !next.sourceCode) next.sourceCode = js.sourceCode;
+                                if (js?.abi && !next.abi) {
+                                    try {
+                                        next.abi = typeof js.abi === "string" ? JSON.parse(js.abi) : js.abi;
+                                    } catch (_) {}
+                                }
+                                this.state.compilation = next;
                             }
-
-                            if (next.sourceCode && !next.input) {
-                                const contractName = String(next.contractName || "Contract").trim() || "Contract";
-                                const inputObj = {
-                                    language: "Solidity",
-                                    sources: { [`${contractName}.sol`]: { content: String(next.sourceCode) } },
-                                    settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: "default" }
-                                };
-                                next.input = JSON.stringify(inputObj);
-                            }
-
-                            if (!next.bytecode) {
-                                const code = await this.fetchDeployedBytecode(currentCid, currentAddr);
-                                if (code) next.bytecode = code;
-                            }
-
-                            this.state.compilation = next;
                         })
                         .catch(() => {})
                         .finally(() => {

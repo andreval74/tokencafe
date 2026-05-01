@@ -328,17 +328,17 @@
     <div class="mb-3" id="actions-section">
       <div class="d-flex gap-2 justify-content-end align-items-center">
         <!-- Botão Principal -->
-        <button id="btnCreateToken" class="btn btn-outline-warning">
+        <button id="btnCreateToken" type="button" class="btn btn-outline-warning">
           <i class="bi bi-rocket-takeoff me-2"></i>Gerar Contrato
         </button>
 
         <!-- Botão Limpar -->
-        <button id="btnClearAll" class="btn btn-outline-danger">
+        <button id="btnClearAll" type="button" class="btn btn-outline-danger">
             <i class="bi bi-trash me-2"></i>Limpar Dados
           </button>
 
         <!-- Botão Home -->
-        <a href="index.php?page=tools" class="btn btn-outline-success" title="Ir para a Página Inicial">
+        <a href="index.php?page=tools" id="btnHome" class="btn btn-outline-success" title="Ir para a Página Inicial">
           <i class="bi bi-house-door me-2"></i>Home
         </a>
       </div>
