@@ -12,14 +12,14 @@ function tc_tools_render_tile(array $tile, bool $isAdmin): void
 
   $disabled = (bool) ($tile["disabled"] ?? false);
   $status = (string) ($tile["status"] ?? ($disabled ? "soon" : "finished"));
+  if ($disabled && $status === "finished") {
+    $status = "soon";
+  }
 
   $badgeText = (string) ($tile["badgeText"] ?? ($status === "finished" ? "Finalizado" : "Em Breve"));
   $badgeClass = (string) ($tile["badgeClass"] ?? ($status === "finished" ? "bg-success" : "bg-warning"));
 
   $href = (string) ($tile["href"] ?? "#");
-  if ($isAdmin && $status === "soon" && $href !== "#" && $href !== "") {
-    $disabled = false;
-  }
   $linkLabel = (string) ($tile["linkLabel"] ?? ($disabled ? "Em breve" : "Abrir"));
   $linkAriaLabel = (string) ($tile["linkAriaLabel"] ?? $linkLabel);
   $linkIconClass = (string) ($tile["linkIconClass"] ?? ($disabled ? "bi bi-hourglass-split" : "bi bi-door-open"));
@@ -115,14 +115,17 @@ $tiles = [
     "linkAriaLabel" => "Abrir Contratos",
   ],
   [
-    "status" => "finished",
+    "status" => "soon",
+    "disabled" => true,
     "ariaLabel" => "Verificação",
     "iconClass" => "bi bi-check2-circle",
     "title" => "Verificação",
     "desc" => "Verifique e publique o contrato no explorer",
     "href" => "index.php?page=verifica",
-    "linkLabel" => "Abrir Módulo",
-    "linkAriaLabel" => "Abrir Verificação",
+    "badgeText" => "EM BREVE",
+    "badgeClass" => "bg-warning",
+    "linkLabel" => "Abrir (Admin)",
+    "linkAriaLabel" => "Abrir Verificação (Admin)",
   ],
   [
     "status" => "soon",

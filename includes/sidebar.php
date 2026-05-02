@@ -84,10 +84,10 @@ $openSettings = false;
             <i class="bi bi-file-earmark-code me-2"></i>
             Contratos
           </a>
-          <a href="index.php?page=verifica" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "verifica" ? "tc-sidebar-active" : "" ?>">
+          <!-- <a href="index.php?page=verifica" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "verifica" ? "tc-sidebar-active" : "" ?>">
             <i class="bi bi-check2-circle me-2"></i>
             Verificação
-          </a>
+          </a> -->
         </div>
       </div>
 
