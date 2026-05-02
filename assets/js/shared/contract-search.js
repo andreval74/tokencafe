@@ -245,12 +245,18 @@ function formatUnits(hex, d) {
 function formatDecimalValue(val) {
   if (!val && val !== 0 && val !== "0") return "";
   try {
-    const s = String(val);
+    let s = String(val).trim();
+    if (s.includes(",") && s.includes(".")) {
+      s = s.replace(/\./gu, "").replace(/,/gu, ".");
+    } else if (s.includes(",") && !s.includes(".")) {
+      s = s.replace(/,/gu, ".");
+    }
     const parts = s.split(".");
     let whole = parts[0];
     if (whole === "") whole = "0";
     const frac = parts.length > 1 ? parts[1] : "";
-    const wholeFmt = BigInt(whole).toLocaleString("pt-BR");
+    const cleanWhole = whole.replace(/[^\d-]/gu, "") || "0";
+    const wholeFmt = BigInt(cleanWhole).toLocaleString("pt-BR");
     return frac ? `${wholeFmt},${frac.substring(0, 8)}` : wholeFmt;
   } catch (_) {
     return val;
@@ -808,7 +814,7 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
       if (vName) vName.textContent = sn.name || "-";
       if (vSym) vSym.textContent = sn.symbol || "-";
       if (vDec) vDec.textContent = info.decimals != null ? String(info.decimals) : "-";
-      if (vSup) vSup.textContent = info.totalSupply || "-";
+      if (vSup) vSup.textContent = info.totalSupply != null ? formatDecimalValue(info.totalSupply) : "-";
   
       try {
         const rpc = getPrimaryRpc(chainId);
@@ -832,8 +838,8 @@ async function updateContractDetailsView(container, chainId, address, preloadedD
             }
         } else if (preloadedData) {
              // Use preloaded balances if skipping fetch
-             if (vTokBal) vTokBal.textContent = preloadedData.contractTokenBalance || "-";
-             if (vNatBal) vNatBal.textContent = preloadedData.contractNativeBalance || "-";
+             if (vTokBal) vTokBal.textContent = preloadedData.contractTokenBalance != null ? formatDecimalValue(preloadedData.contractTokenBalance) : "-";
+             if (vNatBal) vNatBal.textContent = preloadedData.contractNativeBalance != null ? formatDecimalValue(preloadedData.contractNativeBalance) : "-";
         }
       } catch (e) {
         log("updateContractDetailsView balances error", e);
