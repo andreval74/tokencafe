@@ -51,14 +51,14 @@
                           <div class="col">
                             <h5 class="card-title text-white mb-1">Padrão</h5>
                             <p class="card-text text-muted small mb-0">
-                              Token fixo e seguro. Supply imutável. Ideal para utilidade e pagamentos.
+                              Token ERC‑20 (EIP‑20) básico. Base para os demais modelos.
                             </p>
                           </div>
                           <div class="col-md-5 d-none d-md-block border-start border-secondary ps-4">
                             <ul class="list-unstyled text-start small text-secondary mb-0">
-                              <li><i class="bi bi-check2 text-success me-2"></i>Compatível com ERC20</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>ERC‑20 (EIP‑20)</li>
                               <li><i class="bi bi-check2 text-success me-2"></i>Supply Fixo</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Baixo custo de Gas</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>Solidity ^0.8.x</li>
                             </ul>
                           </div>
                         </div>
@@ -81,13 +81,13 @@
                           <div class="col">
                             <h5 class="card-title text-white mb-1">Gerenciável</h5>
                             <p class="card-text text-muted small mb-0">
-                              Funções administrativas para emitir (Mint) ou queimar (Burn) tokens.
+                              Inclui tudo do Padrão + Mint, Burn e Pause (controle do owner).
                             </p>
                           </div>
                           <div class="col-md-5 d-none d-md-block border-start border-secondary ps-4">
                             <ul class="list-unstyled text-start small text-secondary mb-0">
-                              <li><i class="bi bi-check2 text-success me-2"></i>Função Mint (Criar)</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Função Burn (Queimar)</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>Herdado do Padrão</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>Mint/Burn (Owner)</li>
                               <li><i class="bi bi-check2 text-success me-2"></i>Pause de emergência</li>
                             </ul>
                           </div>
@@ -111,14 +111,14 @@
                           <div class="col">
                             <h5 class="card-title text-white mb-1">Avançado</h5>
                             <p class="card-text text-muted small mb-0">
-                              Taxas, proteções (Anti-Bot) e Swap integrado.
+                              Inclui tudo do Gerenciável + taxas e proteções (Anti‑Bot/limites).
                             </p>
                           </div>
                           <div class="col-md-5 d-none d-md-block border-start border-secondary ps-4">
                             <ul class="list-unstyled text-start small text-secondary mb-0">
+                              <li><i class="bi bi-check2 text-success me-2"></i>Herdado do Gerenciável</li>
                               <li><i class="bi bi-check2 text-success me-2"></i>Taxas (Liquidez/Mkt)</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Anti-Bot & Limites</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Swap Automático</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>Proteções & limites</li>
                             </ul>
                           </div>
                         </div>
@@ -141,74 +141,14 @@
                           <div class="col">
                             <h5 class="card-title text-white mb-1">Venda / ICO</h5>
                             <p class="card-text text-muted small mb-0">
-                              Venda tokens diretamente no contrato por ETH/BNB/MATIC.
+                              Inclui tudo do Avançado + venda integrada (compra com moeda nativa).
                             </p>
                           </div>
                           <div class="col-md-5 d-none d-md-block border-start border-secondary ps-4">
                             <ul class="list-unstyled text-start small text-secondary mb-0">
-                              <li><i class="bi bi-check2 text-success me-2"></i>Preço Definido</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Limites de Compra</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Saque imediato</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Card: TokenSale Separado -->
-                  <div class="col-12">
-                    <div class="card bg-dark border-secondary contract-card cursor-pointer"
-                      data-value="tokensale-separado">
-                      <div class="check-indicator"><i class="bi bi-check-circle-fill text-success fs-3"></i></div>
-                      <div class="card-body p-3">
-                        <div class="row align-items-center">
-                          <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-warning mb-0 square-50">
-                              <i class="bi bi-box-arrow-in-right fs-4"></i>
-                            </div>
-                          </div>
-                          <div class="col">
-                            <h5 class="card-title text-white mb-1">TokenSale Separado</h5>
-                            <p class="card-text text-muted small mb-0">
-                              Crie uma venda para um token que já existe.
-                            </p>
-                          </div>
-                          <div class="col-md-5 d-none d-md-block border-start border-secondary ps-4">
-                            <ul class="list-unstyled text-start small text-secondary mb-0">
-                              <li><i class="bi bi-check2 text-success me-2"></i>Venda Avulsa</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Divulgação</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Sem Mint</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Card: Upgradeable -->
-                  <div class="col-12">
-                    <div class="card bg-dark border-secondary contract-card cursor-pointer disabled-option"
-                      data-value="upgradeable-uups">
-                      <div class="check-indicator"><i class="bi bi-check-circle-fill text-success fs-3"></i></div>
-                      <div class="card-body p-3">
-                        <div class="row align-items-center">
-                          <div class="col-auto">
-                            <div class="icon-circle bg-dark-elevated text-primary mb-0 square-50">
-                              <i class="bi bi-arrow-repeat fs-4"></i>
-                            </div>
-                          </div>
-                          <div class="col">
-                            <h5 class="card-title text-white mb-1">Upgradeable (UUPS)</h5>
-                            <p class="card-text text-muted small mb-0">
-                              Contrato atualizável (Proxy Pattern).
-                            </p>
-                          </div>
-                          <div class="col-md-5 d-none d-md-block border-start border-secondary ps-4">
-                            <ul class="list-unstyled text-start small text-secondary mb-0">
-                              <li><i class="bi bi-check2 text-success me-2"></i>Proxy UUPS</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Baixo Gas</li>
-                              <li><i class="bi bi-check2 text-success me-2"></i>Atualizável</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>Herdado do Avançado</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>Preço & limites</li>
+                              <li><i class="bi bi-check2 text-success me-2"></i>Saque para carteira</li>
                             </ul>
                           </div>
                         </div>
@@ -217,7 +157,6 @@
                   </div>
                 </div>
               </div>
-
               <!-- Mostra as caracteristicas dos contratos -->
               <div class="col-lg-3 border-start border-secondary">
                 <div class="p-2 mb-2 bg-dark rounded border border-secondary text-center text-warning fw-bold small">

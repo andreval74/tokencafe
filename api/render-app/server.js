@@ -313,6 +313,13 @@ contract ${contractId} is Ownable, Pausable {
         totalSupply -= value;
         emit Transfer(msg.sender, address(0), value);
     }
+
+    function mint(address to, uint256 value) public onlyOwner {
+        require(to != address(0), "Endereco zero");
+        totalSupply += value;
+        balanceOf[to] += value;
+        emit Transfer(address(0), to, value);
+    }
 }`;
 
     const getERC20DirectSale = () => `// SPDX-License-Identifier: MIT
@@ -330,7 +337,18 @@ abstract contract Ownable {
     }
 }
 
-contract ${contractId} is Ownable {
+abstract contract Pausable is Ownable {
+    bool private _paused;
+    event Paused(address account);
+    event Unpaused(address account);
+    constructor() { _paused = false; }
+    function paused() public view returns (bool) { return _paused; }
+    modifier whenNotPaused() { require(!_paused, "Pausable: paused"); _; }
+    function pause() public onlyOwner { _paused = true; emit Paused(msg.sender); }
+    function unpause() public onlyOwner { _paused = false; emit Unpaused(msg.sender); }
+}
+
+contract ${contractId} is Ownable, Pausable {
     string public name = ${nameLit};
     string public symbol = ${symbolLit};
     uint8 public decimals = ${d};
@@ -347,6 +365,11 @@ contract ${contractId} is Ownable {
     address payable public payoutWallet;
 
     mapping(address => uint256) public purchasedAmount;
+
+    // Advanced (taxes) - herdado do modelo Avançado quando configurado
+    uint256 public liquidityTax = ${Number(advanced?.taxes?.liquidity?.enabled ? advanced?.taxes?.liquidity?.buy || 0 : 0) || 0};
+    uint256 public marketingTax = ${Number(advanced?.taxes?.wallet?.enabled ? advanced?.taxes?.wallet?.buy || 0 : 0) || 0};
+    address public marketingWallet = ${addrOrZero(advanced?.taxes?.wallet?.address)};
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
@@ -370,18 +393,18 @@ contract ${contractId} is Ownable {
         payoutWallet = _payout;
     }
 
-    function transfer(address to, uint256 value) public returns (bool) {
+    function transfer(address to, uint256 value) public whenNotPaused returns (bool) {
         _transfer(msg.sender, to, value);
         return true;
     }
 
-    function approve(address spender, uint256 value) public returns (bool) {
+    function approve(address spender, uint256 value) public whenNotPaused returns (bool) {
         allowance[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 value) public returns (bool) {
+    function transferFrom(address from, address to, uint256 value) public whenNotPaused returns (bool) {
         require(allowance[from][msg.sender] >= value, "Allowance exceeded");
         allowance[from][msg.sender] -= value;
         _transfer(from, to, value);
@@ -390,12 +413,43 @@ contract ${contractId} is Ownable {
 
     function _transfer(address from, address to, uint256 value) internal {
         require(balanceOf[from] >= value, "Insufficient balance");
+        uint256 sendAmount = value;
+
+        uint256 totalTax = liquidityTax + marketingTax;
+        if (
+            totalTax > 0 &&
+            from != address(this) &&
+            to != address(this) &&
+            from != owner() &&
+            to != owner()
+        ) {
+            uint256 fee = (value * totalTax) / 100;
+            if (fee > 0) {
+                uint256 mFee = marketingTax > 0 ? (value * marketingTax) / 100 : 0;
+                uint256 lFee = fee - mFee;
+
+                if (mFee > 0) {
+                    address mTo = marketingWallet != address(0) ? marketingWallet : address(this);
+                    balanceOf[mTo] += mFee;
+                    emit Transfer(from, mTo, mFee);
+                }
+
+                if (lFee > 0) {
+                    balanceOf[address(this)] += lFee;
+                    emit Transfer(from, address(this), lFee);
+                }
+
+                sendAmount = value - fee;
+            }
+        }
+
         balanceOf[from] -= value;
-        balanceOf[to] += value;
-        emit Transfer(from, to, value);
+        balanceOf[to] += sendAmount;
+        emit Transfer(from, to, sendAmount);
     }
 
-    function buy() public payable {
+    function buy() external payable {
+        require(!paused(), "Sale paused");
         require(saleActive, "Sale inactive");
         require(msg.value >= minPurchaseWei, "Below min purchase");
         require(msg.value <= maxPurchaseWei, "Above max purchase");
@@ -429,6 +483,20 @@ contract ${contractId} is Ownable {
         priceWei = _newPrice;
     }
 
+    function burn(uint256 value) public onlyOwner {
+        require(balanceOf[msg.sender] >= value, "Saldo insuficiente para queimar");
+        balanceOf[msg.sender] -= value;
+        totalSupply -= value;
+        emit Transfer(msg.sender, address(0), value);
+    }
+
+    function mint(address to, uint256 value) public onlyOwner {
+        require(to != address(0), "Endereco zero");
+        totalSupply += value;
+        balanceOf[to] += value;
+        emit Transfer(address(0), to, value);
+    }
+
     receive() external payable {
         buy();
     }
@@ -439,6 +507,7 @@ pragma solidity ^0.8.19;
 
 interface IERC20 {
     function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
     function decimals() external view returns (uint8);
 }
@@ -451,8 +520,10 @@ contract TokenSale {
     uint256 public priceWei;
     uint256 public minPurchaseWei;
     uint256 public maxPurchaseWei;
+    uint256 public capPerWallet;
 
     bool public saleActive = true;
+    mapping(address => uint256) public purchasedAmount;
 
     event Purchased(address indexed buyer, uint256 amount, uint256 cost);
 
@@ -463,7 +534,8 @@ contract TokenSale {
         address payable _wallet,
         uint256 _priceWei,
         uint256 _minWei,
-        uint256 _maxWei
+        uint256 _maxWei,
+        uint256 _capUnits
     ) {
         owner = msg.sender;
         token = IERC20(_token);
@@ -471,6 +543,7 @@ contract TokenSale {
         priceWei = _priceWei;
         minPurchaseWei = _minWei;
         maxPurchaseWei = _maxWei;
+        capPerWallet = _capUnits * (10 ** token.decimals());
     }
 
     function buy() public payable {
@@ -483,6 +556,11 @@ contract TokenSale {
 
         require(token.balanceOf(address(this)) >= amount, "Insufficient tokens in sale");
 
+        if (capPerWallet > 0) {
+            require(purchasedAmount[msg.sender] + amount <= capPerWallet, "Wallet cap exceeded");
+        }
+        purchasedAmount[msg.sender] += amount;
+
         token.transfer(msg.sender, amount);
 
         (bool s, ) = wallet.call{value: msg.value}("");
@@ -493,6 +571,10 @@ contract TokenSale {
 
     function setSaleActive(bool _s) external onlyOwner {
         saleActive = _s;
+    }
+
+    function deposit(uint256 amount) external onlyOwner {
+        require(token.transferFrom(msg.sender, address(this), amount), "Deposit failed");
     }
 
     function withdrawRemaining() external onlyOwner {
@@ -538,6 +620,17 @@ contract ${contractId} is Context, IERC20 {
     uint8 private _decimals;
 
     address public owner;
+    bool public paused;
+
+    modifier onlyOwner() {
+        require(_msgSender() == owner, "Not owner");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "Paused");
+        _;
+    }
 
     uint256 public liquidityTax = ${liquidityTax};
     uint256 public marketingTax = ${marketingTax};
@@ -557,13 +650,31 @@ contract ${contractId} is Context, IERC20 {
         emit OwnershipTransferred(address(0), _msgSender());
     }
 
+    function pause() external onlyOwner { paused = true; }
+    function unpause() external onlyOwner { paused = false; }
+
+    function burn(uint256 amount) external onlyOwner {
+        uint256 bal = _balances[_msgSender()];
+        require(bal >= amount, "Insufficient balance");
+        unchecked { _balances[_msgSender()] = bal - amount; }
+        _totalSupply -= amount;
+        emit Transfer(_msgSender(), address(0), amount);
+    }
+
+    function mint(address to, uint256 amount) external onlyOwner {
+        require(to != address(0), "Zero address");
+        _totalSupply += amount;
+        _balances[to] += amount;
+        emit Transfer(address(0), to, amount);
+    }
+
     function name() public view returns (string memory) { return _name; }
     function symbol() public view returns (string memory) { return _symbol; }
     function decimals() public view returns (uint8) { return _decimals; }
     function totalSupply() public view override returns (uint256) { return _totalSupply; }
     function balanceOf(address account) public view override returns (uint256) { return _balances[account]; }
 
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
+    function transfer(address recipient, uint256 amount) public override whenNotPaused returns (bool) {
         _transfer(_msgSender(), recipient, amount);
         return true;
     }
@@ -572,12 +683,12 @@ contract ${contractId} is Context, IERC20 {
         return _allowances[ow][spender];
     }
 
-    function approve(address spender, uint256 amount) public override returns (bool) {
+    function approve(address spender, uint256 amount) public override whenNotPaused returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
     }
 
-    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+    function transferFrom(address sender, address recipient, uint256 amount) public override whenNotPaused returns (bool) {
         _transfer(sender, recipient, amount);
         uint256 currentAllowance = _allowances[sender][_msgSender()];
         require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
@@ -688,20 +799,25 @@ function getExplorerApiKeyFromEnv() {
 
 function getExplorerApiBase(chainId) {
   const cid = Number(chainId);
-  // Prefer chain-native V2 explorer APIs (keys are not interchangeable across explorers).
-  // BSC:
-  if (cid === 56) return "https://api.bscscan.com/v2/api";
-  if (cid === 97) return "https://api-testnet.bscscan.com/v2/api";
-  // Ethereum:
+  // IMPORTANTE:
+  // Para BSC (56/97), o V1 do BscScan retorna aviso de endpoint depreciado.
+  // A forma compatível é usar o Etherscan API V2 (unified) com o parâmetro chainid.
+  // Ex.: https://api.etherscan.io/v2/api?chainid=97&module=contract&action=getsourcecode&address=0x...&apikey=...
+  if (cid === 56 || cid === 97) return "https://api.etherscan.io/v2/api";
+
+  // Ethereum (Etherscan) - V2 unificado
   if (cid === 1) return "https://api.etherscan.io/v2/api";
   if (cid === 11155111) return "https://api.etherscan.io/v2/api";
-  // Polygon:
-  if (cid === 137) return "https://api.polygonscan.com/v2/api";
-  if (cid === 80001) return "https://api-testnet.polygonscan.com/v2/api";
-  // Base:
-  if (cid === 8453) return "https://api.basescan.org/v2/api";
-  if (cid === 84532) return "https://api-sepolia.basescan.org/v2/api";
-  // Fallback
+
+  // Polygon
+  if (cid === 137) return "https://api.polygonscan.com/api";
+  if (cid === 80001) return "https://api-testnet.polygonscan.com/api";
+
+  // Base
+  if (cid === 8453) return "https://api.basescan.org/api";
+  if (cid === 84532) return "https://api-sepolia.basescan.org/api";
+
+  // Fallback para Etherscan V2 (melhor cobertura multi-chain)
   return "https://api.etherscan.io/v2/api";
 }
 
@@ -780,8 +896,36 @@ app.get("/api/explorer-getsourcecode", async (req, res) => {
     if (finalKey) qs.append("apikey", finalKey);
 
     const url = `${base}${base.includes("?") ? "&" : "?"}${qs.toString()}`;
-    const resp = await fetch(url, { method: "GET" });
-    const json = await resp.json().catch(() => null);
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: {
+        // Alguns explorers retornam HTML/erro quando o request parece "bot".
+        // Um User-Agent explícito aumenta a chance de resposta JSON.
+        "User-Agent": "TokenCafe/1.0 (+https://tokencafe.onrender.com)",
+        "Accept": "application/json,text/plain,*/*",
+      },
+    });
+
+    // Se não vier JSON, devolver erro claro (não tratar como "não verificado").
+    const ct = String(resp.headers?.get?.("content-type") || "");
+    const rawText = await resp.text().catch(() => "");
+    const json = (() => {
+      try {
+        return rawText ? JSON.parse(rawText) : null;
+      } catch {
+        return null;
+      }
+    })();
+    if (!json) {
+      return res.status(502).json({
+        success: false,
+        error: "Explorer não retornou JSON válido para getsourcecode.",
+        status: resp.status,
+        contentType: ct,
+        sample: rawText ? rawText.slice(0, 220) : "",
+        url: url.replace(/apikey=[^&]*/i, "apikey=HIDDEN"),
+      });
+    }
     const status = String(json?.status || "0");
     const arr = Array.isArray(json?.result) ? json.result : [];
     const first = arr[0] || {};
@@ -855,16 +999,39 @@ app.post("/api/verify-bscscan", async (req, res) => {
     });
     const json = await submit.json().catch(() => null);
     const status = String(json?.status || "0");
+    const message = String(json?.message || "");
     const result = String(json?.result || "");
     if (status === "1" && result) {
       const polled = await pollExplorerVerification(fetchUrl, result, finalKey);
       if (polled.ok) return res.json({ success: true, explorerUrl });
       return res.json({ success: false, message: "pending", guid: result, explorerUrl });
     }
-    if (status === "0" && result.toLowerCase().includes("already verified")) {
+    const alreadyVerified =
+      (status === "0") &&
+      (
+        result.toLowerCase().includes("already verified") ||
+        result.toLowerCase().includes("alreadyverified") ||
+        message.toLowerCase().includes("already verified") ||
+        message.toLowerCase().includes("alreadyverified")
+      );
+    if (alreadyVerified) {
       return res.json({ success: true, explorerUrl });
     }
-    return res.status(400).json({ success: false, error: json?.message || result || "Explorer verification failed", explorerUrl });
+    if (status === "0" && result.toLowerCase().includes("unable to locate contractcode")) {
+      return res.json({
+        success: false,
+        message: "pending",
+        reason: "indexing",
+        retryAfter: 15,
+        explorerUrl,
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      error: result || message || "Explorer verification failed",
+      explorerUrl,
+      raw: json,
+    });
   } catch (err) {
     return res.status(500).json({ success: false, error: err?.message || String(err) });
   }

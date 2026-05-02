@@ -194,32 +194,32 @@ function log(msg) {
 export const CONTRACT_GROUPS = {
   "erc20-minimal": {
     title: "ERC20-Padrão",
-    summary: "Token ERC20 básico com mint inicial e sem controles extras.",
-    features: ["Transferências padrão", "Supply inicial mintado ao deployer"],
+    summary: "Token ERC‑20 (EIP‑20) básico. Base para os demais modelos.",
+    features: ["ERC‑20 (EIP‑20)", "Transferências padrão", "Supply inicial mintado ao deployer"],
     saleIntegration: false,
     order: ["Token"],
     notes: "Ideal para começar simples. Complementos podem ser adicionados em versões upgradeáveis.",
   },
   "erc20-controls": {
     title: "ERC20-Gerenciável",
-    summary: "Token ERC20 com controles (pausable, blacklist/whitelist dependendo da configuração).",
-    features: ["Pausar transferências", "Controles de acesso"],
+    summary: "Herdado do Padrão + controles administrativos (mint/burn/pause) para o owner.",
+    features: ["Herdado do Padrão", "Pausar transferências", "Mint/Burn (Owner)"],
     saleIntegration: false,
     order: ["Token"],
     notes: "Exige entendimento de funções administrativas. Bom para governança mínima.",
   },
   "erc20-advanced": {
     title: "ERC20-Avançado",
-    summary: "Token avançado com taxas, proteções e swap integrado.",
-    features: ["Taxas (Liquidez, Mkt, Burn)", "Anti-Bot", "Limites (Max Wallet/Tx)", "Swap Automático"],
+    summary: "Herdado do Gerenciável + taxas e proteções adicionais.",
+    features: ["Herdado do Gerenciável", "Taxas (Liquidez/Mkt)", "Anti-Bot", "Limites (Max Wallet/Tx)"],
     saleIntegration: false,
     order: ["Token Avançado"],
     notes: "Ideal para projetos DeFi completos. Configurável via interface dedicada.",
   },
   "erc20-directsale": {
     title: "ERC20-Venda / ICO",
-    summary: "Token com venda direta embutida (compra em moeda nativa, parâmetros decimais).",
-    features: ["Preço por token", "Compra mínima/máxima", "Recebimento em carteira definida"],
+    summary: "Herdado do Avançado + venda direta embutida (compra em moeda nativa).",
+    features: ["Herdado do Avançado", "Preço por token", "Compra mínima/máxima", "Recebimento em carteira definida"],
     saleIntegration: true,
     order: ["Token", "Venda"],
     notes: "Fluxo sequencial: primeiro token, depois venda direta. Valores aceitam decimais.",
@@ -655,7 +655,7 @@ export function validateInitialSupplyInline() {
 
 export function validateSaleInline() {
   const group = $("#contractGroup").value;
-  const saleApplies = ["erc20-directsale", "upgradeable-uups"].includes(group);
+  const saleApplies = Boolean(CONTRACT_GROUPS[group]?.saleIntegration);
   const priceEl = getEl("tokenPriceDec");
   const minEl = getEl("minPurchaseDec");
   const maxEl = getEl("maxPurchaseDec");
@@ -1032,6 +1032,17 @@ contract ${contractName} is Context, IERC20 {
     uint8 private _decimals;
 
     address public owner;
+    bool public paused;
+
+    modifier onlyOwner() {
+        require(_msgSender() == owner, "Not owner");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "Paused");
+        _;
+    }
     
     // Tax Config (Fallback Basic)
     uint256 public liquidityTax = ${advancedParams.taxes?.liquidity?.enabled ? (advancedParams.taxes.liquidity.buy || 0) : 0};
@@ -1052,13 +1063,31 @@ contract ${contractName} is Context, IERC20 {
         emit OwnershipTransferred(address(0), _msgSender());
     }
 
+    function pause() external onlyOwner { paused = true; }
+    function unpause() external onlyOwner { paused = false; }
+
+    function burn(uint256 amount) external onlyOwner {
+        uint256 bal = _balances[_msgSender()];
+        require(bal >= amount, "Insufficient balance");
+        unchecked { _balances[_msgSender()] = bal - amount; }
+        _totalSupply -= amount;
+        emit Transfer(_msgSender(), address(0), amount);
+    }
+
+    function mint(address to, uint256 amount) external onlyOwner {
+        require(to != address(0), "Zero address");
+        _totalSupply += amount;
+        _balances[to] += amount;
+        emit Transfer(address(0), to, amount);
+    }
+
     function name() public view returns (string memory) { return _name; }
     function symbol() public view returns (string memory) { return _symbol; }
     function decimals() public view returns (uint8) { return _decimals; }
     function totalSupply() public view override returns (uint256) { return _totalSupply; }
     function balanceOf(address account) public view override returns (uint256) { return _balances[account]; }
 
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
+    function transfer(address recipient, uint256 amount) public override whenNotPaused returns (bool) {
         _transfer(_msgSender(), recipient, amount);
         return true;
     }
@@ -1067,12 +1096,12 @@ contract ${contractName} is Context, IERC20 {
         return _allowances[owner][spender];
     }
 
-    function approve(address spender, uint256 amount) public override returns (bool) {
+    function approve(address spender, uint256 amount) public override whenNotPaused returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
     }
 
-    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+    function transferFrom(address sender, address recipient, uint256 amount) public override whenNotPaused returns (bool) {
         _transfer(sender, recipient, amount);
         uint256 currentAllowance = _allowances[sender][_msgSender()];
         require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
@@ -1643,14 +1672,15 @@ export function getConstructorArgs() {
   }
   
   if (g === "tokensale-separado") {
-    // Constructor: token, wallet, priceWei, minWei, maxWei
+    // Constructor: token, wallet, priceWei, minWei, maxWei, capUnits
     const token = state.form.token.existingAddress || "0x0000000000000000000000000000000000000000";
     const wallet = s.payoutWallet || state.wallet.address || "0x0000000000000000000000000000000000000000";
     const priceWei = toWei(s.priceDec);
     const minWei = toWei(s.minDec);
     const maxWei = toWei(s.maxDec);
+    const capUnits = s.capUnits ? String(s.capUnits) : "0";
     
-    return [token, wallet, priceWei, minWei, maxWei];
+    return [token, wallet, priceWei, minWei, maxWei, capUnits];
   }
   
   return [];
@@ -2238,17 +2268,25 @@ export async function deployContract() {
     } catch (_) {}
     stopOpStatus("Deploy concluído");
 
-    // Inicia verificação automática (BscScan/Etherscan)
-    log("Iniciando verificação automática no Explorer...");
-    // Chama sem await para não bloquear a UI, mas monitorVerification cuidará do polling
-    try {
-        if (typeof autoVerifyContract === 'function') {
-            autoVerifyContract().catch(err => log(`Erro ao iniciar verificação automática: ${err.message}`));
-        } else {
-            log("AVISO: autoVerifyContract não está definido. Verificação automática ignorada.");
-        }
-    } catch (e) {
-        log(`Erro crítico ao chamar autoVerifyContract: ${e.message}`);
+    // Regra do sistema: o contrato DEVE ficar verificado no Explorer (BscScan/Etherscan).
+    // Portanto, bloqueamos o fluxo de finalização/redirecionamento até o Explorer confirmar.
+    log("Verificação obrigatória no Explorer: iniciando...");
+    updateOpStatus("Verificando no Explorer...");
+    const verifiedOnExplorer = await autoVerifyContract();
+    if (!verifiedOnExplorer) {
+        // Mantém o usuário na tela atual (não redireciona) e permite tentar novamente.
+        // Não marcamos como "verificado" para evitar divergência com o Explorer.
+        try { stopOpStatus("Verificação pendente no Explorer"); } catch (_) {}
+        try {
+            const launch = document.getElementById("erc20VerifyLaunch");
+            const vc = document.getElementById("verifyLaunchContainer");
+            if (vc) vc.classList.remove("d-none");
+            if (launch) {
+                launch.disabled = false;
+                launch.textContent = "Tentar Verificar Novamente";
+            }
+        } catch (_) {}
+        return false;
     }
 
     // Move Limpar Dados button to bottom container after deploy
@@ -2274,54 +2312,8 @@ export async function deployContract() {
         .catch(() => {});
     } catch (_) {}
 
-    // Habilitar verificação
-    // verificação agora é automática; botão removido da UI
-
-    try {
-      const addrVerify = state.deployed?.address;
-      const chainIdVerify = state.form?.network?.chainId;
-      const dep = state.compilation?.deployedBytecode;
-      let payload = null;
-      if (addrVerify && chainIdVerify) {
-        if (dep) {
-          payload = {
-            chainId: chainIdVerify,
-            contractAddress: addrVerify,
-            deployedBytecode: dep,
-          };
-        } else if (state.compilation?.sourceCode && state.compilation?.contractName) {
-          payload = {
-            chainId: chainIdVerify,
-            contractAddress: addrVerify,
-            sourceCode: state.compilation.sourceCode,
-            contractName: state.compilation.contractName,
-          };
-        }
-      }
-      if (payload) {
-        const respP = await fetch(`${API_BASE}/api/verify-private`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (respP.ok) {
-          const dataP = await respP.json();
-          const ok = !!dataP?.success && !!dataP?.match;
-          updateVerificationBadges({ privOk: ok });
-          log(ok ? "Verificação privada por bytecode: ok" : "Verificação privada por bytecode: pendente");
-        } else {
-          updateVerificationBadges({ privOk: false });
-          const txt = await respP.text();
-          log(`Falha na verificação privada: ${txt}`);
-        }
-      } else {
-        updateVerificationBadges({ privOk: false });
-        log("Verificação privada não iniciada: dados insuficientes.");
-      }
-    } catch (perr) {
-      updateVerificationBadges({ privOk: false });
-      log(`Erro na verificação privada: ${perr?.message || perr}`);
-    }
+    // Verificação privada removida: o TokenCafe não valida/verifica por conta própria.
+    // Regra: a verificação válida é a do Explorer (BscScan/Etherscan) e já acontece acima de forma obrigatória.
     try {
       const cont = document.getElementById("openVerificaContainer");
       const btn = document.getElementById("openVerificaModuleBtn");
@@ -2332,18 +2324,8 @@ export async function deployContract() {
       }
     } catch (_) {}
 
-    const unusedAutoToggle = document.getElementById("autoVerifyToggle");
-    const autoEnabled = true;
-    if (autoEnabled) {
-      const payload = buildVerifyPayloadFromState();
-      if (!checkIsAdmin()) {
-        log("Verificação automática bloqueada (Restrito a Administradores).");
-      } else if (payload) {
-        await runVerifyDirect(payload);
-      }
-    } else {
-      log("Verificação automática desabilitada.");
-    }
+    // Removido: fluxo duplicado de verificação automática.
+    // A verificação obrigatória já acontece acima e bloqueia até confirmar no Explorer.
 
     // Leitura simples ERC-20 para confirmar funcionalidade do contrato
     try {
@@ -2876,40 +2858,37 @@ function updateVerificationUI(success) {
     }
 }
 
-// Monitoramento de verificação
+// Monitoramento de verificação (Explorer)
+// Regra do sistema: só consideramos "verificado" quando estiver publicado/confirmado no Explorer (BscScan/Etherscan).
 async function monitorVerification(chainId, address, guid = "") {
-    let attempts = 0;
-    const maxAttempts = 30; // 30 * 3s = 90s
-    
-    const poll = async () => {
-        attempts++;
-        if (attempts > maxAttempts) {
-            log("Tempo limite de verificação automática excedido. Tente manualmente.");
-            // stopOpStatus("Verif. Timeout"); // Não sobrescrever status principal se já concluído
-            return;
-        }
-        
+    const maxAttempts = 120; // 120 * 3s = 6 minutos (explorer pode demorar para indexar/verificar)
+    for (let attempts = 1; attempts <= maxAttempts; attempts++) {
         try {
             const status = guid
               ? await getVerificationStatusByGuid(chainId, guid)
-              : await getVerificationStatus(chainId, address);
+              : await getVerificationStatus(chainId, address, true);
             
-            if (status?.verified || (status?.result && String(status.result).includes("Verified"))) {
+            const explorerVerified = !!(status?.explorerVerified ?? status?.verified);
+            if (explorerVerified || (status?.result && String(status.result).includes("Verified"))) {
                 log("Contrato verificado com sucesso no Explorer!");
                 updateVerificationUI(true);
-                return;
+                return true;
             }
         } catch (e) {
             console.warn("Polling error:", e);
         }
         
-        setTimeout(poll, 3000);
-    };
-    
-    poll();
+        try { updateOpStatus(`Verificando no Explorer... (${attempts}/${maxAttempts})`); } catch (_) {}
+        await new Promise((r) => setTimeout(r, 3000));
+    }
+    log("Tempo limite de verificação automática excedido. Verificação no Explorer ainda pendente.");
+    return false;
 }
 
-// Auto verificação
+// Auto verificação (obrigatória)
+// IMPORTANTE:
+// - Esta função faz a verificação "de verdade" no Explorer (publicação do código-fonte).
+// - A verificação privada (TokenCafe OK) é útil como diagnóstico, mas NÃO substitui o Explorer.
 async function autoVerifyContract() {
     try {
         log("Iniciando verificação automática...");
@@ -2918,36 +2897,82 @@ async function autoVerifyContract() {
         const payload = buildVerifyPayloadFromState();
         if (!payload) {
             log("Não foi possível gerar payload para verificação.");
-            return;
+            return false;
+        }
+
+        // Se já estiver verificado no Explorer, não tente verificar novamente.
+        try {
+            const pre = await getVerificationStatus(payload.chainId, payload.contractAddress, true);
+            const explorerVerified = !!(pre?.explorerVerified ?? pre?.verified);
+            if (explorerVerified) {
+                log("Contrato já está verificado no Explorer.");
+                updateVerificationUI(true);
+                return true;
+            }
+        } catch (_) {}
+        
+        // Explorers (BscScan/Etherscan) podem demorar para indexar o contrato recém-deployado.
+        // Nesses casos, o submit da verificação retorna algo como "Unable to locate ContractCode".
+        // Regra: a verificação é obrigatória, então fazemos retry automático até o Explorer aceitar o submit.
+        const maxSubmitAttempts = 20;
+        for (let i = 1; i <= maxSubmitAttempts; i++) {
+            const res = await runVerifyDirect(payload);
+            
+            if (res?.success === true) {
+                log("Verificação confirmada pelo Explorer.");
+                updateVerificationUI(true);
+                return true;
+            }
+            
+            const msg = String(res?.message || res?.error || res?.result || "");
+            const lower = msg.toLowerCase();
+            const already = lower.includes("already verified") || lower.includes("alreadyverified");
+            const pending = lower === "pending" || lower.includes("pending") || !!res?.guid;
+            const indexing = lower.includes("unable to locate contractcode") || String(res?.reason || "").toLowerCase() === "indexing";
+
+            if (already) {
+                log("Contrato já estava verificado no Explorer.");
+                updateVerificationUI(true);
+                return true;
+            }
+            
+            if (!pending && !indexing) {
+                log(`Falha ao iniciar verificação automática: ${msg || "erro desconhecido"}`);
+                return false;
+            }
+            
+            if (res?.guid) {
+                log("Solicitação aceita. Aguardando confirmação no Explorer...");
+                const addrKey = String(payload.contractAddress || "").toLowerCase();
+                const cidKey = String(payload.chainId || "");
+                const guidKey = `tokencafe_verify_guid_${cidKey}_${addrKey}`;
+                const guid = (() => {
+                    try { return sessionStorage.getItem(guidKey) || localStorage.getItem(guidKey) || res.guid || ""; } catch (_) { return res.guid || ""; }
+                })();
+                
+                const ok = await monitorVerification(payload.chainId, payload.contractAddress, guid);
+                if (!ok) {
+                    try {
+                        showDiagnosis("INFO", {
+                            title: "Verificação pendente no Explorer",
+                            subtitle: "O Explorer aceitou a solicitação, mas ainda não confirmou. Aguarde e tente novamente.",
+                        });
+                    } catch (_) {}
+                }
+                return ok;
+            }
+            
+            // Sem GUID: o Explorer ainda não aceitou o submit (geralmente indexação).
+            const waitSec = Number(res?.retryAfter || 15);
+            try { updateOpStatus(`Aguardando indexação do Explorer... (${i}/${maxSubmitAttempts})`); } catch (_) {}
+            await new Promise((r) => setTimeout(r, Math.max(5, waitSec) * 1000));
         }
         
-        const res = await runVerifyDirect(payload);
-        
-        if (res.success || res.status === "1" || res.message === "pending") {
-             if (res.status === "1" && res.result === "Already Verified") {
-                 log("Contrato já verificado!");
-                 updateVerificationUI(true);
-                 return;
-             }
-             
-             log("Solicitação enviada. Monitorando confirmação...");
-             try {
-                 const addrKey = String(payload.contractAddress || "").toLowerCase();
-                 const cidKey = String(payload.chainId || "");
-                 const guidKey = `tokencafe_verify_guid_${cidKey}_${addrKey}`;
-                 const guid = sessionStorage.getItem(guidKey) || localStorage.getItem(guidKey) || res.guid || "";
-                 monitorVerification(payload.chainId, payload.contractAddress, guid);
-             } catch (_) {
-                 monitorVerification(payload.chainId, payload.contractAddress);
-             }
-        } else {
-            log(`Falha ao iniciar verificação automática: ${res.message}. Tente manualmente.`);
-            // Mostra opção manual
-            const vc = document.getElementById("verifyLaunchContainer");
-            if (vc) vc.classList.remove("d-none");
-        }
+        log("Explorer não aceitou a verificação dentro do limite de tentativas.");
+        return false;
     } catch (e) {
         log(`Erro na verificação automática: ${e.message}`);
+        return false;
     }
 }
 
@@ -4254,7 +4279,8 @@ async function runVerifyDirect(p) {
     
     const isPending =
       res?.status === "pending" ||
-      String(res?.message || "").toLowerCase() === "pending";
+      String(res?.message || "").toLowerCase() === "pending" ||
+      String(res?.message || "").toLowerCase().includes("pending");
     
     try {
       if (isPending && res?.guid) {
@@ -4266,68 +4292,15 @@ async function runVerifyDirect(p) {
       }
     } catch (_) {}
     
-    // Sucesso imediato OU Já verificado
-    if (res?.success || res?.alreadyVerified || (res?.error && res.error.toLowerCase().includes("already verified"))) {
-      const isAlready = res?.alreadyVerified || (res?.error && res.error.toLowerCase().includes("already verified"));
+    // IMPORTANTE:
+    // - Aqui NÃO marcamos "verificado" no Explorer automaticamente.
+    // - Só retornamos o resultado do envio (pending/success/erro).
+    // - A confirmação final deve acontecer via monitorVerification() (polling).
+    if (res?.success === true) {
       const finalLink = res?.explorerUrl || res?.link || "";
-      
-      log(`✅ Verificação concluída. ${isAlready ? "(Já estava verificado)" : ""} ${finalLink}`);
-      
-      const eventDetail = {
-        address: p.contractAddress,
-        link: finalLink,
-        chainId: p.chainId
-      };
-      
-      // Atualiza UI localmente imediatamente
-      forceVerificationSuccessUI(p.contractAddress, finalLink, p.chainId);
-      
-      document.dispatchEvent(new CustomEvent("contract:verified", { detail: eventDetail }));
-      
+      log(`✅ Explorer confirmou verificação. ${finalLink}`);
     } else if (isPending) {
-      // Se pendente, aguarda e confirma
-      // Se pendente ou já verificado, aguarda e confirma
-      log(`📤 Verificação enviada/processando. Confirmando status...`);
-      
-      setTimeout(async () => {
-        try {
-            const status = res?.guid
-              ? await getVerificationStatusByGuid(p.chainId, res.guid)
-              : await getVerificationStatus(p.chainId, p.contractAddress);
-            
-            if (status?.verified) {
-                log(`✅ Confirmado: Contrato verificado!`);
-                const link = res?.explorerUrl || status?.explorer?.url || res?.link;
-                
-                // Atualiza UI localmente
-                forceVerificationSuccessUI(p.contractAddress, link, p.chainId);
-
-                const eventDetail = {
-                    address: p.contractAddress,
-                    link: link,
-                    chainId: p.chainId
-                };
-                document.dispatchEvent(new CustomEvent("contract:verified", { detail: eventDetail }));
-            } else {
-                log(`⚠️ Ainda não verificado no explorer.`);
-                // Não forçamos UI de sucesso aqui se falhou
-                showDiagnosis("INFO", {
-                  title: "Verificação pendente",
-                  subtitle: "A verificação ainda está propagando no explorer. Aguarde alguns instantes e tente novamente.",
-                });
-                
-                // Reativar botão para permitir nova tentativa
-                const launch = document.getElementById("erc20VerifyLaunch");
-                if (launch) {
-                    launch.disabled = false;
-                    launch.textContent = "Verificar Novamente";
-                }
-            }
-        } catch (errSt) {
-            console.warn("Erro ao checar status pós-envio:", errSt);
-        }
-      }, 5000); // 5 segundos de espera
-      
+      log(`📤 Verificação enviada ao Explorer. Aguardando confirmação...`);
     } else {
       const errMsg = res?.error || res?.status || "Erro desconhecido";
       log(`Falha/erro na verificação: ${errMsg}`);
@@ -4340,17 +4313,8 @@ async function runVerifyDirect(p) {
 }
 
 export async function verifyCurrentContract() {
-  const payload = buildVerifyPayloadFromState();
-  if (payload) {
-      if (!checkIsAdmin()) {
-          const msg = "Certificação bloqueada (Restrito a Administradores).";
-          log(msg);
-          return { success: false, error: msg, skipped: true };
-      }
-
-      return await runVerifyDirect(payload);
-  } else {
-      log("Dados insuficientes para verificação (endereço ou chainId ausentes).");
-      return { success: false, error: "Dados insuficientes" };
-  }
+  // Regra: verificação no Explorer é obrigatória, e não deve ser restrita a administradores
+  // (usa API key do backend). Esta função executa o fluxo completo (envio + polling).
+  const ok = await autoVerifyContract();
+  return { success: ok, verified: ok };
 }

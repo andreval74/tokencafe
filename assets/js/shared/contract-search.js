@@ -621,9 +621,13 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
         const span = document.createElement("span");
         let canRetry = false;
         
-        if (js?.verified) {
+        const explorerVerified = !!(js?.explorerVerified ?? js?.verified);
+
+        // IMPORTANTE:
+        // "Verificado" aqui significa "publicado/confirmado no Explorer (BscScan/Etherscan)".
+        if (explorerVerified) {
                 span.className = "badge-verif-status badge ms-2 tc-status-ok";
-                let content = '<i class="bi bi-shield-check me-1"></i>Verificado';
+                let content = '<i class="bi bi-shield-check me-1"></i>Verificado (Explorer)';
                 if (js.verifiedAt) {
                     content += ` <span class="ms-1 small opacity-75">(${js.verifiedAt})</span>`;
                 }
@@ -674,7 +678,7 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
       }
   
       const warningDiv = container?.querySelector?.("#cs_verifiedWarning") || document.querySelector("#cs_verifiedWarning");
-      if (warningDiv) warningDiv.classList.toggle("d-none", !js?.verified);
+      if (warningDiv) warningDiv.classList.toggle("d-none", !explorerVerified);
       return js;
     } catch (e) {
       log("verify-badge-error", e);

@@ -256,6 +256,14 @@ contract ${safeName} is Ownable, Pausable {
         totalSupply -= value;
         emit Transfer(msg.sender, address(0), value);
     }
+
+    // Função extra para o dono emitir novos tokens (mint)
+    function mint(address to, uint256 value) public onlyOwner {
+        require(to != address(0), "Endereco zero");
+        totalSupply += value;
+        balanceOf[to] += value;
+        emit Transfer(address(0), to, value);
+    }
 }`;
 }
 
@@ -295,7 +303,19 @@ abstract contract Ownable {
     }
 }
 
-contract ${safeName} is Ownable {
+abstract contract Pausable is Ownable {
+    bool private _paused;
+    event Paused(address account);
+    event Unpaused(address account);
+
+    constructor() { _paused = false; }
+    function paused() public view returns (bool) { return _paused; }
+    modifier whenNotPaused() { require(!_paused, "Pausable: paused"); _; }
+    function pause() public onlyOwner { _paused = true; emit Paused(msg.sender); }
+    function unpause() public onlyOwner { _paused = false; emit Unpaused(msg.sender); }
+}
+
+contract ${safeName} is Ownable, Pausable {
     string public name = ${nameLit};
     string public symbol = ${symbolLit};
     uint8 public decimals = ${safeDec};
@@ -339,18 +359,18 @@ contract ${safeName} is Ownable {
         payoutWallet = _payout;
     }
 
-    function transfer(address to, uint256 value) public returns (bool) {
+    function transfer(address to, uint256 value) public whenNotPaused returns (bool) {
         _transfer(msg.sender, to, value);
         return true;
     }
 
-    function approve(address spender, uint256 value) public returns (bool) {
+    function approve(address spender, uint256 value) public whenNotPaused returns (bool) {
         allowance[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 value) public returns (bool) {
+    function transferFrom(address from, address to, uint256 value) public whenNotPaused returns (bool) {
         require(allowance[from][msg.sender] >= value, "Allowance exceeded");
         allowance[from][msg.sender] -= value;
         _transfer(from, to, value);
@@ -367,6 +387,7 @@ contract ${safeName} is Ownable {
     // --- Sale Logic ---
 
     function buy() external payable {
+        require(!paused(), "Sale paused");
         require(saleActive, "Sale inactive");
         require(msg.value >= minPurchaseWei, "Below min purchase");
         require(msg.value <= maxPurchaseWei, "Above max purchase");
@@ -403,6 +424,20 @@ contract ${safeName} is Ownable {
     
     function updatePrice(uint256 _newPrice) external onlyOwner {
         priceWei = _newPrice;
+    }
+
+    function burn(uint256 value) public onlyOwner {
+        require(balanceOf[msg.sender] >= value, "Saldo insuficiente para queimar");
+        balanceOf[msg.sender] -= value;
+        totalSupply -= value;
+        emit Transfer(msg.sender, address(0), value);
+    }
+
+    function mint(address to, uint256 value) public onlyOwner {
+        require(to != address(0), "Endereco zero");
+        totalSupply += value;
+        balanceOf[to] += value;
+        emit Transfer(address(0), to, value);
     }
     
     // Receive fallback
@@ -454,8 +489,10 @@ contract TokenSale {
     uint256 public priceWei;
     uint256 public minPurchaseWei;
     uint256 public maxPurchaseWei;
+    uint256 public capPerWallet;
     
     bool public saleActive = true;
+    mapping(address => uint256) public purchasedAmount;
     
     event Purchased(address indexed buyer, uint256 amount, uint256 cost);
     
@@ -466,7 +503,8 @@ contract TokenSale {
         address payable _wallet,
         uint256 _priceWei,
         uint256 _minWei,
-        uint256 _maxWei
+        uint256 _maxWei,
+        uint256 _capUnits
     ) {
         // Se o tokenAddress for fixo no codigo:
         // token = IERC20(${tokenAddress});
@@ -477,6 +515,7 @@ contract TokenSale {
         priceWei = _priceWei;
         minPurchaseWei = _minWei;
         maxPurchaseWei = _maxWei;
+        capPerWallet = _capUnits * (10 ** token.decimals());
     }
     
     function buy() external payable {
@@ -489,6 +528,11 @@ contract TokenSale {
         uint256 amount = (msg.value * (10**decimals)) / priceWei;
         
         require(token.balanceOf(address(this)) >= amount, "Insufficient tokens in sale");
+
+        if (capPerWallet > 0) {
+            require(purchasedAmount[msg.sender] + amount <= capPerWallet, "Wallet cap exceeded");
+        }
+        purchasedAmount[msg.sender] += amount;
         
         token.transfer(msg.sender, amount);
         
@@ -500,6 +544,10 @@ contract TokenSale {
     
     function setSaleActive(bool _s) external onlyOwner {
         saleActive = _s;
+    }
+
+    function deposit(uint256 amount) external onlyOwner {
+        require(token.transferFrom(msg.sender, address(this), amount), "Deposit failed");
     }
     
     function withdrawRemaining() external onlyOwner {
