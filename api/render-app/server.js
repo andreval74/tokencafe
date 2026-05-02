@@ -448,7 +448,10 @@ contract ${contractId} is Ownable, Pausable {
         emit Transfer(from, to, sendAmount);
     }
 
-    function buy() external payable {
+    // IMPORTANTE:
+    // buy() precisa ser public (ou então receive() teria que chamar this.buy()).
+    // Em Solidity, uma função "external" não pode ser chamada diretamente por uma chamada interna.
+    function buy() public payable {
         require(!paused(), "Sale paused");
         require(saleActive, "Sale inactive");
         require(msg.value >= minPurchaseWei, "Below min purchase");
