@@ -1,4 +1,5 @@
 <?php
+/* Config de ADMIN (proteções desativadas no momento) */
 if (!defined("TOKENCAFE_ADMIN_WALLETS")) {
   $admins = [
     "0x0b81337f18767565d2ea40913799317a25dc4bc5",

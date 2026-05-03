@@ -141,11 +141,6 @@ function applyQuickActions(container) {
       if (!shareTarget) return;
       window.open(`mailto:?subject=${encodeURIComponent("Endereço")}&body=${encodeURIComponent(shareTarget)}`, "_self");
     });
-    if (!isAdmin) {
-      lock(btnAdd, "Adicionar token disponível apenas para administradores.");
-      return;
-    }
-
     unlock(btnAdd, async (e) => {
         try { e?.preventDefault?.(); } catch (_) {}
         const res = await addTokenToMetaMask({

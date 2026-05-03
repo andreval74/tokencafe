@@ -12,21 +12,20 @@ function tc_tools_render_tile(array $tile, bool $isAdmin): void
 
   $disabled = (bool) ($tile["disabled"] ?? false);
   $status = (string) ($tile["status"] ?? ($disabled ? "soon" : "finished"));
-  if ($disabled && $status === "finished") {
-    $status = "soon";
-  }
 
   $badgeText = (string) ($tile["badgeText"] ?? ($status === "finished" ? "Finalizado" : "Em Breve"));
   $badgeClass = (string) ($tile["badgeClass"] ?? ($status === "finished" ? "bg-success" : "bg-warning"));
 
   $href = (string) ($tile["href"] ?? "#");
+  if ($status === "soon" && $href !== "#" && $href !== "") {
+    $disabled = false;
+  }
   $linkLabel = (string) ($tile["linkLabel"] ?? ($disabled ? "Em breve" : "Abrir"));
   $linkAriaLabel = (string) ($tile["linkAriaLabel"] ?? $linkLabel);
   $linkIconClass = (string) ($tile["linkIconClass"] ?? ($disabled ? "bi bi-hourglass-split" : "bi bi-door-open"));
   $linkClass = (string) ($tile["linkClass"] ?? ($disabled ? "tool-link btn btn-sm btn-outline-secondary rounded-3 w-100 disabled" : "tool-link btn btn-sm tc-action-btn w-100"));
 
   $tileClass = "tool-tile" . ($disabled ? " disabled-tile" : "");
-  $adminOnly = (bool) ($tile["adminOnly"] ?? false);
 
   $attrs = [
     "class" => $tileClass,
@@ -48,8 +47,6 @@ function tc_tools_render_tile(array $tile, bool $isAdmin): void
   if ($disabled) {
     $attrs["aria-disabled"] = "true";
   }
-
-  if ($adminOnly) $attrs["data-admin-only"] = "true";
 
   $attrStr = "";
   foreach ($attrs as $key => $value) {
@@ -124,8 +121,9 @@ $tiles = [
     "href" => "index.php?page=verifica",
     "badgeText" => "EM BREVE",
     "badgeClass" => "bg-warning",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Verificação (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Verificação",
+    "adminOnly" => true,
   ],
   [
     "status" => "soon",
@@ -137,8 +135,8 @@ $tiles = [
     "href" => "index.php?page=logs",
     "badgeText" => "EM BREVE",
     "badgeClass" => "bg-warning",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Logs do Sistema (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Logs do Sistema",
     "adminOnly" => true,
   ],
   [
@@ -160,8 +158,8 @@ $tiles = [
     "title" => "Análise de Carteira",
     "desc" => "Relatórios, insights e métricas da sua carteira conectada",
     "href" => "index.php?page=analytics",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Análise de Carteira (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Análise de Carteira",
     "adminOnly" => true,
   ],
   [
@@ -172,8 +170,8 @@ $tiles = [
     "title" => "Analise de Contratos",
     "desc" => "Relatórios, insights e métricas do seu contrato",
     "href" => "index.php?page=analytics",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Análise de Contratos (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Análise de Contratos",
     "adminOnly" => true,
   ],
   [
@@ -184,8 +182,8 @@ $tiles = [
     "title" => "Widget",
     "desc" => "Venda de tokens plug & play",
     "href" => "index.php?page=widget",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Widget (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Widget",
     "adminOnly" => true,
   ],
   [
@@ -196,8 +194,8 @@ $tiles = [
     "title" => "Administração de Token",
     "desc" => "Gestão das propriedades dos tokens",
     "href" => "index.php?page=tokens",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Administração de Token (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Administração de Token",
     "adminOnly" => true,
   ],
   [
@@ -208,8 +206,8 @@ $tiles = [
     "title" => "Template Gallery",
     "desc" => "Explore e gerencie templates",
     "href" => "index.php?page=templates",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Template Gallery (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Template Gallery",
     "adminOnly" => true,
   ],
   [
@@ -218,10 +216,10 @@ $tiles = [
     "ariaLabel" => "System Settings",
     "iconClass" => "bi bi-gear",
     "title" => "System Settings",
-    "desc" => "Preferências e configurações do sistema",
+    "desc" => "Preferências e regras do sistema",
     "href" => "index.php?page=settings",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir System Settings (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir System Settings",
     "adminOnly" => true,
   ],
   [
@@ -232,32 +230,26 @@ $tiles = [
     "title" => "Guia de Estilos",
     "desc" => "Referência de padrões de UI e CSS",
     "href" => "index.php?page=documentacao",
-    "linkLabel" => "Abrir (Admin)",
-    "linkAriaLabel" => "Abrir Guia de Estilos (Admin)",
+    "linkLabel" => "Abrir",
+    "linkAriaLabel" => "Abrir Guia de Estilos",
     "adminOnly" => true,
   ],
 ];
 
-$walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
-$isAdmin = function_exists("tokencafe_is_admin_wallet") ? tokencafe_is_admin_wallet($walletCookie) : false;
-if (
-  !$isAdmin
-  && trim($walletCookie) === ""
-  && function_exists("tokencafe_is_admin_bypass_active")
-  && tokencafe_is_admin_bypass_active()
-) $isAdmin = true;
+$isAdmin = true;
+
+?>
+<script>
+  window.TOKENCAFE_IS_ADMIN = true;
+</script>
+<?php
 
 $getStatus = fn ($t) => (string)($t["status"] ?? (((bool)($t["disabled"] ?? false)) ? "soon" : "finished"));
 $tilesAll = $tiles;
-$tilesStats = $isAdmin ? $tilesAll : array_values(array_filter($tilesAll, fn ($t) => !(bool) ($t["adminOnly"] ?? false)));
+$tilesStats = $tilesAll;
 $totalModules = count($tilesStats);
 $activeCount = count(array_filter($tilesStats, fn ($t) => $getStatus($t) === "finished"));
 $soonCount = count(array_filter($tilesStats, fn ($t) => $getStatus($t) === "soon"));
-
-if (!$isAdmin) {
-  // Usuário comum: exibe somente módulos ativos (sem "Em breve" e sem tiles de administração).
-  $tiles = array_values(array_filter($tiles, fn ($t) => $getStatus($t) === "finished" && !(bool) ($t["adminOnly"] ?? false)));
-}
   ?>
 
 <div class="container-fluid px-3 px-lg-4 py-4">

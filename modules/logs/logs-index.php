@@ -2,9 +2,8 @@
 require_once __DIR__ . "/../../includes/admin-config.php";
 
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
-$isChief = tokencafe_is_chief_admin($walletCookie);
-if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
-$hasWallet = trim($walletCookie) !== "";
+$isChief = true;
+$hasWallet = true;
 
 $endDate = isset($_GET["end"]) ? trim((string) $_GET["end"]) : "";
 $startDate = isset($_GET["start"]) ? trim((string) $_GET["start"]) : "";
@@ -49,17 +48,9 @@ $clientFile = $logsDir . DIRECTORY_SEPARATOR . "SCLogs-" . $endDate . ".php";
 $filterWallet = "";
 $filterChain = "";
 $filterContract = "";
-if ($isChief) {
-  $filterWallet = strtolower(trim((string) ($_GET["f_wallet"] ?? "")));
-  $filterChain = trim((string) ($_GET["f_chain"] ?? ""));
-  $filterContract = strtolower(trim((string) ($_GET["f_contract"] ?? "")));
-} else {
-  if ($hasWallet) {
-    $filterWallet = strtolower(trim($walletCookie));
-    $filterChain = "";
-    $filterContract = "";
-  }
-}
+$filterWallet = strtolower(trim((string) ($_GET["f_wallet"] ?? "")));
+$filterChain = trim((string) ($_GET["f_chain"] ?? ""));
+$filterContract = strtolower(trim((string) ($_GET["f_contract"] ?? "")));
 
 $normChain = function (string $chain): string {
   $chain = trim($chain);

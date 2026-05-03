@@ -445,51 +445,12 @@ function render_page(string $viewPath, array $options = []): void
   tokencafe_log_visit($pageHint);
   tokencafe_cleanup_admin_logs(365);
 
-  $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
-  $isAdmin = tokencafe_is_admin_wallet($walletCookie);
-  if (!$isAdmin && trim($walletCookie) === "" && tokencafe_is_admin_bypass_active()) $isAdmin = true;
-
-  try {
-    $key = isset($_GET["admin_key"]) ? (string) $_GET["admin_key"] : "";
-    if (!$isAdmin && tokencafe_check_admin_bypass_key($key)) {
-      $cookieName = defined("TOKENCAFE_ADMIN_BYPASS_COOKIE") ? (string) TOKENCAFE_ADMIN_BYPASS_COOKIE : "tokencafe_admin_bypass";
-      $secure = !empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off";
-      setcookie($cookieName, "1", [
-        "expires" => time() + 60 * 60 * 12,
-        "path" => "/",
-        "secure" => $secure,
-        "httponly" => false,
-        "samesite" => "Lax",
-      ]);
-      $isAdmin = true;
-    }
-  } catch (Throwable $e) {}
-
-  try {
-    $requestedPage = isset($_GET["page"]) ? strtolower(trim((string) $_GET["page"])) : "";
-    $requestedPage = preg_replace('/[^a-z0-9_-]+/', "", $requestedPage);
-    $adminPreviewPages = [
-      "analytics",
-      "widget",
-      "templates",
-      "settings",
-      "tokens",
-      "token-add",
-      "token-manager",
-      "documentacao",
-    ];
-    if ($requestedPage !== "" && in_array($requestedPage, $adminPreviewPages, true) && !$isAdmin) {
-      $fallback = $projectRoot . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "site" . DIRECTORY_SEPARATOR . "tools.php";
-      if (is_file($fallback)) {
-        $viewPathReal = $fallback;
-      }
-    }
-  } catch (Throwable $e) {}
+  $isAdmin = true;
 
   $maintenanceEnabled = defined("TOKENCAFE_MAINTENANCE_MODE") ? (bool) TOKENCAFE_MAINTENANCE_MODE : false;
-  $maintenancePreview = $isAdmin && isset($_GET["maintenance"]) && (string) $_GET["maintenance"] === "1";
+  $maintenancePreview = isset($_GET["maintenance"]) && (string) $_GET["maintenance"] === "1";
 
-  if (($maintenanceEnabled && !$isLocal && !$isAdmin) || $maintenancePreview) {
+  if (($maintenanceEnabled && !$isLocal) || $maintenancePreview) {
     $maintenanceView = $projectRoot . DIRECTORY_SEPARATOR . "modules" . DIRECTORY_SEPARATOR . "site" . DIRECTORY_SEPARATOR . "maintenance.php";
     if (is_file($maintenanceView)) {
       $viewPathReal = $maintenanceView;
@@ -608,4 +569,3 @@ function render_page(string $viewPath, array $options = []): void
 
   include $projectRoot . DIRECTORY_SEPARATOR . "main-layout.php";
 }
-

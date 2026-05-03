@@ -1,18 +1,7 @@
 <?php
 require_once __DIR__ . "/includes/admin-config.php";
 
-$walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
-$isChief = tokencafe_is_chief_admin($walletCookie);
-if (!$isChief && function_exists("tokencafe_is_admin_bypass_active") && tokencafe_is_admin_bypass_active()) $isChief = true;
-
-$walletCookie = strtolower(trim($walletCookie));
-$hasWallet = $walletCookie !== "";
-$isUser = !$isChief;
-if ($isUser && !$hasWallet) {
-  http_response_code(403);
-  echo "Acesso negado.";
-  exit;
-}
+$walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? strtolower(trim((string) $_COOKIE[TOKENCAFE_WALLET_COOKIE])) : "";
 
 $type = isset($_GET["type"]) ? strtolower(trim((string) $_GET["type"])) : "";
 $date = isset($_GET["date"]) ? trim((string) $_GET["date"]) : "";
@@ -28,17 +17,6 @@ if (!in_array($type, ["visits", "client", "ip", "sc"], true)) {
   http_response_code(400);
   echo "Tipo inválido.";
   exit;
-}
-
-if ($isUser && !in_array($type, ["ip", "sc"], true)) {
-  http_response_code(403);
-  echo "Acesso negado.";
-  exit;
-}
-
-if ($isUser) {
-  $fltWallet = $walletCookie;
-  $fltIp = "";
 }
 
 $rangeMode = preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $end);

@@ -114,16 +114,14 @@ const accessControl = {
 
   apply(walletAddress) {
     const tiles = document.querySelectorAll(".tool-tile");
-    const isAdmin = isWalletAdmin(walletAddress);
-    
-    console.log(`Access Control: Applying rules for ${walletAddress || 'Guest'} (Admin: ${isAdmin})`);
+    console.log(`Access Control: Applying rules for ${walletAddress || 'Guest'}`);
 
     tiles.forEach((tile) => {
       tile.classList.remove("d-none");
+      tile.classList.remove("disabled-tile", "tc-tool-tile--admin-preview");
+      tile.removeAttribute("aria-disabled");
 
       const status = String(tile.getAttribute("data-status") || "");
-      const isFinished = status === "finished";
-      const isAdminOnly = tile.getAttribute("data-admin-only") === "true";
 
       const badgeEl = tile.querySelector(".tool-tile-status");
       const linkEl = tile.querySelector("a.tool-link") || tile.querySelector("a");
@@ -136,60 +134,22 @@ const accessControl = {
       const originalLinkAria = tile.getAttribute("data-link-aria-label") || (linkEl ? linkEl.getAttribute("aria-label") : "");
       const originalLinkIconClass = tile.getAttribute("data-link-icon-class") || (iconEl ? iconEl.className : "");
       const originalLinkClass = tile.getAttribute("data-link-class") || (linkEl ? linkEl.className : "");
-
-      const locked = isAdminOnly && !isAdmin;
-
-      if (locked) {
-        tile.classList.add("disabled-tile");
-        tile.setAttribute("aria-disabled", "true");
-
-        if (badgeEl) {
-          badgeEl.textContent = isFinished ? "Finalizado • ADM" : "Em Breve • ADM";
-          badgeEl.className = "tool-tile-status badge bg-secondary";
-        }
-
-        if (linkEl) {
-          linkEl.className = "tool-link btn btn-sm btn-outline-secondary rounded-3 w-100 disabled";
-          linkEl.setAttribute("href", "#");
-          linkEl.setAttribute("tabindex", "-1");
-          linkEl.setAttribute("aria-disabled", "true");
-          linkEl.setAttribute("aria-label", "Somente ADM");
-          linkEl.textContent = "Somente ADM";
-          if (iconEl) {
-            iconEl.className = "bi bi-lock-fill me-1";
-            linkEl.prepend(iconEl);
-          }
-        }
-      } else {
-        if (isAdminOnly) {
-          tile.removeAttribute("aria-disabled");
-          tile.classList.remove("disabled-tile");
-          if (badgeEl) {
-            badgeEl.textContent = originalBadgeText;
-            badgeEl.className = `tool-tile-status badge ${originalBadgeClass}`.trim();
-          }
-          if (linkEl) {
-            linkEl.className = originalLinkClass;
-            if (originalHref) linkEl.setAttribute("href", originalHref);
-            if (originalLinkAria) linkEl.setAttribute("aria-label", originalLinkAria);
-            linkEl.removeAttribute("tabindex");
-            linkEl.removeAttribute("aria-disabled");
-            linkEl.textContent = originalLinkLabel;
-            if (iconEl && originalLinkIconClass) {
-              iconEl.className = originalLinkIconClass;
-              linkEl.prepend(iconEl);
-            }
-          }
-        } else {
-          if (badgeEl) {
-            badgeEl.textContent = originalBadgeText;
-            if (originalBadgeClass) badgeEl.className = `tool-tile-status badge ${originalBadgeClass}`.trim();
-          }
+      if (badgeEl) {
+        badgeEl.textContent = originalBadgeText;
+        if (originalBadgeClass) badgeEl.className = `tool-tile-status badge ${originalBadgeClass}`.trim();
+      }
+      if (linkEl) {
+        linkEl.className = originalLinkClass;
+        if (originalHref) linkEl.setAttribute("href", originalHref);
+        if (originalLinkAria) linkEl.setAttribute("aria-label", originalLinkAria);
+        linkEl.removeAttribute("tabindex");
+        linkEl.removeAttribute("aria-disabled");
+        linkEl.textContent = originalLinkLabel;
+        if (iconEl && originalLinkIconClass) {
+          iconEl.className = originalLinkIconClass;
+          linkEl.prepend(iconEl);
         }
       }
-
-      if (isAdmin && !isFinished) tile.classList.add("tc-tool-tile--admin-preview");
-      else tile.classList.remove("tc-tool-tile--admin-preview");
     });
   }
 };

@@ -444,6 +444,34 @@ class BaseSystem {
       if (redirect) window.location.href = redirect;
     });
 
+    try {
+      const key = "tokencafe_last_wallet_account";
+      const getLower = (v) => {
+        try { return String(v || "").toLowerCase(); } catch (_) { return ""; }
+      };
+      const rememberAndReloadIfChanged = (next) => {
+        try {
+          const n = getLower(next);
+          const prev = getLower(sessionStorage.getItem(key));
+          if (n && prev !== n) {
+            sessionStorage.setItem(key, n);
+            window.location.reload();
+            return;
+          }
+          if (n && !prev) sessionStorage.setItem(key, n);
+        } catch (_) {}
+      };
+      document.addEventListener("wallet:connected", (ev) => rememberAndReloadIfChanged(ev?.detail?.account));
+      document.addEventListener("wallet:accountChanged", (ev) => rememberAndReloadIfChanged(ev?.detail?.account));
+      document.addEventListener("wallet:disconnected", () => {
+        try {
+          const prev = getLower(sessionStorage.getItem(key));
+          if (prev) sessionStorage.removeItem(key);
+          if (prev) window.location.reload();
+        } catch (_) {}
+      });
+    } catch (_) {}
+
     // Sanitização global de campos: exposta como função reutilizável
     // Evita duplicação e garante padrão em todo o ecossistema
     window.bindInputSanitizer = (unusedOptions = {}) => {
