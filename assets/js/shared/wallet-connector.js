@@ -52,6 +52,11 @@ export class WalletConnector {
     } catch (_) {
       this.sessionAuthorized = false;
     }
+    try {
+      if (!this.sessionAuthorized) {
+        document.cookie = "tokencafe_wallet_session_authorized=; Path=/; Max-Age=0; SameSite=Lax";
+      }
+    } catch (_) {}
 
     this.init();
   }
@@ -181,6 +186,9 @@ export class WalletConnector {
       try {
         sessionStorage.setItem("tokencafe_wallet_session_authorized", "true");
       } catch (_) {}
+      try {
+        document.cookie = "tokencafe_wallet_session_authorized=1; Path=/; SameSite=Lax";
+      } catch (_) {}
       await this.updateNetworkInfo();
       await this.updateBalance();
       this.setupWalletListeners();
@@ -285,6 +293,9 @@ export class WalletConnector {
       this.sessionAuthorized = false;
       try {
         sessionStorage.removeItem("tokencafe_wallet_session_authorized");
+      } catch (_) {}
+      try {
+        document.cookie = "tokencafe_wallet_session_authorized=; Path=/; Max-Age=0; SameSite=Lax";
       } catch (_) {}
 
       // Remover listeners
@@ -737,6 +748,9 @@ export class WalletConnector {
     this.sessionAuthorized = false;
     try {
       sessionStorage.removeItem("tokencafe_wallet_session_authorized");
+    } catch (_) {}
+    try {
+      document.cookie = "tokencafe_wallet_session_authorized=; Path=/; Max-Age=0; SameSite=Lax";
     } catch (_) {}
     try {
       localStorage.removeItem("tokencafe_wallet_address");

@@ -29,7 +29,10 @@ $resolved = tokencafe_resolve_page($page);
 if ($resolved && is_file($resolved)) {
   $resolvedNorm = strtolower(str_replace("\\", "/", (string) $resolved));
   $isSiteView = str_contains($resolvedNorm, "/modules/site/") || str_ends_with($resolvedNorm, "modules/site/home.php") || str_ends_with($resolvedNorm, "modules/site/home-basica.php");
-  $isInShell = in_array($page, ["tools", "suporte", "privacidade", "termos-e-servicos", "documentacao"], true);
+  $sessionCookieRaw = isset($_COOKIE["tokencafe_wallet_session_authorized"]) ? (string) $_COOKIE["tokencafe_wallet_session_authorized"] : "";
+  $sessionCookieRaw = strtolower(trim(urldecode($sessionCookieRaw)));
+  $isSessionAuthorized = in_array($sessionCookieRaw, ["1", "true", "yes", "on"], true);
+  $isInShell = $isSessionAuthorized && in_array($page, ["tools", "suporte", "privacidade", "termos-e-servicos", "documentacao", "social"], true);
   $isAppShell = $isInShell || !$isSiteView;
 
   if ($isAppShell) {

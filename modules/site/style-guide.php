@@ -1,6 +1,52 @@
-<div class="TokenCafe-content">
-  <div class="container py-4">
-    <h1 class="mb-4 text-white">Guia de Estilos</h1>
+<div class="TokenCafe-content text-align-left">
+  <section class="tc-hero-section">
+    <div class="container">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-10 text-center">
+          <h1 class="display-4 fw-bold mb-2 text-white">
+            <span class="gradient-text">Documentação</span>
+          </h1>
+          <p class="lead text-light mb-3">
+            Referência de UI e padrões visuais do TokenCafe.
+          </p>
+          <div class="d-flex flex-wrap justify-content-center gap-3">
+            <span class="badge bg-primary text-dark px-3 py-2">
+              <i class="bi bi-book me-2"></i>
+              UI e Componentes
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tc-black-panel py-2 mt-4">
+      <div class="blockchain-slider">
+        <div class="blockchain-track">
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-ui-checks-grid text-primary"></i><span>Componentes</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-palette text-primary"></i><span>Paleta</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-type text-primary"></i><span>Tipografia</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-input-cursor-text text-primary"></i><span>Formulários</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-grid text-primary"></i><span>Grid e Layout</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-magic text-primary"></i><span>Estados e Feedback</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-lightning-charge text-primary"></i><span>Interações</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-shield-check text-primary"></i><span>Padrões</span></span>
+
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-ui-checks-grid text-primary"></i><span>Componentes</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-palette text-primary"></i><span>Paleta</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-type text-primary"></i><span>Tipografia</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-input-cursor-text text-primary"></i><span>Formulários</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-grid text-primary"></i><span>Grid e Layout</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-magic text-primary"></i><span>Estados e Feedback</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-lightning-charge text-primary"></i><span>Interações</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-shield-check text-primary"></i><span>Padrões</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
     <section class="mb-4">
       <h2 class="h4 mb-3 text-white">Botões (outline)</h2>
       <div class="d-flex flex-wrap gap-2 mb-2">
@@ -95,5 +141,8 @@
         </button>
       </div>
     </section>
-  </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>

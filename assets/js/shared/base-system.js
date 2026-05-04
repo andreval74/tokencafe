@@ -685,7 +685,7 @@ class BaseSystem {
       const path = String(window.location.pathname || "");
       const url = new URL(window.location.href);
       
-      const publicPages = new Set(["", "home", "home-basica", "suporte", "privacidade", "termos-e-servicos"]);
+      const publicPages = new Set(["", "home", "home-basica", "tools", "suporte", "social", "privacidade", "termos-e-servicos"]);
       const page = String(url.searchParams.get("page") || "").toLowerCase();
 
       // Whitelist de páginas que não requerem autenticação imediata

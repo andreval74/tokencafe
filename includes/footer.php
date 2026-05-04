@@ -61,11 +61,11 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
                 </a>
               </li>
               <li class="mb-2">
-                <a href="index.php?page=suporte" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-headset me-1"></i>
-                  Suporte
+                <a href="index.php?page=social" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-people me-1"></i>
+                  Social
                 </a>
-              </li>
+              </li>              
             </ul>
           </div>
 
@@ -96,22 +96,10 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
             <h6 class="mb-3 fw-semibold text-warning">Suporte</h6>
             <ul class="list-unstyled">
               <li class="mb-2">
-                <a href="index.php?page=social" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-people me-1"></i>
-                  Social
+                <a href="index.php?page=suporte" class="text-white-50 neon-link-small-hover text-xs">
+                  <i class="bi bi-headset me-1"></i>
+                  Suporte
                 </a>
-              </li>
-              <li class="mb-2">
-                <a href="index.php?page=documentacao" class="text-white-50 neon-link-small-hover text-xs">
-                  <i class="bi bi-book me-1"></i>
-                  Documentação
-                </a>
-              </li>
-              <li class="mb-2">
-                <span class="text-white-50 text-xs">
-                  <i class="bi bi-check-circle me-1 text-success"></i>
-                  Status
-                </span>
               </li>
             </ul>
           </div>
@@ -150,8 +138,8 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
           <p class="footer-text text-center text-white-50 small mb-0">
             <i class="bi bi-code-slash"></i>
             Desenvolvido pela equipe
-            <strong class="footer-brand text-white">Token</strong>
-            <strong class="footer-brand text-warning">Cafe</strong>
+            <strong class="footer-brand text-white">Web</strong>
+            <strong class="footer-brand text-warning">Keeper</strong>
           </p>
         </footer>
       </div>

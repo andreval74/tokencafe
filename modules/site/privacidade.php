@@ -1,9 +1,54 @@
-<div class="TokenCafe-container align-items-start">
-  <div class="TokenCafe-content TokenCafe-fade-in-up text-align-left pt-2 mt-2">
-    <div class="row justify-content-center">
-      <div class="col-lg-10 terms-content">
-        <h1>Política de Privacidade – TokenCafe.app</h1>
-        <p><strong>Última atualização:</strong> 19 de março de 2026</p>
+<div class="TokenCafe-content text-align-left">
+  <section class="tc-hero-section">
+    <div class="container">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-10 text-center">
+          <h1 class="display-4 fw-bold mb-2 text-white">
+            Política de <span class="gradient-text">Privacidade</span>
+          </h1>
+          <p class="lead text-light mb-3">
+            Transparência, segurança e privacidade por padrão.
+          </p>
+          <div class="d-flex flex-wrap justify-content-center gap-3">
+            <span class="badge bg-primary text-dark px-3 py-2">
+              <i class="bi bi-calendar3 me-2"></i>
+              Última atualização: 19 de março de 2026
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tc-black-panel py-2 mt-4">
+      <div class="blockchain-slider">
+        <div class="blockchain-track">
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-person-x text-primary"></i><span>Sem KYC</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-database-x text-primary"></i><span>Sem banco central</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-cookie text-primary"></i><span>Cookies técnicos</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-geo-alt text-primary"></i><span>Sem geolocalização precisa</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-router text-primary"></i><span>Logs mínimos de segurança</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-diagram-3 text-primary"></i><span>Arquitetura Web3</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-shield-check text-primary"></i><span>Privacidade por padrão</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-lock text-primary"></i><span>Segurança e prevenção</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-globe2 text-primary"></i><span>LGPD + RGPD</span></span>
+
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-person-x text-primary"></i><span>Sem KYC</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-database-x text-primary"></i><span>Sem banco central</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-cookie text-primary"></i><span>Cookies técnicos</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-geo-alt text-primary"></i><span>Sem geolocalização precisa</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-router text-primary"></i><span>Logs mínimos de segurança</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-diagram-3 text-primary"></i><span>Arquitetura Web3</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-shield-check text-primary"></i><span>Privacidade por padrão</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-lock text-primary"></i><span>Segurança e prevenção</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-globe2 text-primary"></i><span>LGPD + RGPD</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-10 terms-content">
         <p>A TokenCafe.app considera de extrema importância a proteção da privacidade e a segurança dos dados. Esta Política de Privacidade foi elaborada em conformidade com a Lei Geral de Proteção de Dados (LGPD – Lei nº 13.709/2018) e o Regulamento Geral de Proteção de Dados da União Europeia (RGPD/GDPR), adotando os princípios de finalidade, adequação, necessidade, transparência, segurança, prevenção, não discriminação, responsabilidade e ética.</p>
         <div class="important">
           <strong>IMPORTANTE:</strong> O TokenCafe.app é uma plataforma Web3 descentralizada.
@@ -60,7 +105,8 @@
           TokenCafe.app – Infraestrutura Web3 Global<br>
           Privacidade máxima. Descentralização total. Conformidade LGPD + RGPD.
         </p>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 </div>

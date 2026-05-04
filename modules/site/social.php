@@ -21,15 +21,25 @@
     <div class="tc-black-panel py-2 mt-4">
       <div class="blockchain-slider">
         <div class="blockchain-track">
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-building text-primary"></i><span>Instituto LumenEdu</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-mortarboard-fill text-primary"></i><span>Fundo Aurora Learn</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-globe2 text-primary"></i><span>Global Cidadã Web3</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-bank2 text-primary"></i><span>Instituto BlockSeed</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-lightning-charge-fill text-primary"></i><span>Nexus Educação On-Chain</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-people-fill text-primary"></i><span>Rede Inclusiva Crypto BR</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-compass-fill text-primary"></i><span>Programa Horizonte Web3</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-gem text-primary"></i><span>Fundação FuturoChain</span></span>
-          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-award-fill text-primary"></i><span>Aliança Learn-to-Earn</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-mortarboard text-primary"></i><span>Educação Web3</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-heart text-primary"></i><span>Fundo TokenCafe Social</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-people text-primary"></i><span>Inclusão Real</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-award text-primary"></i><span>Learn-to-Earn</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-globe2 text-primary"></i><span>Programas Regionais</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-building text-primary"></i><span>Parcerias com Instituições</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-briefcase text-primary"></i><span>Apoio de Empresas</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-chat-dots text-primary"></i><span>Comunidades e Mentorias</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-lightning-charge text-primary"></i><span>Impacto Mensurável</span></span>
+
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-mortarboard text-primary"></i><span>Educação Web3</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-heart text-primary"></i><span>Fundo TokenCafe Social</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-people text-primary"></i><span>Inclusão Real</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-award text-primary"></i><span>Learn-to-Earn</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-globe2 text-primary"></i><span>Programas Regionais</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-building text-primary"></i><span>Parcerias com Instituições</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-briefcase text-primary"></i><span>Apoio de Empresas</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-chat-dots text-primary"></i><span>Comunidades e Mentorias</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-lightning-charge text-primary"></i><span>Impacto Mensurável</span></span>
         </div>
       </div>
     </div>
@@ -42,53 +52,73 @@
           <h2 class="h1 fw-bold text-white mb-2">Como a TokenCafe gera impacto</h2>
           <div class="text-secondary mb-3">Iniciativas práticas, com foco em educação, inclusão e resultado.</div>
 
-          <ul class="list-unstyled m-0">
-            <li class="d-flex gap-3 align-items-start mb-3">
-              <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
-                <i class="bi bi-heart text-primary"></i>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+                <div class="d-flex gap-3 align-items-start">
+                  <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
+                    <i class="bi bi-heart text-primary"></i>
+                  </div>
+                  <div>
+                    <div class="text-white fw-semibold">Fundo TokenCafe Social</div>
+                    <div class="text-secondary">2% da receita dedicada ao Fundo TokenCafe Social</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div class="text-white fw-semibold">Fundo TokenCafe Social</div>
-                <div class="text-secondary">2% da receita dedicada ao Fundo TokenCafe Social</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+                <div class="d-flex gap-3 align-items-start">
+                  <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
+                    <i class="bi bi-mortarboard text-primary"></i>
+                  </div>
+                  <div>
+                    <div class="text-white fw-semibold">TokenCafe Academy</div>
+                    <div class="text-secondary">Trilhas gratuitas de educação Web3 em português</div>
+                  </div>
+                </div>
               </div>
-            </li>            
-            <li class="d-flex gap-3 align-items-start mb-3">
-              <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
-                <i class="bi bi-mortarboard text-primary"></i>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+                <div class="d-flex gap-3 align-items-start">
+                  <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
+                    <i class="bi bi-people text-primary"></i>
+                  </div>
+                  <div>
+                    <div class="text-white fw-semibold">Inclusão Real</div>
+                    <div class="text-secondary">Foco em mulheres, periferias e PMEs brasileiras</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div class="text-white fw-semibold">TokenCafe Academy</div>
-                <div class="text-secondary">Trilhas gratuitas de educação Web3 em português</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+                <div class="d-flex gap-3 align-items-start">
+                  <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
+                    <i class="bi bi-award text-primary"></i>
+                  </div>
+                  <div>
+                    <div class="text-white fw-semibold">Learn-to-Earn</div>
+                    <div class="text-secondary">Missões educativas com recompensas em tokens</div>
+                  </div>
+                </div>
               </div>
-            </li>
-            <li class="d-flex gap-3 align-items-start mb-3">
-              <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
-                <i class="bi bi-people text-primary"></i>
+            </div>
+            <div class="col-12">
+              <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+                <div class="d-flex gap-3 align-items-start">
+                  <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
+                    <i class="bi bi-geo-alt text-primary"></i>
+                  </div>
+                  <div>
+                    <div class="text-white fw-semibold">Foco Regional</div>
+                    <div class="text-secondary">Programas específicos para cada região do Brasil</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div class="text-white fw-semibold">Inclusão Real</div>
-                <div class="text-secondary">Foco em mulheres, periferias e PMEs brasileiras</div>
-              </div>
-            </li>
-            <li class="d-flex gap-3 align-items-start mb-3">
-              <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
-                <i class="bi bi-award text-primary"></i>
-              </div>
-              <div>
-                <div class="text-white fw-semibold">Learn-to-Earn</div>
-                <div class="text-secondary">Missões educativas com recompensas em tokens</div>
-              </div>
-            </li>
-            <li class="d-flex gap-3 align-items-start">
-              <div class="badge bg-dark-elevated border border-secondary border-opacity-25 badge-circle-lg mt-1">
-                <i class="bi bi-geo-alt text-primary"></i>
-              </div>
-              <div>
-                <div class="text-white fw-semibold">Foco Regional</div>
-                <div class="text-secondary">Programas específicos para cada região do Brasil</div>
-              </div>
-            </li>
-          </ul>
+            </div>
+          </div>
         </div>
 
         <div class="col-lg-5 text-center">
@@ -98,6 +128,46 @@
             <div class="display-4 text-primary fw-bold mb-2">10.000</div>
             <div class="text-secondary mb-1">Pessoas capacitadas em Web3</div>
             <div class="text-muted small">Até 2028 - Compromisso social verificável on-chain</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pb-5">
+    <div class="container">
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-people-fill text-primary fs-4"></i>
+              <div>
+                <div class="text-white fw-semibold">Comunidades</div>
+                <div class="text-secondary">Parcerias para eventos, mentorias e trilhas práticas.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-building text-primary fs-4"></i>
+              <div>
+                <div class="text-white fw-semibold">Instituições</div>
+                <div class="text-secondary">Conteúdos e workshops para educação e inclusão digital.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="h-100 p-3 bg-dark-elevated border border-secondary border-opacity-25 rounded-4">
+            <div class="d-flex align-items-start gap-3">
+              <i class="bi bi-briefcase-fill text-primary fs-4"></i>
+              <div>
+                <div class="text-white fw-semibold">Empresas</div>
+                <div class="text-secondary">Apoio a programas regionais e iniciativas Learn-to-Earn.</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

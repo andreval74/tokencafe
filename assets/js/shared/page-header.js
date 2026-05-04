@@ -11,6 +11,14 @@
     nav.classList.toggle("tc-navbar-scrolled", scrolled);
   };
 
+  const syncNavbarOffset = () => {
+    try {
+      if (!nav) return;
+      const h = Math.max(0, Math.round(nav.getBoundingClientRect().height || 0));
+      if (h > 0) document.documentElement.style.setProperty("--tc-navbar-offset", `${h}px`);
+    } catch (_) {}
+  };
+
   const isWalletUiDisabled = () => {
     try {
       const url = new URL(window.location.href);
@@ -73,8 +81,10 @@
   } catch {}
 
   try {
+    syncNavbarOffset();
     updateNavScrollState();
     window.addEventListener("scroll", updateNavScrollState, { passive: true });
+    window.addEventListener("resize", syncNavbarOffset, { passive: true });
   } catch (_) {}
 
   const refresh = () => updateStatusByStatus();

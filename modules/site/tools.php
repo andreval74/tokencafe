@@ -223,14 +223,13 @@ $tiles = [
     "adminOnly" => true,
   ],
   [
-    "disabled" => true,
-    "status" => "soon",
+    "status" => "finished",
     "ariaLabel" => "Guia de Estilos",
     "iconClass" => "bi bi-palette",
     "title" => "Guia de Estilos",
     "desc" => "Referência de padrões de UI e CSS",
     "href" => "index.php?page=documentacao",
-    "linkLabel" => "Abrir",
+    "linkLabel" => "Abrir Módulo",
     "linkAriaLabel" => "Abrir Guia de Estilos",
     "adminOnly" => true,
   ],
@@ -240,103 +239,160 @@ $walletCookieName = defined("TOKENCAFE_WALLET_COOKIE") ? (string) TOKENCAFE_WALL
 $walletCookieRaw = isset($_COOKIE[$walletCookieName]) ? (string) $_COOKIE[$walletCookieName] : "";
 $walletCookie = strtolower(trim(urldecode($walletCookieRaw)));
 $isAdmin = tokencafe_is_admin_wallet($walletCookie) || tokencafe_is_admin_bypass_active();
+$sessionCookieRaw = isset($_COOKIE["tokencafe_wallet_session_authorized"]) ? (string) $_COOKIE["tokencafe_wallet_session_authorized"] : "";
+$sessionCookieRaw = strtolower(trim(urldecode($sessionCookieRaw)));
+$isConnected = in_array($sessionCookieRaw, ["1", "true", "yes", "on"], true);
 
 ?>
 <script>
   window.TOKENCAFE_IS_ADMIN = <?= $isAdmin ? "true" : "false" ?>;
 </script>
-<?php
+<?php if (!$isConnected) { ?>
+  <div class="container px-3 px-lg-4 py-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-9 col-xl-8">
+        <div class="p-4 p-lg-5 bg-dark border border-secondary border-opacity-25 rounded-4">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <i class="bi bi-tools text-warning fs-2"></i>
+            <div class="lh-1">
+              <div class="fw-bold text-white fs-3">TokenCafe Tools</div>
+              <div class="text-white-50 small">Hub Central de Ferramentas Web3</div>
+            </div>
+          </div>
 
-$getStatus = fn ($t) => (string)($t["status"] ?? (((bool)($t["disabled"] ?? false)) ? "soon" : "finished"));
-$tilesAll = $tiles;
-$tilesUser = array_values(array_filter($tilesAll, function ($t) use ($getStatus) {
-  $adminOnly = (bool) ($t["adminOnly"] ?? false);
-  if ($adminOnly) return false;
-  return $getStatus($t) === "finished";
-}));
-$tilesToRender = $isAdmin ? $tilesAll : $tilesUser;
-$totalModules = count($tilesToRender);
-$activeCount = count(array_filter($tilesToRender, fn ($t) => $getStatus($t) === "finished"));
-$soonCount = count(array_filter($tilesToRender, fn ($t) => $getStatus($t) === "soon"));
-  ?>
+          <p class="text-white-50 mb-4">
+            Para acessar o menu de ferramentas, status do sistema e módulos, conecte sua carteira.
+          </p>
 
-<div class="container-fluid px-3 px-lg-4 py-4">
-  <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
-    <div>
-      <div class="fw-bold text-white">Status do Sistema</div>
-      <div class="text-white-50 small">Verificar saúde do sistema, se todas as funcionalidades estão operacionais e atualizadas.</div>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="#" id="tcToolsGuestConnectBtn" class="btn btn-primary fw-bold">
+              <i class="bi bi-wallet2 me-1"></i>
+              Conectar carteira
+            </a>
+            <a href="index.php?page=suporte" class="btn btn-outline-light">
+              <i class="bi bi-headset me-1"></i>
+              Suporte
+            </a>
+            <a href="index.php?page=privacidade" class="btn btn-outline-light">
+              <i class="bi bi-shield me-1"></i>
+              Privacidade
+            </a>
+            <a href="index.php?page=termos-e-servicos" class="btn btn-outline-light">
+              <i class="bi bi-file-earmark-text me-1"></i>
+              Termos
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-
-  <?php /* Contadores usados pelo componente de Status do Sistema */ ?>
-  <div
-    class="mb-3"
-    data-component="modules/system-status/system-status-tile.php"
-    data-mod-mode="<?= $isAdmin ? "admin" : "user" ?>"
-    data-mod-active="<?= (int) $activeCount ?>"
-    data-mod-soon="<?= (int) $soonCount ?>"
-    data-mod-total="<?= (int) $totalModules ?>"
-  ></div>
-
-  <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
-    <div>
-      <div class="fw-bold text-white">Módulos</div>
-      <div class="text-white-50 small">Gerencie acessos por categoria</div>
-    </div>
-  </div>
-
-  <!--
-    OBS:
-    - Removidas todas as barras de progresso (geral e por módulo) conforme solicitado.
-    - Mantemos apenas indicadores de status e contagens no header de status.
-  -->
-
-  <div class="tool-tiles mb-4">
-    <?php
-      foreach ($tilesToRender as $tile) {
-        tc_tools_render_tile($tile, $isAdmin);
-      }
-    ?>
   </div>
 
   <script>
-    try {
-      const el = document.getElementById("tcDashWalletAddress");
-      const addr = (window.ethereum && window.ethereum.selectedAddress) ? window.ethereum.selectedAddress : (localStorage.getItem("tokencafe_wallet_address") || "");
-      if (el) {
-        el.textContent = addr ? addr : "Não Conectado";
-        el.classList.remove("tc-status-ok", "tc-status-warn", "tc-status-bad");
-        el.classList.add(addr ? "tc-status-ok" : "tc-status-bad");
-      }
-      document.addEventListener("wallet:connecting", () => {
+    (() => {
+      const btn = document.getElementById("tcToolsGuestConnectBtn");
+      if (!btn) return;
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
         try {
-          if (!el) return;
-          el.textContent = "Conectando...";
-          el.classList.remove("tc-status-ok", "tc-status-bad");
-          el.classList.add("tc-status-warn");
+          sessionStorage.setItem("tokencafe_post_connect_redirect", JSON.stringify({ href: "index.php?page=tools", ts: Date.now() }));
+        } catch (_) {}
+        try {
+          await window.walletConnector?.connect?.("metamask");
         } catch (_) {}
       });
-      document.addEventListener("wallet:connected", (e) => {
-        try {
-          const a = e?.detail?.account || "";
-          if (el) {
-            el.textContent = a ? a : "Não Conectado";
-            el.classList.remove("tc-status-warn", "tc-status-bad");
-            el.classList.add(a ? "tc-status-ok" : "tc-status-bad");
-          }
-        } catch (_) {}
-      });
-      document.addEventListener("wallet:disconnected", () => {
-        try {
-          if (el) {
-            el.textContent = "Não Conectado";
-            el.classList.remove("tc-status-ok", "tc-status-warn");
-            el.classList.add("tc-status-bad");
-          }
-        } catch (_) {}
-      });
-    } catch (_) {}
+    })();
   </script>
-</div>
 
-<div data-component="modules/modals/auth-modal.php"></div>
+  <div data-component="modules/modals/auth-modal.php"></div>
+<?php } else { ?>
+  <?php
+$getStatus = fn ($t) => (string)($t["status"] ?? (((bool)($t["disabled"] ?? false)) ? "soon" : "finished"));
+  $tilesAll = $tiles;
+$tilesUser = array_values(array_filter($tilesAll, function ($t) use ($getStatus) {
+    $adminOnly = (bool) ($t["adminOnly"] ?? false);
+    if ($adminOnly) return false;
+  $st = $getStatus($t);
+  if ($st === "finished") return true;
+  if ($st === "soon") return (bool) ($t["showSoonToUser"] ?? false);
+  return false;
+  }));
+  $tilesToRender = $isAdmin ? $tilesAll : $tilesUser;
+  $totalModules = count($tilesToRender);
+  $activeCount = count(array_filter($tilesToRender, fn ($t) => $getStatus($t) === "finished"));
+  $soonCount = count(array_filter($tilesToRender, fn ($t) => $getStatus($t) === "soon"));
+    ?>
+
+  <div class="container-fluid px-3 px-lg-4 py-4">
+    <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
+      <div>
+        <div class="fw-bold text-white">Status do Sistema</div>
+        <div class="text-white-50 small">Verificar saúde do sistema, se todas as funcionalidades estão operacionais e atualizadas.</div>
+      </div>
+    </div>
+
+    <div
+      class="mb-3"
+      data-component="modules/system-status/system-status-tile.php"
+      data-mod-mode="<?= $isAdmin ? "admin" : "user" ?>"
+      data-mod-active="<?= (int) $activeCount ?>"
+      data-mod-soon="<?= (int) $soonCount ?>"
+      data-mod-total="<?= (int) $totalModules ?>"
+    ></div>
+
+    <div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mb-3">
+      <div>
+        <div class="fw-bold text-white">Módulos</div>
+        <div class="text-white-50 small">Gerencie acessos por categoria</div>
+      </div>
+    </div>
+
+    <div class="tool-tiles mb-4">
+      <?php
+        foreach ($tilesToRender as $tile) {
+          tc_tools_render_tile($tile, $isAdmin);
+        }
+      ?>
+    </div>
+
+    <script>
+      try {
+        const el = document.getElementById("tcDashWalletAddress");
+        const addr = (window.ethereum && window.ethereum.selectedAddress) ? window.ethereum.selectedAddress : (localStorage.getItem("tokencafe_wallet_address") || "");
+        if (el) {
+          el.textContent = addr ? addr : "Não Conectado";
+          el.classList.remove("tc-status-ok", "tc-status-warn", "tc-status-bad");
+          el.classList.add(addr ? "tc-status-ok" : "tc-status-bad");
+        }
+        document.addEventListener("wallet:connecting", () => {
+          try {
+            if (!el) return;
+            el.textContent = "Conectando...";
+            el.classList.remove("tc-status-ok", "tc-status-bad");
+            el.classList.add("tc-status-warn");
+          } catch (_) {}
+        });
+        document.addEventListener("wallet:connected", (e) => {
+          try {
+            const a = e?.detail?.account || "";
+            if (el) {
+              el.textContent = a ? a : "Não Conectado";
+              el.classList.remove("tc-status-warn", "tc-status-bad");
+              el.classList.add(a ? "tc-status-ok" : "tc-status-bad");
+            }
+          } catch (_) {}
+        });
+        document.addEventListener("wallet:disconnected", () => {
+          try {
+            if (el) {
+              el.textContent = "Não Conectado";
+              el.classList.remove("tc-status-ok", "tc-status-warn");
+              el.classList.add("tc-status-bad");
+            }
+          } catch (_) {}
+        });
+      } catch (_) {}
+    </script>
+  </div>
+
+  <div data-component="modules/modals/auth-modal.php"></div>
+<?php } ?>

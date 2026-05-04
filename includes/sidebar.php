@@ -4,6 +4,12 @@ $currentPage = preg_replace('/[^a-z0-9_-]+/', "", $currentPage);
 $script = strtolower(basename((string)($_SERVER["SCRIPT_NAME"] ?? "")));
 
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
+$isAdminSidebar = function_exists("tokencafe_is_admin_wallet") ? tokencafe_is_admin_wallet($walletCookie) : false;
+if (
+  !$isAdminSidebar
+  && function_exists("tokencafe_is_admin_bypass_active")
+  && tokencafe_is_admin_bypass_active()
+) $isAdminSidebar = true;
 $isChief = function_exists("tokencafe_is_chief_admin") ? tokencafe_is_chief_admin($walletCookie) : false;
 if (
   !$isChief
@@ -14,7 +20,7 @@ if (
 
 $toolsPages = ["wallet", "rpc", "contrato", "verifica", "logs"];
 $isToolsSection = in_array($currentPage, $toolsPages, true);
-$legalPages = ["privacidade", "termos-e-servicos", "documentacao"];
+$legalPages = ["privacidade", "termos-e-servicos", "social"];
 $isLegalSection = in_array($currentPage, $legalPages, true);
 
 $openModules = $isToolsSection;
@@ -82,10 +88,13 @@ $openSettings = false;
             <i class="bi bi-file-earmark-code me-2"></i>
             Contratos
           </a>
-          <!-- <a href="index.php?page=verifica" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "verifica" ? "tc-sidebar-active" : "" ?>">
-            <i class="bi bi-check2-circle me-2"></i>
-            Verificação
-          </a> -->
+          <?php if ($isAdminSidebar) { ?>
+            <a href="index.php?page=documentacao" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "documentacao" ? "tc-sidebar-active" : "" ?>">
+              <i class="bi bi-palette me-2"></i>
+              Guia de Estilos
+            </a>
+          <?php } ?>
+
         </div>
       </div>
 
@@ -176,9 +185,9 @@ $openSettings = false;
             <i class="bi bi-file-earmark-text me-2"></i>
             Termos
           </a>
-          <a href="index.php?page=documentacao" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "documentacao" ? "tc-sidebar-active" : "" ?>">
-            <i class="bi bi-book me-2"></i>
-            Documentação
+          <a href="index.php?page=social" class="list-group-item list-group-item-action bg-transparent text-white-50 border-0 py-2 neon-link-hover <?= $currentPage === "social" ? "tc-sidebar-active" : "" ?>">
+            <i class="bi bi-people me-2"></i>
+            Social
           </a>
         </div>
       </div>

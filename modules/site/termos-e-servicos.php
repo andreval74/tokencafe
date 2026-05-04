@@ -1,9 +1,52 @@
-<div class="TokenCafe-container align-items-start">
-  <div class="TokenCafe-content TokenCafe-fade-in-up text-align-left pt-2 mt-2">
-    <div class="row justify-content-center">
-      <div class="col-lg-10 terms-content">
-        <h1>Termos de Serviço – TokenCafe.app</h1>
-        <p><strong>Última atualização:</strong> 19 de março de 2026</p>
+<div class="TokenCafe-content text-align-left">
+  <section class="tc-hero-section">
+    <div class="container">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-10 text-center">
+          <h1 class="display-4 fw-bold mb-2 text-white">
+            Termos de <span class="gradient-text">Serviço</span>
+          </h1>
+          <p class="lead text-light mb-3">
+            Regras claras para uso seguro das ferramentas.
+          </p>
+          <div class="d-flex flex-wrap justify-content-center gap-3">
+            <span class="badge bg-primary text-dark px-3 py-2">
+              <i class="bi bi-calendar3 me-2"></i>
+              Última atualização: 19 de março de 2026
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tc-black-panel py-2 mt-4">
+      <div class="blockchain-slider">
+        <div class="blockchain-track">
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-exclamation-triangle text-primary"></i><span>Aviso de risco</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-tools text-primary"></i><span>Ferramenta técnica</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-person-check text-primary"></i><span>Responsabilidade do usuário</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-shield-lock text-primary"></i><span>Sem custódia</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-cash-coin text-primary"></i><span>Pagamentos on-chain</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-slash-circle text-primary"></i><span>Proibido fraude/phishing</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-globe text-primary"></i><span>Conformidade local</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-journal-text text-primary"></i><span>Regras e conduta</span></span>
+
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-exclamation-triangle text-primary"></i><span>Aviso de risco</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-tools text-primary"></i><span>Ferramenta técnica</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-person-check text-primary"></i><span>Responsabilidade do usuário</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-shield-lock text-primary"></i><span>Sem custódia</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-cash-coin text-primary"></i><span>Pagamentos on-chain</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-slash-circle text-primary"></i><span>Proibido fraude/phishing</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-globe text-primary"></i><span>Conformidade local</span></span>
+          <span class="blockchain-item d-inline-flex align-items-center gap-2 text-white-50"><i class="bi bi-journal-text text-primary"></i><span>Regras e conduta</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-10 terms-content">
         <p>Por favor, leia estes Termos de Serviço com atenção antes de utilizar o Site ou qualquer Serviço.</p>
         <div class="risk-box">
           <strong>AVISO DE RISCO IMPORTANTE</strong><br><br>
@@ -75,7 +118,8 @@
           <strong>Contato:</strong> <a href="mailto:contact@tokencafe.app">contact@tokencafe.app</a><br>
           TokenCafe.app – Infraestrutura Web3 Global
         </p>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 </div>

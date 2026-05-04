@@ -265,6 +265,10 @@ body > header + main.tokencafe-app-content {
   padding-top: var(--tc-navbar-offset);
 }
 
+.tc-has-fixed-navbar #app-content {
+  padding-top: var(--tc-navbar-offset);
+}
+
 section, .section {
   background-color: var(--tokencafe-bg-primary) !important;
   background-image: none !important;
@@ -2706,6 +2710,10 @@ Classes reutilizáveis para efeitos neon padronizados
 .tc-hero-section {
   position: relative;
   background: #000;
+  padding-top: 2.5rem;
+}
+
+.tc-has-fixed-navbar .tc-hero-section {
   margin-top: calc(var(--tc-navbar-offset) * -1);
   padding-top: calc(var(--tc-navbar-offset) + 2.5rem);
 }

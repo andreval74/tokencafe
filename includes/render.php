@@ -518,6 +518,12 @@ function render_page(string $viewPath, array $options = []): void
   if ($isClientArea) tokencafe_log_client_access($pageHint !== "" ? $pageHint : $viewRelNorm);
 
   $headerVariant = $options["headerVariant"] ?? ($isSiteView ? "default" : "module");
+  try {
+    $bodyClass = is_string($bodyClass) ? $bodyClass : "bg-page-black";
+    if ($showHeader && $headerVariant === "default" && !str_contains(" " . $bodyClass . " ", " tc-has-fixed-navbar ")) {
+      $bodyClass = trim($bodyClass . " tc-has-fixed-navbar");
+    }
+  } catch (Throwable $e) {}
   $mh = __tokencafe_guess_module_header($viewPathReal);
   $moduleHeaderTitle = $options["moduleHeaderTitle"] ?? $mh["title"];
   $moduleHeaderSubtitle = $options["moduleHeaderSubtitle"] ?? $mh["subtitle"];
