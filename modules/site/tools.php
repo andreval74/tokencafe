@@ -223,7 +223,8 @@ $tiles = [
     "adminOnly" => true,
   ],
   [
-    "status" => "finished",
+    "disabled" => true,
+    "status" => "soon",
     "ariaLabel" => "Guia de Estilos",
     "iconClass" => "bi bi-palette",
     "title" => "Guia de Estilos",
