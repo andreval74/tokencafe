@@ -16,9 +16,6 @@ class ContractDetailsManager {
 
     resolveIsAdminSync() {
         try {
-            if (window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) return true;
-        } catch (_) {}
-        try {
             if (window.TOKENCAFE_IS_ADMIN === true) return true;
         } catch (_) {}
         try {

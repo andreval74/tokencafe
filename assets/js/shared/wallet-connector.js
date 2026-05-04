@@ -138,9 +138,43 @@ export class WalletConnector {
         throw new Error("Nenhuma conta encontrada");
       }
 
+      const getCookie = (name) => {
+        try {
+          const parts = String(document.cookie || "").split(";");
+          for (const raw of parts) {
+            const [k, ...rest] = String(raw).trim().split("=");
+            if (k === name) return decodeURIComponent(rest.join("=") || "");
+          }
+        } catch (_) {}
+        return "";
+      };
+      const findAccount = (preferred) => {
+        const pref = String(preferred || "").toLowerCase();
+        if (!pref) return null;
+        const list = Array.isArray(accounts) ? accounts : [];
+        for (const a of list) {
+          if (String(a || "").toLowerCase() === pref) return a;
+        }
+        return null;
+      };
+      let preferred = "";
+      try {
+        preferred = String(window.ethereum?.selectedAddress || "");
+      } catch (_) {}
+      try {
+        const lsPref = String(localStorage.getItem("tokencafe_wallet_address") || "");
+        if (lsPref) preferred = lsPref;
+      } catch (_) {}
+      if (!preferred) {
+        try {
+          preferred = String(window.ethereum?.selectedAddress || "");
+        } catch (_) {}
+      }
+      if (!preferred) preferred = getCookie("tokencafe_wallet_address");
+
       // Atualizar estado
       this.isConnected = true;
-      this.currentAccount = accounts[0];
+      this.currentAccount = findAccount(preferred) || accounts[0];
       this.connectedWallet = walletType;
       // Marcar sessão como autorizada (ação explícita)
       this.sessionAuthorized = true;
@@ -161,6 +195,9 @@ export class WalletConnector {
       try {
         const v = encodeURIComponent(String(this.currentAccount || ""));
         document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
+      } catch (_) {}
+      try {
+        localStorage.setItem("tokencafe_wallet_address", String(this.currentAccount || ""));
       } catch (_) {}
       try {
         if (this.currentChainId) {
@@ -195,7 +232,7 @@ export class WalletConnector {
               }
             }
           } catch (_) {}
-          window.location.href = "tools.php";
+          window.location.href = "index.php?page=tools";
         }
       } catch (_) {}
 
@@ -259,6 +296,15 @@ export class WalletConnector {
       this.log("✅ Carteira desconectada");
       try {
         document.cookie = "tokencafe_wallet_address=; Path=/; Max-Age=0; SameSite=Lax";
+      } catch (_) {}
+      try {
+        document.cookie = "tokencafe_chain_id=; Path=/; Max-Age=0; SameSite=Lax";
+      } catch (_) {}
+      try {
+        localStorage.removeItem("tokencafe_wallet_address");
+      } catch (_) {}
+      try {
+        localStorage.removeItem("tokencafe_chain_id");
       } catch (_) {}
 
       return { success: true };
@@ -441,6 +487,11 @@ export class WalletConnector {
     // Listener para mudança de contas
     const accountsHandler = (accounts) => {
       try {
+        if (!this.sessionAuthorized) {
+          this.isConnected = false;
+          this.currentAccount = null;
+          return;
+        }
         if (this._pendingDisconnectTimer) {
           clearTimeout(this._pendingDisconnectTimer);
           this._pendingDisconnectTimer = null;
@@ -457,14 +508,39 @@ export class WalletConnector {
                 await this.disconnect();
                 return;
               }
-              const next = accList[0];
-              if (next && next !== this.currentAccount) {
-                this.currentAccount = next;
-              }
+              const getCookie = (name) => {
+                try {
+                  const parts = String(document.cookie || "").split(";");
+                  for (const raw of parts) {
+                    const [k, ...rest] = String(raw).trim().split("=");
+                    if (k === name) return decodeURIComponent(rest.join("=") || "");
+                  }
+                } catch (_) {}
+                return "";
+              };
+              const findAccount = (preferred) => {
+                const pref = String(preferred || "").toLowerCase();
+                if (!pref) return null;
+                for (const a of accList) {
+                  if (String(a || "").toLowerCase() === pref) return a;
+                }
+                return null;
+              };
+              const preferred =
+                (function () { try { return localStorage.getItem("tokencafe_wallet_address") || ""; } catch (_) { return ""; } })()
+                || (function () { try { return String(window.ethereum?.selectedAddress || ""); } catch (_) { return ""; } })()
+                || getCookie("tokencafe_wallet_address")
+                || (this.currentAccount || "")
+                || "";
+              const next = findAccount(preferred) || accList[0] || null;
+              if (next && next !== this.currentAccount) this.currentAccount = next;
               this.isConnected = true;
               try {
                 const v = encodeURIComponent(String(this.currentAccount || ""));
                 document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
+              } catch (_) {}
+              try {
+                localStorage.setItem("tokencafe_wallet_address", String(this.currentAccount || ""));
               } catch (_) {}
               await this.updateNetworkInfo();
               await this.updateBalance();
@@ -479,12 +555,39 @@ export class WalletConnector {
           return;
         }
 
-        const nextAccount = list[0];
+        const getCookie = (name) => {
+          try {
+            const parts = String(document.cookie || "").split(";");
+            for (const raw of parts) {
+              const [k, ...rest] = String(raw).trim().split("=");
+              if (k === name) return decodeURIComponent(rest.join("=") || "");
+            }
+          } catch (_) {}
+          return "";
+        };
+        const findAccount = (preferred) => {
+          const pref = String(preferred || "").toLowerCase();
+          if (!pref) return null;
+          for (const a of list) {
+            if (String(a || "").toLowerCase() === pref) return a;
+          }
+          return null;
+        };
+        const preferred =
+          (function () { try { return localStorage.getItem("tokencafe_wallet_address") || ""; } catch (_) { return ""; } })()
+          || (function () { try { return String(window.ethereum?.selectedAddress || ""); } catch (_) { return ""; } })()
+          || getCookie("tokencafe_wallet_address")
+          || (this.currentAccount || "")
+          || "";
+        const nextAccount = findAccount(preferred) || list[0] || null;
         if (nextAccount && nextAccount !== this.currentAccount) {
           this.currentAccount = nextAccount;
           try {
             const v = encodeURIComponent(String(this.currentAccount || ""));
             document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
+          } catch (_) {}
+          try {
+            localStorage.setItem("tokencafe_wallet_address", String(this.currentAccount || ""));
           } catch (_) {}
           this.isConnected = true;
           this.updateBalance();
@@ -503,6 +606,7 @@ export class WalletConnector {
     // Listener para mudança de rede
     const chainHandler = async (chainId) => {
       try {
+        if (!this.sessionAuthorized) return;
         this.currentChainId = chainId;
         await this.updateNetworkInfo();
         await this.updateBalance();
@@ -576,13 +680,8 @@ export class WalletConnector {
           this.connectedWallet = null;
           return;
         }
-        if (accounts[0] === cachedConnection.account) {
-          await this.connectSilent(cachedConnection.wallet);
-          this.log("✅ Reconexão automática (silenciosa) bem-sucedida");
-        } else {
-          this.log("ℹ️ Cache de conexão inválido; limpando", "warn");
-          this.clearCache();
-        }
+        await this.connectSilent(cachedConnection.wallet);
+        this.log("✅ Reconexão automática (silenciosa) bem-sucedida");
       }
     } catch (error) {
       this.log(`⚠️ Falha na reconexão automática: ${error.message}`);
@@ -638,6 +737,12 @@ export class WalletConnector {
     this.sessionAuthorized = false;
     try {
       sessionStorage.removeItem("tokencafe_wallet_session_authorized");
+    } catch (_) {}
+    try {
+      localStorage.removeItem("tokencafe_wallet_address");
+    } catch (_) {}
+    try {
+      localStorage.removeItem("tokencafe_chain_id");
     } catch (_) {}
   }
 
@@ -697,30 +802,58 @@ export class WalletConnector {
 
   async setAccount(account) {
     try {
-      const next = account ? String(account) : "";
+      const next = account ? String(account).trim() : "";
       if (!next) return false;
-      if (!window.ethereum || typeof window.ethereum.request !== "function") return false;
 
-      const accounts = await window.ethereum.request({ method: "eth_accounts" });
-      const list = Array.isArray(accounts) ? accounts : [];
-      const found = list.find((a) => String(a).toLowerCase() === next.toLowerCase());
-      if (!found) return false;
+      let allowed = null;
+      if (window.ethereum && typeof window.ethereum.request === "function") {
+        try {
+          const acc = await window.ethereum.request({ method: "eth_accounts" });
+          allowed = Array.isArray(acc) ? acc.filter(Boolean).map((a) => String(a)) : [];
+        } catch (_) {
+          allowed = null;
+        }
+      }
 
-      this.currentAccount = found;
+      if (Array.isArray(allowed) && allowed.length > 0) {
+        const n = next.toLowerCase();
+        const match = allowed.find((a) => String(a).toLowerCase() === n);
+        if (!match) return false;
+        this.currentAccount = match;
+      } else {
+        this.currentAccount = next;
+      }
+
       this.isConnected = true;
+      if (!this.connectedWallet) this.connectedWallet = "metamask";
+
       try {
         const v = encodeURIComponent(String(this.currentAccount || ""));
         document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
       } catch (_) {}
-      await this.updateNetworkInfo();
-      await this.updateBalance();
-      this.emitEvent("wallet:accountChanged", { account: this.currentAccount });
-      this.emitEvent("wallet:connected", {
-        account: this.currentAccount,
-        wallet: this.connectedWallet,
-        chainId: this.currentChainId,
-        network: this.currentNetwork,
-      });
+      try {
+        localStorage.setItem("tokencafe_wallet_address", String(this.currentAccount || ""));
+      } catch (_) {}
+
+      try {
+        if (Array.isArray(this.activeListeners) && this.activeListeners.length === 0) {
+          this.setupWalletListeners();
+        }
+      } catch (_) {}
+
+      try {
+        await this.updateNetworkInfo();
+        await this.updateBalance();
+      } catch (_) {}
+
+      try {
+        this.saveConnectionCache();
+      } catch (_) {}
+
+      try {
+        this.emitEvent("wallet:accountChanged", { account: this.currentAccount });
+      } catch (_) {}
+
       return true;
     } catch (_) {
       return false;
@@ -893,6 +1026,9 @@ export class WalletConnector {
   async connectSilent(walletType = "metamask") {
     try {
       this.log(`🔌 [silencioso] Tentando conectar ${walletType}...`);
+      if (!this.sessionAuthorized) {
+        throw new Error("Sessão não autorizada");
+      }
       if (!this.isWalletAvailable(walletType)) {
         throw new Error(`${walletType} não está disponível`);
       }
@@ -902,10 +1038,43 @@ export class WalletConnector {
       if (!accounts || accounts.length === 0) {
         throw new Error("Nenhuma conta previamente conectada");
       }
+      const getCookie = (name) => {
+        try {
+          const parts = String(document.cookie || "").split(";");
+          for (const raw of parts) {
+            const [k, ...rest] = String(raw).trim().split("=");
+            if (k === name) return decodeURIComponent(rest.join("=") || "");
+          }
+        } catch (_) {}
+        return "";
+      };
+      const findAccount = (preferred) => {
+        const pref = String(preferred || "").toLowerCase();
+        if (!pref) return null;
+        const list = Array.isArray(accounts) ? accounts : [];
+        for (const a of list) {
+          if (String(a || "").toLowerCase() === pref) return a;
+        }
+        return null;
+      };
+      const preferred =
+        (function () { try { return localStorage.getItem("tokencafe_wallet_address") || ""; } catch (_) { return ""; } })()
+        || (function () { try { return String(window.ethereum?.selectedAddress || ""); } catch (_) { return ""; } })()
+        || getCookie("tokencafe_wallet_address")
+        || (this.currentAccount || "")
+        || "";
+
       // Importante: conexão silenciosa NÃO autoriza sessão
       this.isConnected = true;
-      this.currentAccount = accounts[0];
+      this.currentAccount = findAccount(preferred) || accounts[0];
       this.connectedWallet = walletType;
+      try {
+        const v = encodeURIComponent(String(this.currentAccount || ""));
+        document.cookie = `tokencafe_wallet_address=${v}; Path=/; SameSite=Lax`;
+      } catch (_) {}
+      try {
+        localStorage.setItem("tokencafe_wallet_address", String(this.currentAccount || ""));
+      } catch (_) {}
       await this.updateNetworkInfo();
       await this.updateBalance();
       this.setupWalletListeners();

@@ -1,6 +1,6 @@
 import "../../shared/page-manager.js";
 import { SEOManager } from "../../shared/seo-manager.js";
-import { isWalletAdmin, getConnectedWalletAddress } from "../../shared/admin-security.js";
+import { getConnectedWalletAddress } from "../../shared/admin-security.js";
 
 // window.initBaseSystem(); // Inicialização automática via import
 window.createPageManager("tools");
@@ -104,56 +104,6 @@ function stripToolsOverviewAboveModules() {
   } catch (_) {}
 }
 
-// --- Access Control System ---
-const accessControl = {
-  
-  async loadAdmins() {
-    // Agora centralizado em admin-security.js
-    console.log("Access Control: Using shared admin security module");
-  },
-
-  apply(walletAddress) {
-    const tiles = document.querySelectorAll(".tool-tile");
-    console.log(`Access Control: Applying rules for ${walletAddress || 'Guest'}`);
-
-    tiles.forEach((tile) => {
-      tile.classList.remove("d-none");
-      tile.classList.remove("disabled-tile", "tc-tool-tile--admin-preview");
-      tile.removeAttribute("aria-disabled");
-
-      const status = String(tile.getAttribute("data-status") || "");
-
-      const badgeEl = tile.querySelector(".tool-tile-status");
-      const linkEl = tile.querySelector("a.tool-link") || tile.querySelector("a");
-      const iconEl = linkEl ? linkEl.querySelector("i") : null;
-
-      const originalBadgeText = tile.getAttribute("data-badge-text") || (badgeEl ? badgeEl.textContent : "");
-      const originalBadgeClass = tile.getAttribute("data-badge-class") || "";
-      const originalHref = tile.getAttribute("data-href") || (linkEl ? linkEl.getAttribute("href") : "");
-      const originalLinkLabel = tile.getAttribute("data-link-label") || (linkEl ? linkEl.textContent : "");
-      const originalLinkAria = tile.getAttribute("data-link-aria-label") || (linkEl ? linkEl.getAttribute("aria-label") : "");
-      const originalLinkIconClass = tile.getAttribute("data-link-icon-class") || (iconEl ? iconEl.className : "");
-      const originalLinkClass = tile.getAttribute("data-link-class") || (linkEl ? linkEl.className : "");
-      if (badgeEl) {
-        badgeEl.textContent = originalBadgeText;
-        if (originalBadgeClass) badgeEl.className = `tool-tile-status badge ${originalBadgeClass}`.trim();
-      }
-      if (linkEl) {
-        linkEl.className = originalLinkClass;
-        if (originalHref) linkEl.setAttribute("href", originalHref);
-        if (originalLinkAria) linkEl.setAttribute("aria-label", originalLinkAria);
-        linkEl.removeAttribute("tabindex");
-        linkEl.removeAttribute("aria-disabled");
-        linkEl.textContent = originalLinkLabel;
-        if (iconEl && originalLinkIconClass) {
-          iconEl.className = originalLinkIconClass;
-          linkEl.prepend(iconEl);
-        }
-      }
-    });
-  }
-};
-
 const initWhenReady = async () => {
   initSeo();
   stripToolsOverviewAboveModules();
@@ -161,10 +111,7 @@ const initWhenReady = async () => {
   setupToolLinks();
   enableTooltips();
   setupImportRecipe();
-  
-  // Initialize Access Control
-  await accessControl.loadAdmins();
-  
+
   // Prioritize real connected wallet over localStorage
   const connectedAddr = await getConnectedWalletAddress();
   
@@ -173,33 +120,6 @@ const initWhenReady = async () => {
       localStorage.setItem("tokencafe_wallet_address", connectedAddr);
   } else {
       localStorage.removeItem("tokencafe_wallet_address");
-  }
-
-  const currentAddr = connectedAddr ? connectedAddr.toLowerCase() : null;
-  console.log("Init Tools: Real connected address:", currentAddr);
-
-  accessControl.apply(currentAddr);
-
-  // Listen for wallet events
-  document.addEventListener("wallet:connected", (e) => {
-    const addr = e.detail.account ? e.detail.account.toLowerCase() : null;
-    accessControl.apply(addr);
-  });
-  
-  document.addEventListener("wallet:disconnected", () => {
-    accessControl.apply(null);
-  });
-  
-  // Listen for direct metamask changes as backup
-  if (window.ethereum) {
-    window.ethereum.on('accountsChanged', (accounts) => {
-       const addr = accounts.length > 0 ? accounts[0].toLowerCase() : null;
-       if (!addr) {
-           accessControl.apply(null);
-       } else {
-           accessControl.apply(addr);
-       }
-    });
   }
 };
 

@@ -22,8 +22,19 @@
   <meta name="robots" content="<?= htmlspecialchars($pageRobots, ENT_QUOTES, "UTF-8") ?>" />
   <link rel="canonical" href="<?= htmlspecialchars($pageCanonical, ENT_QUOTES, "UTF-8") ?>" />
   <base href="<?php echo htmlspecialchars(defined('BASE_URL') ? BASE_URL : '/', ENT_QUOTES, 'UTF-8'); ?>">
+  <?php
+    require_once __DIR__ . "/admin-config.php";
+    $walletCookieName = defined("TOKENCAFE_WALLET_COOKIE") ? (string) TOKENCAFE_WALLET_COOKIE : "tokencafe_wallet_address";
+    $walletCookieRaw = isset($_COOKIE[$walletCookieName]) ? (string) $_COOKIE[$walletCookieName] : "";
+    $walletCookie = strtolower(trim(urldecode($walletCookieRaw)));
+    $isAdmin = tokencafe_is_admin_wallet($walletCookie);
+    $isChief = tokencafe_is_chief_admin($walletCookie);
+    $disableBarriers = defined("TOKENCAFE_DISABLE_ADMIN_BARRIERS") ? (bool) TOKENCAFE_DISABLE_ADMIN_BARRIERS : false;
+  ?>
   <script>
-    window.TOKENCAFE_DISABLE_ADMIN_BARRIERS = true;
+    window.TOKENCAFE_DISABLE_ADMIN_BARRIERS = <?= $disableBarriers ? "true" : "false" ?>;
+    window.TOKENCAFE_IS_ADMIN = <?= $isAdmin ? "true" : "false" ?>;
+    window.TOKENCAFE_IS_CHIEF_ADMIN = <?= $isChief ? "true" : "false" ?>;
   </script>
   <?php if (isset($_GET["debugBase"])) { ?>
     <script>

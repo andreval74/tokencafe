@@ -121,8 +121,15 @@ const initToolsHeader = () => {
       // - 1 conta: mostra o "chip" com endereço + saldo (sem dropdown).
       // - 2+ contas: o "chip" vira dropdown com a lista de contas e saldos.
       const setConnectedState = async (address) => {
-        currentAddress = address ? String(address) : null;
-        const connected = !!currentAddress;
+        const rawAddr = address ? String(address) : null;
+        let sessionOk = false;
+        try {
+          sessionOk = window.walletConnector?.getStatus?.()?.sessionAuthorized === true;
+        } catch (_) {
+          sessionOk = false;
+        }
+        currentAddress = sessionOk && rawAddr ? rawAddr : null;
+        const connected = !!currentAddress && sessionOk;
 
         if (btnConnect) {
           btnConnect.classList.toggle("d-none", connected);
@@ -199,14 +206,7 @@ const initToolsHeader = () => {
         const multi = accounts.length > 1;
 
         walletChipMenu.innerHTML = "";
-        if (walletChipCaret) walletChipCaret.classList.toggle("d-none", !multi);
-
-        if (!multi) {
-          try {
-            walletChipBtn.removeAttribute("data-bs-toggle");
-          } catch (_) {}
-          return;
-        }
+        if (walletChipCaret) walletChipCaret.classList.toggle("d-none", false);
 
         try {
           walletChipBtn.setAttribute("data-bs-toggle", "dropdown");
@@ -214,9 +214,64 @@ const initToolsHeader = () => {
         } catch (_) {}
 
         const symbol = getSymbol();
-        const balances = await Promise.all(accounts.map((a) => fetchBalance(a)));
         const current = selected ? String(selected).toLowerCase() : "";
 
+        if (!multi) {
+          walletChipMenu.innerHTML = `
+              <li><span class="dropdown-item-text text-white-50 small">Apenas 1 conta autorizada nesta conexão.</span></li>
+              <li>
+                <button type="button" class="dropdown-item text-light" data-action="tc-request-more-accounts">
+                  Selecionar outras contas…
+                </button>
+              </li>
+          `;
+
+          const btn = walletChipMenu.querySelector('button[data-action="tc-request-more-accounts"]');
+          if (btn) {
+            btn.addEventListener("click", async () => {
+              try {
+                btn.disabled = true;
+                btn.textContent = "Aguarde...";
+              } catch (_) {}
+
+              try {
+                if (window.ethereum && typeof window.ethereum.request === "function") {
+                  try {
+                    await window.ethereum.request({
+                      method: "wallet_requestPermissions",
+                      params: [{ eth_accounts: {} }],
+                    });
+                  } catch (_) {}
+                  try {
+                    await window.ethereum.request({ method: "eth_requestAccounts" });
+                  } catch (_) {}
+                }
+              } catch (_) {}
+
+              try {
+                const refreshed = await getAccounts();
+                if (refreshed && refreshed.length > 0) {
+                  const still = selected ? refreshed.find((a) => String(a).toLowerCase() === String(selected).toLowerCase()) : null;
+                  const pick = still || refreshed[0];
+                  try {
+                    localStorage.setItem("tokencafe_wallet_address", String(pick));
+                  } catch (_) {}
+                  try {
+                    await window.walletConnector?.setAccount?.(pick);
+                  } catch (_) {}
+                  await setConnectedState(pick);
+                } else {
+                  await setConnectedState(selected || null);
+                }
+              } catch (_) {
+                await setConnectedState(selected || null);
+              }
+            });
+          }
+          return;
+        }
+
+        const balances = await Promise.all(accounts.map((a) => fetchBalance(a)));
         walletChipMenu.innerHTML = accounts
           .map((a, idx) => {
             const isActive = current && String(a).toLowerCase() === current;
@@ -254,6 +309,17 @@ const initToolsHeader = () => {
       // Use localStorage as the "app-selected wallet" as long as it exists inside eth_accounts.
       // This prevents the UI from "jumping back" to the first authorized account after refresh.
       const checkInitialStatus = async () => {
+        try {
+          const st = window.walletConnector?.getStatus?.() || {};
+          const sessionOk = st?.sessionAuthorized === true;
+          if (!sessionOk) {
+            try {
+              localStorage.removeItem("tokencafe_wallet_address");
+            } catch (_) {}
+            await setConnectedState(null);
+            return;
+          }
+        } catch (_) {}
         let providerAccounts = [];
         let preferred = "";
         try {
@@ -360,52 +426,78 @@ const initToolsHeader = () => {
         setConnectedState(e.detail.account);
       });
       document.addEventListener("wallet:accountChanged", (e) => {
-        const next = e?.detail?.account || null;
-        setConnectedState(next);
         try {
-          const url = new URL(window.location.href);
-          const isTools = url.pathname.endsWith("/tools.php") || (url.pathname.endsWith("/index.php") && url.searchParams.get("page") === "tools");
-          if (!isTools) return;
-          const key = "tokencafe_tools_last_wallet_reload";
-          const nextKey = String(next || "").toLowerCase();
-          const prevKey = sessionStorage.getItem(key) || "";
-          if (nextKey && prevKey !== nextKey) {
-            sessionStorage.setItem(key, nextKey);
-            window.location.reload();
+          const ok = window.walletConnector?.getStatus?.()?.sessionAuthorized === true;
+          if (!ok) {
+            try {
+              localStorage.removeItem("tokencafe_wallet_address");
+            } catch (_) {}
+            setConnectedState(null);
+            return;
           }
         } catch (_) {}
+        const next = e?.detail?.account || null;
+        setConnectedState(next);
       });
       document.addEventListener("wallet:chainChanged", (e) => {
+        try {
+          const ok = window.walletConnector?.getStatus?.()?.sessionAuthorized === true;
+          if (!ok) {
+            try {
+              localStorage.removeItem("tokencafe_wallet_address");
+            } catch (_) {}
+            setConnectedState(null);
+            return;
+          }
+        } catch (_) {}
         const acc = e?.detail?.account || window.ethereum?.selectedAddress || null;
         setConnectedState(acc);
       });
       document.addEventListener("wallet:disconnected", () => {
+        try {
+          localStorage.removeItem("tokencafe_wallet_address");
+        } catch (_) {}
         setConnectedState(null);
       });
 
       // Listen for Direct MetaMask events (Fail-safe)
       if (window.ethereum) {
         window.ethereum.on('accountsChanged', (accounts) => {
+          let sessionOk = false;
+          try {
+            sessionOk = window.walletConnector?.getStatus?.()?.sessionAuthorized === true;
+          } catch (_) {
+            sessionOk = false;
+          }
+          if (!sessionOk) {
+            try {
+              localStorage.removeItem("tokencafe_wallet_address");
+            } catch (_) {}
+            setConnectedState(null);
+            return;
+          }
+
           const next = (accounts && accounts.length > 0) ? accounts[0] : null;
           try {
             if (next) localStorage.setItem("tokencafe_wallet_address", String(next));
             else localStorage.removeItem("tokencafe_wallet_address");
           } catch (_) {}
           setConnectedState(next);
-          try {
-            const url = new URL(window.location.href);
-            const isTools = url.pathname.endsWith("/tools.php") || (url.pathname.endsWith("/index.php") && url.searchParams.get("page") === "tools");
-            if (!isTools) return;
-            const key = "tokencafe_tools_last_wallet_reload";
-            const nextKey = String(next || "").toLowerCase();
-            const prevKey = sessionStorage.getItem(key) || "";
-            if (nextKey && prevKey !== nextKey) {
-              sessionStorage.setItem(key, nextKey);
-              window.location.reload();
-            }
-          } catch (_) {}
         });
         window.ethereum.on("chainChanged", () => {
+          let sessionOk = false;
+          try {
+            sessionOk = window.walletConnector?.getStatus?.()?.sessionAuthorized === true;
+          } catch (_) {
+            sessionOk = false;
+          }
+          if (!sessionOk) {
+            try {
+              localStorage.removeItem("tokencafe_wallet_address");
+            } catch (_) {}
+            setConnectedState(null);
+            return;
+          }
           setConnectedState(window.ethereum?.selectedAddress || null);
         });
       }
@@ -464,12 +556,7 @@ const initToolsHeader = () => {
             document.cookie = "tokencafe_wallet_address=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
           } catch {}
           try {
-            updateHeaderUI(null);
-          } catch {}
-          try {
-            if (window.ethereum && typeof window.ethereum.request === "function") {
-              await window.ethereum.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] });
-            }
+            await setConnectedState(null);
           } catch {}
           try {
             window.location.replace("index.php");

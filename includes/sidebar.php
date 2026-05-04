@@ -3,8 +3,6 @@ $currentPage = isset($_GET["page"]) ? strtolower((string) $_GET["page"]) : "";
 $currentPage = preg_replace('/[^a-z0-9_-]+/', "", $currentPage);
 $script = strtolower(basename((string)($_SERVER["SCRIPT_NAME"] ?? "")));
 
-if ($currentPage === "" && $script === "tools.php") $currentPage = "tools";
-
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
 $isChief = function_exists("tokencafe_is_chief_admin") ? tokencafe_is_chief_admin($walletCookie) : false;
 if (
@@ -17,10 +15,10 @@ if (
 $toolsPages = ["wallet", "rpc", "contrato", "verifica", "logs"];
 $isToolsSection = in_array($currentPage, $toolsPages, true);
 $legalPages = ["privacidade", "termos-e-servicos", "documentacao"];
-$isLegalSection = in_array($currentPage, $legalPages, true) || in_array($script, ["privacidade.php", "termos-e-servicos.php"], true);
+$isLegalSection = in_array($currentPage, $legalPages, true);
 
 $openModules = $isToolsSection;
-$openSupport = $currentPage === "suporte" || $script === "suporte.php";
+$openSupport = $currentPage === "suporte";
 $openSoon = false;
 $openLegal = $isLegalSection;
 $openSettings = false;

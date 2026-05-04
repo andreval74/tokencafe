@@ -292,7 +292,7 @@ $moduleHeaderIconAlt = "Construtor";
   </div>
 
   <!-- SEÇÃO DE RESULTADOS (PÓS-DEPLOY) -->
-  <!-- Redirecionamento automático para contrato-detalhes.php -->
+  <!-- Redirecionamento automático para index.php?page=contrato-detalhes -->
   <div id="results-section" class="d-none"></div>
 
 </div>

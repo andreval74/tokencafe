@@ -339,7 +339,7 @@ class BaseSystem {
 
     // Conexão exigida + redirecionamento:
     // - Funciona para elementos com data-action="connect-wallet"
-    // - E também para links diretos para /tools.php e /modules/* (para evitar ter que marcar cada link manualmente)
+    // - E também para links diretos para /modules/* (para evitar ter que marcar cada link manualmente)
     const isModifiedClick = (ev) => !!(ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey || ev.button !== 0);
     const getHrefFromEl = (el) => {
       try {
@@ -365,7 +365,7 @@ class BaseSystem {
       if (url.origin !== window.location.origin) return false;
       const path = String(url.pathname || "");
       if (path.includes("/modules/contrato/contrato-index.php")) return false;
-      if (path.endsWith("/tools.php")) return true;
+      if (path.endsWith("/index.php") && url.searchParams.get("page") === "tools") return true;
       if (path.includes("/modules/")) return true;
       return false;
     };
@@ -390,11 +390,19 @@ class BaseSystem {
       }
     };
     const ensureWalletAndNavigate = async (href) => {
-      const targetHref = href || "tools.php";
+      const targetHref = href || "index.php?page=tools";
       persistPostConnectRedirect(targetHref);
       try {
         const status = window.walletConnector?.getStatus?.() || {};
-        if (status.isConnected && status.sessionAuthorized) {
+        if (status.isConnected && status.account) {
+          window.location.href = targetHref;
+          return;
+        }
+        try {
+          await window.walletConnector?.connectSilent?.("metamask");
+        } catch (_) {}
+        const after = window.walletConnector?.getStatus?.() || {};
+        if (after.isConnected && after.account) {
           window.location.href = targetHref;
           return;
         }
@@ -446,28 +454,51 @@ class BaseSystem {
 
     try {
       const key = "tokencafe_last_wallet_account";
+      const lockKey = "tokencafe_wallet_reload_lock";
       const getLower = (v) => {
         try { return String(v || "").toLowerCase(); } catch (_) { return ""; }
       };
-      const rememberAndReloadIfChanged = (next) => {
+      const canReloadNow = () => {
         try {
-          const n = getLower(next);
+          const raw = sessionStorage.getItem(lockKey);
+          const ts = raw ? Number(raw) : 0;
+          if (!ts) return true;
+          return (Date.now() - ts) > 2500;
+        } catch (_) {
+          return true;
+        }
+      };
+      const markReloadNow = () => {
+        try { sessionStorage.setItem(lockKey, String(Date.now())); } catch (_) {}
+      };
+
+      document.addEventListener("wallet:connected", (ev) => {
+        try {
+          const n = getLower(ev?.detail?.account);
+          if (n) sessionStorage.setItem(key, n);
+        } catch (_) {}
+      });
+      document.addEventListener("wallet:accountChanged", (ev) => {
+        try {
+          const n = getLower(ev?.detail?.account);
           const prev = getLower(sessionStorage.getItem(key));
-          if (n && prev !== n) {
+          if (n && prev && prev !== n && canReloadNow()) {
             sessionStorage.setItem(key, n);
+            markReloadNow();
             window.location.reload();
             return;
           }
           if (n && !prev) sessionStorage.setItem(key, n);
         } catch (_) {}
-      };
-      document.addEventListener("wallet:connected", (ev) => rememberAndReloadIfChanged(ev?.detail?.account));
-      document.addEventListener("wallet:accountChanged", (ev) => rememberAndReloadIfChanged(ev?.detail?.account));
+      });
       document.addEventListener("wallet:disconnected", () => {
         try {
           const prev = getLower(sessionStorage.getItem(key));
           if (prev) sessionStorage.removeItem(key);
-          if (prev) window.location.reload();
+          if (prev && canReloadNow()) {
+            markReloadNow();
+            window.location.reload();
+          }
         } catch (_) {}
       });
     } catch (_) {}
@@ -652,100 +683,38 @@ class BaseSystem {
   async enforceAuthGuard() {
     try {
       const path = String(window.location.pathname || "");
+      const url = new URL(window.location.href);
       
+      const publicPages = new Set(["", "home", "home-basica", "suporte", "privacidade", "termos-e-servicos"]);
+      const page = String(url.searchParams.get("page") || "").toLowerCase();
+
       // Whitelist de páginas que não requerem autenticação imediata
       if (path.includes("/modules/contrato/contrato-index.php")) return;
 
-      const requiresAuth = path.includes("/modules/") || path.endsWith("/tools.php");
+      const requiresAuth =
+        path.includes("/modules/")
+        || (path.endsWith("/index.php") && !publicPages.has(page));
       if (!requiresAuth) return;
 
       const status = window.walletConnector?.getStatus?.() || {};
-      let ok = !!status.account;
-
-      if (!ok && window.ethereum && typeof window.ethereum.request === "function") {
-        try {
-          const accounts = await window.ethereum.request({ method: "eth_accounts" });
-          ok = Array.isArray(accounts) && accounts.length > 0;
-        } catch (_) {
-          ok = false;
-        }
-      }
+      const ok = !!status.account && status.sessionAuthorized === true;
 
       if (ok) {
         await this.applyConnectedNetworkDefault();
       } else {
-        let connected = false;
         try {
-          if (window.ethereum && typeof window.ethereum.request === "function") {
-            const accs = await window.ethereum.request({ method: "eth_accounts" }).catch(() => []);
-            if (Array.isArray(accs) && accs.length > 0) {
-              try {
-                await window.walletConnector?.connectSilent?.("metamask");
-                connected = true;
-              } catch (_) {}
-            }
-          }
-          if (!connected) {
-            // Mobile Anti-Loop: Evitar spam de modal em reloads rápidos (1 minuto cooldown)
-            const lastMobileAuth = sessionStorage.getItem("tokencafe_mobile_auth_timestamp");
-            const isRecent = lastMobileAuth && (Date.now() - parseInt(lastMobileAuth) < 60000);
-
-            if (!window.__tokencafe_auto_connect_initiated && (!this.isMobile() || !isRecent)) {
-              window.__tokencafe_auto_connect_initiated = true;
-              
-              // Mobile specific: Ensure authModal is ready for deep linking
-              if (this.isMobile()) {
-                 sessionStorage.setItem("tokencafe_mobile_auth_timestamp", Date.now().toString());
-                 if (!window.authModal || typeof window.authModal.show !== "function") {
-                    await new Promise(r => setTimeout(r, 1000));
-                 }
-              }
-
-              // FORCE UNBLOCK: Garantir que a UI esteja visível para o modal
-              if (window.hideLoading) window.hideLoading();
-
-              if (window.authModal && typeof window.authModal.show === "function") {
-                try {
-                  window.authModal.show();
-                } catch (_) {}
-              } else {
-                try {
-                  await window.walletConnector?.connect?.("metamask");
-                  connected = true;
-                } catch (_) {}
-              }
-            }
-          }
+          sessionStorage.setItem("tokencafe_post_connect_redirect", JSON.stringify({ href: window.location.href, ts: Date.now() }));
         } catch (_) {}
-        const status2 = window.walletConnector?.getStatus?.() || {};
-        const ok2 = !!status2.account;
-        if (connected || ok2) {
-          await this.applyConnectedNetworkDefault();
-        } else {
-          // Redirect desativado para permitir navegação sem carteira
-          // const base = this.getBasePath();
-          // const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
-          // window.location.href = target;
-          return;
-        }
+        window.location.replace("index.php");
+        return;
       }
 
-      document.addEventListener("wallet:disconnected", async () => {
+      document.addEventListener("wallet:disconnected", () => {
         try {
-          try {
-            await window.walletConnector?.connectSilent?.("metamask");
-          } catch (_) {}
-          const s = window.walletConnector?.getStatus?.() || {};
-          if (!s.account) {
-            try {
-              await window.walletConnector?.connect?.("metamask");
-            } catch (_) {
-              // Redirect desativado
-              // const base = this.getBasePath();
-              // const target = base.includes("../") ? `${base}index.html` : `${base}pages/index.html`;
-              // window.location.href = target;
-            }
-          }
+          sessionStorage.setItem("tokencafe_post_connect_redirect", JSON.stringify({ href: window.location.href, ts: Date.now() }));
+        } catch (_) {}
+        try {
+          window.location.replace("index.php");
         } catch (_) {}
       });
     } catch (_) {}

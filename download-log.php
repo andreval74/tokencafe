@@ -2,6 +2,8 @@
 require_once __DIR__ . "/includes/admin-config.php";
 
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? strtolower(trim((string) $_COOKIE[TOKENCAFE_WALLET_COOKIE])) : "";
+$walletCookie = strtolower(trim(urldecode($walletCookie)));
+$isChief = $walletCookie !== "" && tokencafe_is_chief_admin($walletCookie);
 
 $type = isset($_GET["type"]) ? strtolower(trim((string) $_GET["type"])) : "";
 $date = isset($_GET["date"]) ? trim((string) $_GET["date"]) : "";
@@ -17,6 +19,21 @@ if (!in_array($type, ["visits", "client", "ip", "sc"], true)) {
   http_response_code(400);
   echo "Tipo inválido.";
   exit;
+}
+
+if (!$isChief) {
+  if ($walletCookie === "") {
+    http_response_code(403);
+    echo "Conecte sua carteira.";
+    exit;
+  }
+  if (!in_array($type, ["ip", "sc"], true)) {
+    http_response_code(403);
+    echo "Acesso negado.";
+    exit;
+  }
+  $fltWallet = $walletCookie;
+  $fltIp = "";
 }
 
 $rangeMode = preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $end);

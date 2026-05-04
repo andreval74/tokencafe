@@ -426,11 +426,33 @@ function tokencafe_resolve_page(string $page): ?string
 function render_page(string $viewPath, array $options = []): void
 {
   $projectRoot = dirname(__DIR__);
+  require_once $projectRoot . DIRECTORY_SEPARATOR . "includes" . DIRECTORY_SEPARATOR . "admin-config.php";
+
+  if (tokencafe_is_admin_bypass_enabled() && isset($_GET["admin_key"])) {
+    $provided = (string) $_GET["admin_key"];
+    if (tokencafe_check_admin_bypass_key($provided)) {
+      $cookieName = defined("TOKENCAFE_ADMIN_BYPASS_COOKIE") ? (string) TOKENCAFE_ADMIN_BYPASS_COOKIE : "tokencafe_admin_bypass";
+      setcookie($cookieName, "1", [
+        "expires" => time() + 43200,
+        "path" => "/",
+        "samesite" => "Lax",
+      ]);
+      $_COOKIE[$cookieName] = "1";
+    }
+  }
+
+  $pageParam = isset($_GET["page"]) ? strtolower(trim((string) $_GET["page"])) : "";
+  $pageParam = preg_replace('/[^a-z0-9_-]+/', "", $pageParam);
+  $walletCookieName = defined("TOKENCAFE_WALLET_COOKIE") ? (string) TOKENCAFE_WALLET_COOKIE : "tokencafe_wallet_address";
+  $walletCookieRaw = isset($_COOKIE[$walletCookieName]) ? (string) $_COOKIE[$walletCookieName] : "";
+  $walletCookie = strtolower(trim(urldecode($walletCookieRaw)));
+  $isAdmin = tokencafe_is_admin_wallet($walletCookie) || tokencafe_is_admin_bypass_active();
   $viewPathReal = $viewPath;
   if (!is_file($viewPathReal)) {
     $candidate = $projectRoot . DIRECTORY_SEPARATOR . ltrim($viewPath, "\\/");
     if (is_file($candidate)) $viewPathReal = $candidate;
   }
+
 
   if (!is_file($viewPathReal)) {
     http_response_code(404);
@@ -444,8 +466,6 @@ function render_page(string $viewPath, array $options = []): void
   $pageHint = isset($_GET["page"]) ? (string) $_GET["page"] : basename((string)($_SERVER["SCRIPT_NAME"] ?? ""));
   tokencafe_log_visit($pageHint);
   tokencafe_cleanup_admin_logs(365);
-
-  $isAdmin = true;
 
   $maintenanceEnabled = defined("TOKENCAFE_MAINTENANCE_MODE") ? (bool) TOKENCAFE_MAINTENANCE_MODE : false;
   $maintenancePreview = isset($_GET["maintenance"]) && (string) $_GET["maintenance"] === "1";
@@ -462,6 +482,14 @@ function render_page(string $viewPath, array $options = []): void
       $options["headerVariant"] = "default";
       $options["pageTitle"] = "Manutenção - TokenCafe";
       $options["pageRobots"] = "noindex,nofollow";
+    }
+  }
+
+  if (!$isAdmin) {
+    $adminOnlyPages = ["analytics", "widget", "templates", "settings", "tokens", "token-add", "token-manager", "documentacao", "verifica"];
+    if ($pageParam !== "" && in_array($pageParam, $adminOnlyPages, true)) {
+      header("Location: index.php?page=tools", true, 302);
+      exit;
     }
   }
 

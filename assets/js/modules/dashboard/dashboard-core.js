@@ -710,7 +710,7 @@ class DashboardCore {
   async getSupportContent() {
     try {
       // Carregar HTML do arquvo suporte.html
-      const response = await fetch("/suporte.php");
+      const response = await fetch("index.php?page=suporte");
       if (!response.ok) throw new Error("Arquvo no encontrado");
       return await response.text();
     } catch (error) {

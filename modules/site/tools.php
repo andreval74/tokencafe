@@ -17,7 +17,7 @@ function tc_tools_render_tile(array $tile, bool $isAdmin): void
   $badgeClass = (string) ($tile["badgeClass"] ?? ($status === "finished" ? "bg-success" : "bg-warning"));
 
   $href = (string) ($tile["href"] ?? "#");
-  if ($status === "soon" && $href !== "#" && $href !== "") {
+  if ($isAdmin && $status === "soon" && $href !== "#" && $href !== "") {
     $disabled = false;
   }
   $linkLabel = (string) ($tile["linkLabel"] ?? ($disabled ? "Em breve" : "Abrir"));
@@ -236,20 +236,28 @@ $tiles = [
   ],
 ];
 
-$isAdmin = true;
+$walletCookieName = defined("TOKENCAFE_WALLET_COOKIE") ? (string) TOKENCAFE_WALLET_COOKIE : "tokencafe_wallet_address";
+$walletCookieRaw = isset($_COOKIE[$walletCookieName]) ? (string) $_COOKIE[$walletCookieName] : "";
+$walletCookie = strtolower(trim(urldecode($walletCookieRaw)));
+$isAdmin = tokencafe_is_admin_wallet($walletCookie) || tokencafe_is_admin_bypass_active();
 
 ?>
 <script>
-  window.TOKENCAFE_IS_ADMIN = true;
+  window.TOKENCAFE_IS_ADMIN = <?= $isAdmin ? "true" : "false" ?>;
 </script>
 <?php
 
 $getStatus = fn ($t) => (string)($t["status"] ?? (((bool)($t["disabled"] ?? false)) ? "soon" : "finished"));
 $tilesAll = $tiles;
-$tilesStats = $tilesAll;
-$totalModules = count($tilesStats);
-$activeCount = count(array_filter($tilesStats, fn ($t) => $getStatus($t) === "finished"));
-$soonCount = count(array_filter($tilesStats, fn ($t) => $getStatus($t) === "soon"));
+$tilesUser = array_values(array_filter($tilesAll, function ($t) use ($getStatus) {
+  $adminOnly = (bool) ($t["adminOnly"] ?? false);
+  if ($adminOnly) return false;
+  return $getStatus($t) === "finished";
+}));
+$tilesToRender = $isAdmin ? $tilesAll : $tilesUser;
+$totalModules = count($tilesToRender);
+$activeCount = count(array_filter($tilesToRender, fn ($t) => $getStatus($t) === "finished"));
+$soonCount = count(array_filter($tilesToRender, fn ($t) => $getStatus($t) === "soon"));
   ?>
 
 <div class="container-fluid px-3 px-lg-4 py-4">
@@ -285,7 +293,6 @@ $soonCount = count(array_filter($tilesStats, fn ($t) => $getStatus($t) === "soon
 
   <div class="tool-tiles mb-4">
     <?php
-      $tilesToRender = $isAdmin ? $tilesAll : $tiles;
       foreach ($tilesToRender as $tile) {
         tc_tools_render_tile($tile, $isAdmin);
       }

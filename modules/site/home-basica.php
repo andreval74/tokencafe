@@ -20,7 +20,7 @@
             </p>
 
             <div class="d-flex flex-wrap gap-2 justify-content-center">
-              <a href="tools.php" class="btn btn-primary btn-lg">
+              <a href="index.php?page=tools" class="btn btn-primary btn-lg">
                 <i class="bi bi-coin me-2"></i>
                 Criar Token Agora
               </a>

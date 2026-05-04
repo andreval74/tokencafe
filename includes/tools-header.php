@@ -37,8 +37,7 @@ As variáveis são declaradas via atributos data- no elemento onde o componente 
         <?php
           $p = isset($_GET["page"]) ? strtolower((string) $_GET["page"]) : "";
           $p = preg_replace('/[^a-z0-9_-]+/', "", $p);
-          $script = strtolower(basename((string)($_SERVER["SCRIPT_NAME"] ?? "")));
-          $showHomeBtn = ($p === "tools") || ($p === "" && $script === "tools.php");
+          $showHomeBtn = ($p === "tools");
         ?>
         <?php if ($showHomeBtn) { ?>
           <a href="index.php?page=tools" class="badge bg-secondary text-white text-decoration-none me-2 badge-action" title="Ir para Tools">

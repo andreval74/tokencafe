@@ -54,9 +54,6 @@ function sanitizeRpcUrl(u) {
 
 function resolveIsAdminSync() {
   try {
-    if (window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) return true;
-  } catch (_) {}
-  try {
     if (window.TOKENCAFE_IS_ADMIN === true) return true;
   } catch (_) {}
   try {
@@ -141,18 +138,22 @@ function applyQuickActions(container) {
       if (!shareTarget) return;
       window.open(`mailto:?subject=${encodeURIComponent("Endereço")}&body=${encodeURIComponent(shareTarget)}`, "_self");
     });
-    unlock(btnAdd, async (e) => {
-        try { e?.preventDefault?.(); } catch (_) {}
-        const res = await addTokenToMetaMask({
-          address,
-          symbol: st.symbol || "TKN",
-          decimals: Number.isFinite(Number(st.decimals)) ? Number(st.decimals) : 18,
-          image: "",
+    if (isAdmin) {
+      unlock(btnAdd, async (e) => {
+          try { e?.preventDefault?.(); } catch (_) {}
+          const res = await addTokenToMetaMask({
+            address,
+            symbol: st.symbol || "TKN",
+            decimals: Number.isFinite(Number(st.decimals)) ? Number(st.decimals) : 18,
+            image: "",
+          });
+          if (!res?.success) {
+            window.showFormError?.(res?.error || "Falha ao adicionar token.");
+          }
         });
-        if (!res?.success) {
-          window.showFormError?.(res?.error || "Falha ao adicionar token.");
-        }
-      });
+    } else {
+      lock(btnAdd, "Apenas administradores podem adicionar token na MetaMask por aqui.");
+    }
   } catch (_) {}
 }
 
@@ -538,21 +539,35 @@ async function updateVerificationBadge(container, chainId, address, forceRefresh
 
     let isAdmin = false;
     try {
-        if (window.TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) {
-            isAdmin = true;
-        }
-    } catch (_) {}
-    try {
         if (window.TOKENCAFE_IS_ADMIN === true) {
             isAdmin = true;
         } else if (window.ethereum && window.ethereum.selectedAddress) {
-            isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
             isAdmin = isWalletAdmin(window.ethereum.selectedAddress);
         } else {
             const addr = await getConnectedWalletAddress();
             if (addr) isAdmin = isWalletAdmin(addr);
         }
     } catch (_) {}
+
+    let isTestnet = false;
+    try {
+        const cidNum = Number(chainId);
+        if (Number.isFinite(cidNum) && networkManager?.isTestNetwork?.(cidNum)) {
+            isTestnet = true;
+        }
+    } catch (_) {}
+
+    if (isTestnet && !isAdmin) {
+        if (vStatus) {
+            vStatus.querySelectorAll(".badge-verif-status, .btn-retry-verif, .verif-spinner").forEach((el) => el.remove());
+            const span = document.createElement("span");
+            span.className = "badge-verif-status badge ms-2 tc-status-warn";
+            span.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Testnet';
+            span.title = "Verificação no Explorer desabilitada em redes de teste para usuário comum.";
+            vStatus.appendChild(span);
+        }
+        return { verified: false, explorerVerified: false, skipped: true, isTestnet: true };
+    }
 
     if (vStatus) {
         vStatus.querySelectorAll(".badge-verif-status").forEach((el) => el.remove());

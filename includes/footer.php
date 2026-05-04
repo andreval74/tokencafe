@@ -55,7 +55,7 @@ $tokencafe_is_internal_footer = $headerVariant === "module";
             <h6 class="mb-3 fw-semibold text-warning">Plataforma</h6>
             <ul class="list-unstyled">
               <li class="mb-2">
-                <a href="tools.php" class="text-white-50 neon-link-small-hover text-xs">
+                <a href="index.php?page=tools" class="text-white-50 neon-link-small-hover text-xs">
                   <i class="bi bi-coin me-1"></i>
                   Criar Token
                 </a>

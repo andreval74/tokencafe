@@ -36,7 +36,9 @@ if (!defined("TOKENCAFE_ADMIN_BYPASS_KEY")) {
 }
 
 if (!defined("TOKENCAFE_DISABLE_ADMIN_BARRIERS")) {
-  define("TOKENCAFE_DISABLE_ADMIN_BARRIERS", true);
+  $envDisable = getenv("TOKENCAFE_DISABLE_ADMIN_BARRIERS");
+  $envDisable = $envDisable !== false ? strtolower(trim((string) $envDisable)) : "";
+  define("TOKENCAFE_DISABLE_ADMIN_BARRIERS", in_array($envDisable, ["1", "true", "yes", "on"], true));
 }
 
 if (!defined("TOKENCAFE_CHIEF_ADMIN_WALLET")) {
@@ -56,7 +58,6 @@ if (!defined("TOKENCAFE_LOG_ARCHIVE_EMAIL")) {
 
 function tokencafe_is_admin_wallet(?string $address): bool
 {
-  if (defined("TOKENCAFE_DISABLE_ADMIN_BARRIERS") && TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) return true;
   if (!$address) return false;
   $addr = strtolower(trim($address));
   if ($addr === "") return false;
@@ -93,7 +94,6 @@ function tokencafe_check_admin_bypass_key(?string $provided): bool
 
 function tokencafe_is_chief_admin(?string $address): bool
 {
-  if (defined("TOKENCAFE_DISABLE_ADMIN_BARRIERS") && TOKENCAFE_DISABLE_ADMIN_BARRIERS === true) return true;
   if (!$address) return false;
   $addr = strtolower(trim($address));
   $chief = defined("TOKENCAFE_CHIEF_ADMIN_WALLET") ? (string) TOKENCAFE_CHIEF_ADMIN_WALLET : "";

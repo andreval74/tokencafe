@@ -24,7 +24,7 @@ Portal PHP modular do TokenCafe, com módulos em `/modules` e layout mestre cent
 ## Ponto de entrada
 
 - Home: `index.php`
-- Tools: `tools.php`
+- Tools: `index.php?page=tools`
 - Módulo genérico (atalho): `module.php?m=site/tools`
 
 ## Arquitetura (visão rápida)
@@ -39,7 +39,7 @@ Portal PHP modular do TokenCafe, com módulos em `/modules` e layout mestre cent
 - Evite iniciar caminhos com `/` em `href/src` dentro do portal (use `assets/...`, `js/...`, `modules/...`).
 - Para criar um novo módulo de página:
   - Crie o arquivo em `/modules/.../*.php` com apenas o HTML do conteúdo.
-  - Crie um wrapper na raiz (opcional) chamando `render_page()`.
+  - Adicione/ajuste a rota em `index.php?page=...` (via `includes/render.php`).
 
 ## Estrutura de diretórios (atual)
 
@@ -65,7 +65,7 @@ tokencafe/
 │  └─ data/
 ├─ index.php
 ├─ main-layout.php
-└─ tools.php
+└─ ...
 ```
 
 ## Desenvolvimento

@@ -141,21 +141,32 @@ app.post("/api/generate-token", (req, res) => {
 
     const contractId = sanitizeContractName(name);
 
+    const stripControlChars = (str) => {
+      const s = String(str ?? "");
+      let out = "";
+      for (let i = 0; i < s.length; i++) {
+        const code = s.charCodeAt(i);
+        if (code < 32 || code === 127) continue;
+        out += s[i];
+      }
+      return out;
+    };
+
     const escapeSolidityString = (str) => {
       const s = String(str ?? "");
-      return s
+      const escaped = s
         .replace(/\\/g, "\\\\")
         .replace(/"/g, '\\"')
         .replace(/\r/g, "\\r")
         .replace(/\n/g, "\\n")
         .replace(/\t/g, "\\t")
-        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+      return stripControlChars(escaped);
     };
 
     const solidityStringLiteral = (str) => {
       const raw = String(str ?? "");
       const escaped = escapeSolidityString(raw);
-      const needsUnicode = /[^\x00-\x7F]/.test(raw);
+      const needsUnicode = Array.from(raw).some((ch) => ch.charCodeAt(0) > 0x7f);
       return `${needsUnicode ? "unicode" : ""}"${escaped}"`;
     };
 

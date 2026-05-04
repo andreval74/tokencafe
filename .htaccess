@@ -1,6 +1,14 @@
 RewriteEngine On
 RewriteRule ^(favicon\.ico|apple-touch-icon\.png|robots\.txt|sitemap\.xml|manifest\.json|site\.webmanifest)$ - [L]
 
+# Redirects de compatibilidade (aliases removidos da raiz)
+RewriteRule ^tools\.php$ index.php?page=tools [R=301,L,QSA]
+RewriteRule ^suporte\.php$ index.php?page=suporte [R=301,L,QSA]
+RewriteRule ^privacidade\.php$ index.php?page=privacidade [R=301,L,QSA]
+RewriteRule ^termos-e-servicos\.php$ index.php?page=termos-e-servicos [R=301,L,QSA]
+RewriteRule ^style-guide\.php$ index.php?page=documentacao [R=301,L,QSA]
+RewriteRule ^contrato-detalhes\.php$ index.php?page=contrato-detalhes [R=301,L,QSA]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(assets|includes|modules|api)/ - [R=404,L]

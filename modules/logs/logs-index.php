@@ -2,8 +2,9 @@
 require_once __DIR__ . "/../../includes/admin-config.php";
 
 $walletCookie = isset($_COOKIE[TOKENCAFE_WALLET_COOKIE]) ? (string) $_COOKIE[TOKENCAFE_WALLET_COOKIE] : "";
-$isChief = true;
-$hasWallet = true;
+$walletCookieNorm = strtolower(trim(urldecode($walletCookie)));
+$hasWallet = $walletCookieNorm !== "";
+$isChief = $hasWallet && tokencafe_is_chief_admin($walletCookieNorm);
 
 $endDate = isset($_GET["end"]) ? trim((string) $_GET["end"]) : "";
 $startDate = isset($_GET["start"]) ? trim((string) $_GET["start"]) : "";
@@ -67,10 +68,14 @@ $normChain = function (string $chain): string {
 };
 $filterChain = $normChain($filterChain);
 
-$walletCookieNorm = strtolower(trim($walletCookie));
 $adminWalletDefault = $filterWallet;
 $adminChainDefault = $filterChain;
 $adminContractDefault = $filterContract;
+
+if (!$isChief && $hasWallet) {
+  $filterWallet = $walletCookieNorm;
+  $adminWalletDefault = $filterWallet;
+}
 
 function tc_parse_log_line(string $line): ?array
 {

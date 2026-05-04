@@ -19,7 +19,7 @@
             </p>
 
             <div class="d-flex flex-wrap gap-2 justify-content-center">
-              <a href="tools.php" class="btn btn-primary btn-lg">
+              <a href="index.php?page=tools" class="btn btn-primary btn-lg">
                 <i class="bi bi-coin me-2"></i>
                 Criar Token Agora
               </a>
@@ -389,7 +389,7 @@
 
         <!-- Ferramenta: Verificar Contrato -->
         <div class="col-lg-4 col-md-6">
-          <a href="tools.php" class="text-no-decoration">
+          <a href="index.php?page=tools" class="text-no-decoration">
             <div class="feature-card h-100 p-4">
               <div class="d-flex align-items-start gap-3">
                 <i class="bi bi-shield-check text-primary icon-lg"></i>
@@ -425,7 +425,7 @@
       </div>
 
       <div class="text-center mt-5">
-        <a href="tools.php" class="btn btn-primary btn-lg">
+        <a href="index.php?page=tools" class="btn btn-primary btn-lg">
           <i class="bi bi-grid-3x3-gap me-2"></i>
           Abrir o Hub de Ferramentas
         </a>

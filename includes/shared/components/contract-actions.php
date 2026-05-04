@@ -2,10 +2,14 @@
 <?php
 $adminConfigPath = __DIR__ . "/../../admin-config.php";
 if (is_file($adminConfigPath)) require_once $adminConfigPath;
-$filesSectionClass = "";
+$walletCookieName = defined("TOKENCAFE_WALLET_COOKIE") ? (string) TOKENCAFE_WALLET_COOKIE : "tokencafe_wallet_address";
+$walletCookieRaw = isset($_COOKIE[$walletCookieName]) ? (string) $_COOKIE[$walletCookieName] : "";
+$walletCookie = strtolower(trim(urldecode($walletCookieRaw)));
+$isAdmin = function_exists("tokencafe_is_admin_wallet") ? tokencafe_is_admin_wallet($walletCookie) : false;
+$filesSectionClass = $isAdmin ? "" : " d-none";
 ?>
 <script>
-  window.TOKENCAFE_IS_ADMIN = true;
+  window.TOKENCAFE_IS_ADMIN = <?= $isAdmin ? "true" : "false" ?>;
 </script>
 <div class="col-12 mb-4 mt-4<?= $filesSectionClass ?>" id="files-section">
   <div data-component="shared/components/section-title.php" data-st-icon="bi-file-arrow-down"

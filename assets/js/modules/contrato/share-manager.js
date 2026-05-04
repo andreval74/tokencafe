@@ -25,7 +25,7 @@ export class ShareManager {
         // Handle file:// protocol or non-root server paths
         if (window.location.protocol === 'file:') {
             // Attempt to resolve relative to current location if known structure
-            // Assumes structure: .../modules/contrato/contrato-detalhes.php
+            // Assumes structure: .../modules/contrato/contrato-detalhes (view do módulo)
             // Target: .../modules/link/link-token.php
             const currentPath = window.location.pathname;
             if (currentPath.includes("/modules/contrato/")) {

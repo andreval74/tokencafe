@@ -93,10 +93,10 @@
         // Padronização: ao clicar no botão do header, se já estiver conectado vai para o hub.
         // Se não estiver conectado, salva o destino e abre o fluxo de conexão.
         try {
-          sessionStorage.setItem("tokencafe_post_connect_redirect", JSON.stringify({ href: "tools.php", ts: Date.now() }));
+          sessionStorage.setItem("tokencafe_post_connect_redirect", JSON.stringify({ href: "index.php?page=tools", ts: Date.now() }));
         } catch (_) {}
         if (status.isConnected && status.sessionAuthorized) {
-          window.location.href = "tools.php";
+          window.location.href = "index.php?page=tools";
           return;
         }
         await window.walletConnector?.connect?.("metamask");

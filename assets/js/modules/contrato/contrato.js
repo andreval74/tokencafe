@@ -447,7 +447,7 @@ class TokenPageManager {
              }
 
              if (statusText) {
-                 statusText.textContent = "Contrato criado. Iniciando verificação...";
+                 statusText.textContent = "Contrato criado. Finalizando...";
                  statusText.className = "fw-bold text-info";
              }
              
@@ -456,6 +456,13 @@ class TokenPageManager {
              
              // If immediate success, skipped (testnet), or already verified
              if (verifyRes?.success || verifyRes?.skipped || verifyRes?.alreadyVerified || (verifyRes?.error && String(verifyRes.error).toLowerCase().includes("already verified"))) {
+                 if (statusText && verifyRes?.skipped && verifyRes?.isTestnet) {
+                     statusText.textContent = "Contrato criado. Verificação desabilitada em rede de teste para usuário comum.";
+                     statusText.className = "fw-bold text-warning";
+                 } else if (statusText && (verifyRes?.success || verifyRes?.alreadyVerified)) {
+                     statusText.textContent = "Contrato criado. Verificação confirmada no Explorer.";
+                     statusText.className = "fw-bold text-tokencafe";
+                 }
                  try {
                      const page = verifyRes?.success || verifyRes?.alreadyVerified ? "contrato_verificado" : "contrato_nao_verificado";
                      const body = new URLSearchParams({ page });

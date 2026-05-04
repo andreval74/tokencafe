@@ -79,6 +79,13 @@ function initWalletManager() {
 
   // Listen for wallet events
   document.addEventListener("wallet:connected", (e) => updateUI(e.detail));
+  document.addEventListener("wallet:accountChanged", () => {
+    try {
+      const wc = getWalletConnector();
+      if (!wc) return;
+      updateUI(wc.getStatus());
+    } catch (_) {}
+  });
   document.addEventListener("wallet:disconnected", clearUI);
   document.addEventListener("wallet:chainChanged", async () => {
     // Refresh data
@@ -98,27 +105,51 @@ function initWalletManager() {
         try {
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             if (accounts && accounts.length > 0) {
-                // Se já tem contas conectadas no provider, força atualização
-                if (wc) {
+                const norm = (v) => {
+                  try { return String(v || "").toLowerCase(); } catch (_) { return ""; }
+                };
+                const getCookie = (name) => {
+                  try {
+                    const parts = String(document.cookie || "").split(";");
+                    for (const raw of parts) {
+                      const [k, ...rest] = String(raw).trim().split("=");
+                      if (k === name) return decodeURIComponent(rest.join("=") || "");
+                    }
+                  } catch (_) {}
+                  return "";
+                };
+
+                let preferred = "";
+                try { preferred = String(localStorage.getItem("tokencafe_wallet_address") || ""); } catch (_) {}
+                if (!preferred) preferred = String(window.ethereum?.selectedAddress || "");
+                if (!preferred) preferred = getCookie("tokencafe_wallet_address");
+
+                const preferredNorm = norm(preferred);
+                const statusAccNorm = norm(wc?.getStatus?.()?.account || "");
+                const list = Array.isArray(accounts) ? accounts.filter(Boolean) : [];
+                const pick =
+                  (preferredNorm ? list.find((a) => norm(a) === preferredNorm) : null)
+                  || (statusAccNorm ? list.find((a) => norm(a) === statusAccNorm) : null)
+                  || list[0];
+
+                if (wc && pick) {
                     try {
                         if (typeof wc.setAccount === "function") {
-                            await wc.setAccount(accounts[0]);
+                            await wc.setAccount(pick);
                         } else {
-                            wc.currentAccount = accounts[0];
+                            wc.currentAccount = pick;
                         }
                     } catch (_) {}
-                    // Força atualização do estado interno do conector
                     await wc.updateNetworkInfo();
                     await wc.updateBalance();
                     
                     const status = wc.getStatus();
                     
-                    // Fallback se o conector não tiver atualizado
-                    if (!status.account) status.account = accounts[0];
+                    if (!status.account) status.account = pick;
                     if (!status.chainId && window.ethereum) {
                         try {
                             status.chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                        } catch (e) { console.error(e); }
+                        } catch (_) {}
                     }
                     
                     updateUI(status);

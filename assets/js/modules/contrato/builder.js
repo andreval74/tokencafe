@@ -553,11 +553,20 @@ function clearFieldHint(el) {
 }
 
 function hasControlChars(s) {
-  return /[\u0000-\u001F\u007F]/u.test(String(s || ""));
+  const str = String(s || "");
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code < 32 || code === 127) return true;
+  }
+  return false;
 }
 
 function hasNonAscii(s) {
-  return /[^\x00-\x7F]/u.test(String(s || ""));
+  const str = String(s || "");
+  for (let i = 0; i < str.length; i++) {
+    if (str.charCodeAt(i) > 127) return true;
+  }
+  return false;
 }
 
 function sanitizeTokenNameInput(raw) {
@@ -4311,8 +4320,14 @@ async function runVerifyDirect(p) {
 }
 
 export async function verifyCurrentContract() {
-  // Regra: verificação no Explorer é obrigatória, e não deve ser restrita a administradores
-  // (usa API key do backend). Esta função executa o fluxo completo (envio + polling).
+  try {
+    const payload = buildVerifyPayloadFromState();
+    const cid = payload?.chainId;
+    const isTestnet = cid ? nm.isTestNetwork(cid) : false;
+    if (isTestnet && !checkIsAdmin()) {
+      return { success: false, verified: false, skipped: true, isTestnet: true };
+    }
+  } catch (_) {}
   const ok = await autoVerifyContract();
   return { success: ok, verified: ok };
 }

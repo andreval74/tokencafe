@@ -17,6 +17,54 @@ export class FeeManager {
      * @returns {Promise<{ok: boolean, signer?: Object, billingAddress?: string | null}>}
      */
     async confirmAndPay(signer, network, estimatedGasLimit) {
+        try {
+            if (window.ethereum && typeof window.ethereum.request === "function" && ethers?.providers?.Web3Provider) {
+                const accounts = await window.ethereum.request({ method: "eth_accounts" }).catch(() => []);
+                const list = Array.isArray(accounts) ? accounts.filter(Boolean).map((a) => String(a)) : [];
+
+                const getCookie = (name) => {
+                    try {
+                        const parts = String(document.cookie || "").split(";");
+                        for (const raw of parts) {
+                            const [k, ...rest] = String(raw).trim().split("=");
+                            if (k === name) return decodeURIComponent(rest.join("=") || "");
+                        }
+                    } catch (_) {}
+                    return "";
+                };
+                const findAccount = (preferred) => {
+                    const pref = String(preferred || "").toLowerCase();
+                    if (!pref) return null;
+                    for (const a of list) {
+                        if (String(a || "").toLowerCase() === pref) return a;
+                    }
+                    return null;
+                };
+
+                let preferred = "";
+                try {
+                    preferred = String(window.walletConnector?.getStatus?.()?.account || "");
+                } catch (_) {}
+                if (!preferred) {
+                    try {
+                        preferred = String(window.ethereum?.selectedAddress || "");
+                    } catch (_) {}
+                }
+                if (!preferred) {
+                    try {
+                        preferred = String(localStorage.getItem("tokencafe_wallet_address") || "");
+                    } catch (_) {}
+                }
+                if (!preferred) preferred = getCookie("tokencafe_wallet_address");
+
+                const match = findAccount(preferred);
+                if (match) {
+                    const providerNow = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = providerNow.getSigner(match);
+                }
+            }
+        } catch (_) {}
+
         // 1. Verificar se é Testnet
         const isTestnet = this.nm.isTestNetwork(network.chainId);
         
@@ -325,6 +373,7 @@ export class FeeManager {
         let didConfirm = false;
         let live = { ...data };
         let pendingAccountsChangedRecalc = false;
+        let billingWasUserSelected = false;
 
         const getAccounts = async () => {
             try {
@@ -406,6 +455,7 @@ export class FeeManager {
                 const selected = elBillingSelect.value;
                 try {
                     if (typeof live.setBillingAddressOverride === "function") {
+                        billingWasUserSelected = true;
                         const updated = await live.setBillingAddressOverride(selected);
                         live = { ...live, ...updated };
                         applyLive();
@@ -460,17 +510,33 @@ export class FeeManager {
 
         try {
             if (window.ethereum && typeof window.ethereum.on === "function") {
-                const onAccountsChanged = async () => {
+                const onAccountsChanged = async (nextAccounts) => {
                     if (pendingAccountsChangedRecalc) return;
                     pendingAccountsChangedRecalc = true;
                     try {
-                        if (typeof live.setBillingAddressOverride === "function") {
-                            const updated = await live.setBillingAddressOverride(null);
-                            live = { ...live, ...updated };
+                        const accounts = Array.isArray(nextAccounts) ? nextAccounts.filter(Boolean).map((a) => String(a)) : await getAccounts();
+                        const hasAccount = (addr) => {
+                            const n = String(addr || "").toLowerCase();
+                            if (!n) return false;
+                            return accounts.some((a) => String(a || "").toLowerCase() === n);
+                        };
+
+                        let updated = null;
+                        if (billingWasUserSelected && typeof live.setBillingAddressOverride === "function") {
+                            const sel = String(elBillingSelect?.value || live.billingAddress || "").trim();
+                            if (sel && hasAccount(sel)) {
+                                updated = await live.setBillingAddressOverride(sel);
+                            } else {
+                                billingWasUserSelected = false;
+                                updated = await live.setBillingAddressOverride(null);
+                            }
                         } else if (typeof live.recalc === "function") {
-                            const updated = await live.recalc();
-                            live = { ...live, ...updated };
+                            updated = await live.recalc();
+                        } else if (typeof live.setBillingAddressOverride === "function") {
+                            updated = await live.setBillingAddressOverride(null);
                         }
+
+                        if (updated) live = { ...live, ...updated };
                         applyLive();
                         await renderBillingSelect();
                     } catch (_) {}
