@@ -1,0 +1,30 @@
+node_modules
+
+# Variáveis de ambiente e segredos — nunca versionar
+.env
+.env.*
+api/.env
+api/.env.*
+
+# Dados de treinamento de IA — podem conter informações sensíveis
+ai/training/*.jsonl
+
+# Runtime logs (não versionar)
+modules/logs/storage/logs/*.log
+modules/logs/storage/admin-logs/IPLogs-*.php*
+modules/logs/storage/admin-logs/SCLogs-*.php*
+modules/logs/storage/admin-logs/.cleanup-last.txt
+modules/relatorios/storage/logs/*.log
+modules/relatorios/storage/admin-logs/IPLogs-*.php*
+modules/relatorios/storage/admin-logs/SCLogs-*.php*
+modules/relatorios/storage/admin-logs/.cleanup-last.txt
+
+# VS Code — versionar settings/extensions/launch/tasks do projeto, ignorar preferências pessoais
+.vscode/history/
+.vscode/*.log
+.vscode/ipynb/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

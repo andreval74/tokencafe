@@ -1,0 +1,2 @@
+[analyze-contract] Groq error: {"message":"Invalid API Key","type":"invalid_request_error","code":"invalid_api_key"}
+analyze-contract error: Resposta vazia da IA. Verifique se GROQ_API_KEY é válida e tem créditos.

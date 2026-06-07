@@ -1,0 +1,55 @@
+"""
+Token criado via TokenCafeFactory.
+id = endereço do contrato ERC-20 deployado (lowercase).
+"""
+type Token @entity {
+  id:               String!
+  name:             String!
+  symbol:           String!
+  creator:          Creator!
+  referrer:         Bytes
+  feePaid:          BigInt!
+  currency:         Bytes!
+  createdAt:        BigInt!
+  transactionHash:  Bytes!
+  network:          String!
+  transfers:        [Transfer!]! @derivedFrom(field: "token")
+}
+
+"""
+Estatísticas diárias agregadas — uma entidade por dia (id = YYYY-MM-DD).
+Permite construir gráficos de série temporal sem varrer todos os tokens.
+"""
+type DailyStat @entity {
+  id:             String!
+  date:           String!
+  tokensCreated:  Int!
+  totalFees:      BigInt!
+  uniqueCreators: Int!
+}
+
+"""
+Transfer ERC-20 de qualquer token criado via factory.
+id = txHash-logIndex (único por evento).
+"""
+type Transfer @entity {
+  id:        String!
+  token:     Token!
+  from:      Bytes!
+  to:        Bytes!
+  value:     BigInt!
+  timestamp: BigInt!
+}
+
+"""
+Criador de tokens — agrega métricas por carteira.
+id = endereço lowercase do criador.
+"""
+type Creator @entity {
+  id:             String!
+  totalTokens:    Int!
+  totalFees:      BigInt!
+  firstCreatedAt: BigInt!
+  lastCreatedAt:  BigInt!
+  tokens:         [Token!]! @derivedFrom(field: "creator")
+}

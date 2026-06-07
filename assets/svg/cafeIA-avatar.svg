@@ -1,0 +1,74 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+  <!-- Define gradientes -->
+  <defs>
+    <linearGradient id="cafeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f85d23;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8c42;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="botGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Cabeça do robo (corpo principal) -->
+  <rect x="8" y="6" width="32" height="28" rx="4" fill="url(#botGrad)" stroke="url(#cafeGrad)" stroke-width="1.5"/>
+
+  <!-- Olhos (robo) -->
+  <circle cx="16" cy="14" r="2.5" fill="url(#cafeGrad)"/>
+  <circle cx="32" cy="14" r="2.5" fill="url(#cafeGrad)"/>
+
+  <!-- Boca (sorriso do robo) -->
+  <path d="M 18 20 L 30 20" stroke="url(#cafeGrad)" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M 18 20 Q 24 22 30 20" stroke="url(#cafeGrad)" stroke-width="1" stroke-linecap="round" fill="none"/>
+
+  <!-- Antena esquerda -->
+  <line x1="14" y1="6" x2="14" y2="1" stroke="url(#cafeGrad)" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="14" cy="0.5" r="1" fill="url(#cafeGrad)"/>
+
+  <!-- Antena direita -->
+  <line x1="34" y1="6" x2="34" y2="1" stroke="url(#cafeGrad)" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="34" cy="0.5" r="1" fill="url(#cafeGrad)"/>
+
+  <!-- Xícara de café (símbolo embaixo) -->
+  <g transform="translate(12, 30)">
+    <!-- Corpo da xícara -->
+    <path d="M 2 0 L 1 6 Q 1 8 3 8 L 19 8 Q 21 8 21 6 L 20 0 Z" fill="url(#cafeGrad)" stroke="url(#cafeGrad)" stroke-width="1"/>
+
+    <!-- Café dentro -->
+    <path d="M 3 2 L 3 6 Q 3 7 4 7 L 18 7 Q 19 7 19 6 L 19 2 Z" fill="#ff8c42" opacity="0.8"/>
+
+    <!-- Alça -->
+    <path d="M 21 2 Q 25 2 25 4 Q 25 6 21 6" fill="none" stroke="url(#cafeGrad)" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Pires -->
+    <ellipse cx="11" cy="8.5" rx="10" ry="1.5" fill="none" stroke="url(#cafeGrad)" stroke-width="1"/>
+  </g>
+
+  <!-- Animação de pulse (brilho) -->
+  <style>
+    @keyframes cafeIA-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    #cafeIA-avatar-root {
+      animation: cafeIA-pulse 2s ease-in-out infinite;
+    }
+  </style>
+
+  <!-- Container root para animação -->
+  <g id="cafeIA-avatar-root">
+    <!-- Glow effect ao fundo -->
+    <defs>
+      <filter id="cafeIA-glow">
+        <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="url(#cafeGrad)" stroke-width="0.5" opacity="0.3" filter="url(#cafeIA-glow)"/>
+  </g>
+</svg>

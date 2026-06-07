@@ -1,0 +1,5 @@
+🚀 xcafe Token API rodando na porta 3000
+🔗 Health check: http://localhost:3000/health
+⚡ Modo: Deploy Híbrido (usuário paga gas)
+✅ Pronto para receber requisições!
+🌐 POST /api/analyze-contract - IP: ::1

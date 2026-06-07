@@ -1,0 +1,17 @@
+{
+  "name": "tokencafe-subgraph",
+  "version": "1.0.0",
+  "description": "TheGraph subgraph para indexação de eventos on-chain do TokenCafe",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build":   "graph build",
+    "deploy":  "graph deploy --studio tokencafe",
+    "auth":    "graph auth --studio"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-ts":  "^0.32.0"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.65.0"
+  }
+}

@@ -1,0 +1,53 @@
+specVersion: 0.0.5
+description: Indexação de tokens criados via TokenCafeFactory — eventos TokenCreated e Transfer ERC-20
+repository: https://github.com/andreval74/tokencafe
+
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  - kind: ethereum
+    name: TokenCafeFactory
+    network: bsc
+    source:
+      # Preencher com o endereço real após deploy em produção.
+      # Exemplo: address: "0xYourFactoryAddressHere"
+      address: "0x0000000000000000000000000000000000000000"
+      abi: TokenCafeFactory
+      # Ajustar para o bloco de deploy da factory (evita reprocessar blocos antigos).
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - DailyStat
+        - Creator
+      abis:
+        - name: TokenCafeFactory
+          file: ./abis/TokenCafeFactory.json
+      eventHandlers:
+        - event: TokenCreated(indexed address,indexed address,indexed address,string,string,uint256,address)
+          handler: handleTokenCreated
+      file: ./src/mapping.ts
+
+templates:
+  - kind: ethereum
+    name: TokenCafeERC20
+    network: bsc
+    source:
+      abi: TokenCafeERC20
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: TokenCafeERC20
+          file: ./abis/TokenCafeERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/token-cafe-erc20.ts

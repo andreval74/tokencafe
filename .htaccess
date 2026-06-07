@@ -1,0 +1,48 @@
+# ── Cache: desabilita tudo para desenvolvimento ──────────────────────────────
+
+# 1. Desabilita o cache de disco do Apache (mod_cache_disk) para este diretório
+<IfModule mod_cache.c>
+  CacheDisable /
+</IfModule>
+
+# 2. Remove ETag para que o Apache não use validação condicional
+FileETag None
+
+# 3. Força no-store em TODOS os arquivos JS/CSS/PHP
+#    "always" garante aplicação mesmo sobre respostas de cache ou erro
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|php)$">
+    Header always set   Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header always set   Pragma        "no-cache"
+    Header always set   Expires       "0"
+    Header always unset ETag
+    Header always unset Last-Modified
+  </FilesMatch>
+</IfModule>
+
+# 4. Desabilita expiração automática de assets (mod_expires)
+<IfModule mod_expires.c>
+  ExpiresActive Off
+</IfModule>
+RewriteEngine On
+RewriteRule ^(favicon\.ico|apple-touch-icon\.png|robots\.txt|sitemap\.xml|manifest\.json|site\.webmanifest)$ - [L]
+
+# Redirects de compatibilidade (aliases removidos da raiz)
+RewriteRule ^tools\.php$ index.php?page=tools [R=301,L,QSA]
+RewriteRule ^suporte\.php$ index.php?page=suporte [R=301,L,QSA]
+RewriteRule ^privacidade\.php$ index.php?page=privacidade [R=301,L,QSA]
+RewriteRule ^termos-e-servicos\.php$ index.php?page=termos-e-servicos [R=301,L,QSA]
+RewriteRule ^style-guide\.php$ index.php?page=documentacao [R=301,L,QSA]
+RewriteRule ^contrato-detalhes\.php$ index.php?page=contrato-detalhes [R=301,L,QSA]
+
+RewriteRule ^config/ - [R=403,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(assets|includes|modules|api)/ - [R=404,L]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^ index.php [L]

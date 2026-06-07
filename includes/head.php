@@ -1,0 +1,152 @@
+<?php
+/* ============================================================================
+   HEAD.PHP — <head> HTML global do portal TokenCafe
+   Injeta: meta SEO (title, description, og:image), favicons, manifest PWA,
+   Bootstrap 5, Bootstrap Icons e o styles.css do projeto.
+   Lê variáveis opcionais: $pageTitle, $pageDescription, $pageOgImage, $pageKeywords.
+   ============================================================================ */
+?>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <?php
+    $pageTitle = isset($pageTitle) && is_string($pageTitle) && trim($pageTitle) !== "" ? $pageTitle : "TokenCafe - O Futuro da Tokenização | Democratizando a Web3";
+    $pageDescription = isset($pageDescription) && is_string($pageDescription) && trim($pageDescription) !== "" ? $pageDescription : "TokenCafe - O ecossistema mais completo para Criação, gestão e negociação de tokens e contratos inteligentes. Democratize seus ativos digitais com nossa plataforma Web3 no-code.";
+    $pageKeywords = isset($pageKeywords) && is_string($pageKeywords) && trim($pageKeywords) !== "" ? $pageKeywords : "tokencafe, criar token, blockchain, ethereum, polygon, NFT, Web3, Tokenização, contratos inteligentes, DeFi, DAO, marketplace";
+    $pageOgTitle = isset($pageOgTitle) && is_string($pageOgTitle) && trim($pageOgTitle) !== "" ? $pageOgTitle : "TokenCafe - O Futuro da Tokenização";
+    $pageOgDescription = isset($pageOgDescription) && is_string($pageOgDescription) && trim($pageOgDescription) !== "" ? $pageOgDescription : "O ecossistema mais completo para democratizar a Criação de ativos digitais";
+    $pageOgImage = isset($pageOgImage) && is_string($pageOgImage) && trim($pageOgImage) !== "" ? $pageOgImage : "assets/imgs/tkncafe512x512.png";
+    $pageCanonical = isset($pageCanonical) && is_string($pageCanonical) && trim($pageCanonical) !== "" ? $pageCanonical : "https://tokencafe.app";
+    $pageRobots = isset($pageRobots) && is_string($pageRobots) && trim($pageRobots) !== "" ? $pageRobots : "index, follow";
+    $pageTwitterTitle = isset($pageTwitterTitle) && is_string($pageTwitterTitle) && trim($pageTwitterTitle) !== "" ? $pageTwitterTitle : $pageOgTitle;
+    $pageTwitterDescription = isset($pageTwitterDescription) && is_string($pageTwitterDescription) && trim($pageTwitterDescription) !== "" ? $pageTwitterDescription : $pageOgDescription;
+    $pageTwitterImage = isset($pageTwitterImage) && is_string($pageTwitterImage) && trim($pageTwitterImage) !== "" ? $pageTwitterImage : $pageOgImage;
+  ?>
+  <title><?= htmlspecialchars($pageTitle, ENT_QUOTES, "UTF-8") ?></title>
+  <meta
+    name="description"
+    content="<?= htmlspecialchars($pageDescription, ENT_QUOTES, "UTF-8") ?>"
+  />
+  <meta name="robots" content="<?= htmlspecialchars($pageRobots, ENT_QUOTES, "UTF-8") ?>" />
+  <link rel="canonical" href="<?= htmlspecialchars($pageCanonical, ENT_QUOTES, "UTF-8") ?>" />
+  <base href="<?php echo htmlspecialchars(defined('BASE_URL') ? BASE_URL : '/', ENT_QUOTES, 'UTF-8'); ?>">
+  <?php
+    if (!function_exists('tokencafe_load_system_settings')) {
+      require_once __DIR__ . "/system-config.php";
+    }
+    require_once __DIR__ . "/admin-config.php";
+    $walletCookieName = defined("TOKENCAFE_WALLET_COOKIE") ? (string) TOKENCAFE_WALLET_COOKIE : "tokencafe_wallet_address";
+    $walletCookieRaw = isset($_COOKIE[$walletCookieName]) ? (string) $_COOKIE[$walletCookieName] : "";
+    $walletCookie = strtolower(trim(urldecode($walletCookieRaw)));
+    $isAdmin = tokencafe_is_admin_wallet($walletCookie);
+    $isChief = tokencafe_is_chief_admin($walletCookie);
+    $disableBarriers = defined("TOKENCAFE_DISABLE_ADMIN_BARRIERS") ? (bool) TOKENCAFE_DISABLE_ADMIN_BARRIERS : false;
+    // Carrega configurações completas para expor ao JS
+    $_tcSettings = tokencafe_load_system_settings();
+    // Sanitiza: não expõe bypassKey ao JS
+    $_tcSettingsJs = $_tcSettings;
+    unset($_tcSettingsJs['permissions']['bypassEnabled']);
+    unset($_tcSettingsJs['permissions']['disableBarriers']);
+  ?>
+  <script>
+    window.TOKENCAFE_DISABLE_ADMIN_BARRIERS = <?= $disableBarriers ? "true" : "false" ?>;
+    window.TOKENCAFE_IS_ADMIN = <?= $isAdmin ? "true" : "false" ?>;
+    window.TOKENCAFE_IS_CHIEF_ADMIN = <?= $isChief ? "true" : "false" ?>;
+    window.__tcPageMobile = <?= json_encode(isset($mobileMode) ? (string)$mobileMode : "full") ?>;
+    window.TOKENCAFE_MODEL_PRICES = <?= json_encode(defined('TOKENCAFE_MODEL_PRICES') ? TOKENCAFE_MODEL_PRICES : new stdClass(), JSON_UNESCAPED_UNICODE) ?>;
+    window.TC_SYSTEM_SETTINGS = <?= json_encode($_tcSettingsJs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    <?php
+    // Chave lida de api/.env e injetada aqui — nunca hardcoded no template ou em JS client-side
+    $_tcApiEnv = function_exists('tokencafe_load_api_env') ? tokencafe_load_api_env() : [];
+    $_tcExplorerKey = $_tcApiEnv['EXPLORER_API_KEY'] ?? ($_tcApiEnv['BSCSCAN_API_KEY'] ?? '');
+    ?>
+    window.TOKENCAFE_EXPLORER_API_KEY = <?= json_encode($_tcExplorerKey) ?>;
+  </script>
+  <?php if (isset($_GET["debugBase"])) { ?>
+    <script>
+      (function () {
+        var base = <?php echo json_encode(defined("BASE_URL") ? BASE_URL : "/", JSON_UNESCAPED_SLASHES); ?>;
+        console.log("[TokenCafe] BASE_URL =", base);
+        document.addEventListener("DOMContentLoaded", function () {
+          var el = document.createElement("div");
+          el.style.position = "fixed";
+          el.style.bottom = "8px";
+          el.style.right = "8px";
+          el.style.zIndex = "99999";
+          el.style.background = "rgba(0,0,0,0.85)";
+          el.style.color = "#fff";
+          el.style.padding = "8px 10px";
+          el.style.border = "1px solid rgba(255,255,255,0.2)";
+          el.style.borderRadius = "8px";
+          el.style.fontSize = "12px";
+          el.style.fontFamily = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace";
+          el.textContent = "BASE_URL: " + base;
+          document.body.appendChild(el);
+        });
+      })();
+    </script>
+  <?php } ?>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/imgs/tkncafe32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/imgs/tkncafe16x16.png" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css" rel="stylesheet" />
+  <link href="<?= htmlspecialchars(function_exists('tokencafe_asset_url') ? tokencafe_asset_url('assets/css/styles.css') : ('assets/css/styles.css?v=' . (defined('ASSET_VERSION') ? rawurlencode((string)ASSET_VERSION) : '1')), ENT_QUOTES, 'UTF-8') ?>" rel="stylesheet" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <meta
+    name="keywords"
+    content="<?= htmlspecialchars($pageKeywords, ENT_QUOTES, "UTF-8") ?>"
+  />
+  <meta name="author" content="TokenCafe Team" />
+
+  <meta property="og:title" content="<?= htmlspecialchars($pageOgTitle, ENT_QUOTES, "UTF-8") ?>" />
+  <meta
+    property="og:description"
+    content="<?= htmlspecialchars($pageOgDescription, ENT_QUOTES, "UTF-8") ?>"
+  />
+  <meta property="og:image" content="<?= htmlspecialchars($pageOgImage, ENT_QUOTES, "UTF-8") ?>" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://tokencafe.app" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<?= htmlspecialchars($pageTwitterTitle, ENT_QUOTES, "UTF-8") ?>" />
+  <meta
+    name="twitter:description"
+    content="<?= htmlspecialchars($pageTwitterDescription, ENT_QUOTES, "UTF-8") ?>"
+  />
+  <meta name="twitter:image" content="<?= htmlspecialchars($pageTwitterImage, ENT_QUOTES, "UTF-8") ?>" />
+  <?php if (isset($pageHeadExtra)) echo $pageHeadExtra; ?>
+
+  <?php
+  // ── Import Map dinâmico ──────────────────────────────────────────────────────
+  // Versiona TODOS os módulos ES com ASSET_VERSION.
+  // Garante que import './model-pricing.js' dentro de contrato.js seja
+  // resolvido para './model-pricing.js?v=9.65', forçando cache bust completo
+  // mesmo em sub-módulos que não têm ?v= nas instruções import estáticas.
+  // Deve ficar ANTES de qualquer <script type="module">.
+  $_tcJsRoot  = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'js';
+  $_tcImports = [];
+  if (is_dir($_tcJsRoot)) {
+      $it = new RecursiveIteratorIterator(
+          new RecursiveDirectoryIterator($_tcJsRoot, RecursiveDirectoryIterator::SKIP_DOTS)
+      );
+      foreach ($it as $_tcF) {
+          if (strtolower($_tcF->getExtension()) === 'js') {
+              $rel = 'assets/js' . str_replace('\\', '/', substr($_tcF->getPathname(), strlen($_tcJsRoot)));
+              $t = @filemtime($_tcF->getPathname());
+              $v = $t !== false ? (string) $t : (defined('ASSET_VERSION') ? (string) ASSET_VERSION : '1');
+              $_tcImports[$rel] = $rel . '?v=' . rawurlencode($v);
+          }
+      }
+      unset($it, $_tcF, $rel);
+  }
+  unset($_tcJsRoot);
+  ?>
+  <script type="importmap"><?= json_encode(['imports' => $_tcImports], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
+  <?php unset($_tcImports); ?>
+</head>

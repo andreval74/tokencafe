@@ -1,0 +1,358 @@
+{
+    "version": "1.0",
+    "updated": "2026-06-04T17:03:34Z",
+    "groups": [
+        {
+            "id": "ferramentas",
+            "label": "Ferramentas",
+            "icon": "bi-tools",
+            "highlight": false,
+            "enabled": true
+        },
+        {
+            "id": "tokens",
+            "label": "Tokens",
+            "icon": "bi-coin",
+            "highlight": false,
+            "enabled": false
+        },
+        {
+            "id": "analise",
+            "label": "Análise & Extras",
+            "icon": "bi-graph-up-arrow",
+            "highlight": false,
+            "enabled": false
+        },
+        {
+            "id": "suporte",
+            "label": "Suporte",
+            "icon": "bi-headset",
+            "highlight": false,
+            "enabled": true
+        },
+        {
+            "id": "administrador",
+            "label": "Administrador",
+            "icon": "bi-grid",
+            "highlight": true,
+            "enabled": true
+        },
+        {
+            "id": "legal",
+            "label": "Legal",
+            "icon": "bi-shield-check",
+            "highlight": false,
+            "enabled": true
+        }
+    ],
+    "modules": {
+        "contrato": {
+            "group": "ferramentas",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Criar Token",
+            "iconType": "bi",
+            "icon": "bi-file-earmark-code"
+        },
+        "wallet": {
+            "group": "ferramentas",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Carteira",
+            "iconType": "bi",
+            "icon": "bi-wallet2"
+        },
+        "rpc": {
+            "group": "ferramentas",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "RPC Manager",
+            "iconType": "bi",
+            "icon": "bi-diagram-3"
+        },
+        "indicar": {
+            "group": "",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Indique & Ganhe",
+            "iconType": "bi",
+            "icon": "bi-share-fill"
+        },
+        "suporte": {
+            "group": "suporte",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Suporte",
+            "iconType": "bi",
+            "icon": "bi-envelope"
+        },
+        "ia-chat": {
+            "group": "suporte",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "IA Chat",
+            "iconType": "bi",
+            "icon": "bi-robot"
+        },
+        "tokens": {
+            "group": "tokens",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Meus Tokens",
+            "iconType": "bi",
+            "icon": "bi-coin"
+        },
+        "token-add": {
+            "group": "tokens",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Adicionar Token",
+            "iconType": "bi",
+            "icon": "bi-plus-circle"
+        },
+        "token-manager": {
+            "group": "tokens",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Gerenciar Tokens",
+            "iconType": "bi",
+            "icon": "bi-list-check"
+        },
+        "token-admin": {
+            "group": "tokens",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Admin Token",
+            "iconType": "bi",
+            "icon": "bi-terminal-fill"
+        },
+        "analise": {
+            "group": "analise",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Análise",
+            "iconType": "bi",
+            "icon": "bi-patch-check"
+        },
+        "link": {
+            "group": "ferramentas",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Links",
+            "iconType": "bi",
+            "icon": "bi-link-45deg"
+        },
+        "profile": {
+            "group": "administrador",
+            "enabled": true,
+            "adminOnly": true,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Perfil",
+            "iconType": "bi",
+            "icon": "bi-person-circle"
+        },
+        "analytics": {
+            "group": "analise",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": false,
+            "testnet": false,
+            "label": "Analytics",
+            "iconType": "bi",
+            "icon": "bi-graph-up-arrow"
+        },
+        "widget": {
+            "group": "analise",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": false,
+            "testnet": false,
+            "label": "Widget",
+            "iconType": "bi",
+            "icon": "bi-puzzle"
+        },
+        "templates": {
+            "group": "analise",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": false,
+            "testnet": false,
+            "label": "Templates",
+            "iconType": "bi",
+            "icon": "bi-layers"
+        },
+        "verifica": {
+            "group": "analise",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Verificar Contrato",
+            "iconType": "bi",
+            "icon": "bi-shield-check"
+        },
+        "settings": {
+            "group": "analise",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Configurações",
+            "iconType": "bi",
+            "icon": "bi-gear"
+        },
+        "relatorios": {
+            "group": "administrador",
+            "enabled": true,
+            "adminOnly": true,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Relatórios",
+            "iconType": "bi",
+            "icon": "bi-bar-chart-line"
+        },
+        "documentacao": {
+            "group": "administrador",
+            "enabled": true,
+            "adminOnly": true,
+            "comingSoon": true,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Documentação",
+            "iconType": "bi",
+            "icon": "bi-book"
+        },
+        "admin-painel": {
+            "group": "administrador",
+            "enabled": true,
+            "adminOnly": true,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Painel Admin",
+            "iconType": "bi",
+            "icon": "bi-sliders"
+        },
+        "privacidade": {
+            "group": "legal",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Privacidade",
+            "iconType": "bi",
+            "icon": "bi-shield-check"
+        },
+        "termos-e-servicos": {
+            "group": "legal",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Termos",
+            "iconType": "bi",
+            "icon": "bi-file-earmark-text"
+        },
+        "social": {
+            "group": "legal",
+            "enabled": true,
+            "adminOnly": false,
+            "comingSoon": false,
+            "mainnet": true,
+            "testnet": true,
+            "label": "Social",
+            "iconType": "bi",
+            "icon": "bi-people"
+        }
+    },
+    "contracts": {
+        "modelPrices": {
+            "erc20-minimal": 40,
+            "erc20-controls": 50,
+            "erc20-advanced": 60,
+            "erc20-directsale": 80
+        },
+        "basePriceWei": "10000000000000000",
+        "gasLimits": {
+            "erc20-minimal": 1200000,
+            "erc20-controls": 1500000,
+            "erc20-advanced": 2000000,
+            "erc20-directsale": 2500000
+        },
+        "factoryAddresses": {
+            "1": "",
+            "56": "",
+            "137": "",
+            "42161": "",
+            "43114": "",
+            "10": "",
+            "8453": "",
+            "97": "",
+            "11155111": ""
+        },
+        "platformWallet": "0x0b81337f18767565d2ea40913799317a25dc4bc5",
+        "gasMarginPercent": 20
+    },
+    "permissions": {
+        "adminWallets": [
+            "0x0b81337f18767565d2ea40913799317a25dc4bc5"
+        ],
+        "chiefAdmin": "0x0b81337f18767565d2ea40913799317a25dc4bc5",
+        "bypassEnabled": true,
+        "disableBarriers": false
+    },
+    "features": {
+        "referralEnabled": true,
+        "analyticsEnabled": false,
+        "widgetEnabled": false,
+        "verifyEnabled": false,
+        "maintenanceMode": false
+    },
+    "customFunctions": []
+}

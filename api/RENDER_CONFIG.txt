@@ -1,0 +1,87 @@
+RENDER.COM - CONFIGURAÇÕES DO SERVIÇO TOKENCAFE API
+=====================================================
+
+======================================================
+CONFIGURAÇÃO DO WEB SERVICE (Settings)
+======================================================
+
+Name:             tokencafe-api
+Environment:      Node
+Region:           Oregon (US West)
+Branch:           main
+Root Directory:   api
+Build Command:    npm install
+Start Command:    npm start
+Auto-Deploy:      Yes
+Health Check:     /health
+
+======================================================
+ENVIRONMENT VARIABLES — OBRIGATÓRIAS
+======================================================
+
+NODE_ENV                  = production
+# PORT é injetado automaticamente pelo Render — não precisa configurar
+DEBUG                     = false
+TRUST_PROXY               = true
+LOG_LEVEL                 = info
+
+SOLC_VERSION              = 0.8.30
+OPTIMIZATION_ENABLED      = true
+OPTIMIZATION_RUNS         = 200
+
+RATE_LIMIT_WINDOW         = 60000
+RATE_LIMIT_MAX_REQUESTS   = 10
+
+BSC_MAINNET_RPC           = https://bsc-dataseed1.binance.org/
+BSC_TESTNET_RPC           = https://data-seed-prebsc-1-s1.binance.org:8545/
+ETHEREUM_RPC              = https://eth.llamarpc.com
+POLYGON_RPC               = https://polygon.llamarpc.com
+
+======================================================
+ENVIRONMENT VARIABLES — IA (pelo menos uma obrigatória)
+======================================================
+
+GROQ_API_KEY              = (chave em https://console.groq.com/keys — GRATUITO)
+ANTHROPIC_API_KEY         = (opcional, fallback pago)
+
+======================================================
+ENVIRONMENT VARIABLES — EXPLORER (opcional mas recomendado)
+======================================================
+
+EXPLORER_API_KEY          = (BscScan/Etherscan — melhora verificação de contratos)
+
+======================================================
+OBSERVAÇÕES IMPORTANTES
+======================================================
+
+- PORT deve ser 10000 no Render (não 3000 — esse é só local)
+- GROQ_API_KEY é gratuita, crie em https://console.groq.com/keys
+- Nunca versionar o arquivo .env no git (já está no .gitignore)
+- render.yaml define rootDir: api — não alterar no dashboard
+
+======================================================
+APÓS O DEPLOY — VERIFICAÇÃO
+======================================================
+
+1. Aguarde "Build successful" e "Deploy live" no dashboard
+2. Acesse: https://tokencafe.onrender.com/health
+3. Deve retornar: { "success": true, "features": {...} }
+
+======================================================
+PROBLEMAS COMUNS
+======================================================
+
+ERRO: Root directory does not exist
+SOLUÇÃO: Settings > Root Directory = api
+
+ERRO: Application failed to respond
+SOLUÇÃO: PORT=10000 nas Environment Variables
+
+ERRO: Cannot find module 'solc'
+SOLUÇÃO: Build Command deve ser "npm install" (não npm ci)
+
+ERRO: Análise de IA retorna not_configured
+SOLUÇÃO: Adicionar GROQ_API_KEY nas Environment Variables
+
+ERRO: Build failed
+SOLUÇÃO: Ver logs — geralmente falta de variável ou erro de sintaxe
