@@ -425,9 +425,6 @@ class ContractDetailsManager {
                 try {
                     if (this.state) this.setupDownloads();
                 } catch (_) {}
-                try {
-                    if (this.state) this.setupTransactions();
-                } catch (_) {}
                 return true;
             };
             if (tryBind()) return;
@@ -435,6 +432,20 @@ class ContractDetailsManager {
                 tryBind();
             });
             this._actionsObserver.observe(document.body, { childList: true, subtree: true });
+        } catch (_) {}
+
+        // Re-executa setupTransactions sempre que contract-actions.php for re-renderizado
+        // pelo base-system (ocorre múltiplas vezes após eventos de wallet).
+        // Usa o evento 'componentLoaded' em vez do MutationObserver para evitar loop
+        // infinito (setupTransactions altera textContent → triggeria MutationObserver).
+        try {
+            window.addEventListener('componentLoaded', (e) => {
+                try {
+                    if (e?.detail?.component === 'modules/contrato/contract-actions.php') {
+                        if (this.state) this.setupTransactions();
+                    }
+                } catch (_) {}
+            });
         } catch (_) {}
     }
 
