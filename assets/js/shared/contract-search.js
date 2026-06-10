@@ -527,45 +527,72 @@ async function populateVerifiedSections(container, js) {
 
     if (analysisSection && (sourceCode || abiRaw)) {
       analysisSection.classList.remove("d-none");
-      // Oculta placeholder e mostra área de texto real
       if (analysisPlaceholder) analysisPlaceholder.classList.add("d-none");
       if (analysisText) analysisText.classList.remove("d-none");
-      if (analysisLoading) analysisLoading.classList.remove("d-none");
-      if (analysisText) analysisText.textContent = "";
-      if (analysisSubtitle) analysisSubtitle.textContent = "Consultando IA...";
 
+      // Chave de cache por contrato — análise persiste mesmo offline
+      const _aiCacheKey = `tc_ai_${chainId}_${String(address || "").toLowerCase()}`;
+      let _cacheHit = false;
       try {
-        const apiBase = getApiBase ? getApiBase() : "";
-        const resp = await fetch(`${apiBase}/api/analyze-contract`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contractName, sourceCode, abi: abiRaw, chainId: chainId || null, address: address || null }),
-        });
-        const data = await resp.json().catch(() => ({}));
-        if (analysisLoading) analysisLoading.classList.add("d-none");
-        if (data.success && data.analysis) {
-          if (analysisText) analysisText.textContent = data.analysis;
+        const _cached = localStorage.getItem(_aiCacheKey);
+        if (_cached) {
+          _cacheHit = true;
+          if (analysisLoading) analysisLoading.classList.add("d-none");
+          if (analysisText) analysisText.textContent = _cached;
           if (analysisSubtitle) analysisSubtitle.textContent = "Análise gerada por IA";
-        } else {
-          let msg;
-          if (data.reason === "not_configured") {
-            msg = "Adicione GROQ_API_KEY ou ANTHROPIC_API_KEY no arquivo api/.env para ativar a análise por IA.";
-          } else if (data.reason === "api_error" && data.error) {
-            msg = `Erro na API de IA: ${data.error}`;
-          } else {
-            msg = "Não foi possível analisar o contrato no momento.";
-          }
-          if (analysisText) analysisText.textContent = msg;
-          if (analysisSubtitle) analysisSubtitle.textContent = data.reason === "not_configured" ? "Configuração pendente" : "Erro na API";
         }
-      } catch (fetchErr) {
+      } catch (_) {}
+
+      if (!_cacheHit) {
+        if (analysisLoading) analysisLoading.classList.remove("d-none");
+        if (analysisText) analysisText.textContent = "";
+        if (analysisSubtitle) analysisSubtitle.textContent = "Consultando IA...";
+
+        // Fetch com retry (até 3 tentativas — acorda servidor Render que ficou dormindo)
+        let _resp = null, _fetchErr = null;
+        for (let _att = 0; _att < 3; _att++) {
+          if (_att > 0) {
+            const _wait = _att === 1 ? 5000 : 12000;
+            if (analysisText) analysisText.textContent = `Aguardando servidor... (tentativa ${_att + 1}/3)`;
+            await new Promise(r => setTimeout(r, _wait));
+          }
+          try {
+            const _apiBase = getApiBase ? getApiBase() : "";
+            _resp = await fetch(`${_apiBase}/api/analyze-contract`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contractName, sourceCode, abi: abiRaw, chainId: chainId || null, address: address || null }),
+            });
+            _fetchErr = null;
+            break;
+          } catch (e) { _fetchErr = e; _resp = null; }
+        }
+
         if (analysisLoading) analysisLoading.classList.add("d-none");
-        const isNetworkErr = fetchErr instanceof TypeError && String(fetchErr.message).toLowerCase().includes("fetch");
-        const errMsg = isNetworkErr
-          ? "Servidor de IA offline. Execute 'npm run dev' para ativar a análise."
-          : "Erro ao consultar análise.";
-        if (analysisText) analysisText.textContent = errMsg;
-        if (analysisSubtitle) analysisSubtitle.textContent = "Leitura do código verificado";
+
+        try {
+          if (!_resp) throw _fetchErr || new Error("network");
+          const data = await _resp.json().catch(() => ({}));
+          if (data.success && data.analysis) {
+            if (analysisText) analysisText.textContent = data.analysis;
+            if (analysisSubtitle) analysisSubtitle.textContent = "Análise gerada por IA";
+            try { localStorage.setItem(_aiCacheKey, data.analysis); } catch (_) {}
+          } else {
+            let msg;
+            if (data.reason === "not_configured") {
+              msg = "Adicione GROQ_API_KEY ou ANTHROPIC_API_KEY no arquivo api/.env para ativar a análise por IA.";
+            } else if (data.reason === "api_error" && data.error) {
+              msg = `Erro na API de IA: ${data.error}`;
+            } else {
+              msg = "Não foi possível analisar o contrato no momento. Tente recarregar a página.";
+            }
+            if (analysisText) analysisText.textContent = msg;
+            if (analysisSubtitle) analysisSubtitle.textContent = data.reason === "not_configured" ? "Configuração pendente" : "Erro na API";
+          }
+        } catch (_fetchErr2) {
+          if (analysisText) analysisText.textContent = "Servidor de IA indisponível. Tente recarregar a página em instantes.";
+          if (analysisSubtitle) analysisSubtitle.textContent = "Leitura do código verificado";
+        }
       }
     } else if (analysisSection) {
       // Contrato sem código verificado: mantém seção visível com placeholder
