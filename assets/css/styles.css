@@ -6781,6 +6781,17 @@ a.tc-data-value--url {
     flex-shrink: 0;
 }
 
+/* Quando a linha tem botões de ação, endereços/hashes truncam com ellipsis
+   em vez de quebrar linha (evita o "3" sozinho na segunda linha) */
+.tc-data-row:has(.tc-data-actions) .tc-data-value--url {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: normal;
+    flex: 1 1 0;
+}
+
 /* ── Botão ícone DS — base (linhas de dados) ── */
 .tc-icon-btn-ds {
     width: 30px;
