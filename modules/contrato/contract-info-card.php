@@ -16,12 +16,49 @@
   <div class="tc-data-row">
     <span class="tc-data-label">Endereço</span>
     <a id="cs_viewAddress" href="#" target="_blank" rel="noopener" class="tc-data-value--url"></a>
+    <div class="tc-data-actions">
+      <button type="button" class="tc-icon-btn-ds tc-action-copy" data-cs-copy-address title="Copiar endereço">
+        <i class="bi bi-clipboard"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-explorer" data-cs-open-explorer title="Ver no Explorer">
+        <i class="bi bi-box-arrow-up-right"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-whatsapp" data-cs-share-whatsapp title="Compartilhar via WhatsApp">
+        <i class="bi bi-whatsapp"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-telegram" data-cs-share-telegram title="Compartilhar via Telegram">
+        <i class="bi bi-telegram"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-email" data-cs-share-email title="Compartilhar por e-mail">
+        <i class="bi bi-envelope"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-add-token d-none" data-cs-add-token title="Adicionar token à carteira">
+        <i class="bi bi-wallet2"></i>
+      </button>
+    </div>
   </div>
 
   <!-- Tx Hash (oculto por padrão, JS exibe quando disponível) -->
   <div class="tc-data-row d-none" id="cs_txRow">
     <span class="tc-data-label">Tx Hash</span>
     <a id="cs_viewTxHash" href="#" target="_blank" rel="noopener" class="tc-data-value--url"></a>
+    <div class="tc-data-actions">
+      <button type="button" class="tc-icon-btn-ds tc-action-copy" data-cs-copy-txhash title="Copiar Tx Hash">
+        <i class="bi bi-clipboard"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-explorer" data-cs-open-tx-explorer title="Ver TX no Explorer">
+        <i class="bi bi-box-arrow-up-right"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-whatsapp" data-cs-share-tx-whatsapp title="Compartilhar TX via WhatsApp">
+        <i class="bi bi-whatsapp"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-telegram" data-cs-share-tx-telegram title="Compartilhar TX via Telegram">
+        <i class="bi bi-telegram"></i>
+      </button>
+      <button type="button" class="tc-icon-btn-ds tc-action-email" data-cs-share-tx-email title="Compartilhar TX por e-mail">
+        <i class="bi bi-envelope"></i>
+      </button>
+    </div>
   </div>
 
   <!-- Rede -->
