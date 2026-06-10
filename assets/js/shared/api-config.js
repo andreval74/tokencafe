@@ -33,6 +33,35 @@
     try {
        window.localStorage && window.localStorage.setItem("api_base", apiBase);
     } catch (_) {}
+
+    // 7. Auto-fallback: se estiver em localhost e a API local não responder em 1.5s,
+    //    troca automaticamente para a API de produção (permite verificação e análise IA
+    //    mesmo sem rodar "npm run dev" localmente).
+    if (isLocalDev && !savedBase) {
+        var _fallbackTimer = setTimeout(function () {
+            // Se o health-check ainda não respondeu, considera offline → usa produção
+            if (window.TOKENCAFE_API_BASE === localApi) {
+                window.TOKENCAFE_API_BASE = productionApi;
+                try { window.localStorage && window.localStorage.setItem("api_base", productionApi); } catch (_) {}
+                console.info("[API Config] localhost:3000 offline — usando API de produção como fallback.");
+            }
+        }, 1500);
+
+        fetch(localApi + "/health", { method: "GET", signal: AbortSignal.timeout ? AbortSignal.timeout(1400) : undefined })
+            .then(function (r) {
+                if (r.ok) {
+                    clearTimeout(_fallbackTimer);
+                    // localhost:3000 está online — mantém configuração atual
+                }
+            })
+            .catch(function () {
+                clearTimeout(_fallbackTimer);
+                // Falhou imediatamente (ECONNREFUSED) — troca já
+                window.TOKENCAFE_API_BASE = productionApi;
+                try { window.localStorage && window.localStorage.setItem("api_base", productionApi); } catch (_) {}
+                console.info("[API Config] localhost:3000 offline — usando API de produção como fallback.");
+            });
+    }
     
     // BscScan API Key handling (legacy support)
     try {
