@@ -28,7 +28,7 @@
           <div class="tc-entry-hero-copy">
             <div class="tc-entry-kicker mb-3">
               <i class="bi bi-rocket-takeoff me-2 text-warning"></i>
-              Plataforma Web33333 · No-Code · Multi-Chain
+              Plataforma Web3 · No-Code · Multi-Chain
             </div>
 
             <h1 class="tc-entry-h1 text-white mb-3">
