@@ -173,9 +173,8 @@ export async function runVerifyDirect(payload) {
 }
 
 const EXPLORER_APIS = {
-    // BSC Mainnet e Testnet — getsourcecode funciona no V1 mesmo com deprecação de verifysourcecode
-    "56":  "https://api.bscscan.com/api",
-    "97":  "https://api-testnet.bscscan.com/api",
+    // BSC (56, 97) removidos — V1 do BSCScan está deprecated para getsourcecode.
+    // Usam o endpoint V2 unificado do Etherscan (fallback automático abaixo).
     // ETH e sidechains
     "1":        "https://api.etherscan.io/api",
     "11155111": "https://api-sepolia.etherscan.io/api",
@@ -255,9 +254,8 @@ async function checkExplorerDirectly(chainId, address) {
         
         // Handle V1 Deprecation Warning specifically
         if (data.status === "0" && data.result && typeof data.result === "string" && data.result.includes("deprecated")) {
-             console.warn("[verify-utils] API Deprecated warning received.");
-             // Não tentamos retry automático V2 aqui para evitar loops complexos.
-             // Com as URLs corretas configuradas no EXPLORER_APIS, isso deve ser raro.
+             console.warn("[verify-utils] API V1 deprecated — use o backend proxy ou configure API key V2.");
+             return { success: true, verified: false, error: false, message: "API V1 deprecated" };
         }
 
         if (data.status === "1" && data.result && data.result[0]) {

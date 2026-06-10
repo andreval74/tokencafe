@@ -425,6 +425,9 @@ class ContractDetailsManager {
                 try {
                     if (this.state) this.setupDownloads();
                 } catch (_) {}
+                try {
+                    if (this.state) this.setupTransactions();
+                } catch (_) {}
                 return true;
             };
             if (tryBind()) return;

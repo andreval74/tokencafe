@@ -2475,7 +2475,16 @@ export async function deployContract(opts = {}) {
             verified: state.deployed.verified,
             constructorArguments: state.deployed.constructorArguments,
             encodedConstructorArgs: state.deployed.encodedConstructorArgs,
-            deployParams: state.deployed.deployParams
+            deployParams: state.deployed.deployParams,
+            txPlatform: state.deployed.txPlatform || null,
+            txReferrer: state.deployed.txReferrer || null,
+            feeSymbol: state.deployed.feeSymbol || null,
+            feePlatformAmount: state.deployed.feePlatformAmount || null,
+            feeReferrerAmount: state.deployed.feeReferrerAmount || null,
+            billingAddress: state.deployed.billingAddress || null,
+            platformWallet: state.deployed.platformWallet || null,
+            referrerAddress: state.deployed.referrerAddress || null,
+            gasEstimateCrypto: state.deployed.gasEstimateCrypto || null,
           } : null,
           // Preservar outros campos relevantes se necessário
           sale: state.sale ? {
