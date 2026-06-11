@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\xampp\\htdocs\\tokencafe\\contracts\\core\\TokenCafeERC20.sol": {
-      "lastModificationDate": 1778863835359,
-      "contentHash": "f314e1783770c530bd738328e0bc7c23",
+      "lastModificationDate": 1781063129873,
+      "contentHash": "7e045776e9a2633919f6de68cf6f75a8",
       "sourceName": "contracts/core/TokenCafeERC20.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -38,8 +38,8 @@
       ]
     },
     "C:\\xampp\\htdocs\\tokencafe\\contracts\\core\\TokenCafeFactory.sol": {
-      "lastModificationDate": 1778863835430,
-      "contentHash": "cd2e66d817691e797df5ce345d2dba4d",
+      "lastModificationDate": 1781063129873,
+      "contentHash": "3f66130db081900de49341a18903991e",
       "sourceName": "contracts/core/TokenCafeFactory.sol",
       "solcConfig": {
         "version": "0.8.20",

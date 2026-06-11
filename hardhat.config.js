@@ -73,7 +73,7 @@ module.exports = {
   },
 
   paths: {
-    sources:   "./contracts/core",  // apenas contratos principais; legados ficam em contracts/
+    sources:   "./contracts/core",
     tests:     "./test",
     cache:     "./cache",
     artifacts: "./artifacts",

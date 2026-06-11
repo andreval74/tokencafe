@@ -1,6 +1,6 @@
 # TokenCafe — CLAUDE.md
 
-> **Última revisão:** 2026-05-26 | Stack: PHP 8 · Vanilla JS ES Modules · Solidity ^0.8 · Hardhat · Bootstrap 5 Dark
+> **Última revisão:** 2026-06-11 | Stack: PHP 8 · Vanilla JS ES Modules · Solidity ^0.8 · Hardhat · Bootstrap 5 Dark
 
 ---
 
@@ -20,7 +20,7 @@
 - [ ] Li as Regras de Ouro (seção abaixo) e identifico qual se aplica?
 - [ ] O código que preciso já existe em `assets/js/shared/`?
 - [ ] Estou alterando um arquivo shared? → verificar TODOS os importers antes
-- [ ] É alteração em contrato? → está em `contracts/core/`, não em `contracts/legado/`?
+- [ ] É alteração em contrato? → usar sempre `contracts/core/`
 - [ ] Há risco de quebrar compatibilidade de assinatura de função?
 
 ---
@@ -97,7 +97,7 @@ tokencafe/
 │  ├─ templates/                ← Template gallery (coming soon)
 │  ├─ settings/                 ← Configurações do sistema (admin)
 │  ├─ profile/                  ← Perfil público do criador
-│  ├─ logs/                     ← Relatórios de acesso (admin only)
+│  ├─ relatorios/               ← Relatórios de acesso (admin only)
 │  ├─ analise/                  ← Análise de carteira
 │  ├─ network/                  ← Info de redes
 │  ├─ suporte/                  ← IA Chat (Groq + fallback Anthropic)
@@ -114,14 +114,13 @@ tokencafe/
 │  └─ imgs/
 │
 ├─ contracts/
-│  ├─ core/                     ← ✅ Contratos ATIVOS (usar sempre estes)
-│  │  ├─ TokenCafeFactory.sol   ← Fábrica principal com referral on-chain
-│  │  └─ TokenCafeERC20.sol     ← Template ERC-20 instanciado pela factory
-│  └─ legado/                   ← ⚠️ DESCONTINUADOS — apenas referência histórica
+│  └─ core/                     ← ✅ Contratos ATIVOS
+│     ├─ TokenCafeFactory.sol   ← Fábrica principal com referral on-chain
+│     └─ TokenCafeERC20.sol     ← Template ERC-20 instanciado pela factory
 │
 ├─ api/                         ← Backend Node.js — compilação Solidity (porta 3000)
-├─ docs/                        ← Documentação técnica por módulo/feature
-└─ test/                        ← Testes (Hardhat + Playwright E2E)
+├─ subgraph/                    ← The Graph (Fase 3 — schema + mappings prontos, aguarda deploy)
+└─ scripts/                     ← Deploy + ferramentas de manutenção
 ```
 
 ---
@@ -140,7 +139,7 @@ tokencafe/
 | **link** | `link` | `link/link-index.js` | Gerador de links compartilháveis com `?ref=` |
 | **link-token** | `link-token` | `link/link-token.js` | Recepção de link — adicionar token à carteira |
 | **token-admin** | `token-admin` | `modules/token-admin-index.js` | Admin de token (mint, burn, propriedades) |
-| **logs** | `logs` | `logs/logs-ui.js` | Logs admin (IP + SC) |
+| **relatorios** | `logs` | `relatorios/relatorios-ui.js` | Relatórios de acesso admin (IP + SC) |
 | **analise** | `analise` | `analise/analise-index.js` | Análise de contratos on-chain |
 | **suporte** | `ia-chat` | `suporte/ia-chat.js` | Chat IA (Groq + fallback Anthropic) |
 | **profile** | `profile` | `profile/user-profile.js` | Perfil público do criador |
@@ -281,21 +280,16 @@ createTokenWithERC20AndReferral(params, currency, referrer)  // ERC-20 + referra
 | `tokensale-separado` | Contrato de venda dedicado para token externo | Compile + Deploy |
 | `upgradeable-uups` | Proxy UUPS para upgrades futuros | Compile + Deploy |
 
-### Contratos Legados (`contracts/legado/`)
-
-Mantidos **apenas para referência histórica**. Não usar para novos deploys.
-Ver `docs/contract-deployment.md` para tutorial de uso do `TokenSale.sol` via Remix (widget legado).
-
 ### Compilação e Testes
 
 ```bash
 npm run compile                         # Compila contracts/core/
-npm run test                            # 24 testes Hardhat (todos passando)
+npm run test                            # Testes Hardhat (pasta test/ a criar)
 npm run test:e2e                        # Testes E2E Playwright
 npx hardhat run scripts/deploy-factory.js --network bscTestnet   # Deploy factory
 ```
 
-> **Hardhat config:** `paths.sources = "./contracts/core"` — evita conflito com legados.
+> **Hardhat config:** `paths.sources = "./contracts/core"`
 
 ---
 
@@ -330,7 +324,7 @@ BSC Mainnet (56) → Base → Polygon → ETH Mainnet
 ```
 
 Configurações de rede em `assets/js/modules/contrato/factory-config.js`.
-RPCs em `assets/js/shared/data/rpcs.json`.
+RPCs em `data/rpcs.json` (servido via raiz do servidor web).
 
 ### Auth Modal (Carteiras)
 
@@ -361,8 +355,6 @@ import { checkIsAdmin } from '../../shared/admin-security.js';
 ```
 
 **Páginas com bloqueio server-side (não-admin redirecionado):** `analytics`, `widget`, `templates`, `settings`, `tokens`, `token-add`, `token-manager`, `documentacao`, `verifica`
-
-Ver `docs/ADMIN-USUARIO-REGRAS.md` para tabela completa de permissões.
 
 ### Variáveis de Ambiente
 
@@ -469,7 +461,7 @@ define('BASE_URL', '');      // UPPER_CASE — constantes PHP
 
 ### ✅ FASE 1 — Concluída (2026-05-20)
 
-- Sistema de indicação (referral) on-chain com 24 testes Hardhat passando
+- Sistema de indicação (referral) on-chain implementado nos contratos
 - `url-params.js` — captura e persiste `?ref=` automaticamente
 - `token-storage.js` — registro localStorage de tokens criados
 - `token-manager.js` — lista tokens reais do usuário (sem mock data)
@@ -512,7 +504,6 @@ define('BASE_URL', '');      // UPPER_CASE — constantes PHP
 | 7 | Hardcoded URLs | Quebra entre local/produção | Usar `BASE_URL` (PHP) ou `window.location.origin` (JS) |
 | 8 | Chaves privadas no código | Risco de segurança crítico | Sempre `.env` + `.gitignore` |
 | 9 | Envelopar componentes em `tcd-card` duplicado | UI fica com “box dentro de box” e ocupa espaço vertical | Cada seção (Detalhes, Análise, etc.) deve ter seu próprio card; componentes não devem adicionar um card externo se já renderizam cards internos |
-| 9 | Usar contratos de `contracts/legado/` para novos deploys | Contratos sem suporte a referral e multi-chain | Usar `contracts/core/` |
 | 10 | `PLATFORM_WALLET` sem multisig | Risco de perda de receita | Gnosis Safe urgente |
 | 11 | Criar `rpc-manager.js` ou `rpc-interface.js` novos no módulo rpc | Esses são os nomes dos arquivos legados deletados | Usar `rpc-logic.js` + `rpc-index.js` |
 | 12 | Widget CaféIA criado como PHP (`cafeIA-widget.php`) | ia-widget.js cria o widget via JS — não usar PHP para isso | Modificar só `assets/js/shared/ia-widget.js` |
@@ -522,24 +513,6 @@ define('BASE_URL', '');      // UPPER_CASE — constantes PHP
 | 16 | Adicionar seletor de "carteira de cobrança" na pág. 2 (deploy) | A carteira é fixada na pág. 1 por verificação de saldo — trocar aqui causa inconsistência e confusão | A carteira de pagamento = sempre `state.wallet.signer` (definida na pág. 1, não editável no deploy) |
 | 17 | Usar `signer.getBalance()` para verificar saldo na pág. de deploy | Se o usuário usa WalletConnect ou troca de carteira, o provider de `window.ethereum` pode estar em rede diferente → saldo retorna 0 falso | Usar `walletConnector.getStatus().balance` (string, mesma fonte do header) e sobrescrever `_fees.isBalanceEnough` e `_fees.balanceCrypto` após `calculateFees` |
 | 18 | `hydrateOwnerHolderDefaults()` chamado em `bindUI()` no load da pág. 1 | Preenche campos owner/holder com endereço stale do localStorage (pode ser carteira de admin) | Preencher SOMENTE via evento `wallet:connected` / `wallet:accountChanged` |
-
----
-
-## 📚 Documentação por Módulo / Feature
-
-| Arquivo | Descreve |
-|---------|---------|
-| `docs/ADMIN-USUARIO-REGRAS.md` | Tabela completa de permissões admin vs usuário por área |
-| `docs/contract-workflow-cafe.md` | Grupos de contratos e fluxo de deploy no ecossistema |
-| `docs/contract-deployment.md` | Tutorial Remix IDE para TokenSale.sol (legado — usado pelo widget) |
-| `docs/contract-integration.md` | Como integrar contrato de venda com o widget |
-| `docs/vanity-addresses.md` | CREATE2 — geração de endereços personalizados "cafe" |
-| `docs/per-wallet-cap.md` | Limite de compra por carteira no contrato TokenSale |
-| `docs/offchain-delivery.md` | Entrega off-chain de tokens (fallback sem contrato de venda) |
-| `docs/network-search-component.md` | Componente declarativo de busca de redes (data-component) |
-| `docs/modulo-rpc.md` | Módulo RPC — arquivos, eventos, compatibilidade mobile |
-| `docs/modulo-widget.md` | Módulo Widget — fluxo, contratos, arquivos JS atuais |
-| `docs/verificacao-requisitos.md` | O que falta para ativar o módulo de verificação de contratos |
 
 ---
 
